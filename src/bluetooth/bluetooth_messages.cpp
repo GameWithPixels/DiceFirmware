@@ -1,6 +1,9 @@
-#include "BluetoothMessage.h"
+#include "bluetooth_messages.h"
 
-const char* DieMessage::GetMessageTypeString(DieMessage::MessageType msgType)
+namespace Bluetooth
+{
+
+const char* Message::GetMessageTypeString(Message::MessageType msgType)
 {
 	switch (msgType)
 	{
@@ -51,4 +54,5 @@ const char* DieMessage::GetMessageTypeString(DieMessage::MessageType msgType)
 	default:
 		return "<missing>";
 	}
+}
 }
