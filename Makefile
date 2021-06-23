@@ -3,14 +3,17 @@ TARGETS          := firmware
 OUTPUT_DIRECTORY := _build
 PUBLISH_DIRECTORY := binaries
 
-VERSION			 := 12_10
-
+VERSION			 := 06_23
 SDK_VER = 17
+JLINK = 851002454
+NRFUTIL := C:/Python27/Scripts/nrfutil
 
 ifeq ($(SDK_VER),17)
 	SDK_ROOT := C:/nRF5_SDK
+	SOFTDEVICE_HEX_FILE := s112_nrf52_7.2.0_softdevice.hex
 else
 	SDK_ROOT := C:/nRF5_SDK_old
+	SOFTDEVICE_HEX_FILE := s112_nrf52_6.1.1_softdevice.hex
 endif
 
 PROJ_DIR := .
@@ -322,63 +325,58 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 .PHONY: flash erase zip
 
 reset:
-	nrfjprog -f nrf52 -s 801001366 --reset
+	nrfjprog -f nrf52 -s $(JLINK) --reset
 
 hardreset:
-	nrfjprog -f nrf52 -s 801001366 --pinreset
+	nrfjprog -f nrf52 -s $(JLINK) --pinreset
 
 erase:
-	nrfjprog -f nrf52 -s 801001366 --eraseall
+	nrfjprog -f nrf52 -s $(JLINK) --eraseall
 
 ifeq ($(SDK_VER),12)
 zip: firmware_release
-	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0xB0 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip
+	$(NRFUTIL) pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0xB0 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip
 else
 zip: firmware_release
-	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0x103 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip
+	$(NRFUTIL) pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0x103 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip
 endif
 
 publish: zip
 	copy $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip $(PUBLISH_DIRECTORY)
 
 settings:
-	nrfutil settings generate --family NRF52810 --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --bootloader-version 0xff --bl-settings-version 1 $(OUTPUT_DIRECTORY)/firmware_settings.hex
+	$(NRFUTIL) settings generate --family NRF52810 --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --bootloader-version 0xff --bl-settings-version 1 $(OUTPUT_DIRECTORY)/firmware_settings.hex
 
 # Flash the program
 flash: firmware_debug settings
 	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware.hex
-	nrfjprog -f nrf52 -s 801001366 --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
-	nrfjprog -f nrf52 -s 801001366 --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
-	nrfjprog -f nrf52 -s 801001366 --reset
+	nrfjprog -f nrf52 -s $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
+	nrfjprog -f nrf52 -s $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
+	nrfjprog -f nrf52 -s $(JLINK) --reset
 
 # Flash the program
 flash_release: firmware_release settings
 	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware.hex
-	nrfjprog -f nrf52 -s 801001366 --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
-	nrfjprog -f nrf52 -s 801001366 --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
-	nrfjprog -f nrf52 -s 801001366 --reset
+	nrfjprog -f nrf52 -s $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
+	nrfjprog -f nrf52 -s $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
+	nrfjprog -f nrf52 -s $(JLINK) --reset
 
 # Flash over BLE, you must use DICE=D_XXXXXXX argument to make flash_ble
 # e.g. make flash_ble DICE=D_71902510
 flash_ble: zip
 	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip over BLE DFU
-	nrfutil dfu ble -cd 0 -ic NRF51 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip
+	$(NRFUTIL) dfu ble -cd 0 -ic NRF51 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip
 
 # Flash softdevice
 flash_softdevice:
-ifeq ($(SDK_VER),17)
-	@echo Flashing: s112_nrf52_7.2.0_softdevice.hex
-	nrfjprog -f nrf52 -s 801001366 --program c:/nRF5_SDK/components/softdevice/s112/hex/s112_nrf52_7.2.0_softdevice.hex --sectorerase
-else
-	@echo Flashing: s112_nrf52_6.1.1_softdevice.hex
-	nrfjprog -f nrf52 -s 801001366 --program c:/nRF5_SDK_old/components/softdevice/s112/hex/s112_nrf52_6.1.0_softdevice.hex --sectorerase
-endif
-	nrfjprog -f nrf52 -s 801001366 --reset
+	@echo Flashing: $(SOFTDEVICE_HEX_FILE)
+	nrfjprog -f nrf52 -s $(JLINK) --program $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE) --sectorerase
+	nrfjprog -f nrf52 -s $(JLINK) --reset
 
 flash_bootloader:
 	@echo Flashing: $(PROJ_DIR)/../Bootloader/_build/nrf52810_xxaa_s112.hex
-	nrfjprog -f nrf52 -s 801001366 --program $(PROJ_DIR)/../Bootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
-	nrfjprog -f nrf52 -s 801001366 --reset
+	nrfjprog -f nrf52 -s $(JLINK) --program $(PROJ_DIR)/../Bootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
+	nrfjprog -f nrf52 -s $(JLINK) --reset
 
 flash_board: erase flash_softdevice flash_bootloader flash
 

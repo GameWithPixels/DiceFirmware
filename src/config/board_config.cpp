@@ -124,6 +124,34 @@ namespace BoardManager
         .ledCount = 20,
     };
 
+    static const Board D20BoardV8 = {
+
+        // Measuring board type
+        .boardResistorValues = { 68000 }, // 68k Resistor
+
+        // Talking to LEDs
+        .ledDataPin =  1,
+        .ledClockPin = 0,
+        .ledPowerPin = 9,
+
+        // I2C Pins for accelerometer
+        .i2cDataPin = 12,
+        .i2cClockPin = 14,
+        .accInterruptPin = 15,
+
+        // Power Management pins
+        .chargingStatePin = 6,
+        .coilSensePin = NRF_SAADC_INPUT_AIN3,
+        .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+        .vledSensePin = NRF_SAADC_INPUT_AIN2,
+
+        // Magnet pin
+        .magnetPin = 0xFFFFFFFF,
+
+        // LED config
+        .ledCount = 20,
+    };
+
     // 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20   <-- prev
     // 01 12 18 08 10 19 04 06 05 07 14 16 15 17 02 11 13 03 09 20   <-- next
 
@@ -150,11 +178,15 @@ namespace BoardManager
         // So we can allow a decent
         const float vdd = 3.2f; // supply voltage 3.2V
         const float tolerance = 0.2f; // +- 0.2V
+        float D20V8BoardVoltage = (vdd * D20BoardV8.boardResistorValues[0]) / (float)(100000 + D20BoardV8.boardResistorValues[0]);
         float D20V5BoardVoltage1 = (vdd * D20BoardV5.boardResistorValues[0]) / (float)(100000 + D20BoardV5.boardResistorValues[0]);
         float D20V5BoardVoltage2 = (vdd * D20BoardV5.boardResistorValues[1]) / (float)(100000 + D20BoardV5.boardResistorValues[1]);
         float D20BoardVoltage = (vdd * D20Board.boardResistorValues[0]) / (float)(100000 + D20Board.boardResistorValues[0]);
         float D6BoardVoltage = (vdd * D6Board.boardResistorValues[0]) / (float)(100000 + D6Board.boardResistorValues[0]);
-        if ((vboard >= D20V5BoardVoltage1 - tolerance && vboard <= D20V5BoardVoltage1 + tolerance) ||
+        if (vboard >= D20V8BoardVoltage - tolerance && vboard <= D20V8BoardVoltage + tolerance) {
+            currentBoard = &D20BoardV8;
+            NRF_LOG_INFO("Board is D20v8, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vboard));
+        } else if ((vboard >= D20V5BoardVoltage1 - tolerance && vboard <= D20V5BoardVoltage1 + tolerance) ||
             (vboard >= D20V5BoardVoltage2 - tolerance && vboard <= D20V5BoardVoltage2 + tolerance)) {
             currentBoard = &D20BoardV5;
             NRF_LOG_INFO("Board is D20v5, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vboard));
