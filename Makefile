@@ -5,7 +5,12 @@ PUBLISH_DIRECTORY := binaries
 
 VERSION			 := 06_23
 SDK_VER = 17
-JLINK = 851002454
+# JLINK = 851002454 #- Plus Olivier
+# JLINK = 851002453 #- Plus Jean
+# JLINK = 821005567 #- Base
+# JLINK = 821005568 #- Base
+JLINK = #-s 821005566 #- Base
+
 NRFUTIL := C:/Python27/Scripts/nrfutil
 
 ifeq ($(SDK_VER),17)
@@ -325,13 +330,13 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 .PHONY: flash erase zip
 
 reset:
-	nrfjprog -f nrf52 -s $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --reset
 
 hardreset:
-	nrfjprog -f nrf52 -s $(JLINK) --pinreset
+	nrfjprog -f nrf52 $(JLINK) --pinreset
 
 erase:
-	nrfjprog -f nrf52 -s $(JLINK) --eraseall
+	nrfjprog -f nrf52 $(JLINK) --eraseall
 
 ifeq ($(SDK_VER),12)
 zip: firmware_release
@@ -350,16 +355,16 @@ settings:
 # Flash the program
 flash: firmware_debug settings
 	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware.hex
-	nrfjprog -f nrf52 -s $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
-	nrfjprog -f nrf52 -s $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
-	nrfjprog -f nrf52 -s $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --reset
 
 # Flash the program
 flash_release: firmware_release settings
 	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware.hex
-	nrfjprog -f nrf52 -s $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
-	nrfjprog -f nrf52 -s $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
-	nrfjprog -f nrf52 -s $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --reset
 
 # Flash over BLE, you must use DICE=D_XXXXXXX argument to make flash_ble
 # e.g. make flash_ble DICE=D_71902510
@@ -370,13 +375,13 @@ flash_ble: zip
 # Flash softdevice
 flash_softdevice:
 	@echo Flashing: $(SOFTDEVICE_HEX_FILE)
-	nrfjprog -f nrf52 -s $(JLINK) --program $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE) --sectorerase
-	nrfjprog -f nrf52 -s $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE) --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --reset
 
 flash_bootloader:
 	@echo Flashing: $(PROJ_DIR)/../Bootloader/_build/nrf52810_xxaa_s112.hex
-	nrfjprog -f nrf52 -s $(JLINK) --program $(PROJ_DIR)/../Bootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
-	nrfjprog -f nrf52 -s $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(PROJ_DIR)/../Bootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --reset
 
 flash_board: erase flash_softdevice flash_bootloader flash
 
