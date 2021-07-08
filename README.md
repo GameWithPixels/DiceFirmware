@@ -48,7 +48,7 @@ We're using the 5.2 build that can be downloaded from [GitHub](https://github.co
 
 The version of the firmware is defined by the variable `VERSION` in the _Makefile_.
 
-_Note: when switching between debug and release builds, be sure to first delete the _builds folder first._
+_Note: when switching between debug and release builds, be sure to first delete the \_builds folder first._
 
 ## Output logs in Visual Studio Code
 
