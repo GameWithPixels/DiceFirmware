@@ -11,7 +11,7 @@ SDK_VER = 17
 # JLINK = 821005568 #- Base
 JLINK = #-s 821005566 #- Base
 
-NRFUTIL := C:/Python27/Scripts/nrfutil
+NRFUTIL := nrfutil.exe
 
 ifeq ($(SDK_VER),17)
 	SDK_ROOT := C:/nRF5_SDK
@@ -347,7 +347,7 @@ zip: firmware_release
 endif
 
 publish: zip
-	copy $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_$(SDK_VER).zip $(PUBLISH_DIRECTORY)
+	copy $(OUTPUT_DIRECTORY)\firmware_$(VERSION)_$(SDK_VER).zip $(PUBLISH_DIRECTORY)
 
 settings:
 	$(NRFUTIL) settings generate --family NRF52810 --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --bootloader-version 0xff --bl-settings-version 1 $(OUTPUT_DIRECTORY)/firmware_settings.hex
@@ -385,7 +385,6 @@ flash_bootloader:
 
 flash_board: erase flash_softdevice flash_bootloader flash
 
+reflash: erase flash_softdevice flash
 
-reflash:  erase  flash  flash_softdevice
-
-reflash_release: erase flash_release flash_softdevice
+reflash_release: erase flash_softdevice flash_release
