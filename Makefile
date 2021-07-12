@@ -11,7 +11,7 @@ SDK_VER = 17
 # JLINK = 821005568 #- Base
 JLINK = #-s 821005566 #- Base
 
-NRFUTIL := nrfutil.exe
+NRFUTIL := ../nrfutil.exe
 
 ifeq ($(SDK_VER),17)
 	SDK_ROOT := C:/nRF5_SDK
@@ -379,8 +379,8 @@ flash_softdevice:
 	nrfjprog -f nrf52 $(JLINK) --reset
 
 flash_bootloader:
-	@echo Flashing: $(PROJ_DIR)/../Bootloader/_build/nrf52810_xxaa_s112.hex
-	nrfjprog -f nrf52 $(JLINK) --program $(PROJ_DIR)/../Bootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
+	@echo Flashing: $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex
+	nrfjprog -f nrf52 $(JLINK) --program $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
 	nrfjprog -f nrf52 $(JLINK) --reset
 
 flash_board: erase flash_softdevice flash_bootloader flash
