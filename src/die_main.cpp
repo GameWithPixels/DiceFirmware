@@ -75,12 +75,10 @@ namespace Die
     void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace);
     void SendRollState(Accelerometer::RollState rollState, int face);
     void PlayLEDAnim(void* context, const Message* msg);
-    void PlayAnimEvent(void* context, const Message* msg);
     void StopLEDAnim(void* context, const Message* msg);
 	void EnterStandardState(void* context, const Message* msg);
 	void EnterLEDAnimState(void* context, const Message* msg);
 	void EnterBattleState(void* context, const Message* msg);
-    void StartAttractMode(void* context, const Message* msg);
 
     void onConnection(void* token, bool connected);
 

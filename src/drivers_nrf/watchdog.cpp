@@ -5,7 +5,7 @@
 
 static nrf_drv_wdt_channel_id m_channel_id;
 
-#define RESET_FLAG_TIME_MS 30000
+#define RESET_FLAG_TIME_MS 3000
 
 namespace DriversNRF
 {
