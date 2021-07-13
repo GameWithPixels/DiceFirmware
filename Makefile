@@ -1,9 +1,9 @@
-PROJECT_NAME     := Firmware
-TARGETS          := firmware
-OUTPUT_DIRECTORY := _build
-PUBLISH_DIRECTORY := binaries
+#PROJECT_NAME = Firmware don't know what this is used for
+TARGETS = firmware_d firmware # debug and release targets
+OUTPUT_DIRECTORY = _build
+PUBLISH_DIRECTORY = binaries
 
-VERSION			 := 07_12_21
+VERSION = 07_12_21
 SDK_VER = 17
 # JLINK = 851002454 #- Plus Olivier
 # JLINK = 851002453 #- Plus Jean
@@ -11,7 +11,9 @@ SDK_VER = 17
 # JLINK = 821005568 #- Base
 JLINK = #-s 821005566 #- Base
 
-NRFUTIL := nrfutil.exe
+PROJ_DIR = .
+LINKER_SCRIPT = Firmware.ld
+NRFUTIL = nrfutil.exe
 
 ifeq ($(SDK_VER),17)
 	SDK_ROOT := C:/nRF5_SDK
@@ -21,13 +23,10 @@ else
 	SOFTDEVICE_HEX_FILE := s112_nrf52_6.1.1_softdevice.hex
 endif
 
-PROJ_DIR := .
-
-$(OUTPUT_DIRECTORY)/firmware.out: \
-	LINKER_SCRIPT  := Firmware.ld
+# Default target - first one defined
+.PHONY: default
+default: firmware_debug
  
-	#$(SDK_ROOT)/components/libraries/util/app_error.c
-	#$(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
 # Source files common to all targets
 SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52810.S \
@@ -132,6 +131,8 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/utils/abi.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
 	$(PROJ_DIR)/src/utils/utils.cpp \
+	# $(SDK_ROOT)/components/libraries/util/app_error.c \
+	# $(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
 	# $(SDK_ROOT)/components/ble/peer_manager/peer_data_storage.c \
 	# $(SDK_ROOT)/components/ble/peer_manager/peer_database.c \
 	# $(SDK_ROOT)/components/ble/peer_manager/peer_id.c \
@@ -260,6 +261,13 @@ COMMON_FLAGS += -DFIRMWARE_VERSION=\"$(VERSION)\"
 COMMON_FLAGS += -DSDK_VER=$(SDK_VER)
 
 # COMMON_FLAGS += -DDEVELOP_IN_NRF52832
+
+# Storage address
+FSTORAGE_ADDR = 0x26000
+firmware_debug: FSTORAGE_ADDR = 0x2E000
+COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR)
+
+# Debug flags
 DEBUG_FLAGS = -DNRF_LOG_ENABLED=0
 DEBUG_FLAGS += -DDICE_SELFTEST=0
 
@@ -268,12 +276,6 @@ firmware_debug: DEBUG_FLAGS += -DDEBUG_NRF
 firmware_debug: DEBUG_FLAGS += -DNRF_LOG_ENABLED=1
 
 COMMON_FLAGS += $(DEBUG_FLAGS)
-
-FSTORAGE_ADDR_DEFINES = -DFSTORAGE_START=0x2E000
-
-firmware_release: FSTORAGE_ADDR_DEFINES = -DFSTORAGE_START=0x26000
-
-COMMON_FLAGS += $(FSTORAGE_ADDR_DEFINES)
 
 # C flags common to all targets
 CFLAGS += $(OPT)
@@ -304,40 +306,114 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += --specs=nano.specs
 #LDFLAGS += -u _printf_float
 
-firmware: CFLAGS += -D__HEAP_SIZE=2048
-firmware: CFLAGS += -D__STACK_SIZE=2048
-firmware: ASMFLAGS += -D__HEAP_SIZE=2048
-firmware: ASMFLAGS += -D__STACK_SIZE=2048
+CFLAGS += -D__HEAP_SIZE=2048
+CFLAGS += -D__STACK_SIZE=2048
+ASMFLAGS += -D__HEAP_SIZE=2048
+ASMFLAGS += -D__STACK_SIZE=2048
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.
 LIB_FILES += -lc -lnosys -lm
 
-firmware_debug: firmware
-firmware_release: firmware
-
-.PHONY: default
-
-# Default target - first one defined
-default: firmware_debug
- 
+# Generate build command for each target
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
-
 include $(TEMPLATE_PATH)/Makefile.common
-
 $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
-.PHONY: flash erase zip
+# Settings
+SETTINGS_FLAGS := --family NRF52810 --application-version 0xff --bootloader-version 0xff --bl-settings-version 1
 
+settings_d: firmware_d
+	$(NRFUTIL) settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_d.hex $(OUTPUT_DIRECTORY)/firmware_settings_d.hex
+
+settings: firmware
+	$(NRFUTIL) settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
+
+#
+# Common commands
+#
+
+.PHONY: reset
 reset:
 	nrfjprog -f nrf52 $(JLINK) --reset
 
+.PHONY: hardreset
 hardreset:
 	nrfjprog -f nrf52 $(JLINK) --pinreset
 
+.PHONY: erase
 erase:
 	nrfjprog -f nrf52 $(JLINK) --eraseall
 
+.PHONY: flash_softdevice
+flash_softdevice:
+	@echo ==== Flashing: $(SOFTDEVICE_HEX_FILE) ====
+	nrfjprog -f nrf52 $(JLINK) --program $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE) --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --reset
+
+.PHONY: flash_bootloader
+flash_bootloader:
+	@echo ==== Flashing: $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex ====
+	nrfjprog -f nrf52 $(JLINK) --program $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --reset
+
+#
+# Debug commands
+#
+
+.PHONY: firmware_debug
+firmware_debug: firmware_d
+
+.PHONY: settings_debug
+settings_debug: settings_d
+
+# Flash the program
+.PHONY: flash
+flash: firmware_debug settings_debug
+	@echo ==== Flashing: $(OUTPUT_DIRECTORY)/firmware_d.hex ====
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_d.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings_d.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --reset
+
+.PHONY: reflash
+reflash: erase flash_softdevice flash
+
+#
+# Release commands
+#
+
+.PHONY: firmware_release
+firmware_release: firmware
+
+.PHONY: settings_release
+settings_release: settings
+
+# Flash the program
+.PHONY: flash_release
+flash_release: firmware_release settings_release
+	@echo ==== Flashing: $(OUTPUT_DIRECTORY)/firmware.hex ====
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --reset
+
+.PHONY: reflash_release
+reflash_release: erase flash_softdevice flash_release
+
+.PHONY: flash_board
+flash_board: erase flash_softdevice flash_bootloader flash_release
+
+# Flash over BLE, you must use DICE=D_XXXXXXX argument to make flash_ble
+# e.g. make flash_ble DICE=D_71902510
+.PHONY: flash_ble
+flash_ble: zip
+	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip over BLE DFU
+	$(NRFUTIL) dfu ble -cd 0 -ic NRF51 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+
+#
+# Publishing commands
+#
+
+.PHONY: zip
 ifeq ($(SDK_VER),12)
 zip: firmware_release
 	$(NRFUTIL) pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0xB0 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
@@ -346,45 +422,6 @@ zip: firmware_release
 	$(NRFUTIL) pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0x103 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
 endif
 
+.PHONY: publish
 publish: zip
 	copy $(OUTPUT_DIRECTORY)\firmware_$(VERSION)_sdk$(SDK_VER).zip $(PUBLISH_DIRECTORY)
-
-settings:
-	$(NRFUTIL) settings generate --family NRF52810 --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --bootloader-version 0xff --bl-settings-version 1 $(OUTPUT_DIRECTORY)/firmware_settings.hex
-
-# Flash the program
-flash: firmware_debug settings
-	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware.hex
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --reset
-
-# Flash the program
-flash_release: firmware_release settings
-	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware.hex
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --reset
-
-# Flash over BLE, you must use DICE=D_XXXXXXX argument to make flash_ble
-# e.g. make flash_ble DICE=D_71902510
-flash_ble: zip
-	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip over BLE DFU
-	$(NRFUTIL) dfu ble -cd 0 -ic NRF51 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
-
-# Flash softdevice
-flash_softdevice:
-	@echo Flashing: $(SOFTDEVICE_HEX_FILE)
-	nrfjprog -f nrf52 $(JLINK) --program $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE) --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --reset
-
-flash_bootloader:
-	@echo Flashing: $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex
-	nrfjprog -f nrf52 $(JLINK) --program $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --reset
-
-flash_board: erase flash_softdevice flash_bootloader flash
-
-reflash: erase flash_softdevice flash
-
-reflash_release: erase flash_softdevice flash_release

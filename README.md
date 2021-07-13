@@ -47,26 +47,29 @@ The output files are placed in the `_builds` folder, by default those are debug 
 
 ## Programming a Pixel electronic board with _make_
 
-Using the provided _Makefile_ you may:
+Using the project's _Makefile_ you may:
 
 * `reset`: restart the device
 * `erase`: entirely erase the flash memory
-* `settings`: generate firmware_settings.hex
-
-For debug builds:
-
-* `firmware_debug` (default): produce a debug build of the firmware
-* `flash`: program the firmware into the die's memory and reboot the device
 * `flash_softdevice`: program the _SoftDevice_ into the die's memory and reboot the device
 * `flash_bootloader`: program the bootloader into the die's memory and reboot the device
-* `flash_board`: call `erase`, `flash_bootloader`, `flash_softdevice` and `flash` in a sequence
+
+__For debug builds:__
+
+* `firmware_debug` (default): produce a debug build of the firmware => `firmware_d.hex`
+* `settings_debug`: generate the bootloader settings page for a debug build
+* `flash`: program the firmware into the die's memory and reboot the device
 * `reflash`:call `erase`, `flash_softdevice` and `flash` in a sequence
 
-For release builds:
+_Note: debug builds being somewhat bigger then release ones, we usually don't flash the bootloader with with them to save memory._
 
-* `firmware_release`: produce a release build of the firmware
+__For release builds:__
+
+* `firmware_release`: produce a release build of the firmware => `firmware.hex`
+* `settings_release`: generate the bootloader settings page for a release build
 * `flash_release`: program the firmware into the die's memory and reboot the device
 * `reflash_release`: call `erase`, `flash_softdevice` and `flash_release` in a sequence
+* `flash_board`: call `erase`, `flash_softdevice`, `flash_bootloader` and `flash_release` in a sequence
 * `publish`: produce a zipped DFU package (also copied in the `binaries` folder)
 
 The last command requires `nRF Util` to produce the DFU package (see documentation [here](https://infocenter.nordicsemi.com/topic/ug_nrfutil/UG/nrfutil/nrfutil_intro.html) about this tool). DFU packages can be pushed on dice via Bluetooth using Nordic's nRF Toolbox (available on mobile).
@@ -75,8 +78,6 @@ The _Makefile_ expects to find `nrfutil.exe`. Search for `NRFUTIL` to set a diff
 We're using the 5.2 build that can be downloaded from [GitHub](https://github.com/NordicSemiconductor/pc-nrfutil/releases/tag/v5.2.0).
 
 The version of the firmware is defined by the variable `VERSION` in the _Makefile_.
-
-_Note: when switching between debug and release builds, be sure to first delete the \_builds folder first._
 
 ## Output logs in Visual Studio Code
 
