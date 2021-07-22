@@ -28,7 +28,7 @@ nrfjprog -f nrf52 --program firmware.hex --sectorerase
 nrfjprog -f nrf52 --reset
 ```
 
-You may find firmware releases such as this [one](binaries/hex/firmware_12_07_21_sdk17.hex) in the `binaries/hex` sub-folder.
+Firmware releases are available [here](https://github.com/GameWithPixels/DiceFirmware/releases). To program the board, download the .hex file from the latest release, and run the commands above from the folder where the .hex file was saved (be sure to change `firmware.hex` in the command to the correct filename).
 
 ## Building The Firmware
 

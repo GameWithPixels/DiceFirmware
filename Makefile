@@ -3,7 +3,7 @@ TARGETS = firmware_d firmware # debug and release targets
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 
-VERSION = 07_12_21
+VERSION = 07_22_21
 SDK_VER = 17
 # JLINK = 851002454 #- Plus Olivier
 # JLINK = 851002453 #- Plus Jean
