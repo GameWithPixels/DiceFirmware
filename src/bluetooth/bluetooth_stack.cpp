@@ -447,26 +447,26 @@ namespace Stack
         strcpy(advertisingName, SettingsManager::getSettings()->name);
         ret_code_t err_code = sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *)advertisingName, strlen(advertisingName));
         APP_ERROR_CHECK(err_code);
-
-
     }
 
     void initCustomAdvertisingData() {
         // Initialize the custom advertising data
         customAdvertisingData.deviceId = Die::getDeviceID();
         customAdvertisingData.batteryLevel = (uint8_t)(BatteryController::getCurrentLevel() * 255.0f);
-        customAdvertisingData.currentFace = Accelerometer::currentFace();
-        customAdvertisingData.rollState = Accelerometer::currentRollState();
+        customAdvertisingData.currentFace = 0;
+        customAdvertisingData.rollState = Accelerometer::RollState_Unknown;
         adv_data.p_manuf_specific_data->company_identifier = (uint16_t)Config::BoardManager::getBoard()->ledCount << 8 | (uint16_t)Config::SettingsManager::getSettings()->designAndColor;
 
-#if SDK_VER == 12
+#if SDK_VER == 17
+        ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
+#elif SDK_VER == 12
         // Update advertising data
         ret_code_t err_code = ble_advdata_encode(&adv_data, m_sp_advdata_buf.adv_data.p_data, &m_sp_advdata_buf.adv_data.len);
         APP_ERROR_CHECK(err_code);
 
         err_code = ble_advdata_encode(&sr_data, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
-        APP_ERROR_CHECK(err_code);
 #endif
+        APP_ERROR_CHECK(err_code);
     }
 
     void onBatteryLevelChange(void* param, float newLevel) {
@@ -480,14 +480,16 @@ namespace Stack
     void updateCustomAdvertisingDataBattery(float batteryLevel) {
         customAdvertisingData.batteryLevel = (uint8_t)(batteryLevel * 255.0f);
 
-#if SDK_VER == 12
+#if SDK_VER == 17
+        ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
+#elif SDK_VER == 12
         // Update advertising data
         ret_code_t err_code = ble_advdata_encode(&adv_data, m_sp_advdata_buf.adv_data.p_data, &m_sp_advdata_buf.adv_data.len);
         APP_ERROR_CHECK(err_code);
 
         err_code = ble_advdata_encode(&sr_data, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
-        APP_ERROR_CHECK(err_code);
 #endif
+        APP_ERROR_CHECK(err_code);
     }
 
     void updateCustomAdvertisingDataState(Accelerometer::RollState newState, int newFace) {
@@ -495,14 +497,16 @@ namespace Stack
         customAdvertisingData.currentFace = newFace;
         customAdvertisingData.rollState = newState;
 
-#if SDK_VER == 12
+#if SDK_VER == 17
+        ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
+#elif SDK_VER == 12
         // Update advertising data
         ret_code_t err_code = ble_advdata_encode(&adv_data, m_sp_advdata_buf.adv_data.p_data, &m_sp_advdata_buf.adv_data.len);
         APP_ERROR_CHECK(err_code);
 
         err_code = ble_advdata_encode(&sr_data, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
-        APP_ERROR_CHECK(err_code);
 #endif
+        APP_ERROR_CHECK(err_code);
     }
 
     void disconnectLink(uint16_t conn_handle, void * p_context) {
@@ -532,7 +536,21 @@ namespace Stack
     }
 
     void startAdvertising() {
-        ret_code_t err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+        customAdvertisingData.currentFace = Accelerometer::currentFace();
+        customAdvertisingData.rollState = Accelerometer::currentRollState();
+
+#if SDK_VER == 17
+        ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
+#elif SDK_VER == 12
+        // Update advertising data
+        ret_code_t err_code = ble_advdata_encode(&adv_data, m_sp_advdata_buf.adv_data.p_data, &m_sp_advdata_buf.adv_data.len);
+        APP_ERROR_CHECK(err_code);
+
+        err_code = ble_advdata_encode(&sr_data, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
+#endif
+        APP_ERROR_CHECK(err_code);
+
+        err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
         APP_ERROR_CHECK(err_code);
         NRF_LOG_INFO("Starting advertising as %s", advertisingName);
     }
