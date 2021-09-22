@@ -12,7 +12,7 @@
         {
             "name": "Cortex Debug",
             "cwd": "${workspaceRoot}",
-            "executable": "_build/firmware.out",
+            "executable": "_build/firmware_d.out",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "jlink",
@@ -25,7 +25,7 @@
         {
             "name": "Cortex Attach",
             "cwd": "${workspaceRoot}",
-            "executable": "_build/firmware.out",
+            "executable": "_build/firmware_d.out",
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "jlink",

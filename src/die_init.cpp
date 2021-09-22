@@ -19,7 +19,10 @@
 #include "config/settings.h"
 
 #include "drivers_hw/apa102.h"
+#include "drivers_hw/neopixel.h"
 #include "drivers_hw/lis2de12.h"
+#include "drivers_hw/kxtj3-1057.h"
+#include "drivers_hw/mxc4005xc.h"
 #include "drivers_hw/battery.h"
 #include "drivers_hw/magnet.h"
 
@@ -31,6 +34,7 @@
 #include "data_set/data_set.h"
 
 #include "modules/led_color_tester.h"
+#include "modules/leds.h"
 #include "modules/accelerometer.h"
 #include "modules/anim_controller.h"
 #include "modules/animation_preview.h"
@@ -127,11 +131,12 @@ namespace Die
         BoardManager::init();
 
         // Magnet, so we know if ne need to go into quiet mode
-        Magnet::init(); 
+        //Magnet::init(); 
         
         // Now that we know which board we are, initialize the battery monitoring A2D
         A2D::initBoardPins();
 
+        
         // The we read user settings from flash, or set some defaults if none are found
         SettingsManager::init([] (bool result) {
 
@@ -149,10 +154,31 @@ namespace Die
             //--------------------
 
             // Lights also depend on board info
-            APA102::init();
+            switch (BoardManager::getBoard()->ledModel) {
+                case LEDModel::APA102:
+                    APA102::init();
+                    break;
+                case LEDModel::NEOPIXEL_RGB:
+                case LEDModel::NEOPIXEL_GRB:
+                    NeoPixel::init();
+                    break;
+            }
 
             // Accel pins depend on the board info
-            LIS2DE12::init();
+            switch (BoardManager::getBoard()->accModel) {
+                case Config::AccelerometerModel::LID2DE12:
+                    LIS2DE12::init();
+                    break;
+                case Config::AccelerometerModel::KXTJ3_1057:
+                    KXTJ3::init();
+                    break;
+                case Config::AccelerometerModel::MXC4005XC:
+                    MXC4005XC::init();
+                    break;
+                default:
+                    NRF_LOG_ERROR("Invalid Accelerometer Model");
+                    break;
+            }
 
             // Battery sense pin depends on board info
             Battery::init();
@@ -163,6 +189,9 @@ namespace Die
 
             // Animation set needs flash and board info
             DataSet::init([] (bool result) {
+
+                // Animation controller relies on animation set
+                LEDs::init();
 
                 // Useful for development
                 LEDColorTester::init();

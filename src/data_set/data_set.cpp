@@ -64,8 +64,6 @@ namespace DataSet
 				size = computeDataSetSize();
 				hash = computeDataSetHash();
 
-				PowerManager::clearClearSettingsAndDataSet();
-
 				MessageService::RegisterMessageHandler(Message::MessageType_TransferAnimSet, nullptr, ReceiveDataSetHandler);
 				NRF_LOG_INFO("DataSet initialized, size=0x%x, hash=0x%08x", size, hash);
 				auto callBackCopy = _callback;
@@ -76,10 +74,7 @@ namespace DataSet
 			};
 
 		//ProgramDefaultDataSet();
-		if (PowerManager::getClearSettingsAndDataSet()) {
-			NRF_LOG_INFO("Watchdog indicates dataset might be bad, programming default");
-			ProgramDefaultDataSet(*SettingsManager::getSettings(), finishInit);
-		} else if (!CheckValid()) {
+        if (!CheckValid()) {
 			NRF_LOG_INFO("Animation Set not valid, programming default");
 			ProgramDefaultDataSet(*SettingsManager::getSettings(), finishInit);
 		} else {

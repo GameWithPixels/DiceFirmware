@@ -77,8 +77,9 @@ SRC_FILES += \
 	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_twi.c \
 	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_saadc.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_wdt.c \
@@ -108,8 +109,11 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \
 	$(PROJ_DIR)/src/drivers_hw/apa102.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
+	$(PROJ_DIR)/src/drivers_hw/kxtj3-1057.cpp \
 	$(PROJ_DIR)/src/drivers_hw/lis2de12.cpp \
 	$(PROJ_DIR)/src/drivers_hw/magnet.cpp \
+	$(PROJ_DIR)/src/drivers_hw/mxc4005xc.cpp \
+	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/a2d.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/dfu.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/flash.cpp \
@@ -125,6 +129,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/animation_preview.cpp \
 	$(PROJ_DIR)/src/modules/behavior_controller.cpp \
 	$(PROJ_DIR)/src/modules/led_color_tester.cpp \
+	$(PROJ_DIR)/src/modules/leds.cpp \
 	$(PROJ_DIR)/src/modules/battery_controller.cpp \
 	$(PROJ_DIR)/src/modules/hardware_test.cpp \
 	$(PROJ_DIR)/src/modules/rssi_controller.cpp \

@@ -25,9 +25,6 @@ namespace APA102
 	static uint8_t numLEDs;
 	static uint8_t dataPin;
 	static uint8_t clockPin;
-	static uint8_t powerPin;
-
-	DelegateArray<APA102ClientMethod, MAX_APA102_CLIENTS> ledPowerClients;
 
 	void init() {
 
@@ -35,29 +32,15 @@ namespace APA102
 		auto board = BoardManager::getBoard();
 		dataPin = board->ledDataPin;
 		clockPin = board->ledClockPin;
-		powerPin = board->ledPowerPin;
 		numLEDs = board->ledCount;
 		clear();
 
 		// Initialize the pins
-		nrf_gpio_cfg(dataPin,
-    		NRF_GPIO_PIN_DIR_OUTPUT,
-    		NRF_GPIO_PIN_INPUT_DISCONNECT,
-    		NRF_GPIO_PIN_NOPULL,
-			NRF_GPIO_PIN_S0S1,
-    		NRF_GPIO_PIN_NOSENSE);
+		nrf_gpio_cfg_output(dataPin);
+		nrf_gpio_cfg_output(clockPin);
 
-		nrf_gpio_cfg(clockPin,
-    		NRF_GPIO_PIN_DIR_OUTPUT,
-    		NRF_GPIO_PIN_INPUT_DISCONNECT,
-    		NRF_GPIO_PIN_NOPULL,
-			NRF_GPIO_PIN_S0S1,
-    		NRF_GPIO_PIN_NOSENSE);
-
-		nrf_gpio_cfg_output(powerPin);
 		nrf_gpio_pin_clear(dataPin);
 		nrf_gpio_pin_clear(clockPin);
-		nrf_gpio_pin_clear(powerPin);
 
 
 		#if DICE_SELFTEST && APA102_SELFTEST
@@ -85,42 +68,15 @@ namespace APA102
 		}
 	}
 
-	void prepare(void) {
-		// Sets the power pin on, but doesn't write any data
-		// Turn power on so we display something!!!
-		if (nrf_gpio_pin_out_read(powerPin) == 0) {
+	void show(uint32_t* colors) {
 
-			// Notify clients we're turning led power on
-			for (int i = 0; i < ledPowerClients.Count(); ++i) {
-				ledPowerClients[i].handler(ledPowerClients[i].token, true);
-			}
-
-			nrf_gpio_pin_set(powerPin);
-			nrf_delay_ms(2); // Anything less than 2ms before toggling data/clk lines will cause artifacts
-		}
-	}
-
-	void show(void) {
-
-		// Are all the physical leds already all off?
-		bool powerOff = nrf_gpio_pin_out_read(powerPin) == 0;
-
-		// Do we want all the leds to be off?
-		bool allOff = true;
 		for (int i = 0; i < numLEDs; ++i) {
-			if (pixels[i * 3 + 0] != 0 || pixels[i * 3 + 1] != 0 || pixels[i * 3 + 2] != 0) {
-				allOff = false;
-				break;
-			}
+			uint32_t c = colors[i];
+			uint8_t *p = &pixels[i * 3];
+			p[OFFSET_RED] = (uint8_t)(c >> 16);
+			p[OFFSET_GREEN] = (uint8_t)(c >> 8);
+			p[OFFSET_BLUE] = (uint8_t)c;
 		}
-
-		if (powerOff && allOff) {
-			// Displaying all black and we've already turned every led off
-			return;
-		}
-
-		// Turn power on so we display something!!!
-		prepare();
 
 		uint8_t *ptr = pixels;            // -> LED data
 		uint16_t n = numLEDs;              // Counter
@@ -140,112 +96,9 @@ namespace APA102
 			swSpiOut(0xFF); // End-frame marker (see note above)
 		}
 
-		if (allOff) {
-			// Turn power off too
-			//nrf_delay_ms(1);
-			nrf_gpio_pin_clear(powerPin);
-			nrf_gpio_pin_clear(dataPin);
-			nrf_gpio_pin_clear(clockPin);
-
-			// Notify clients we're turning led power off
-			for (int i = 0; i < ledPowerClients.Count(); ++i) {
-				ledPowerClients[i].handler(ledPowerClients[i].token, false);
-			}
-		}
+        nrf_gpio_pin_clear(dataPin);
+        nrf_gpio_pin_clear(clockPin);
 	}
-
-	// Set pixel color, separate R,G,B values (0-255 ea.)
-	void setPixelColor(
-		uint16_t n, uint8_t r, uint8_t g, uint8_t b) {
-		if (n < numLEDs) {
-			uint8_t *p = &pixels[n * 3];
-			p[OFFSET_RED] = r;
-			p[OFFSET_GREEN] = g;
-			p[OFFSET_BLUE] = b;
-		}
-	}
-
-	// Set pixel color, 'packed' RGB value (0x000000 - 0xFFFFFF)
-	void setPixelColor(uint16_t n, uint32_t c) {
-		if (n < numLEDs) {
-			uint8_t *p = &pixels[n * 3];
-			p[OFFSET_RED] = (uint8_t)(c >> 16);
-			p[OFFSET_GREEN] = (uint8_t)(c >> 8);
-			p[OFFSET_BLUE] = (uint8_t)c;
-		}
-	}
-
-    void setAll(uint32_t c) {
-		for (int i = 0; i < numLEDs; ++i) {
-			uint8_t *p = &pixels[i * 3];
-			p[OFFSET_RED] = (uint8_t)(c >> 16);
-			p[OFFSET_GREEN] = (uint8_t)(c >> 8);
-			p[OFFSET_BLUE] = (uint8_t)c;
-		}
-	}
-
-	void setPixelColors(int* indices, uint32_t* colors, int count)
-	{
-		for (int i = 0; i < count; ++i) {
-			int n = indices[i];
-			uint32_t c = colors[i];
-			if (n < numLEDs) {
-				uint8_t *p = &pixels[n * 3];
-				p[OFFSET_RED] = (uint8_t)(c >> 16);
-				p[OFFSET_GREEN] = (uint8_t)(c >> 8);
-				p[OFFSET_BLUE] = (uint8_t)c;
-			}
-		}
-	}
-
-    void setPixelColors(uint32_t* colors) {
-		for (int i = 0; i < numLEDs; ++i) {
-			uint32_t c = colors[i];
-			uint8_t *p = &pixels[i * 3];
-			p[OFFSET_RED] = (uint8_t)(c >> 16);
-			p[OFFSET_GREEN] = (uint8_t)(c >> 8);
-			p[OFFSET_BLUE] = (uint8_t)c;
-		}
-	}
-
-
-	// Convert separate R,G,B to packed value
-	uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
-		return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
-	}
-
-	// Read color from previously-set pixel, returns packed RGB value.
-	uint32_t getPixelColor(uint16_t n) {
-		if (n >= numLEDs) return 0;
-		uint8_t *p = &pixels[n * 3];
-		return ((uint32_t)p[OFFSET_RED] << 16) |
-			((uint32_t)p[OFFSET_GREEN] << 8) |
-			(uint32_t)p[OFFSET_BLUE];
-	}
-
-	uint16_t numPixels() { // Ret. strip length
-		return numLEDs;
-	}
-
-	// Return pointer to the library's pixel data buffer.  Use carefully,
-	// much opportunity for mayhem.  It's mostly for code that needs fast
-	// transfers, e.g. SD card to LEDs.  Color data is in BGR order.
-	uint8_t* getPixels() {
-		return pixels;
-	}
-
-	void hookPowerState(APA102ClientMethod method, void* param) {
-		ledPowerClients.Register(param, method);
-	}
-
-	void unHookPowerState(APA102ClientMethod method) {
-		ledPowerClients.UnregisterWithHandler(method);
-	}
-
-	void unHookPowerStateWithParam(void* param) {
-		ledPowerClients.UnregisterWithToken(param);
-	}
-
 
 	#if DICE_SELFTEST && APA102_SELFTEST
 	void selfTest() {
@@ -280,40 +133,3 @@ namespace APA102
 	#endif
 }
 }
-
-// // Slightly different, this makes the rainbow equally distributed throughout
-// void rainbowCycle(uint8_t wait, uint8_t intensity)
-// {
-// 	uint16_t i, j;
-
-// 	for (j = 0; j<256; j++)
-// 	{
-// 		for (i = 0; i< NUMPIXELS; i++)
-// 		{
-// 			strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255, intensity));
-// 		}
-// 		strip.show();
-// 		nrf_delay_ms(wait);
-// 	}
-// }
-
-// // Slightly different, this makes the rainbow equally distributed throughout
-// void rainbowAll(int repeat, uint8_t wait, uint8_t intensity)
-// {
-// 	uint16_t i, j;
-
-// 	for (int k = 0; k < repeat; ++k)
-// 	{
-// 		for (j = 0; j<256; j++)
-// 		{
-// 			uint32_t color = Wheel(j, intensity);
-// 			for (i = 0; i< NUMPIXELS; i++)
-// 			{
-// 				strip.setPixelColor(i, color);
-// 			}
-// 			strip.show();
-// 			nrf_delay_ms(wait);
-// 		}
-// 	}
-// }
-

@@ -12,6 +12,7 @@ namespace DriversNRF
 	{
 		void init();
         int16_t readConfigPin();
+        int16_t readVDDPin();
 
 		void initBoardPins();
         int16_t readBatteryPin();
@@ -22,6 +23,7 @@ namespace DriversNRF
         float read5V();
         float readVLED();
         float readVBoard();
+        float readVDD();
 
 		void selfTest();
 		void selfTestBatt();

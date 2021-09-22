@@ -55,6 +55,7 @@
         "*.inc": "cpp",
         "algorithm": "cpp",
         "utility": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "nrf_drv_twi.h": "c"
     },
 }

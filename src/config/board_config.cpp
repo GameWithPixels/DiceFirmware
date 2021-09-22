@@ -12,145 +12,202 @@ namespace Config
 {
 namespace BoardManager
 {
-    static const Board DevBoard = {
-
-        // Measuring board type
-        .boardResistorValues = {-1, -1},
-
-        // Talking to LEDs
-        .ledDataPin =  6,
-        .ledClockPin = 5,
-        .ledPowerPin = 9,
-
-        // I2C Pins for accelerometer
-        .i2cDataPin = 14,
-        .i2cClockPin = 15,
-        .accInterruptPin = 16,
-
-        // Power Management pins
-        .chargingStatePin = 0xFFFFFFFF,
-        .coilSensePin = NRF_SAADC_INPUT_DISABLED,
-        .vbatSensePin = NRF_SAADC_INPUT_AIN2,
-        .vledSensePin = NRF_SAADC_INPUT_DISABLED,
-
-        // Magnet pin
-        .magnetPin = 0xFFFFFFFF,
-
-        // LED config
-        .ledCount = 21,
+    // Array of possible circuit boards configs
+    // Note that the boards MUST be sorted in order of INCREASING resistor value
+    // for the init method to properly find the correct board config.
+    static const Board boards[] = {
+        // Dev Board
+        {
+            .boardResistorValue = -1,
+            .ledDataPin =  6,
+            .ledClockPin = 5,
+            .ledPowerPin = 9,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 16,
+            .chargingStatePin = 0xFFFFFFFF,
+            .coilSensePin = NRF_SAADC_INPUT_DISABLED,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN2,
+            .vledSensePin = NRF_SAADC_INPUT_DISABLED,
+            .magnetPin = 0xFFFFFFFF,
+            .accModel = AccelerometerModel::LID2DE12,
+            .ledModel = LEDModel::APA102,
+            .ledCount = 21,
+            .name = "DevBoard",
+        },
+        //D20Board
+        {
+            .boardResistorValue = 20000, // 20k Resistor
+            .ledDataPin =  1,
+            .ledClockPin = 4,
+            .ledPowerPin = 0,
+            .i2cDataPin = 12,
+            .i2cClockPin = 14,
+            .accInterruptPin = 15,
+            .chargingStatePin = 0xFFFFFFFF,
+            .coilSensePin = NRF_SAADC_INPUT_DISABLED,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_DISABLED,
+            .magnetPin = 0xFFFFFFFF,
+            .accModel = AccelerometerModel::LID2DE12,
+            .ledModel = LEDModel::APA102,
+            .ledCount = 20,
+            .name = "D20V1",
+        },
+        //D20BoardV5
+        {
+            .boardResistorValue = 33000, // 33k or 56k Resistor
+            .ledDataPin =  0,
+            .ledClockPin = 1,
+            .ledPowerPin = 10,
+            .i2cDataPin = 12,
+            .i2cClockPin = 14,
+            .accInterruptPin = 15,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN3,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .magnetPin = 9,
+            .accModel = AccelerometerModel::LID2DE12,
+            .ledModel = LEDModel::APA102,
+            .ledCount = 20,
+            .name = "D20V5",
+        },
+        // D6Board
+        {
+            .boardResistorValue = 47000, // 47k Resistor
+            .ledDataPin =  1,
+            .ledClockPin = 4,
+            .ledPowerPin = 0,
+            .i2cDataPin = 12,
+            .i2cClockPin = 14,
+            .accInterruptPin = 15,
+            .chargingStatePin = 0xFFFFFFFF,
+            .coilSensePin = NRF_SAADC_INPUT_DISABLED,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_DISABLED,
+            .magnetPin = 0xFFFFFFFF,
+            .accModel = AccelerometerModel::LID2DE12,
+            .ledModel = LEDModel::APA102,
+            .ledCount = 6,
+            .name = "D6V1",
+        },
+        //D20BoardV5
+        {
+            .boardResistorValue = 56000, // 33k or 56k Resistor
+            .ledDataPin =  0,
+            .ledClockPin = 1,
+            .ledPowerPin = 10,
+            .i2cDataPin = 12,
+            .i2cClockPin = 14,
+            .accInterruptPin = 15,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN3,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .magnetPin = 9,
+            .accModel = AccelerometerModel::LID2DE12,
+            .ledModel = LEDModel::APA102,
+            .ledCount = 20,
+            .name = "D20V5",
+        },
+        //D20BoardV8
+        {
+            .boardResistorValue = 68000, // 68k Resistor
+            .ledDataPin =  1,
+            .ledClockPin = 0,
+            .ledPowerPin = 9,
+            .i2cDataPin = 12,
+            .i2cClockPin = 14,
+            .accInterruptPin = 15,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN3,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .magnetPin = 0xFFFFFFFF,
+            .accModel = AccelerometerModel::LID2DE12,
+            .ledModel = LEDModel::APA102,
+            .ledCount = 20,
+            .name = "D20V8",
+        },
+        //D20BoardV9Alt2
+        {
+            .boardResistorValue = 71500, // 71.5k Resistor
+            .ledDataPin =  1,
+            .ledClockPin = 0xFFFFFFFF,
+            .ledPowerPin = 9,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN3,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .magnetPin = 0xFFFFFFFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 20,
+            .name = "D20V9-Alt2",
+        },
+        //D20BoardV9Alt1
+        {
+            .boardResistorValue = 75000, // 75k Resistor
+            .ledDataPin =  1,
+            .ledClockPin = 0xFFFFFFFF,
+            .ledPowerPin = 9,
+            .i2cDataPin = 14,
+            .i2cClockPin = 12,
+            .accInterruptPin = 15,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN3,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .magnetPin = 0xFFFFFFFF,
+            .accModel = AccelerometerModel::LID2DE12,
+            .ledModel = LEDModel::NEOPIXEL_RGB,
+            .ledCount = 20,
+            .name = "D20V9-Alt1",
+        },
+        // //D20BoardV9Alt3
+        // {
+        //     .boardResistorValue = 78700, // 78.7k Resistor
+        //     .ledDataPin =  1,
+        //     .ledClockPin = 0xFFFFFFFF,
+        //     .ledPowerPin = 9,
+        //     .i2cDataPin = 12,
+        //     .i2cClockPin = 14,
+        //     .accInterruptPin = 15,
+        //     .chargingStatePin = 6,
+        //     .coilSensePin = NRF_SAADC_INPUT_AIN3,
+        //     .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+        //     .vledSensePin = NRF_SAADC_INPUT_AIN2,
+        //     .magnetPin = 0xFFFFFFFF,
+        //     .accModel = AccelerometerModel::LID2DE12,
+        //     .ledModel = LEDModel::NEOPIXEL_GRB,
+        //     .ledCount = 20,
+        //     .name = "D20V9-Alt3",
+        // },
+        //D20BoardV9Alt4
+        {
+            .boardResistorValue = 78700, // 78.7k Resistor
+            .ledDataPin =  1,
+            .ledClockPin = 0xFFFFFFFF,
+            .ledPowerPin = 9,
+            .i2cDataPin = 14,
+            .i2cClockPin = 12,
+            .accInterruptPin = 15,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN3,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .magnetPin = 0xFFFFFFFF,
+            .accModel = AccelerometerModel::MXC4005XC,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 20,
+            .name = "D20V9-Alt4",
+        },
     };
 
-    static const Board D6Board = {
-
-        // Measuring board type
-        .boardResistorValues = {47000, 47000}, // 47k Resistor
-
-        // Talking to LEDs
-        .ledDataPin =  1,
-        .ledClockPin = 4,
-        .ledPowerPin = 0,
-
-        // I2C Pins for accelerometer
-        .i2cDataPin = 12,
-        .i2cClockPin = 14,
-        .accInterruptPin = 15,
-
-        // Power Management pins
-        .chargingStatePin = 0xFFFFFFFF,
-        .coilSensePin = NRF_SAADC_INPUT_DISABLED,
-        .vbatSensePin = NRF_SAADC_INPUT_AIN3,
-        .vledSensePin = NRF_SAADC_INPUT_DISABLED,
-
-        // Magnet pin
-        .magnetPin = 0xFFFFFFFF,
-
-        // LED config
-        .ledCount = 6,
-    };
-
-    static const Board D20Board = {
-
-        // Measuring board type
-        .boardResistorValues = {20000, 20000}, // 20k Resistor
-
-        // Talking to LEDs
-        .ledDataPin =  1,
-        .ledClockPin = 4,
-        .ledPowerPin = 0,
-
-        // I2C Pins for accelerometer
-        .i2cDataPin = 12,
-        .i2cClockPin = 14,
-        .accInterruptPin = 15,
-
-        // Power Management pins
-        .chargingStatePin = 0xFFFFFFFF,
-        .coilSensePin = NRF_SAADC_INPUT_DISABLED,
-        .vbatSensePin = NRF_SAADC_INPUT_AIN3,
-        .vledSensePin = NRF_SAADC_INPUT_DISABLED,
-
-        // Magnet pin
-        .magnetPin = 0xFFFFFFFF,
-
-        // LED config
-        .ledCount = 20,
-    };
-
-    static const Board D20BoardV5 = {
-
-        // Measuring board type
-        .boardResistorValues = { 33000, 56000 }, // 33k or 56k Resistor
-
-        // Talking to LEDs
-        .ledDataPin =  0,
-        .ledClockPin = 1,
-        .ledPowerPin = 10,
-
-        // I2C Pins for accelerometer
-        .i2cDataPin = 12,
-        .i2cClockPin = 14,
-        .accInterruptPin = 15,
-
-        // Power Management pins
-        .chargingStatePin = 6,
-        .coilSensePin = NRF_SAADC_INPUT_AIN3,
-        .vbatSensePin = NRF_SAADC_INPUT_AIN6,
-        .vledSensePin = NRF_SAADC_INPUT_AIN2,
-
-        // Magnet pin
-        .magnetPin = 9,
-
-        // LED config
-        .ledCount = 20,
-    };
-
-    static const Board D20BoardV8 = {
-
-        // Measuring board type
-        .boardResistorValues = { 68000 }, // 68k Resistor
-
-        // Talking to LEDs
-        .ledDataPin =  1,
-        .ledClockPin = 0,
-        .ledPowerPin = 9,
-
-        // I2C Pins for accelerometer
-        .i2cDataPin = 12,
-        .i2cClockPin = 14,
-        .accInterruptPin = 15,
-
-        // Power Management pins
-        .chargingStatePin = 6,
-        .coilSensePin = NRF_SAADC_INPUT_AIN3,
-        .vbatSensePin = NRF_SAADC_INPUT_AIN6,
-        .vledSensePin = NRF_SAADC_INPUT_AIN2,
-
-        // Magnet pin
-        .magnetPin = 0xFFFFFFFF,
-
-        // LED config
-        .ledCount = 20,
-    };
 
     // 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20   <-- prev
     // 01 12 18 08 10 19 04 06 05 07 14 16 15 17 02 11 13 03 09 20   <-- next
@@ -172,34 +229,33 @@ namespace BoardManager
         // Do some computation to figure out which variant we're working with!
         // D20v5 board uses 33k over 100k voltage divider, or 56k over 100k (because I ran out of 33k 0402 resistors)
         // D20v3 board uses 20k over 100k voltage divider
-        // i.e. the voltage read should be 3.3V * 20k / 120k = 0.55V
+        // i.e. the voltage read should be 3.1V * 20k / 120k = 0.55V
         // The D6v2 board uses 47k over 100k, i.e. 1.05V
         // The D20v2 board should read 0 (unconnected)
         // So we can allow a decent
-        const float vdd = 3.2f; // supply voltage 3.2V
-        const float tolerance = 0.2f; // +- 0.2V
-        float D20V8BoardVoltage = (vdd * D20BoardV8.boardResistorValues[0]) / (float)(100000 + D20BoardV8.boardResistorValues[0]);
-        float D20V5BoardVoltage1 = (vdd * D20BoardV5.boardResistorValues[0]) / (float)(100000 + D20BoardV5.boardResistorValues[0]);
-        float D20V5BoardVoltage2 = (vdd * D20BoardV5.boardResistorValues[1]) / (float)(100000 + D20BoardV5.boardResistorValues[1]);
-        float D20BoardVoltage = (vdd * D20Board.boardResistorValues[0]) / (float)(100000 + D20Board.boardResistorValues[0]);
-        float D6BoardVoltage = (vdd * D6Board.boardResistorValues[0]) / (float)(100000 + D6Board.boardResistorValues[0]);
-        if (vboard >= D20V8BoardVoltage - tolerance && vboard <= D20V8BoardVoltage + tolerance) {
-            currentBoard = &D20BoardV8;
-            NRF_LOG_INFO("Board is D20v8, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vboard));
-        } else if ((vboard >= D20V5BoardVoltage1 - tolerance && vboard <= D20V5BoardVoltage1 + tolerance) ||
-            (vboard >= D20V5BoardVoltage2 - tolerance && vboard <= D20V5BoardVoltage2 + tolerance)) {
-            currentBoard = &D20BoardV5;
-            NRF_LOG_INFO("Board is D20v5, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vboard));
-        } else if (vboard >= D20BoardVoltage - tolerance && vboard <= D20BoardVoltage + tolerance) {
-            currentBoard = &D20Board;
-            NRF_LOG_INFO("Board is D20v3, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vboard));
-        } else if (vboard >= D6BoardVoltage - tolerance && vboard <= D6BoardVoltage + tolerance) {
-            currentBoard = &D6Board;
-            NRF_LOG_INFO("Board is D6v2, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vboard));
-        } else {
-            NRF_LOG_WARNING("Could not identify the board, assuming Dev Board, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vboard));
-            currentBoard = &DevBoard;
+        //const float vdd = DriversNRF::A2D::readVDD();
+        const float vdd = DriversNRF::A2D::readVDD() + 0.1f;
+
+        // Compute board voltages
+        const int boardCount = sizeof(boards) / sizeof(boards[0]);
+        float boardVoltages[boardCount];
+        for (int i = 0; i < boardCount; ++i) {
+            boardVoltages[i] = (vdd * boards[i].boardResistorValue) / (float)(BOARD_DETECT_RESISTOR + boards[i].boardResistorValue);
+            NRF_LOG_INFO("%s: voltage:" NRF_LOG_FLOAT_MARKER, boards[i].name, NRF_LOG_FLOAT(boardVoltages[i]));
         }
+        float midpointVoltages[boardCount-1];
+        for (int i = 0; i < boardCount-1; ++i) {
+            midpointVoltages[i] = (boardVoltages[i] + boardVoltages[i+1]) * 0.5f;
+        }
+
+        // Find the first midpoint voltage that is above the measured voltage
+        int boardIndex = 0;
+        for (; boardIndex < boardCount-1; ++boardIndex) {
+            if (midpointVoltages[boardIndex] > vboard)
+            break;
+        }
+        currentBoard = &(boards[boardIndex]);
+        NRF_LOG_INFO("Board is %s, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, currentBoard->name, NRF_LOG_FLOAT(vboard));
     }
 
     const Board* getBoard() {

@@ -18,6 +18,7 @@ namespace A2D
     nrf_saadc_channel_config_t channel_config_batt;
     nrf_saadc_channel_config_t channel_config_5v;
     nrf_saadc_channel_config_t channel_config_vled;
+    nrf_saadc_channel_config_t channel_config_vcc;
 
     void saadc_callback(nrfx_saadc_evt_t const * p_event) {
         // Do nothing!
@@ -41,10 +42,25 @@ namespace A2D
             .pin_n      = NRF_SAADC_INPUT_DISABLED
         };
 
+        channel_config_vcc = 
+        {
+            .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
+            .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
+            .gain       = NRF_SAADC_GAIN1_6,
+            .reference  = NRF_SAADC_REFERENCE_INTERNAL,
+            .acq_time   = NRF_SAADC_ACQTIME_40US,
+            .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
+            .burst      = NRF_SAADC_BURST_DISABLED,
+            .pin_p      = (nrf_saadc_input_t)(NRF_SAADC_INPUT_VDD),
+            .pin_n      = NRF_SAADC_INPUT_DISABLED
+        };
+
         supportsVCoil = false;
         supportsVLED = false;
 
-        NRF_LOG_INFO("A2D Initialized, vBoard=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(readVBoard()));
+        float vcc = readVDD();
+
+        NRF_LOG_INFO("A2D Initialized, VDD=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vcc));
 
         #if DICE_SELFTEST && A2D_SELFTEST
         selfTest();
@@ -53,6 +69,21 @@ namespace A2D
 
     int16_t readConfigPin() {
         ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_conf);
+        APP_ERROR_CHECK(err_code);
+
+        int16_t ret;
+        err_code = nrf_drv_saadc_sample_convert(0, &ret);
+        if (err_code != NRF_SUCCESS) {
+            ret = -1;
+        }
+
+        nrf_drv_saadc_channel_uninit(0);
+
+        return ret;
+    }
+
+    int16_t readVDDPin() {
+        ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_vcc);
         APP_ERROR_CHECK(err_code);
 
         int16_t ret;
@@ -174,6 +205,26 @@ namespace A2D
             ret = -1;
         }
         return ret;
+    }
+
+    float readVDD() {
+        // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
+        // In our case:
+        // - V(n) = 0
+        // - Gain = 1/6
+        // - Reference = 0.6V
+        // - Resolution = 10
+        // - m = 0
+        // val = V(p) * 2^12 / (6 * 0.6)
+        // => V(p) = val * 3.6 / 2^10
+        // => V(p) = val * 0.003515625
+
+        int16_t val = readVDDPin();
+        if (val != -1) {
+            return (float)val * 0.003515625f;
+        } else {
+            return 0.0f;
+        }
     }
 
     float readVBat() {

@@ -387,7 +387,7 @@
 // <26738688=> 100k 
 // <67108864=> 250k 
 // <104857600=> 400k 
-#define NRFX_TWI_DEFAULT_CONFIG_FREQUENCY 26738688
+#define NRFX_TWI_DEFAULT_CONFIG_FREQUENCY 104857600
 
 // <q> NRFX_TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT  - Enables bus holding after uninit
 #define NRFX_TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT 0
@@ -414,7 +414,7 @@
 // <26738688=> 100k 
 // <67108864=> 250k 
 // <104857600=> 400k 
-#define NRFX_TWIM_DEFAULT_CONFIG_FREQUENCY 26738688
+#define NRFX_TWIM_DEFAULT_CONFIG_FREQUENCY 104857600
 
 // <q> NRFX_TWIM_DEFAULT_CONFIG_HOLD_BUS_UNINIT  - Enables bus holding after uninit
 #define NRFX_TWIM_DEFAULT_CONFIG_HOLD_BUS_UNINIT 0
@@ -991,6 +991,84 @@
 // 0 to 7, 0 is highest
 #define NRFX_WDT_CONFIG_IRQ_PRIORITY 7
 
+
+// <e> NRFX_PWM_ENABLED - nrfx_pwm - PWM peripheral driver
+//==========================================================
+#define NRFX_PWM_ENABLED 1
+
+// <q> NRFX_PWM0_ENABLED  - Enable PWM0 instance and disable PWM1 and PWM2 instances
+#define NRFX_PWM0_ENABLED 1
+#define NRFX_PWM1_ENABLED 0
+#define NRFX_PWM2_ENABLED 0
+#define NRFX_PWM3_ENABLED 0
+
+// <o> NRFX_PWM_DEFAULT_CONFIG_OUT0_PIN - Out0 pin  <0-31> 
+#define NRFX_PWM_DEFAULT_CONFIG_OUT0_PIN 31
+#define NRFX_PWM_DEFAULT_CONFIG_OUT1_PIN 31
+#define NRFX_PWM_DEFAULT_CONFIG_OUT2_PIN 31
+#define NRFX_PWM_DEFAULT_CONFIG_OUT3_PIN 31
+
+// <o> NRFX_PWM_DEFAULT_CONFIG_BASE_CLOCK  - Base clock
+// <0=> 16 MHz 
+// <1=> 8 MHz 
+// <2=> 4 MHz 
+// <3=> 2 MHz 
+// <4=> 1 MHz 
+// <5=> 500 kHz 
+// <6=> 250 kHz 
+// <7=> 125 kHz 
+#define NRFX_PWM_DEFAULT_CONFIG_BASE_CLOCK 4
+
+// <o> NRFX_PWM_DEFAULT_CONFIG_COUNT_MODE  - Count mode
+// <0=> Up 
+// <1=> Up and Down 
+#define NRFX_PWM_DEFAULT_CONFIG_COUNT_MODE 0
+
+// <o> NRFX_PWM_DEFAULT_CONFIG_TOP_VALUE - Top value 
+#define NRFX_PWM_DEFAULT_CONFIG_TOP_VALUE 1000
+
+// <o> NRFX_PWM_DEFAULT_CONFIG_LOAD_MODE  - Load mode
+// <0=> Common 
+// <1=> Grouped 
+// <2=> Individual 
+// <3=> Waveform 
+#define NRFX_PWM_DEFAULT_CONFIG_LOAD_MODE 0
+
+// <o> NRFX_PWM_DEFAULT_CONFIG_STEP_MODE  - Step mode
+// <0=> Auto 
+// <1=> Triggered 
+#define NRFX_PWM_DEFAULT_CONFIG_STEP_MODE 0
+
+// <o> NRFX_PWM_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+// <4=> 4 
+// <5=> 5 
+// <6=> 6 
+// <7=> 7 
+#define NRFX_PWM_DEFAULT_CONFIG_IRQ_PRIORITY 6
+
+// <e> NRFX_PWM_NRF52_ANOMALY_109_WORKAROUND_ENABLED - Enables nRF52 Anomaly 109 workaround for PWM.
+// <i> The workaround uses interrupts to wake up the CPU and ensure
+// <i> it is active when PWM is about to start a DMA transfer. For
+// <i> initial transfer, done when a playback is started via PPI,
+// <i> a specific EGU instance is used to generate the interrupt.
+// <i> During the playback, the PWM interrupt triggered on SEQEND
+// <i> event of a preceding sequence is used to protect the transfer
+// <i> done for the next sequence to be played.
+//==========================================================
+#define NRFX_PWM_NRF52_ANOMALY_109_WORKAROUND_ENABLED 0
+
+// <o> NRFX_PWM_NRF52_ANOMALY_109_EGU_INSTANCE  - EGU instance used by the nRF52 Anomaly 109 workaround for PWM.
+// <0=> EGU0 
+// <1=> EGU1 
+// <2=> EGU2 
+// <3=> EGU3 
+// <4=> EGU4 
+// <5=> EGU5 
+#define NRFX_PWM_NRF52_ANOMALY_109_EGU_INSTANCE 5
 
 #include "sdk_config_logging.h"
 #include "sdk_config_dice.h"

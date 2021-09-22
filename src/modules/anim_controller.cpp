@@ -9,19 +9,18 @@
 #include "config/board_config.h"
 #include "config/settings.h"
 #include "config/dice_variants.h"
-#include "drivers_hw/apa102.h"
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "nrf_log.h"
 #include "accelerometer.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
+#include "leds.h"
 
 using namespace Animations;
 using namespace Modules;
 using namespace Config;
 using namespace DriversNRF;
-using namespace DriversHW;
 using namespace Bluetooth;
 
 #define MAX_ANIMS (20)
@@ -165,8 +164,7 @@ namespace AnimController
 			}
 			
 			// And light up!
-			APA102::setPixelColors(allColors);
-			APA102::show();
+			LEDs::setPixelColors(allColors);
 		}
 	}
 
@@ -296,8 +294,7 @@ namespace AnimController
 			Animations::destroyAnimationInstance(animations[i]);
 		}
 		animationCount = 0;
-		APA102::clear();
-		APA102::show();
+		LEDs::clear();
 	}
 
 	/// <summary>
@@ -327,8 +324,7 @@ namespace AnimController
 			int rotatedAnimFaceIndex = l->faceRemap[anim->remapFace * c + canonIndices[i]];
 			ledIndices[i] = s->faceToLEDLookup[rotatedAnimFaceIndex];
 		}
-		APA102::setPixelColors(ledIndices, zeros, ledCount);
-		APA102::show();
+		LEDs::setPixelColors(ledIndices, zeros, ledCount);
 	}
 
 	/// <summary>

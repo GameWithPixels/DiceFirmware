@@ -12,7 +12,7 @@ namespace DriversHW
 	/// <summary>
 	/// The accelerometer I2C devices
 	/// </summary>
-	namespace LIS2DE12
+	namespace KXTJ3
 	{
 		void init();
 		void read(Core::float3* outAccel);

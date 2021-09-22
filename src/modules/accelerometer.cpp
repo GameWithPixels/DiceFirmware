@@ -1,6 +1,8 @@
 #include "accelerometer.h"
 
 #include "drivers_hw/lis2de12.h"
+#include "drivers_hw/kxtj3-1057.h"
+#include "drivers_hw/mxc4005xc.h"
 #include "utils/utils.h"
 #include "core/ring_buffer.h"
 #include "config/board_config.h"
@@ -14,12 +16,12 @@
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_stack.h"
-#include "drivers_hw/apa102.h"
 #include "drivers_nrf/power_manager.h"
 #include "drivers_nrf/gpiote.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/flash.h"
-
+#include "drivers_nrf/scheduler.h"
+#include "leds.h"
 
 using namespace Modules;
 using namespace Core;
@@ -29,7 +31,7 @@ using namespace Config;
 using namespace Bluetooth;
 
 // This defines how frequently we try to read the accelerometer
-#define TIMER2_RESOLUTION (100)	// ms
+#define TIMER2_RESOLUTION (1000)	// ms
 #define JERK_SCALE (1000)		// To make the jerk in the same range as the acceleration
 #define MAX_ACC_CLIENTS 8
 
@@ -47,6 +49,7 @@ namespace Accelerometer
 	bool moving = false;
 	float3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
 	bool paused;
+    Config::AccelerometerModel accelerometerModel;
 
 	// This small buffer stores about 1 second of Acceleration data
 	Core::RingBuffer<AccelFrame, ACCEL_BUFFER_SIZE> buffer;
@@ -62,6 +65,8 @@ namespace Accelerometer
 	void CalibrateFaceHandler(void* context, const Message* msg);
 	void onSettingsProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
 	void onPowerEvent(void* context, nrf_pwr_mgmt_evt_t event);
+    void readAccelerometer(float3* acc);
+    bool checkIntPin();
 
 	void update(void* context);
 
@@ -71,13 +76,15 @@ namespace Accelerometer
 
 		Flash::hookProgrammingEvent(onSettingsProgrammingEvent, nullptr);
 
+        auto board = Config::BoardManager::getBoard();
+        accelerometerModel = board->accModel;
+
 		face = 0;
 		confidence = 0.0f;
 		smoothAcc = float3::zero();
 
-		LIS2DE12::read();
 		AccelFrame newFrame;
-		newFrame.acc = float3(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+		readAccelerometer(&newFrame.acc);
 		newFrame.time = DriversNRF::Timers::millis();
 		newFrame.jerk = float3::zero();
 		newFrame.sigma = 0.0f;
@@ -91,6 +98,14 @@ namespace Accelerometer
 		ret_code_t ret_code = app_timer_create(&accelControllerTimer, APP_TIMER_MODE_REPEATED, update);
 		APP_ERROR_CHECK(ret_code);
 
+		if (!checkIntPin())
+		{
+			NRF_LOG_ERROR("Bad interrupt Pin");
+			return;
+		}
+
+        enableInterrupt();
+
 		start();
 		NRF_LOG_INFO("Accelerometer initialized");
 	}
@@ -99,13 +114,13 @@ namespace Accelerometer
 	/// update is called from the timer
 	/// </summary>
 	void update(void* context) {
+
 		auto settings = SettingsManager::getSettings();
 		auto& lastFrame = buffer.last();
 
-		LIS2DE12::read();
 
 		AccelFrame newFrame;
-		newFrame.acc = float3(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+        readAccelerometer(&newFrame.acc);
 		newFrame.time = DriversNRF::Timers::millis();
 		newFrame.jerk = ((newFrame.acc - lastFrame.acc) * 1000.0f) / (float)(newFrame.time - lastFrame.time);
 
@@ -225,8 +240,8 @@ namespace Accelerometer
 	{
 		NRF_LOG_INFO("Starting accelerometer");
 		// Set initial value
-		LIS2DE12::read();
-		float3 acc(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+		float3 acc;
+        readAccelerometer(&acc);
 		face = determineFace(acc, &confidence);
 
 		// Determine what state we're in to begin with
@@ -403,8 +418,7 @@ namespace Accelerometer
 			if (okCancel) {
 				// Die is on face 1
 				// Read the normals
-				LIS2DE12::read();
-				measuredNormals->face1 = float3(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+				readAccelerometer(&measuredNormals->face1);
 
 				// Debugging
 				//BLE_LOG_INFO("Face 1 Normal: %d, %d, %d", (int)(measuredNormals->face1.x * 100), (int)(measuredNormals->face1.y * 100), (int)(measuredNormals->face1.z * 100));
@@ -415,8 +429,7 @@ namespace Accelerometer
 					if (okCancel) {
 						// Die is on face 5
 						// Read the normals
-						LIS2DE12::read();
-						measuredNormals->face5 = float3(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+						readAccelerometer(&measuredNormals->face5);
 
 						// Debugging
 						//BLE_LOG_INFO("Face 5 Normal: %d, %d, %d", (int)(measuredNormals->face5.x * 100), (int)(measuredNormals->face5.y * 100), (int)(measuredNormals->face5.z * 100));
@@ -427,36 +440,29 @@ namespace Accelerometer
 							if (okCancel) {
 								// Die is on face 10
 								// Read the normals
-								LIS2DE12::read();
-								measuredNormals->face10 = float3(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+								readAccelerometer(&measuredNormals->face10);
 
 								// Debugging
 								//BLE_LOG_INFO("Face 10 Normal: %d, %d, %d", (int)(measuredNormals->face10.x * 100), (int)(measuredNormals->face10.y * 100), (int)(measuredNormals->face10.z * 100));
-								APA102::setPixelColor(0, 0x00FF00);
-								APA102::show();
+								LEDs::setPixelColor(0, 0x00FF00);
 
 								// Place on led index 0
 								MessageService::NotifyUser("Place lit face up", true, true, 30, [] (bool okCancel)
 								{
-									APA102::setPixelColor(0, 0x000000);
-									APA102::show();
+									LEDs::setPixelColor(0, 0x000000);
 									if (okCancel) {
 										// Read the normals
-										LIS2DE12::read();
-										measuredNormals->led0 = float3(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+										readAccelerometer(&measuredNormals->led0);
 
 
-										APA102::setPixelColor(9, 0x00FF00);
-										APA102::show();
+										LEDs::setPixelColor(9, 0x00FF00);
 										// Place on led index 1
 										MessageService::NotifyUser("Place lit face up", true, true, 30, [] (bool okCancel)
 										{
-											APA102::setPixelColor(9, 0x000000);
-											APA102::show();
+											LEDs::setPixelColor(9, 0x000000);
 											if (okCancel) {
 												// Read the normals
-												LIS2DE12::read();
-												measuredNormals->led1 = float3(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+												readAccelerometer(&measuredNormals->led1);
 
 												// Now we can calibrate
 
@@ -536,8 +542,7 @@ namespace Accelerometer
 		memcpy(ftlCopy, SettingsManager::getSettings()->faceToLEDLookup, normalCount * sizeof(uint8_t));
 
 		// Replace the face's normal with what we measured
-		LIS2DE12::read();
-		calibratedNormalsCopy[face] = float3(LIS2DE12::cx, LIS2DE12::cy, LIS2DE12::cz);
+		readAccelerometer(&calibratedNormalsCopy[face]);
 
 		// And flash the new normals
 		int fli = SettingsManager::getSettings()->faceLayoutLookupIndex;
@@ -556,9 +561,12 @@ namespace Accelerometer
 
 	bool interruptTriggered = false;
 	void accInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
-		// Aknowledge the interrupt
-		LIS2DE12::clearTransientInterrupt();
-		LIS2DE12::disableTransientInterrupt();
+		// Aknowledge the interrupt and then disable it
+        clearInterrupt();
+//        disableInterrupt();
+        Scheduler::push(nullptr, 0, [](void * p_event_data, uint16_t event_size) {
+            NRF_LOG_INFO("Interrupt!!!");
+        });
 	}
 
 	void onPowerEvent(void* context, nrf_pwr_mgmt_evt_t event) {
@@ -567,15 +575,87 @@ namespace Accelerometer
 			NRF_LOG_INFO("Setting accelerometer to trigger interrupt");
 
 			// Set interrupt pin
-			GPIOTE::enableInterrupt(
-				BoardManager::getBoard()->accInterruptPin,
-				NRF_GPIO_PIN_NOPULL,
-				NRF_GPIOTE_POLARITY_LOTOHI,
-				accInterruptHandler);
+            nrf_gpio_cfg_sense_input(BoardManager::getBoard()->accInterruptPin, NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_SENSE_LOW);
 
-			LIS2DE12::enableTransientInterrupt();
+            enableInterrupt();
 		}
 	}
+
+    void readAccelerometer(float3* acc) {
+        switch (accelerometerModel) {
+            case Config::AccelerometerModel::LID2DE12:
+                LIS2DE12::read(acc);
+                break;
+            case Config::AccelerometerModel::KXTJ3_1057:
+                KXTJ3::read(acc);
+                break;
+            case Config::AccelerometerModel::MXC4005XC:
+                MXC4005XC::read(acc);
+                break;
+            default:
+                NRF_LOG_ERROR("Invalid Accelerometer Model");
+                break;
+        }
+    }
+
+    void enableInterrupt() {
+        switch (accelerometerModel) {
+            case Config::AccelerometerModel::LID2DE12:
+                LIS2DE12::enableInterrupt();
+                break;
+            case Config::AccelerometerModel::KXTJ3_1057:
+                KXTJ3::enableInterrupt();
+                break;
+            case Config::AccelerometerModel::MXC4005XC:
+                MXC4005XC::enableInterrupt();
+                break;
+            default:
+                NRF_LOG_ERROR("Invalid Accelerometer Model");
+                break;
+        }
+    }
+
+    void disableInterrupt() {
+        switch (accelerometerModel) {
+            case Config::AccelerometerModel::LID2DE12:
+                LIS2DE12::disableInterrupt();
+                break;
+            case Config::AccelerometerModel::KXTJ3_1057:
+                KXTJ3::disableInterrupt();
+                break;
+            case Config::AccelerometerModel::MXC4005XC:
+                MXC4005XC::disableInterrupt();
+                break;
+            default:
+                NRF_LOG_ERROR("Invalid Accelerometer Model");
+                break;
+        }
+    }
+
+    void clearInterrupt() {
+        switch (accelerometerModel) {
+            case Config::AccelerometerModel::LID2DE12:
+                LIS2DE12::clearInterrupt();
+                break;
+            case Config::AccelerometerModel::KXTJ3_1057:
+                KXTJ3::clearInterrupt();
+                break;
+            case Config::AccelerometerModel::MXC4005XC:
+                MXC4005XC::clearInterrupt();
+                break;
+            default:
+                NRF_LOG_ERROR("Invalid Accelerometer Model");
+                break;
+        }
+    }
+
+	bool checkIntPin() {
+        nrf_gpio_cfg_input(BoardManager::getBoard()->accInterruptPin, NRF_GPIO_PIN_NOPULL);
+        bool ret = nrf_gpio_pin_read(BoardManager::getBoard()->accInterruptPin) == 0;
+        nrf_gpio_cfg_default(BoardManager::getBoard()->accInterruptPin);
+		return ret;
+	}
+
 
 }
 }

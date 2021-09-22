@@ -54,12 +54,13 @@ namespace PowerManager
                 NRF_LOG_INFO("NRF_PWR_MGMT_EVT_PREPARE_RESET");
                 break;
         }
-        Log::process();
 
         // Notify clients
         for (int i = 0; i < clients.Count(); ++i) {
             clients[i].handler(clients[i].token, event);
         }
+
+        Log::process();
         return true;
     }
 
@@ -84,38 +85,6 @@ namespace PowerManager
 
     void reset() {
         nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_RESET);
-    }
-
-    void setWatchdogTriggeredReset() {
-        sd_power_gpregret_set(GPREGRET_ID, WATCHDOG_TRIGGERED_RESET);
-    }
-
-    void clearWatchdogTriggeredReset() {
-        sd_power_gpregret_clr(GPREGRET_ID, WATCHDOG_TRIGGERED_RESET);
-    }
-
-    bool getWatchdogTriggeredReset() {
-        // Read gpregret register
-        uint32_t reg = 0;
-        ret_code_t err_code = sd_power_gpregret_get(GPREGRET_ID, &reg);
-        APP_ERROR_CHECK(err_code);
-        return (reg & WATCHDOG_TRIGGERED_RESET) != 0;
-    }
-
-    void setClearSettingsAndDataSet() {
-        sd_power_gpregret_set(GPREGRET_ID, CLEAR_SETTINGS_AND_DATASET);
-    }
-
-    void clearClearSettingsAndDataSet() {
-        sd_power_gpregret_clr(GPREGRET_ID, CLEAR_SETTINGS_AND_DATASET);
-    }
-
-    bool getClearSettingsAndDataSet() {
-        // Read gpregret register
-        uint32_t reg = 0;
-        ret_code_t err_code = sd_power_gpregret_get(GPREGRET_ID, &reg);
-        APP_ERROR_CHECK(err_code);
-        return (reg & CLEAR_SETTINGS_AND_DATASET) != 0;
     }
 
 }

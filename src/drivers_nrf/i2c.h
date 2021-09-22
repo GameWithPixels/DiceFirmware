@@ -16,6 +16,11 @@ namespace DriversNRF
 		bool write(uint8_t device, const uint8_t* data, size_t size, bool no_stop = false);
 		bool read(uint8_t device, uint8_t* value);
 		bool read(uint8_t device, uint8_t* data, size_t size);
+
+        void writeRegister(uint8_t device, uint8_t reg, uint8_t data);
+        uint8_t readRegister(uint8_t device, uint8_t reg);
+        void readRegisters(uint8_t device, uint8_t reg, uint8_t *buffer, uint8_t len);
+        uint16_t readRegisterInt16(uint8_t device, uint8_t reg);
 	}
 }
 

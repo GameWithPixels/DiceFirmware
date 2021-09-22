@@ -36,6 +36,42 @@ namespace Utils
 		return toColor(scaledRed / scaler, scaledGreen / scaler, scaledBlue / scaler);
 	}
 
+	// Helper method to convert register readings to signed integers
+	short twosComplement(uint8_t registerValue) {
+		// If a positive value, return it
+		if ((registerValue & 0x80) == 0) {
+			return registerValue;
+		} else {
+			// Otherwise perform the 2's complement math on the value
+			uint8_t comp = ~(registerValue - 0x01);
+			return (short)comp * -1;
+		}
+	}
+
+	// Helper method to convert register readings to signed integers
+	int twosComplement12(uint16_t registerValue) {
+		// If a positive value, return it
+		if ((registerValue & 0x0800) == 0) {
+			return registerValue;
+		} else {
+			// Otherwise perform the 2's complement math on the value
+			uint16_t comp = ~((registerValue | 0xF000) - 0x01);
+			return (int)comp * -1;
+		}
+	}
+
+	// Helper method to convert register readings to signed integers
+	int twosComplement16(uint16_t registerValue) {
+		// If a positive value, return it
+		if ((registerValue & 0x8000) == 0) {
+			return registerValue;
+		} else {
+			// Otherwise perform the 2's complement math on the value
+			uint16_t comp = ~(registerValue - 0x01);
+			return (int)comp * -1;
+		}
+	}
+
 	/// <summary>
 	/// Parses the first word out of a string (typically a command or parameter)
 	/// </summary>

@@ -77,14 +77,14 @@ namespace BehaviorController
                 // This is the right kind of condition, check it!
                 auto cond = static_cast<const Behaviors::ConditionHelloGoodbye*>(condition);
                 if (cond->checkTrigger(true)) {
-                    // Check the battery level!
-                    if (BatteryController::getCurrentLevel() > BATT_TOO_LOW_LEVEL) {
+                    // // Check the battery level!
+                    // if (BatteryController::getCurrentLevel() > BATT_TOO_LOW_LEVEL) {
                         NRF_LOG_INFO("Triggering a HelloGoodbye Condition");
                         // Go on, do the thing!
                         Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
-                    } else {
-                        NRF_LOG_INFO("Skipped triggering a HelloGoodbye Condition because battery is too low");
-                    }
+                    // } else {
+                    //     NRF_LOG_INFO("Skipped triggering a HelloGoodbye Condition because battery is too low");
+                    // }
                 }
             } else if (condition->type == Behaviors::Condition_Idle) {
                 // We have an idle condition

@@ -1,7 +1,6 @@
 #include "led_color_tester.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
-#include "drivers_hw/apa102.h"
 #include "utils/utils.h"
 #include "nrf_log.h"
 #include "modules/anim_controller.h"
@@ -10,9 +9,9 @@
 #include "config/board_config.h"
 #include "config/settings.h"
 #include "config/dice_variants.h"
+#include "leds.h"
 
 using namespace Modules;
-using namespace DriversHW;
 using namespace Bluetooth;
 using namespace Utils;
 using namespace Animations;
@@ -43,8 +42,7 @@ namespace LEDColorTester
         uint8_t b = Utils::getBlue(colorMsg->color);
         uint32_t color = Utils::toColor(r, g, b);
         NRF_LOG_INFO("Setting LED %d to %06x -> %06x", led, colorMsg->color, color);
-        APA102::setPixelColor(led, color);
-        APA102::show();
+        LEDs::setPixelColor(led, color);
     }
 
     void SetAllLEDsToColorHandler(void* context, const Message* msg) {
@@ -54,8 +52,7 @@ namespace LEDColorTester
         uint8_t b = Utils::getBlue(colorMsg->color);
         uint32_t color = Utils::toColor(r, g, b);
         NRF_LOG_INFO("Setting All LEDs to %06x -> %06x", colorMsg->color, color);
-        APA102::setAll(color);
-        APA102::show();
+        LEDs::setAll(color);
     }
 
     void LightUpFaceHandler(void* context, const Message* msg) {
@@ -94,8 +91,7 @@ namespace LEDColorTester
         NRF_LOG_INFO(" -> LED Index: %d, color: %08x", ledIndex, lufmsg->color);
         BLE_LOG_INFO("ledIndex: %d", ledIndex);
 
-        APA102::setPixelColor(ledIndex, lufmsg->color);
-        APA102::show();
+        LEDs::setPixelColor(ledIndex, lufmsg->color);
     }
 
 }

@@ -4,7 +4,7 @@ Modified by Jean Simonet, Systemic Games
 
 ******************************************************************************/
 
-#include "lis2de12.h"
+#include "lis2dw12.h"
 #include "drivers_nrf/i2c.h"
 #include "nrf_log.h"
 #include "../drivers_nrf/log.h"
@@ -21,48 +21,47 @@ using namespace Config;
 
 namespace DriversHW
 {
-namespace LIS2DE12
+namespace LIS2DW12
 {
 
     // LIS2DE12 Register Definitions
     enum Registers
     {
-        STATUS_REG_AUX = 0x07,
-        OUT_TEMP_L = 0x0C,
-        OUT_TEMP_H = 0x0D,
+        OUT_T_L = 0x0D,
+        OUT_T_H = 0x0E,
         WHO_AM_I = 0x0F,
-        CTRL_REG0 = 0x1E,
-        TEMP_CFG_REG = 0x1F,
-        CTRL_REG1 = 0x20,
-        CTRL_REG2 = 0x21,
-        CTRL_REG3 = 0x22,
-        CTRL_REG4 = 0x23,
-        CTRL_REG5 = 0x24,
-        CTRL_REG6 = 0x25,
-        REFERENCE = 0x26,
-        STATUS_REG = 0x27,
-        FIFO_READ_START = 0x28,
+        CTRL1 = 0x20,
+        CTRL2 = 0x21,
+        CTRL3 = 0x22,
+        CTRL4_INT1_PAD_CTRL = 0x23,
+        CTRL5_INT2_PAD_CTRL = 0x24,
+        CTRL6 = 0x25,
+        OUT_T = 0x26,
+        STATUS = 0x27,
+        OUT_X_L = 0x28,
         OUT_X_H = 0x29,
+        OUT_Y_L = 0x2A,
         OUT_Y_H = 0x2B,
+        OUT_Z_L = 0x2C,
         OUT_Z_H = 0x2D,
-        FIFO_CTRL_REG = 0x2E,
-        FIFO_SRC_REG = 0x2F,
-        INT1_CFG = 0x30,
-        INT1_SRC = 0x31,
-        INT1_THS = 0x32,
-        INT1_DURATION = 0x33,
-        INT2_CFG = 0x34,
-        INT2_SRC = 0x35,
-        INT2_THS = 0x36,
-        INT2_DURATION = 0x37,
-        CLICK_CFG = 0x38,
-        CLICK_SRC = 0x39,
-        CLICK_THS = 0x3A,
-        TIME_LIMIT = 0x3B,
-        TIME_LATENCY = 0x3C,
-        TIME_WINDOW = 0x3D,
-        ACT_THS = 0x3E,
-        ACT_DUR = 0x3F,
+        FIFO_CTRL = 0x2E,
+        FIFO_SAMPLES = 0x2F,
+        TAP_THS_X = 0x30,
+        TAP_THS_Y = 0x31,
+        TAP_THS_Z = 0x32,
+        INT_DUR = 0x33,
+        WAKE_UP_THS = 0x34,
+        WAKE_UP_DUR = 0x35,
+        FREE_FALL = 0x36,
+        STATUS_DUP = 0x37,
+        WAKE_UP_SRC = 0x38,
+        TAP_SRC = 0x39,
+        SIXD_SRC = 0x3A,
+        ALL_INT_SRC = 0x3B,
+        X_OFS_USR = 0x3C,
+        Y_OFS_USR = 0x3D,
+        Z_OFS_USR = 0x3E,
+        CTRL_REG7 = 0x3F,
     };
 
     enum Scale
@@ -77,14 +76,14 @@ namespace LIS2DE12
     {
         ODR_PWR_DWN = 0,
         ODR_1,
-        ODR_10,
+        ODR_12_5,
         ODR_25,
         ODR_50,
         ODR_100,
         ODR_200,
         ODR_400,
-        ODR_1620,
-        ODR_5376,
+        ODR_800,
+        ODR_1600,
     }; // possible data rates
 
     const uint8_t devAddress = 0x18;
@@ -111,9 +110,9 @@ namespace LIS2DE12
 	{
 		uint8_t c = I2C::readRegister(devAddress, WHO_AM_I);  // Read WHO_AM_I register
 
-		if (c != 0x33) // WHO_AM_I should always be 0x33 on LIS2DE12
+		if (c != 0x33 && c != 0x44) // WHO_AM_I should always be 0x33 on LIS2DE12
 		{
-			NRF_LOG_ERROR("LIS2DE12 - Bad WHOAMI - received 0x%02x, should be 0x33", c);
+			NRF_LOG_ERROR("LIS2DE12 - Bad WHOAMI - received 0x%02x, should be 0x33 or 0x44", c);
 			return;
 		}
 
@@ -147,10 +146,10 @@ namespace LIS2DE12
 		uint8_t x = I2C::readRegister(devAddress, OUT_X_H);
 		uint8_t y = I2C::readRegister(devAddress, OUT_Y_H);
 		uint8_t z = I2C::readRegister(devAddress, OUT_Z_H);
-
-		int16_t xs = Utils::twosComplement(x);
-		int16_t ys = Utils::twosComplement(y);
-		int16_t zs = Utils::twosComplement(z);
+        NRF_LOG_INFO("xyz: %d, %d, %d", x, y, z);
+		uint16_t xs = Utils::twosComplement(x);
+		uint16_t ys = Utils::twosComplement(y);
+		uint16_t zs = Utils::twosComplement(z);
 
 		outAccel->x = (float)xs / (float)(1 << 7) * scaleMult;
 		outAccel->y = (float)ys / (float)(1 << 7) * scaleMult;

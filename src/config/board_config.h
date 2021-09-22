@@ -9,12 +9,27 @@
 
 namespace Config
 {
+    enum class AccelerometerModel
+    {
+        LID2DE12,
+        KXTJ3_1057,
+        QMA7981,
+        MXC4005XC,
+    };
+
+    enum class LEDModel
+    {
+        APA102,
+        NEOPIXEL_RGB,
+        NEOPIXEL_GRB
+    };
+
     namespace BoardManager
     {
         struct Board
         {
             // Measuring board type
-            int boardResistorValues[MAX_BOARD_RESISTOR_VALUES];
+            int boardResistorValue;
 
             // Talking to LEDs
             uint32_t ledDataPin;
@@ -35,8 +50,15 @@ namespace Config
             // Magnet pin
             uint32_t magnetPin;
 
+            // Accelerometer component
+            AccelerometerModel accModel;
+            LEDModel ledModel;
+
             // LED config
             int ledCount;
+
+            // Name of the board
+            const char* name;
         };
 
         void init();

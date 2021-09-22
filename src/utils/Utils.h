@@ -81,5 +81,9 @@ namespace Utils
     uint32_t modulateColor(uint32_t color, uint8_t intensity);
 
 	uint32_t nextRand(uint32_t prevRand);
+
+    short twosComplement(uint8_t registerValue);
+    int twosComplement12(uint16_t registerValue);
+	int twosComplement16(uint16_t registerValue);
 }
 

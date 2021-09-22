@@ -8,10 +8,10 @@
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "die.h"
-#include "drivers_hw/apa102.h"
 #include "drivers_nrf/timers.h"
 #include "utils/utils.h"
 #include "drivers_nrf/a2d.h"
+#include "leds.h"
 
 using namespace DriversHW;
 using namespace DriversNRF;
@@ -130,7 +130,7 @@ namespace BatteryController
         Battery::hook(onBatteryEventHandler, nullptr);
 
         // Register for led events
-        APA102::hookPowerState(onLEDPowerEventHandler, nullptr);
+        LEDs::hookPowerState(onLEDPowerEventHandler, nullptr);
 
         // Set initial battery state
         currentBatteryState = computeCurrentState();

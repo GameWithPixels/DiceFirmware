@@ -52,6 +52,13 @@ namespace Modules
 		RollState currentRollState();
 		const char* getRollStateString(RollState state);
 
+        void readAccelerometer(Core::float3* acc);
+        void enableInterrupt();
+        void disableInterrupt();
+        void clearInterrupt();
+        bool checkIntPin();
+
+
 		// Notification management
 		typedef void(*FrameDataClientMethod)(void* param, const AccelFrame& accelFrame);
 		void hookFrameData(FrameDataClientMethod method, void* param);
