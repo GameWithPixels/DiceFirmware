@@ -3,7 +3,7 @@ TARGETS = firmware_d firmware # debug and release targets
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 
-VERSION = 09_23_21
+VERSION = 11_16_21
 SDK_VER = 17
 # JLINK = 851002454 #- Plus Olivier
 # JLINK = 851002453 #- Plus Jean
@@ -267,9 +267,15 @@ COMMON_FLAGS += -DSDK_VER=$(SDK_VER)
 
 # COMMON_FLAGS += -DDEVELOP_IN_NRF52832
 
-# Storage address
-FSTORAGE_ADDR = 0x27000
-firmware_debug: FSTORAGE_ADDR = 0x2E000
+# Storage address: first available page in flash memory for storing app data at runtime.
+# It's the FLASH start address + the app size rounded to the next 4k bytes (size of a page = 0x1000).
+# The start address depends on the SoftDevice, 0x19000 in our case.
+# https://devzone.nordicsemi.com/guides/short-range-guides/b/getting-started/posts/adjustment-of-ram-and-flash-memory
+FSTORAGE_ADDR = 0x27000 # 0x19000 + 0xE000 (max app size = 57344 bytes = 56 kb)
+
+# Debug builds are bigger, but the bootloader is not present so we can use higher addresses
+firmware_debug: FSTORAGE_ADDR = 0x2E000 
+
 COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR)
 
 # Debug flags
