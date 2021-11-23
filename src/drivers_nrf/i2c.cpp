@@ -36,15 +36,15 @@ namespace I2C
 
         auto err = nrf_drv_twi_init(&m_twi, &twi_config, NULL, NULL);
         if (err != NRF_SUCCESS) {
-            NRF_LOG_ERROR("I2C Initialization Failed, err=%d", err);
+            NRF_LOG_ERROR("I2C Initialization Failed, err=0x%x", err);
         }
 
         // Enable the interface
         nrf_drv_twi_enable(&m_twi);
 
-        //scanBus(); 
+        //scanBus();
 
-        NRF_LOG_INFO("I2C Initialized.");
+        NRF_LOG_INFO("I2C Initialized with freq=%d", (int)freq);
     }
 
     bool write(uint8_t device, uint8_t value, bool no_stop)
@@ -56,7 +56,7 @@ namespace I2C
     {
         auto err = nrf_drv_twi_tx(&m_twi, device, data, size, no_stop);
         if (err != NRF_SUCCESS) {
-            NRF_LOG_ERROR("I2C Read Error %d", err);
+            NRF_LOG_ERROR("I2C Write Error 0x%x", err);
         }
         return err == NRF_SUCCESS;
     }
@@ -70,7 +70,7 @@ namespace I2C
     {
         auto err = nrf_drv_twi_rx(&m_twi, device, data, size);
         if (err != NRF_SUCCESS) {
-            NRF_LOG_ERROR("I2C Read Error %d", err);
+            NRF_LOG_ERROR("I2C Read Error 0x%x", err);
         }
         return err == NRF_SUCCESS;
     }

@@ -67,7 +67,9 @@ namespace DataSet
 
 	void ProgramDefaultDataSet(const Settings& settingsPackAlong, DataSetWrittenCallback callback) {
 
-		static DataSetWrittenCallback _setWrittenCallback;
+        NRF_LOG_INFO("Programming default data set");
+
+        static DataSetWrittenCallback _setWrittenCallback;
 		_setWrittenCallback = callback;
 
         static void* writeBuffer;

@@ -77,16 +77,16 @@ namespace DFU
     void init() {
 
         #if !defined(DEBUG)
-        // Initialize the async SVCI interface to bootloader before any interrupts are enabled.
-        ret_code_t err_code = ble_dfu_buttonless_async_svci_init();
-        APP_ERROR_CHECK(err_code);
+            // Initialize the async SVCI interface to bootloader before any interrupts are enabled.
+            ret_code_t err_code = ble_dfu_buttonless_async_svci_init();
+            APP_ERROR_CHECK(err_code);
 
-        ble_dfu_buttonless_init_t dfus_init = {0};
+            ble_dfu_buttonless_init_t dfus_init = {0};
 
-        dfus_init.evt_handler = ble_dfu_evt_handler;
+            dfus_init.evt_handler = ble_dfu_evt_handler;
 
-        err_code = ble_dfu_buttonless_init(&dfus_init);
-        APP_ERROR_CHECK(err_code);
+            err_code = ble_dfu_buttonless_init(&dfus_init);
+            APP_ERROR_CHECK(err_code);
         #endif
     }
 }

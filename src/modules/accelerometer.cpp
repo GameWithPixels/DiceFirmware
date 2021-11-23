@@ -107,7 +107,7 @@ namespace Accelerometer
         enableInterrupt();
 
 		start();
-		NRF_LOG_INFO("Accelerometer initialized");
+		NRF_LOG_INFO("Accelerometer initialized with accelerometerModel=%d", (int)accelerometerModel);
 	}
 
 	/// <summary>
@@ -561,7 +561,7 @@ namespace Accelerometer
 
 	bool interruptTriggered = false;
 	void accInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
-		// Aknowledge the interrupt and then disable it
+		// Acknowledge the interrupt and then disable it
         clearInterrupt();
 //        disableInterrupt();
         Scheduler::push(nullptr, 0, [](void * p_event_data, uint16_t event_size) {
@@ -655,7 +655,5 @@ namespace Accelerometer
         nrf_gpio_cfg_default(BoardManager::getBoard()->accInterruptPin);
 		return ret;
 	}
-
-
 }
 }
