@@ -71,12 +71,29 @@ namespace Accelerometer
 	void update(void* context);
 
     void init() {
+        auto board = Config::BoardManager::getBoard();
+
+		// Accel pins depend on the board info
+		switch (board->accModel) {
+			case Config::AccelerometerModel::LID2DE12:
+				LIS2DE12::init();
+				break;
+			case Config::AccelerometerModel::KXTJ3_1057:
+				KXTJ3::init();
+				break;
+			case Config::AccelerometerModel::MXC4005XC:
+				MXC4005XC::init();
+				break;
+			default:
+				NRF_LOG_ERROR("Invalid Accelerometer Model");
+				break;
+		}
+
         MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, nullptr, CalibrateHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, nullptr, CalibrateFaceHandler);
 
 		Flash::hookProgrammingEvent(onSettingsProgrammingEvent, nullptr);
 
-        auto board = Config::BoardManager::getBoard();
         accelerometerModel = board->accModel;
 
 		face = 0;

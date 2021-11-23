@@ -29,8 +29,19 @@ namespace LEDs
     void show();
 
 	void init() {
-        // Initialize Power pin
 		auto board = BoardManager::getBoard();
+
+        switch (board->ledModel) {
+            case LEDModel::APA102:
+                APA102::init();
+                break;
+            case LEDModel::NEOPIXEL_RGB:
+            case LEDModel::NEOPIXEL_GRB:
+                NeoPixel::init();
+                break;
+        }
+
+        // Initialize Power pin
 		powerPin = board->ledPowerPin;
 
 		nrf_gpio_cfg_output(powerPin);

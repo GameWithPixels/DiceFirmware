@@ -18,11 +18,6 @@
 #include "config/board_config.h"
 #include "config/settings.h"
 
-#include "drivers_hw/apa102.h"
-#include "drivers_hw/neopixel.h"
-#include "drivers_hw/lis2de12.h"
-#include "drivers_hw/kxtj3-1057.h"
-#include "drivers_hw/mxc4005xc.h"
 #include "drivers_hw/battery.h"
 #include "drivers_hw/magnet.h"
 
@@ -153,32 +148,11 @@ namespace Die
             // Initialize Hardware drivers
             //--------------------
 
-            // Lights also depend on board info
-            switch (BoardManager::getBoard()->ledModel) {
-                case LEDModel::APA102:
-                    APA102::init();
-                    break;
-                case LEDModel::NEOPIXEL_RGB:
-                case LEDModel::NEOPIXEL_GRB:
-                    NeoPixel::init();
-                    break;
-            }
+            // Lights depend on board info
+            LEDs::init();
 
             // Accel pins depend on the board info
-            switch (BoardManager::getBoard()->accModel) {
-                case Config::AccelerometerModel::LID2DE12:
-                    LIS2DE12::init();
-                    break;
-                case Config::AccelerometerModel::KXTJ3_1057:
-                    KXTJ3::init();
-                    break;
-                case Config::AccelerometerModel::MXC4005XC:
-                    MXC4005XC::init();
-                    break;
-                default:
-                    NRF_LOG_ERROR("Invalid Accelerometer Model");
-                    break;
-            }
+            Accelerometer::init();
 
             // Battery sense pin depends on board info
             Battery::init();
@@ -190,16 +164,10 @@ namespace Die
             // Animation set needs flash and board info
             DataSet::init([] (bool result) {
 
-                // Animation controller relies on animation set
-                LEDs::init();
-
             #if defined(DEBUG)
                 // Useful for development
                 LEDColorTester::init();
             #endif
-
-                // Accelerometer
-                Accelerometer::init();
 
                 // Telemetry depends on accelerometer
                 Telemetry::init();
