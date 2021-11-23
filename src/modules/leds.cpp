@@ -60,8 +60,10 @@ namespace LEDs
     }
 
     void setPixelColor(uint16_t n, uint32_t c) {
-        pixels[n] = c;
-        show();
+        if (n < numLed) {
+            pixels[n] = c;
+            show();
+        }
     }
 
     void setAll(uint32_t c) {
@@ -73,7 +75,10 @@ namespace LEDs
 
     void setPixelColors(int* indices, uint32_t* colors, int count) {
         for (int i = 0; i < count; ++i) {
-            pixels[indices[i]] = colors[i];
+            int n = indices[i];
+            if (n < numLed) {
+                pixels[n] = colors[i];
+            }
         }
         show();
     }
@@ -124,10 +129,10 @@ namespace LEDs
     }
 
     void show() {
-		// Are all the physical leds already all off?
+		// Are all the physical LEDs already all off?
 		bool powerOff = nrf_gpio_pin_out_read(powerPin) == 0;
 
-		// Do we want all the leds to be off?
+        // Do we want all the LEDs to be off?
         bool allOff = isPixelDataZero();
 
 		if (powerOff && allOff) {
@@ -161,7 +166,6 @@ namespace LEDs
 			}
 		}
     }
-
 
 	// Convert separate R,G,B to packed value
 	uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
