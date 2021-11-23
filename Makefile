@@ -271,7 +271,7 @@ COMMON_FLAGS += -DSDK_VER=$(SDK_VER)
 # It's the FLASH start address + the app size rounded to the next 4k bytes (size of a page = 0x1000).
 # The start address depends on the SoftDevice, 0x19000 in our case.
 # https://devzone.nordicsemi.com/guides/short-range-guides/b/getting-started/posts/adjustment-of-ram-and-flash-memory
-FSTORAGE_ADDR = 0x27000 # 0x19000 + 0xE000 (max app size = 57344 bytes = 56 kb)
+FSTORAGE_ADDR = 0x26000 # 0x19000 + 0xD000 (max app size = 53248 bytes = 52 kB)
 
 # Debug builds are bigger, but the bootloader is not present so we can use higher addresses
 firmware_debug: FSTORAGE_ADDR = 0x2E000 
