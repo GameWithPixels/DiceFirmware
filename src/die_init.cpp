@@ -193,8 +193,10 @@ namespace Die
                 // Animation controller relies on animation set
                 LEDs::init();
 
+            #if defined(DEBUG)
                 // Useful for development
                 LEDColorTester::init();
+            #endif
 
                 // Accelerometer
                 Accelerometer::init();
