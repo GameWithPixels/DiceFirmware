@@ -285,7 +285,7 @@ namespace BatteryController
         lvl.voltage = vBat;
         lvl.level = level;
         lvl.charging = currentBatteryState == BatteryState_Charging ? 1 : 0;
-        NRF_LOG_DEBUG("Received Battery Level Request, returning " NRF_LOG_FLOAT_MARKER " (" NRF_LOG_FLOAT_MARKER "v)", NRF_LOG_FLOAT(level), NRF_LOG_FLOAT(vBat));
+        NRF_LOG_INFO("Received Battery Level Request, returning " NRF_LOG_FLOAT_MARKER " (" NRF_LOG_FLOAT_MARKER "v)", NRF_LOG_FLOAT(level), NRF_LOG_FLOAT(vBat));
         MessageService::SendMessage(&lvl);
     }
 
