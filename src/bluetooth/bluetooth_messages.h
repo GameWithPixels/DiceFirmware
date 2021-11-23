@@ -91,7 +91,9 @@ struct Message
 	MessageType type;
 
 	inline Message(MessageType msgType) : type(msgType) {}
-	static const char* GetMessageTypeString(MessageType msgType);
+
+	// Returns empty string in release builds so to save space
+	static const char *GetMessageTypeString(MessageType msgType);
 
 protected:
 	inline Message() : type(MessageType_None) {}

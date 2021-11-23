@@ -160,19 +160,22 @@ namespace BatteryController
         return LookupChargeLevel(vBat);
     }
 
-
     const char* getChargeStateString(BatteryState state) {
+    #if defined(DEBUG)
         switch (currentBatteryState) {
-			case BatteryState_Ok:
+            case BatteryState_Ok:
                 return "Ok";
-			case BatteryState_Low:
+            case BatteryState_Low:
                 return "Low";
-			case BatteryState_Charging:
+            case BatteryState_Charging:
                 return "Charging";
-			case BatteryState_Unknown:
+            case BatteryState_Unknown:
             default:
                 return "Unknown";
         }
+    #else
+        return "";
+    #endif
     }
 
     BatteryState computeCurrentState() {

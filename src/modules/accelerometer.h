@@ -50,7 +50,9 @@ namespace Modules
 		int currentFace();
 		float currentFaceConfidence();
 		RollState currentRollState();
-		const char* getRollStateString(RollState state);
+
+		// Returns empty string in release builds so to save space
+		const char *getRollStateString(RollState state);
 
         void readAccelerometer(Core::float3* acc);
         void enableInterrupt();

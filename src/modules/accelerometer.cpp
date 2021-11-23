@@ -283,6 +283,7 @@ namespace Accelerometer
 	}
 
 	const char* getRollStateString(RollState state) {
+	#if defined(DEBUG)
 		switch (state) {
 			case RollState_Unknown:
 			default:
@@ -296,6 +297,9 @@ namespace Accelerometer
 			case RollState_Crooked:
 				return "Crooked";
 		}
+	#else
+		return "";
+	#endif
 	}
 
 	/// <summary>

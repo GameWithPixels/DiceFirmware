@@ -23,7 +23,8 @@ namespace Modules
 		BatteryState getCurrentChargeState();
 		float getCurrentLevel();
 
-		const char* getChargeStateString(BatteryState state);
+		// Returns empty string in release builds so to save space
+		const char *getChargeStateString(BatteryState state);
 
 		typedef void(*BatteryStateChangeHandler)(void* param, BatteryState newState);
 		void hook(BatteryStateChangeHandler method, void* param);
