@@ -7,9 +7,11 @@
 #include "core/float3.h"
 #include "stdint.h"
 
+#pragma pack(push, 1)
+
 namespace Config
 {
-    enum class AccelerometerModel
+    enum class AccelerometerModel : uint8_t
     {
         LID2DE12,
         KXTJ3_1057,
@@ -17,7 +19,7 @@ namespace Config
         MXC4005XC,
     };
 
-    enum class LEDModel
+    enum class LEDModel : uint8_t
     {
         APA102,
         NEOPIXEL_RGB,
@@ -29,33 +31,33 @@ namespace Config
         struct Board
         {
             // Measuring board type
-            int boardResistorValue;
+            uint8_t boardResistorValueInKOhms;
 
             // Talking to LEDs
-            uint32_t ledDataPin;
-            uint32_t ledClockPin;
-            uint32_t ledPowerPin;
+            uint8_t ledDataPin;
+            uint8_t ledClockPin;
+            uint8_t ledPowerPin;
 
             // I2C Pins for accelerometer
-            uint32_t i2cDataPin;
-            uint32_t i2cClockPin;
-            uint32_t accInterruptPin;
+            uint8_t i2cDataPin;
+            uint8_t i2cClockPin;
+            uint8_t accInterruptPin;
 
             // Power Management pins
-            uint32_t chargingStatePin;
-            uint32_t coilSensePin;
-            uint32_t vbatSensePin;
-            uint32_t vledSensePin;
+            uint8_t chargingStatePin;
+            uint8_t coilSensePin;
+            uint8_t vbatSensePin;
+            uint8_t vledSensePin;
 
             // Magnet pin
-            uint32_t magnetPin;
+            uint8_t magnetPin;
 
             // Accelerometer component
             AccelerometerModel accModel;
             LEDModel ledModel;
 
             // LED config
-            int ledCount;
+            uint8_t ledCount;
 
             // Name of the board
             const char* name;
@@ -66,3 +68,4 @@ namespace Config
     }
 }
 
+#pragma pack(pop)

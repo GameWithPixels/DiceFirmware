@@ -28,8 +28,8 @@ namespace Magnet
     void init() {
 
         // Status pin needs a pull-up, and is pulled low when charging
-        auto pin = BoardManager::getBoard()->magnetPin;
-        magnetAvailable = pin != 0xFFFFFFFF;
+        uint8_t pin = BoardManager::getBoard()->magnetPin;
+        magnetAvailable = pin != 0xFF;
         if (magnetAvailable) {
             nrf_gpio_cfg_default(pin);
 
@@ -50,10 +50,10 @@ namespace Magnet
     bool checkMagnet() {
         if (magnetAvailable) {
             // Status pin needs a pull-up, and is pulled low when magnet is present
-            uint32_t statePin = BoardManager::getBoard()->magnetPin;
-            nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_NOPULL);
-            bool ret = nrf_gpio_pin_read(statePin) == 0;
-            nrf_gpio_cfg_default(statePin);
+            uint8_t pin = BoardManager::getBoard()->magnetPin;
+            nrf_gpio_cfg_input(pin, NRF_GPIO_PIN_NOPULL);
+            bool ret = nrf_gpio_pin_read(pin) == 0;
+            nrf_gpio_cfg_default(pin);
             return ret;
         } else {
             return false;

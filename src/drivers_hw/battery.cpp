@@ -35,10 +35,10 @@ namespace Battery
         // Set charger and fault pins as input
 
         // Drive the status pin down for a moment
-        uint32_t statePin = BoardManager::getBoard()->chargingStatePin;
+        uint8_t statePin = BoardManager::getBoard()->chargingStatePin;
 
         // Status pin needs a pull-up, and is pulled low when charging
-        if (statePin != 0xFFFFFFFF) {
+        if (statePin != 0xFF) {
             nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
             //nrf_gpio_cfg_default(statePin);
         }
@@ -95,8 +95,8 @@ namespace Battery
     bool checkCharging() {
         bool ret = false;
         // Status pin needs a pull-up, and is pulled low when charging
-        uint32_t statePin = BoardManager::getBoard()->chargingStatePin;
-        if (statePin != 0xFFFFFFFF) {
+        uint8_t statePin = BoardManager::getBoard()->chargingStatePin;
+        if (statePin != 0xFF) {
             //nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
             ret = nrf_gpio_pin_read(statePin) == 0;
             //nrf_gpio_cfg_default(statePin);
@@ -105,7 +105,7 @@ namespace Battery
     }
 
     bool canCheckCharging() {
-        return Config::BoardManager::getBoard()->chargingStatePin != 0xFFFFFFFF;
+        return Config::BoardManager::getBoard()->chargingStatePin != 0xFF;
     }
 
     void handleBatteryEvent(void * p_event_data, uint16_t event_size) {
