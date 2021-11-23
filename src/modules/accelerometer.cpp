@@ -428,7 +428,7 @@ namespace Accelerometer
 				//BLE_LOG_INFO("Face 1 Normal: %d, %d, %d", (int)(measuredNormals->face1.x * 100), (int)(measuredNormals->face1.y * 100), (int)(measuredNormals->face1.z * 100));
 
 				// Place on face 5
-				MessageService::NotifyUser("Place face 5 up", true, true, 30, [] (bool okCancel)
+				MessageService::NotifyUser("5 up", true, true, 30, [] (bool okCancel)
 				{
 					if (okCancel) {
 						// Die is on face 5
@@ -439,7 +439,7 @@ namespace Accelerometer
 						//BLE_LOG_INFO("Face 5 Normal: %d, %d, %d", (int)(measuredNormals->face5.x * 100), (int)(measuredNormals->face5.y * 100), (int)(measuredNormals->face5.z * 100));
 
 						// Place on face 10
-						MessageService::NotifyUser("Place face 10 up", true, true, 30, [] (bool okCancel)
+						MessageService::NotifyUser("10 up", true, true, 30, [] (bool okCancel)
 						{
 							if (okCancel) {
 								// Die is on face 10
@@ -494,14 +494,14 @@ namespace Accelerometer
 													SettingsManager::programCalibrationData(newNormals, layoutVersionIndex, newFaceToLEDLookup, b->ledCount, [] (bool result) {
 
 														// Notify user that we're done, yay!!!
-														MessageService::NotifyUser("Calibrated!", false, false, 30, nullptr);
+														MessageService::NotifyUser("Calibrated", false, false, 30, nullptr);
 
 														// Restart notifications
 														restart();
 													});
 												} else {
 													// Notify user
-													MessageService::NotifyUser("Calibration failed.", false, false, 30, nullptr);
+													MessageService::NotifyUser("Not calibrated", false, false, 30, nullptr);
 
 													// Restart notifications
 													restart();
@@ -551,7 +551,7 @@ namespace Accelerometer
 		// And flash the new normals
 		int fli = SettingsManager::getSettings()->faceLayoutLookupIndex;
 		SettingsManager::programCalibrationData(calibratedNormalsCopy, fli, ftlCopy, normalCount, [] (bool result) {
-			MessageService::NotifyUser("Face is calibrated.", true, false, 5, nullptr);
+			MessageService::NotifyUser("Face calibrated", true, false, 5, nullptr);
 		});
 	}
 
