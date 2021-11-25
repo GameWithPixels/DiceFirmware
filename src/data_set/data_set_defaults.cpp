@@ -208,15 +208,15 @@ namespace DataSet
 		newData->tailMarker = ANIMATION_SET_VALID_KEY;
 
         // Cute way to create Red Green Blue colors in palette
-        writePalette[0] = 0xFF;
+        writePalette[0] = 4;
         writePalette[1] = 0x00;
         writePalette[2] = 0x00;
         writePalette[3] = 0x00;
-        writePalette[4] = 0xFF;
+        writePalette[4] = 4;
         writePalette[5] = 0x00;
         writePalette[6] = 0x00;
         writePalette[7] = 0x00;
-        writePalette[8] = 0xFF;
+        writePalette[8] = 4;
 
 		// Create animations
 		for (int c = 0; c < 3; ++c) {
