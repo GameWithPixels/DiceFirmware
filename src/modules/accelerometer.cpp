@@ -31,7 +31,7 @@ using namespace Config;
 using namespace Bluetooth;
 
 // This defines how frequently we try to read the accelerometer
-#define TIMER2_RESOLUTION (1000)	// ms
+#define TIMER2_RESOLUTION (100)	// ms
 #define JERK_SCALE (1000)		// To make the jerk in the same range as the acceleration
 #define MAX_ACC_CLIENTS 8
 
