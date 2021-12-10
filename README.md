@@ -28,42 +28,80 @@ nrfjprog -f nrf52 --program firmware.hex --sectorerase
 nrfjprog -f nrf52 --reset
 ```
 
-Firmware releases are available [here](https://github.com/GameWithPixels/DiceFirmware/releases). To program the board, download the .hex file from the latest release, and run the commands above from the folder where the .hex file was saved (be sure to change `firmware.hex` in the command to the correct filename).
+Firmware releases are available on the releases [page](https://github.com/GameWithPixels/DiceFirmware/releases) of this repository.
+To program the board, download the .hex file from the latest release, and run the commands above from the folder where the .hex file was saved (be sure to change `firmware.hex` in the command to the correct filename).
+
+## Device Firmware Upgrade (DFU)
+
+Nordic provides the tools to update the firmware through Bluetooth.
+This is the only way to update our electronic boards once encased in a Pixel die.
+
+You may use Nordic's [nRF Toolbox](https://www.nordicsemi.com/Products/Development-tools/nRF-Toolbox)
+app to push a firmware update to a Pixel. Once the app is started, scroll down and tap on
+"Device Firmware Upgrade (DFU)" and then "Connect".
+
+![Connect screen listing nearby Bluetooth devices](images/connect_screen.jpg)
+
+This page shows the scanned Bluetooth Low Energy devices. The name of any nearby Pixel should appear.
+This name is advertised by the die firmware.
+But in order to proceed with a DFU update, we need to connect to the *bootloader*.
+The latter is run when the die is turned on and stay active for just 3 seconds.
+Then, if no DFU request was made during that time, the die transition to running the firmware.
+
+Turn the dice off and back on and immediately tap on the circling arrow located on the top right corner
+of the app to refresh the list of Bluetooth devices.
+
+You should see a new entry named "DiceDfuTarg" which is the name that the *bootloader* is advertising.
+Upon selecting it, a list of available packages is displayed. Those are zip files containing the firmware
+and some settings.
+
+![Package screen listing available updates](images/package_screen.jpg)
+
+You must first import into the app the package containing the firmware update.
+Such packages are available on the releases [page](https://github.com/GameWithPixels/DiceFirmware/releases) of this repository.
+Once that done, select the package in the list and tap on the "Update" button located at the bottom of the screen.
+
+At this point the die will most likely be done running the *bootloader* as it only stays active for 3 seconds.
+Turn the dice off and back on again to let the app connect to the *bootloader* and proceed with the update.
+Tap on "Retry" if you get a "Device failed to connect" error.
+
+The update should then proceed and the app will let you know when it's done. The die automatically reboots
+at the end of the process and runs the updated firmware.
 
 ## Building The Firmware
 
 ### Environment Setup on Windows
 
-The requirements are the same than for building the dice _bootloader_.
-Check out the instructions on the _bootloader_'s GitHub [page](https://github.com/GameWithPixels/DiceBootloader#readme).
+The requirements are the same than for building the dice *bootloader*.
+Check out the instructions on the *bootloader*'s GitHub [page](https://github.com/GameWithPixels/DiceBootloader#readme).
 
 ### Building
 
-Make sure that the _Makefile_ `SDK_ROOT` variable is pointing to the correct folder.
+Make sure that the *Makefile* `SDK_ROOT` variable is pointing to the correct folder.
 
 Open a command line and go the folder where this repository is cloned and run `make`.
 
 The output files are placed in the `_builds` folder, by default those are debug files (not release). The one that we want to program to the flash memory is the `.hex` file (more about this format [here](https://en.wikipedia.org/wiki/Intel_HEX)) .
 
-## Programming a Pixel electronic board with _make_
+## Programming a Pixel electronic board with *make*
 
-Using the project's _Makefile_ you may:
+Using the project's *Makefile* you may:
 
 * `reset`: restart the device
 * `erase`: entirely erase the flash memory
-* `flash_softdevice`: program the _SoftDevice_ into the die's memory and reboot the device
+* `flash_softdevice`: program the *SoftDevice* into the die's memory and reboot the device
 * `flash_bootloader`: program the bootloader into the die's memory and reboot the device
 
-__For debug builds:__
+**For debug builds:**
 
 * `firmware_debug` (default): produce a debug build of the firmware => `firmware_d.hex`
 * `settings_debug`: generate the bootloader settings page for a debug build
 * `flash`: program the firmware into the die's memory and reboot the device
 * `reflash`:call `erase`, `flash_softdevice` and `flash` in a sequence
 
-_Note: debug builds being somewhat bigger then release ones, we usually don't flash the bootloader with with them to save memory._
+*Note:* debug builds being quite bigger than release ones, we usually don't have enough memory to flash the *bootloader* with them.
 
-__For release builds:__
+**For release builds:**
 
 * `firmware_release`: produce a release build of the firmware => `firmware.hex`
 * `settings_release`: generate the bootloader settings page for a release build
@@ -74,10 +112,10 @@ __For release builds:__
 
 The last command requires `nRF Util` to produce the DFU package (see documentation [here](https://infocenter.nordicsemi.com/topic/ug_nrfutil/UG/nrfutil/nrfutil_intro.html) about this tool). DFU packages can be pushed on dice via Bluetooth using Nordic's nRF Toolbox (available on mobile).
 
-The _Makefile_ expects to find `nrfutil.exe`. Search for `NRFUTIL` to set a different path.
+The *Makefile* expects to find `nrfutil.exe`. Search for `NRFUTIL` to set a different path.
 We're using the 5.2 build that can be downloaded from [GitHub](https://github.com/NordicSemiconductor/pc-nrfutil/releases/tag/v5.2.0).
 
-The version of the firmware is defined by the variable `VERSION` in the _Makefile_.
+The version of the firmware is defined by the variable `VERSION` in the *Makefile*.
 
 ## Output logs in Visual Studio Code
 
