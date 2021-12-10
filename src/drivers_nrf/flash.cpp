@@ -263,25 +263,25 @@ namespace Flash
 											} else {
 												NRF_LOG_ERROR("Error programming dataset to flash");
 											}
-											_onProgramFinished(result);
 											finishProgramming();
+											_onProgramFinished(result);
 									});
 								} else {
 									NRF_LOG_ERROR("Error transfering animation data");
-									_onProgramFinished(false);
 									finishProgramming();
+									_onProgramFinished(false);
 								}
 							});
 						} else {
 							NRF_LOG_ERROR("Error writing settings");
-							_onProgramFinished(false);
 							finishProgramming();
+							_onProgramFinished(false);
 						}
 					});
 				} else {
 					NRF_LOG_ERROR("Error erasing flash");
-					_onProgramFinished(false);
 					finishProgramming();
+					_onProgramFinished(false);
 				}
 			});
             return true;
