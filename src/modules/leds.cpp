@@ -5,12 +5,14 @@
 #include "core/delegate_array.h"
 #include "drivers_hw/apa102.h"
 #include "drivers_hw/neopixel.h"
-#include "../drivers_nrf/log.h"
+#include "drivers_nrf/log.h"
+#include "drivers_nrf/timers.h"
 
 #include "string.h" // for memset
 
 using namespace Config;
 using namespace DriversHW;
+using namespace DriversNRF;
 
 #define OFFSET_RED 2
 #define OFFSET_GREEN 1
@@ -24,9 +26,12 @@ namespace LEDs
 	DelegateArray<LEDClientMethod, MAX_APA102_CLIENTS> ledPowerClients;
 	static uint8_t powerPin;
     static uint8_t numLed;
+    static bool powerOn = false;
     uint32_t pixels[MAX_LED_COUNT];
 
     void show();
+    void setPowerOn();
+    void setPowerOff();
 
 	void init() {
 		auto board = BoardManager::getBoard();
@@ -46,6 +51,7 @@ namespace LEDs
 
 		nrf_gpio_cfg_output(powerPin);
 		nrf_gpio_pin_clear(powerPin);
+        powerOn = false;
 
         // Initialize our color array
         memset(pixels, 0, MAX_LED_COUNT * sizeof(uint32_t));
@@ -101,22 +107,6 @@ namespace LEDs
 		ledPowerClients.UnregisterWithToken(param);
 	}
 
-	void prepare(void) {
-		// Sets the power pin on, but doesn't write any data
-		// Turn power on so we display something!!!
-		if (nrf_gpio_pin_out_read(powerPin) == 0) {
-
-			// Notify clients we're turning led power on
-			for (int i = 0; i < ledPowerClients.Count(); ++i) {
-				ledPowerClients[i].handler(ledPowerClients[i].token, true);
-			}
-
-			nrf_gpio_pin_set(powerPin);
-			nrf_delay_ms(2); // Anything less than 2ms before toggling data/clk lines will cause artifacts
-            NRF_LOG_INFO("LED Power On");
-		}
-	}
-
     bool isPixelDataZero() {
         bool allOff = true;
         for (int i = 0; i < numLed; ++i) {
@@ -143,33 +133,52 @@ namespace LEDs
 		}
 
 		// Turn power on so we display something!!!
-		prepare();
+		if (!powerOn) {
+			setPowerOn();
+		}
 
         switch (Config::BoardManager::getBoard()->ledModel) {
             case Config::LEDModel::APA102:
                 APA102::show(pixels);
                 break;
-             case Config::LEDModel::NEOPIXEL_RGB:
-             case Config::LEDModel::NEOPIXEL_GRB:
+            case Config::LEDModel::NEOPIXEL_RGB:
+            case Config::LEDModel::NEOPIXEL_GRB:
                 NeoPixel::show(pixels);
                 break;
         }
 
-		if (allOff) {
-			// Turn power off too
-            NRF_LOG_INFO("LED Power Off");
-			nrf_gpio_pin_clear(powerPin);
-
-			// Notify clients we're turning led power off
-			for (int i = 0; i < ledPowerClients.Count(); ++i) {
-				ledPowerClients[i].handler(ledPowerClients[i].token, false);
-			}
-		}
+        if (allOff) {
+            setPowerOff();
+        }
     }
 
 	// Convert separate R,G,B to packed value
 	uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
 		return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 	}
+
+    void setPowerOn() {
+        // Notify clients we're turning led power on
+        for (int i = 0; i < ledPowerClients.Count(); ++i) {
+            ledPowerClients[i].handler(ledPowerClients[i].token, true);
+        }
+
+        nrf_gpio_pin_set(powerPin);
+        powerOn = true;
+        nrf_delay_ms(2); 
+        NRF_LOG_INFO("LED Power On");
+   }
+
+    void setPowerOff() {
+        nrf_delay_ms(2); 
+        NRF_LOG_INFO("LED Power Off");
+        nrf_gpio_pin_clear(powerPin);
+        powerOn = false;
+
+        // Notify clients we're turning led power off
+        for (int i = 0; i < ledPowerClients.Count(); ++i) {
+            ledPowerClients[i].handler(ledPowerClients[i].token, true);
+        }
+   }
 }
 }

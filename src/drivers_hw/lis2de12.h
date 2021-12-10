@@ -18,10 +18,17 @@ namespace DriversHW
 		void read(Core::float3* outAccel);
 
 		void enableInterrupt();
+        void enableDataInterrupt();
 		void disableInterrupt();
 		void clearInterrupt();
 
 		void lowPower();
+
+		// Notification management
+		typedef void(*LIS2DE12ClientMethod)(void* param, const Core::float3& acceleration);
+		void hook(LIS2DE12ClientMethod method, void* param);
+		void unHook(LIS2DE12ClientMethod client);
+		void unHookWithParam(void* param);
 	}
 }
 

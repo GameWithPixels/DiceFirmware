@@ -8,7 +8,6 @@
 #include "config/board_config.h"
 #include "config/settings.h"
 #include "config/dice_variants.h"
-#include "app_timer.h"
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "nrf_log.h"
@@ -31,7 +30,6 @@ using namespace Config;
 using namespace Bluetooth;
 
 // This defines how frequently we try to read the accelerometer
-#define TIMER2_RESOLUTION (100)	// ms
 #define JERK_SCALE (1000)		// To make the jerk in the same range as the acceleration
 #define MAX_ACC_CLIENTS 8
 
@@ -64,9 +62,10 @@ namespace Accelerometer
     void CalibrateHandler(void* context, const Message* msg);
 	void CalibrateFaceHandler(void* context, const Message* msg);
 	void onSettingsProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
-	void onPowerEvent(void* context, nrf_pwr_mgmt_evt_t event);
     void readAccelerometer(float3* acc);
-    bool checkIntPin();
+    void LIS2DE12Handler(void* param, const Core::float3& acc);
+    void MXC4005XCHandler(void* param, const Core::float3& acc, float temp);
+    void AccHandler(const Core::float3& acc);
 
 	void update(void* context);
 
@@ -77,9 +76,6 @@ namespace Accelerometer
 		switch (board->accModel) {
 			case Config::AccelerometerModel::LID2DE12:
 				LIS2DE12::init();
-				break;
-			case Config::AccelerometerModel::KXTJ3_1057:
-				KXTJ3::init();
 				break;
 			case Config::AccelerometerModel::MXC4005XC:
 				MXC4005XC::init();
@@ -109,35 +105,39 @@ namespace Accelerometer
 		buffer.push(newFrame);
 
 		// Attach to the power manager, so we can wake the device up
-		PowerManager::hook(onPowerEvent, nullptr);
+		//PowerManager::hook(onPowerEvent, nullptr);
 
-		// Create the accelerometer timer
-		ret_code_t ret_code = app_timer_create(&accelControllerTimer, APP_TIMER_MODE_REPEATED, update);
-		APP_ERROR_CHECK(ret_code);
+		// // Create the accelerometer timer
+		// ret_code_t ret_code = app_timer_create(&accelControllerTimer, APP_TIMER_MODE_REPEATED, update);
+		// APP_ERROR_CHECK(ret_code);
 
-		if (!checkIntPin())
-		{
-			NRF_LOG_ERROR("Bad interrupt Pin");
-			return;
-		}
-
-        enableInterrupt();
 
 		start();
 		NRF_LOG_INFO("Accelerometer initialized with accelerometerModel=%d", (int)accelerometerModel);
 	}
 
-	/// <summary>
-	/// update is called from the timer
-	/// </summary>
-	void update(void* context) {
+    void MXC4005XCHandler(void* param, const Core::float3& acc, float temp) {
+        AccHandler(acc);
+    }
+
+    void LIS2DE12Handler(void* param, const Core::float3& acc) {
+        AccHandler(acc);
+    }
+
+    void update(void* context) {
+        Core::float3 acc;
+        readAccelerometer(&acc);
+        AccHandler(acc);
+    }
+
+    void AccHandler(const Core::float3& acc) {
 
 		auto settings = SettingsManager::getSettings();
 		auto& lastFrame = buffer.last();
 
-
 		AccelFrame newFrame;
-        readAccelerometer(&newFrame.acc);
+        newFrame.acc = acc;
+
 		newFrame.time = DriversNRF::Timers::millis();
 		newFrame.jerk = ((newFrame.acc - lastFrame.acc) * 1000.0f) / (float)(newFrame.time - lastFrame.time);
 
@@ -223,7 +223,6 @@ namespace Accelerometer
                 break;
         }
 
-		//if (newFrame.face != face || newRollState != rollState) {
 		if (newFrame.face != face) {
 			face = newFrame.face;
 			confidence = newFrame.faceConfidence;
@@ -232,9 +231,6 @@ namespace Accelerometer
 		}
 
 		if (newRollState != rollState) {
-
-			// Debugging
-			//BLE_LOG_INFO("Face Normal: %d, %d, %d", (int)(newFrame.acc.x * 100), (int)(newFrame.acc.y * 100), (int)(newFrame.acc.z * 100));
 
 			if (newRollState != rollState) {
 				NRF_LOG_INFO("State: %s", getRollStateString(newRollState));
@@ -248,7 +244,7 @@ namespace Accelerometer
 				}
 			}
 		}
-	}
+    }
 
 	/// <summary>
 	/// Initialize the acceleration system
@@ -256,6 +252,9 @@ namespace Accelerometer
 	void start()
 	{
 		NRF_LOG_INFO("Starting accelerometer");
+        
+        auto board = Config::BoardManager::getBoard();
+
 		// Set initial value
 		float3 acc;
         readAccelerometer(&acc);
@@ -270,8 +269,22 @@ namespace Accelerometer
             rollState = RollState_Crooked;
         }
 
-		ret_code_t ret_code = app_timer_start(accelControllerTimer, APP_TIMER_TICKS(TIMER2_RESOLUTION), NULL);
-		APP_ERROR_CHECK(ret_code);
+		// Accel pins depend on the board info
+		switch (board->accModel) {
+			case Config::AccelerometerModel::LID2DE12:
+				LIS2DE12::hook(LIS2DE12Handler, nullptr);
+                // {
+              	// 	ret_code_t ret_code = app_timer_start(accelControllerTimer, APP_TIMER_TICKS(500), NULL);
+            	// 	APP_ERROR_CHECK(ret_code);
+                // }
+				break;
+			case Config::AccelerometerModel::MXC4005XC:
+				MXC4005XC::hook(MXC4005XCHandler, nullptr);
+				break;
+			default:
+				NRF_LOG_ERROR("Invalid Accelerometer Model");
+				break;
+		}
 	}
 
 	/// <summary>
@@ -279,8 +292,24 @@ namespace Accelerometer
 	/// </summary>
 	void stop()
 	{
-		ret_code_t ret_code = app_timer_stop(accelControllerTimer);
-		APP_ERROR_CHECK(ret_code);
+        auto board = Config::BoardManager::getBoard();
+
+		// Accel pins depend on the board info
+		switch (board->accModel) {
+			case Config::AccelerometerModel::LID2DE12:
+				LIS2DE12::unHook(LIS2DE12Handler);
+                // {
+                //     ret_code_t ret_code = app_timer_stop(accelControllerTimer);
+                //     APP_ERROR_CHECK(ret_code);
+                // }
+				break;
+			case Config::AccelerometerModel::MXC4005XC:
+				MXC4005XC::unHook(MXC4005XCHandler);
+				break;
+			default:
+				NRF_LOG_ERROR("Invalid Accelerometer Model");
+				break;
+		}
 		NRF_LOG_INFO("Stopped accelerometer");
 	}
 
@@ -574,31 +603,11 @@ namespace Accelerometer
 
 	void onSettingsProgrammingEvent(void* context, Flash::ProgrammingEventType evt){
 		if (evt == Flash::ProgrammingEventType_Begin) {
+            NRF_LOG_INFO("Stoping axel from programming event");
 			stop();
 		} else {
+            NRF_LOG_INFO("Starting axel from programming event");
 			start();
-		}
-	}
-
-	bool interruptTriggered = false;
-	void accInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
-		// Acknowledge the interrupt and then disable it
-        clearInterrupt();
-//        disableInterrupt();
-        Scheduler::push(nullptr, 0, [](void * p_event_data, uint16_t event_size) {
-            NRF_LOG_INFO("Interrupt!!!");
-        });
-	}
-
-	void onPowerEvent(void* context, nrf_pwr_mgmt_evt_t event) {
-		if (event == NRF_PWR_MGMT_EVT_PREPARE_WAKEUP) {
-			// Setup interrupt to wake the device up
-			NRF_LOG_INFO("Setting accelerometer to trigger interrupt");
-
-			// Set interrupt pin
-            nrf_gpio_cfg_sense_input(BoardManager::getBoard()->accInterruptPin, NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_SENSE_LOW);
-
-            enableInterrupt();
 		}
 	}
 
@@ -607,11 +616,9 @@ namespace Accelerometer
             case Config::AccelerometerModel::LID2DE12:
                 LIS2DE12::read(acc);
                 break;
-            case Config::AccelerometerModel::KXTJ3_1057:
-                KXTJ3::read(acc);
-                break;
             case Config::AccelerometerModel::MXC4005XC:
                 MXC4005XC::read(acc);
+                // MXC4005XC::getCurrentAccel(acc);
                 break;
             default:
                 NRF_LOG_ERROR("Invalid Accelerometer Model");
@@ -675,6 +682,5 @@ namespace Accelerometer
         bool ret = nrf_gpio_pin_read(BoardManager::getBoard()->accInterruptPin) == 0;
         nrf_gpio_cfg_default(BoardManager::getBoard()->accInterruptPin);
 		return ret;
-	}
-}
+	}}
 }

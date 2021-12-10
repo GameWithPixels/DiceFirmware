@@ -20,8 +20,13 @@ namespace DriversHW
 		void enableInterrupt();
 		void disableInterrupt();
 		void clearInterrupt();
-
 		void lowPower();
+
+		// Notification management
+		typedef void(*MXC4005ClientMethod)(void* param, const Core::float3& acceleration, float temperature);
+		void hook(MXC4005ClientMethod method, void* param);
+		void unHook(MXC4005ClientMethod client);
+		void unHookWithParam(void* param);
 	}
 }
 

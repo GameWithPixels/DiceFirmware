@@ -129,6 +129,7 @@ namespace SettingsManager
 		outSettings.accDecay = 0.9f;
 		outSettings.heatUpRate = 0.0004f;
 		outSettings.coolDownRate = 0.995f;
+        outSettings.MXC4005XCZOffset = 256+79;
 	}
 
 	void setDefaultCalibrationData(Settings& outSettings) {

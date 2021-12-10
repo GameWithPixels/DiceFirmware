@@ -7,14 +7,17 @@ Modified by Jean Simonet, Systemic Games
 #include "lis2de12.h"
 #include "drivers_nrf/i2c.h"
 #include "nrf_log.h"
-#include "../drivers_nrf/log.h"
-#include "../drivers_nrf/power_manager.h"
-#include "../drivers_nrf/timers.h"
+#include "drivers_nrf/log.h"
+#include "drivers_nrf/power_manager.h"
+#include "drivers_nrf/timers.h"
+#include "drivers_nrf/scheduler.h"
 #include "nrf_gpio.h"
-#include "../config/board_config.h"
-#include "../drivers_nrf/gpiote.h"
-#include "../core/float3.h"
-#include "../utils/Utils.h"
+#include "nrf_delay.h"
+#include "config/board_config.h"
+#include "drivers_nrf/gpiote.h"
+#include "core/float3.h"
+#include "utils/Utils.h"
+#include "core/delegate_array.h"
 
 using namespace DriversNRF;
 using namespace Config;
@@ -65,14 +68,16 @@ namespace LIS2DE12
         ACT_DUR = 0x3F,
     };
 
-    enum Scale
+    // Defines the acceleration that can be measured (in Gs)
+    enum FullScaleRange
     {
-        SCALE_2G = 0,
-        SCALE_4G,
-        SCALE_8G,
-        SCALE_16G
+        FSR_2G = 0,
+        FSR_4G = 1,
+        FSR_8G = 2,
+        FSR_16G = 3,
     };
 
+    // Possible data rates
     enum DataRate
     {
         ODR_PWR_DWN = 0,
@@ -85,18 +90,24 @@ namespace LIS2DE12
         ODR_400,
         ODR_1620,
         ODR_5376,
-    }; // possible data rates
+    };
 
     const uint8_t devAddress = 0x18;
-    const Scale fsr = SCALE_4G;
-    const float scaleMult = 4.0f;
-    const DataRate dataRate = ODR_200;
     const uint16_t wakeUpThreshold = 32;
     const uint8_t wakeUpCount = 1;
+
+    // Little macros to compute accelerations properly
+    #define RANGE (FSR_4G)
+    #define SCALE ((float)(1 << (RANGE + 1)))
+    #define DATA_RATE (ODR_10)
+
+    #define MAX_CLIENTS 2
+	DelegateArray<LIS2DE12ClientMethod, MAX_CLIENTS> clients;
 
     void ApplySettings();
 	void standby();
 	void active();
+    void reset();
 
 	/// <summary>
 	///	This function initializes the LIS2DE12. It sets up the scale (either 2, 4,
@@ -107,8 +118,7 @@ namespace LIS2DE12
 	/// <param name="fsr"></param>
 	/// <param name="odr"></param>
 	/// <returns></returns>
-	void init()
-	{
+	void init()	{
 		uint8_t c = I2C::readRegister(devAddress, WHO_AM_I);  // Read WHO_AM_I register
 
 		if (c != 0x33) // WHO_AM_I should always be 0x33 on LIS2DE12
@@ -120,9 +130,13 @@ namespace LIS2DE12
         // Initialize settings
         ApplySettings();
 
+        // lowPower();
+        // reset();
+
 		// Make sure our interrupts are cleared to begin with!
-		disableInterrupt();
-		clearInterrupt();
+        disableInterrupt();
+        clearInterrupt();
+        enableDataInterrupt();
 
 		#if DICE_SELFTEST && LIS2DE12_SELFTEST
 		selfTest();
@@ -135,127 +149,190 @@ namespace LIS2DE12
 
 	/// <summary>
 	/// READ ACCELERATION DATA
-	///  This function will read the acceleration values from the MMA8452Q. After
-	///	reading, it will update two triplets of variables:
-	///		* int's x, y, and z will store the signed 12-bit values read out
-	///		  of the acceleromter.
-	///		* floats cx, cy, and cz will store the calculated acceleration from
-	///		  those 12-bit values. These variables are in units of g's.
 	/// </summary>
-	void read(Core::float3* outAccel)
-	{
-		uint8_t x = I2C::readRegister(devAddress, OUT_X_H);
-		uint8_t y = I2C::readRegister(devAddress, OUT_Y_H);
-		uint8_t z = I2C::readRegister(devAddress, OUT_Z_H);
+	void read(Core::float3* outAccel) {
+        // Read accelerometer data
 
-		int16_t xs = Utils::twosComplement(x);
-		int16_t ys = Utils::twosComplement(y);
-		int16_t zs = Utils::twosComplement(z);
+		int16_t x = I2C::readRegister(devAddress, OUT_X_H);
+        if (x & 0x80) x |= 0xFF00;
+		int16_t y = I2C::readRegister(devAddress, OUT_Y_H);
+        if (y & 0x80) y |= 0xFF00;
+		int16_t z = I2C::readRegister(devAddress, OUT_Z_H);
+        if (z & 0x80) z |= 0xFF00;
 
-		outAccel->x = (float)xs / (float)(1 << 7) * scaleMult;
-		outAccel->y = (float)ys / (float)(1 << 7) * scaleMult;
-		outAccel->z = (float)zs / (float)(1 << 7) * scaleMult;
+		outAccel->x = (float)x * SCALE / (float)(1 << 7);
+		outAccel->y = (float)y * SCALE / (float)(1 << 7);
+		outAccel->z = (float)z * SCALE / (float)(1 << 7);
 	}
 
+    /// <summary>
+    /// Turns the accelerometer on with current settings
+    /// </summary>
     void ApplySettings() {
-		standby();
+        standby();
+        {
+            // Scale
+            I2C::writeRegister(devAddress, CTRL_REG4, (RANGE << 4));
 
-        // Scale
-		uint8_t cfg = I2C::readRegister(devAddress, CTRL_REG4);
-		cfg &= 0b11001111; // Mask out scale bits
-		cfg |= (fsr << 4);
-		I2C::writeRegister(devAddress, CTRL_REG4, cfg);
-
-        // Data Rate
-		uint8_t ctrl = I2C::readRegister(devAddress, CTRL_REG1);
-		ctrl &= 0x0F; // Mask out data rate bits
-		ctrl |= (dataRate << 4);
-		I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
-
-		active();
+            // Data Rate
+            I2C::writeRegister(devAddress, CTRL_REG1, (DATA_RATE << 4) | 0b00000111);
+        }
+        active();
     }
 
 	/// <summary>
 	/// ENABLE INTERRUPT ON TRANSIENT MOTION DETECTION
-	/// This function sets up the MMA8452Q to trigger an interrupt on pin 1
+	/// This function sets up the LIS2DE12 to trigger an interrupt on pin 1
 	/// when it detects any motion (lowest detectable threshold).
 	/// </summary>
-	void enableInterrupt()
-	{
-		standby();
+	void enableInterrupt() {
+        standby();
+        {
+            // Enable OR of acceleration interrupt on any axis
+            I2C::writeRegister(devAddress, INT1_CFG, 0b00101010);
 
-		// Enable OR of acceleration interrupt on any axis
-		I2C::writeRegister(devAddress, INT1_CFG, 0b00101010);
+            // Setup the high-pass filter
+            //writeRegister(CTRL_REG2, 0b00110001);
+            I2C::writeRegister(devAddress, CTRL_REG2, 0b00000000);
 
-		// Setup the high-pass filter
-		//writeRegister(CTRL_REG2, 0b00110001);
-		I2C::writeRegister(devAddress, CTRL_REG2, 0b00000000);
+            // Setup the threshold
+            I2C::writeRegister(devAddress, INT1_THS, wakeUpThreshold);
 
-		// Setup the threshold
-		I2C::writeRegister(devAddress, INT1_THS, wakeUpThreshold);
+            // Setup the duration to minimum
+            I2C::writeRegister(devAddress, INT1_DURATION, wakeUpCount);
 
-		// Setup the duration to minimum
-		I2C::writeRegister(devAddress, INT1_DURATION, wakeUpCount);
+            // Enable interrupt on xyz axes
+            I2C::writeRegister(devAddress, CTRL_REG3, 0b01000000);
+        }
+        active();
+	}
 
-		// Enable interrupt on xyz axes
-		I2C::writeRegister(devAddress, CTRL_REG3, 0b01000000);
+    /// <summary>
+    /// Interrupt handler when data is ready
+    /// </summary>
+	void dataInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
 
-		active();
+        //I2C::readRegister(devAddress, STATUS_REG);
+
+        // Trigger the callbacks
+        Scheduler::push(nullptr, sizeof(Core::float3), [](void* accCopyPtr, uint16_t event_size) {
+            Core::float3 accCopy;
+            read(&accCopy);
+
+            // // Cast the param to the right type
+            // Core::float3* accCopy = (Core::float3*)(accCopyPtr);
+
+            // NRF_LOG_INFO("x: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy.x));
+            // NRF_LOG_INFO("y: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy.y));
+            // NRF_LOG_INFO("z: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy.z));
+
+
+            for (int i = 0; i < clients.Count(); ++i) {
+                clients[i].handler(clients[i].token, accCopy);
+            }
+        });
+        clearInterrupt();
+    }
+
+	/// <summary>
+	/// Enable Data ready interrupt
+	/// </summary>
+	void enableDataInterrupt() {
+
+		// Set interrupt pin
+		GPIOTE::enableInterrupt(
+			BoardManager::getBoard()->accInterruptPin,
+			NRF_GPIO_PIN_NOPULL,
+			NRF_GPIOTE_POLARITY_LOTOHI,
+			dataInterruptHandler);
+
+		// Enable interrupt on data update
+		I2C::writeRegister(devAddress, CTRL_REG3, 0b00010000);
+	}
+
+	/// <summary>
+	/// DISABLE TRANSIENT INTERRUPT
+	/// </summary>
+	void disableInterrupt() {
+        standby();
+        {
+            // Disable interrupt on xyz axes
+            I2C::writeRegister(devAddress, CTRL_REG3, 0b00000000);
+        }
+        active();
 	}
 
 	/// <summary>
 	/// CLEARS TRANSIENT INTERRUPT
 	/// This function will 'aknowledge' the transient interrupt from the device
 	/// </summary>
-	void clearInterrupt()
-	{
+	void clearInterrupt() {
 		I2C::readRegister(devAddress, INT1_SRC);
 	}
 
 	/// <summary>
-	/// DISABLE TRANSIENT INTERRUPT
-	/// </summary>
-	void disableInterrupt()
-	{
-		standby();
-		// Disable interrupt on xyz axes
-		I2C::writeRegister(devAddress, CTRL_REG3, 0b00000000);
-		active();
-	}
-
-	/// <summary>
 	/// SET STANDBY MODE
-	///	Sets the MMA8452 to standby mode. It must be in standby to change most register settings
+	///	Sets the LIS2DE12 to standby mode. It must be in standby to change most register settings
 	/// </summary>
-	void standby()
-	{
+	void standby() {
 		uint8_t c = I2C::readRegister(devAddress, CTRL_REG1);
 		I2C::writeRegister(devAddress, CTRL_REG1, c & ~(0x08)); //Clear the active bit to go into standby
 	}
 
 	/// <summary>
 	/// SET ACTIVE MODE
-	///	Sets the MMA8452 to active mode. Needs to be in this mode to output data
+	///	Sets the LIS2DE12 to active mode. Needs to be in this mode to output data
 	/// </summary>
-	void active()
-	{
+	void active() {
 		uint8_t c = I2C::readRegister(devAddress, CTRL_REG1);
 		I2C::writeRegister(devAddress, CTRL_REG1, c | 0x08); //Set the active bit to begin detection
 	}
 
 	void lowPower() {
-		I2C::writeRegister(devAddress, CTRL_REG1, 0b00001000); //Set the active bit to begin detection
+		I2C::writeRegister(devAddress, CTRL_REG1, 0b00001000);
 	}
+
+    void reset() {
+        I2C::writeRegister(devAddress, CTRL_REG5, 0b10000000);
+    }
 
 	/// <summary>
 	/// CHECK IF NEW DATA IS AVAILABLE
-	///	This function checks the status of the MMA8452Q to see if new data is availble.
+	///	This function checks the status of the LIS2DE12 to see if new data is availble.
 	///	returns 0 if no new data is present, or a 1 if new data is available.
 	/// </summary>
 	uint8_t available()
 	{
 		return (I2C::readRegister(devAddress, FIFO_SRC_REG) & 0x1F);
 	}
+
+	/// <summary>
+	/// Method used by clients to request timer callbacks when accelerometer readings are in
+	/// </summary>
+	void hook(LIS2DE12ClientMethod method, void* parameter)
+	{
+		if (!clients.Register(parameter, method))
+		{
+			NRF_LOG_ERROR("Too many LIS2DE12 hooks registered.");
+		}
+	}
+
+	/// <summary>
+	/// Method used by clients to stop getting accelerometer reading callbacks
+	/// </summary>
+	void unHook(LIS2DE12ClientMethod method)
+	{
+		clients.UnregisterWithHandler(method);
+	}
+
+	/// <summary>
+	/// Method used by clients to stop getting accelerometer reading callbacks
+	/// </summary>
+	void unHookWithParam(void* param)
+	{
+		clients.UnregisterWithToken(param);
+	}
+
 
 	#if DICE_SELFTEST && LIS2DE12_SELFTEST
     APP_TIMER_DEF(readAccTimer);

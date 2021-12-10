@@ -206,6 +206,25 @@ namespace BoardManager
             .ledCount = 20,
             .name = "D20v9.4",
         },
+        //D20BoardV10
+        {
+            .boardResistorValueInKOhms = 82, // 82.5k Resistor
+            .ledDataPin = 1,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 9,
+            .i2cDataPin = 14,
+            .i2cClockPin = 10,
+            .accInterruptPin = 15,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN3,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::MXC4005XC,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 20,
+            .name = "D20v10",
+        },
     };
 
     // 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20   <-- prev
@@ -233,7 +252,7 @@ namespace BoardManager
         // The D20v2 board should read 0 (unconnected)
         // So we can allow a decent
         //const float vdd = DriversNRF::A2D::readVDD();
-        const float vdd = DriversNRF::A2D::readVDD() + 0.1f;
+        const float vdd = DriversNRF::A2D::readVDD();
 
         // Compute board voltages
         const int boardCount = sizeof(boards) / sizeof(boards[0]);

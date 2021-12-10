@@ -38,7 +38,8 @@ namespace Config
 
 		// Calibration data
 		int faceLayoutLookupIndex;
-		int padding0;
+		int16_t MXC4005XCZOffset;
+        uint16_t padding0;
 		Core::float3 faceNormals[MAX_LED_COUNT];
 		uint8_t faceToLEDLookup[MAX_LED_COUNT];
 		
