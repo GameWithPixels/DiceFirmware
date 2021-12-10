@@ -20,7 +20,8 @@ namespace DriversNRF
         void writeRegister(uint8_t device, uint8_t reg, uint8_t data);
         uint8_t readRegister(uint8_t device, uint8_t reg);
         void readRegisters(uint8_t device, uint8_t reg, uint8_t *buffer, uint8_t len);
-        uint16_t readRegisterInt16(uint8_t device, uint8_t reg);
+        int16_t readRegisterInt16(uint8_t device, uint8_t reg);
+        uint16_t readRegisterUInt16(uint8_t device, uint8_t reg);
 	}
 }
 

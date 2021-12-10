@@ -27,11 +27,11 @@ namespace I2C
         }
 
         const nrf_drv_twi_config_t twi_config = {
-        .scl                = board->i2cClockPin,
-        .sda                = board->i2cDataPin,
-        .frequency          = freq,
-        .interrupt_priority = APP_IRQ_PRIORITY_HIGH,
-        .clear_bus_init     = false
+            .scl                = board->i2cClockPin,
+            .sda                = board->i2cDataPin,
+            .frequency          = freq,
+            .interrupt_priority = APP_IRQ_PRIORITY_HIGH,
+            .clear_bus_init     = false
         };
 
         auto err = nrf_drv_twi_init(&m_twi, &twi_config, NULL, NULL);
@@ -115,12 +115,26 @@ namespace I2C
 	///	Read "len" bytes from the device, starting at register "reg". Bytes are stored
 	///	in "buffer" on exit.
 	/// </summary>
-    uint16_t readRegisterInt16(uint8_t device, uint8_t reg)
+    int16_t readRegisterInt16(uint8_t device, uint8_t reg)
     {
         //offset |= 0x80; //turn auto-increment bit on
         uint8_t myBuffer[2];
         readRegisters(device, reg, myBuffer, 2);  //Does memory transfer
-        int16_t output = (int16_t)myBuffer[0] | int16_t(myBuffer[1] << 8);
+        int16_t output = (int16_t)myBuffer[0] | (int16_t(myBuffer[1]) << 8);
+        return output;
+    }
+
+	/// <summary>
+	/// READ 16-bit register
+	///	Read "len" bytes from the device, starting at register "reg". Bytes are stored
+	///	in "buffer" on exit.
+	/// </summary>
+    uint16_t readRegisterUInt16(uint8_t device, uint8_t reg)
+    {
+        //offset |= 0x80; //turn auto-increment bit on
+        uint8_t myBuffer[2];
+        readRegisters(device, reg, myBuffer, 2);  //Does memory transfer
+        uint16_t output = (int16_t)myBuffer[0] | (int16_t(myBuffer[1]) << 8);
         return output;
     }
 
