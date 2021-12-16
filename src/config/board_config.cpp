@@ -225,6 +225,25 @@ namespace BoardManager
             .ledCount = 20,
             .name = "D20v10",
         },
+        //D20BoardV11
+        {
+            .boardResistorValueInKOhms = 100, // 100.0k Resistor
+            .ledDataPin = 6,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 0,
+            .i2cDataPin = 15,
+            .i2cClockPin = 14,
+            .accInterruptPin = 12,
+            .chargingStatePin = 1,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 20,
+            .name = "D20v11",
+        },
     };
 
     // 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20   <-- prev
