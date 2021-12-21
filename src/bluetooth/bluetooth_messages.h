@@ -49,8 +49,8 @@ struct Message
 		MessageType_RequestTelemetry,
 		MessateType_ProgramDefaultAnimSet,
 		MessateType_ProgramDefaultAnimSetFinished,
-		MessageType_Flash,
-		MessageType_FlashFinished,
+		MessageType_Blink,
+		MessageType_BlinkFinished,
 		MessageType_RequestDefaultAnimSetColor,
 		MessageType_DefaultAnimSetColor,
 		MessageType_RequestBatteryLevel,
@@ -288,7 +288,7 @@ struct MessageFlash
 	uint8_t flashCount;
 	uint32_t color;
 
-	inline MessageFlash() : Message(Message::MessageType_Flash) {}
+	inline MessageFlash() : Message(Message::MessageType_Blink) {}
 };
 
 struct MessageDefaultAnimSetColor
