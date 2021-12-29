@@ -93,6 +93,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_rainbow.cpp \
 	$(PROJ_DIR)/src/animations/animation_gradientpattern.cpp \
 	$(PROJ_DIR)/src/animations/animation_noise.cpp \
+	$(PROJ_DIR)/src/animations/animation_cycle.cpp \
 	$(PROJ_DIR)/src/animations/keyframes.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \
 	$(PROJ_DIR)/src/behaviors/condition.cpp \
