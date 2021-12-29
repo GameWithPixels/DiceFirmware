@@ -15,17 +15,15 @@
 using namespace Bluetooth;
 using namespace DataSet;
 
-namespace Modules
+namespace Modules::AnimationPreview
 {
-namespace AnimationPreview
-{
-    void ReceiveTestAnimSet(void* context, const Message* msg);
-    void BlinkLEDs(void* context, const Message* msg);
+    static AnimationBits animationBits;
+    static const Animation* animation;
+    static void* animationData;
+    static uint32_t animationDataHash;
 
-    AnimationBits animationBits;
-    const Animation* animation;
-    void* animationData;
-    uint32_t animationDataHash;
+    void ReceiveTestAnimSet(void *context, const Message *msg);
+    void BlinkLEDs(void *context, const Message *msg);
 
     void init()
     {
@@ -37,7 +35,6 @@ namespace AnimationPreview
 
 		NRF_LOG_INFO("Animation Preview Initialized");
     }
-
 
     void ReceiveTestAnimSet(void* context, const Message* msg)
     {
@@ -144,7 +141,7 @@ namespace AnimationPreview
             // Play the ANIMATION NOW!!!
             AnimController::play(animation, &animationBits, 19, false);
        }
-   }
+    }
 
     void BlinkLEDs(void* context, const Message* msg)
     {
@@ -160,7 +157,7 @@ namespace AnimationPreview
         }
 
         const MessageFlash* message = (const MessageFlash*)msg;
-        NRF_LOG_INFO("Received Request to blink the LEDs %d times", message->flashCount);
+        NRF_LOG_INFO("Received Request to blink the LEDs %d times with duration of " NRF_LOG_FLOAT_MARKER, message->flashCount, message->duration);
 
         // Store color in palette
         animPalette[0] = Utils::getRed(message->color);
@@ -169,7 +166,7 @@ namespace AnimationPreview
 
         // Create a small anim on the spot
         blinkAnim.type = Animation_Simple;
-        blinkAnim.duration = 1000;
+        blinkAnim.duration = message->duration;
         blinkAnim.faceMask = 0xFFFFF;
         blinkAnim.count = message->flashCount;
         blinkAnim.fade = 255;
@@ -178,5 +175,4 @@ namespace AnimationPreview
         AnimController::play(&blinkAnim, &animBits);
         MessageService::SendMessage(Message::MessageType_BlinkFinished);
     }
-}
 }

@@ -4,6 +4,7 @@
 #include "config/sdk_config.h"
 #include "config/dice_variants.h"
 #include "modules/accelerometer.h"
+#include "config/settings.h"
 
 #define MAX_DATA_SIZE 100
 #define VERSION_INFO_SIZE 10
@@ -74,8 +75,8 @@ struct Message
 		MessageType_SetName,
 		MessageType_SetNameAck,
 
-		// TESTING 
-		MessageType_TestBulkSend, 
+		// TESTING
+		MessageType_TestBulkSend,
 		MessageType_TestBulkReceive,
 		MessageType_SetAllLEDsToColor,
 		MessageType_AttractMode,
@@ -83,7 +84,9 @@ struct Message
 		MessageType_PrintA2DReadings,
 		MessageType_LightUpFace,
 		MessageType_SetLEDToColor,
-		MessageType_DebugAnimController,
+		MessageType_PrintAnimControllerState,
+		MessageType_SetDebugFlags,
+		MessageType_SetDebugFlagsAck,
 
 		MessageType_Count
 	};
@@ -287,6 +290,7 @@ struct MessageFlash
 {
 	uint8_t flashCount;
 	uint32_t color;
+	uint16_t duration;
 
 	inline MessageFlash() : Message(Message::MessageType_Blink) {}
 };
@@ -405,6 +409,13 @@ struct MessageSetLEDToColor
 	inline MessageSetLEDToColor() : Message(Message::MessageType_SetLEDToColor) {}
 };
 
+struct MessageSetDebugFlags
+: public Message
+{
+	uint32_t debugFlags;												// Combination of values from DebugFlags enum
+	Config::SettingsManager::ProgrammingOperation programmingOperation; // 8 bits, 0: add, 1:remove, 2: replace
+	inline MessageSetDebugFlags() : Message(Message::MessageType_SetDebugFlags) {}
+};
 
 }
 

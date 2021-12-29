@@ -26,6 +26,7 @@
 #include "bluetooth/bulk_data_transfer.h"
 #include "bluetooth/telemetry.h"
 
+#include "animations/animation_cycle.h"
 #include "data_set/data_set.h"
 
 #include "modules/led_color_tester.h"
@@ -71,6 +72,18 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 
 namespace Die
 {
+    void loopCycleAnimation() {
+        static AnimationCycle anim;
+        anim.type = Animation_Cycle;
+        anim.duration = 30000;
+        anim.faceMask = 0xFFFFF;
+        anim.count = 1;
+        anim.fade = 255;
+
+        NRF_LOG_INFO("Loop cycle animation");
+        AnimController::play(&anim, nullptr, 0, true); // Loop
+    }
+
     void init() {
         //--------------------
         // Initialize NRF drivers
@@ -178,8 +191,14 @@ namespace Die
                 // Battery controller relies on the battery driver
                 BatteryController::init();
 
-                // Behavior Controller relies on all the modules
-                BehaviorController::init();
+                bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
+                if (loopAnim) {
+                    loopCycleAnimation();
+                }
+                else {
+                    // Behavior Controller relies on all the modules
+                    BehaviorController::init();
+                }
 
                 // Animation preview depends on bluetooth
                 AnimationPreview::init();
@@ -202,7 +221,9 @@ namespace Die
                 NRF_LOG_INFO("---------------");
 
                 // Entering the main loop! Play Hello! anim
-                BehaviorController::onDiceInitialized();
+                if (!loopAnim) {
+                    BehaviorController::onDiceInitialized();
+                }
             #endif
             });
         });

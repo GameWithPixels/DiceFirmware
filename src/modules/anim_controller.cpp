@@ -26,30 +26,22 @@ using namespace Bluetooth;
 #define MAX_ANIMS (20)
 #define TIMER2_RESOLUTION 33 //ms
 
-namespace Modules
-{
-namespace AnimController
+namespace Modules::AnimController
 {
 	// Our currently running animations
-	Animations::AnimationInstance* animations[MAX_ANIMS];
-	int animationCount;
-
-	// FIXME!!!
-	int currentRainbowIndex = 0;
-	const int rainbowScale = 1; 
-	float heat = 0.0f;
+	static Animations::AnimationInstance *animations[MAX_ANIMS];
+	static int animationCount = 0;
 
 	uint32_t getColorForAnim(void* token, uint32_t colorIndex);
-	void onAccelFrame(void* param, const Accelerometer::AccelFrame& accelFrame);
 	uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
 
 	void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
 
-	void printDebugAnimControllerState(void* context, const Message* msg);
+	void printAnimControllerState(void *context, const Message *msg);
 
 	APP_TIMER_DEF(animControllerTimer);
 	// To be passed to the timer
-	int animControllerTicks = 0;
+	static int animControllerTicks = 0;
 	void animationControllerUpdate(void* param)
 	{
 		animControllerTicks++;
@@ -63,16 +55,12 @@ namespace AnimController
 	void init()
 	{
 		Flash::hookProgrammingEvent(onProgrammingEvent, nullptr);
-
-		MessageService::RegisterMessageHandler(Message::MessageType_DebugAnimController, nullptr, printDebugAnimControllerState);
-
-		heat = 0.0f;
-		currentRainbowIndex = 0;
-
-		animationCount = 0;
+		MessageService::RegisterMessageHandler(Message::MessageType_PrintAnimControllerState, nullptr, printAnimControllerState);
 		Timers::createTimer(&animControllerTimer, APP_TIMER_MODE_REPEATED, animationControllerUpdate);
-		start();
+
 		NRF_LOG_INFO("Anim Controller Initialized");
+
+		start();
 	}
 
 	/// <summary>
@@ -85,12 +73,6 @@ namespace AnimController
 		auto b = BoardManager::getBoard();
 		auto l = DiceVariants::getLayout(b->ledCount, s->faceLayoutLookupIndex);
 		int c = b->ledCount;
-
-		// Update heat value (cool down)
-		heat *= s->coolDownRate;
-		if (heat < 0.0f) {
-			heat = 0.0f;
-		}
 
 		if (animationCount > 0) {
 	        PowerManager::feed();
@@ -173,7 +155,6 @@ namespace AnimController
 	/// </summary>
 	void stop()
 	{
-		Accelerometer::unHookFrameData(onAccelFrame);
 		Timers::stopTimer(animControllerTimer);
 		// Clear all data
 		stopAll();
@@ -182,7 +163,6 @@ namespace AnimController
 
 	void start()
 	{
-		Accelerometer::hookFrameData(onAccelFrame, nullptr);
 		NRF_LOG_INFO("Starting anim controller");
 		Timers::startTimer(animControllerTimer, TIMER2_RESOLUTION, NULL);
 	}
@@ -344,17 +324,6 @@ namespace AnimController
 		animationCount--;
 	}
 
-	void onAccelFrame(void* param, const Accelerometer::AccelFrame& accelFrame) {
-		auto sqrMag = accelFrame.jerk.sqrMagnitude();
-		if (sqrMag > 0.0f) {
-			currentRainbowIndex++;
-			heat += sqrt(sqrMag) * SettingsManager::getSettings()->heatUpRate;
-			if (heat > 1.0f) {
-				heat = 1.0f;
-			}
-		}
-	}
-
 	uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace) {
 		// The transformation is:
 		// animFaceIndex (what face the animation says it wants to light up)
@@ -372,14 +341,6 @@ namespace AnimController
 		return s->faceToLEDLookup[rotatedAnimFaceIndex];
 	}
 
-	int getCurrentRainbowOffset() {
-		return currentRainbowIndex / rainbowScale;
-	}
-	float getCurrentHeat() {
-		return heat;
-	}
-	
-
 	void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt){
 		if (evt == Flash::ProgrammingEventType_Begin) {
 			stop();
@@ -388,7 +349,7 @@ namespace AnimController
 		}
 	}
 
-	void printDebugAnimControllerState(void* context, const Message* msg) {
+	void printAnimControllerState(void* context, const Message* msg) {
 		NRF_LOG_INFO("Anim Controller has %d animations", animationCount);
 		for (int i = 0; i < animationCount; ++i) {
 			AnimationInstance* anim = animations[i];
@@ -396,7 +357,4 @@ namespace AnimController
 			NRF_LOG_INFO("StartTime %d, remapFace %d, loop %d", anim->startTime, anim->remapFace, anim->loop ? 1: 0);
 		}
 	}
-
 }
-}
-
