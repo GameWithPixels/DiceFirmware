@@ -75,13 +75,14 @@ namespace Die
     void loopCycleAnimation() {
         static AnimationCycle anim;
         anim.type = Animation_Cycle;
-        anim.duration = 30000;
+        anim.duration = 25000;
         anim.faceMask = 0xFFFFF;
         anim.count = 1;
-        anim.fade = 255;
+        anim.fade = 0;
+        anim.rainbow = 0;
 
         NRF_LOG_INFO("Loop cycle animation");
-        AnimController::play(&anim, nullptr, 0, true); // Loop
+        AnimController::play(&anim, nullptr, 0, true); // Loop forever!
     }
 
     void init() {

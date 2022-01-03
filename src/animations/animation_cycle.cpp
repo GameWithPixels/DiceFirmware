@@ -1,4 +1,5 @@
 #include "animation_cycle.h"
+#include "utils/utils.h"
 #include "utils/rainbow.h"
 
 namespace Animations
@@ -53,25 +54,71 @@ namespace Animations
         auto preset = getPreset();
 
         int period = preset->duration / preset->count / faceCount;
-        int fadeTime = period * preset->fade / (255 * 2);
         int time = (ms - startTime) % period;
+        int fadeTime = period * preset->fade / (255 * 2);
         int faceIndex = (ms - startTime) / (period * preset->count);
 
-        uint8_t intensity = 255;
-		if (time <= fadeTime) {
-			// Ramp up
-			intensity = (uint8_t)(time * 255 / fadeTime);
-		} else if (time >= (period - fadeTime)) {
-			// Ramp down
-            intensity = (uint8_t)((period - time) * 255 / fadeTime);
+        uint32_t color;
+        if (preset->rainbow) {
+            // Rainbow animation
+            uint8_t intensity = 255;
+            if (time <= fadeTime) {
+                // Ramp up
+                intensity = (uint8_t)(time * 255 / fadeTime);
+            } else if (time >= (period - fadeTime)) {
+                // Ramp down
+                intensity = (uint8_t)((period - time) * 255 / fadeTime);
+            }
+
+            int wheelPos = time * 255 / period;
+            color = Rainbow::wheel((uint8_t)wheelPos, intensity);
+        } else {
+            // RBG animation
+            int redTime = period / 3;
+            int greenTime = redTime + redTime;
+            if (time <= redTime) {
+                color = 0xFF0000;
+            } else if (time <= greenTime) {
+                color = 0x00FF00;
+            } else {
+                color = 0x0000FF;
+            }
+
+            uint32_t black = 0;
+            if (time <= fadeTime) {
+                color = Utils::interpolateColors(black, 0, color, fadeTime, time);
+            } else if (time > (period - fadeTime)) {
+                color = Utils::interpolateColors(color, period - fadeTime, black, period, time);
+            }
         }
 
-        int wheelPos = time * 255 / period;
-        uint32_t color = Rainbow::wheel((uint8_t)wheelPos, intensity);
+        uint8_t ledsOrder[] = {
+            13, // Led closest to chip and serial connector, index = 0
+            9,
+            0,
+            5,
+            17,
+            11, // Index = 5
+            7,
+            18,
+            15,
+            16,
+            8, // Index = 10
+            12,
+            1,
+            4,
+            3,
+            19, // Index = 15
+            10,
+            6,
+            2,
+            14,
+        };
 
         // Fill the indices and colors for the anim controller to know how to update leds
         int retCount = 0;
-        for (int i = 0; i < 20; ++i) {
+        for (int k = 0; k < 20; ++k) {
+            int i = ledsOrder[k];
             if ((preset->faceMask & (1 << i)) != 0) {
                 if (faceIndex == 0) {
                     retIndices[retCount] = i;

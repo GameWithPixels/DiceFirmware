@@ -54,6 +54,7 @@ namespace Config
 
 		// Debug mode
 		uint32_t debugFlags; // Combination of values from DebugFlags enum
+		uint32_t defaultDebugFlags; // Used to check if debug flags need to be reset to defaut value
 
 		// Indicates whether there is valid data
 		uint32_t tailMarker;

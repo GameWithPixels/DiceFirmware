@@ -58,7 +58,7 @@ namespace Config::SettingsManager
 			MessageService::RegisterMessageHandler(Message::MessageType_PrintNormals, nullptr, PrintNormals);
 			#endif
 
-			NRF_LOG_INFO("Settings initialized, size=%d bytes, debug flags=%x", sizeof(Settings), settings->debugFlags);
+			NRF_LOG_INFO("Settings initialized, size=%d bytes, debug flags=%x, defaults=%x", sizeof(Settings), settings->debugFlags, settings->defaultDebugFlags);
 
 			auto callBackCopy = _callback;
 			_callback = nullptr;
@@ -68,17 +68,29 @@ namespace Config::SettingsManager
 		};
 
 		if (!checkValid()) {
-			NRF_LOG_WARNING("Settings not found in flash, programming defaults");
+			NRF_LOG_WARNING("Settings not found in flash, programming defaults (%x)", DEFAULT_DEBUG_FLAGS);
 			programDefaults(finishInit);
 		}
 		else {
-			bool toggleLEDsStayOff = (settings->debugFlags & (uint32_t)Config::DebugFlags::OnBootToggleLEDsStayOff) != 0;
-			if (toggleLEDsStayOff) {
-				// Toggle LEDs stay off state and write to flash
-				uint32_t dbgFlags = settings->debugFlags ^ (uint32_t)Config::DebugFlags::LEDsStayOff;
-				programDebugFlags(dbgFlags, ProgrammingOperation::Replace, finishInit);
+			uint32_t dbgFlags = settings->debugFlags;
+
+			// Have we been flashed with new default debug flags?
+			if (settings->defaultDebugFlags != DEFAULT_DEBUG_FLAGS) {
+				NRF_LOG_WARNING("New default debug flags: %x", DEFAULT_DEBUG_FLAGS);
+				dbgFlags = DEFAULT_DEBUG_FLAGS;
+			} else {
+				// Check if we need to toggle the LEDsStayOff flag
+				bool toggleLEDsStayOff = (dbgFlags & (uint32_t)Config::DebugFlags::OnBootToggleLEDsStayOff) != 0;
+				if (toggleLEDsStayOff) {
+					// Toggle LEDs stay off state and write to flash
+					dbgFlags ^= (uint32_t)Config::DebugFlags::LEDsStayOff;
+				}
 			}
-			else {	
+
+			// Update settings if needed
+			if ((settings->debugFlags != dbgFlags) || (settings->defaultDebugFlags != DEFAULT_DEBUG_FLAGS)) {
+				programDebugFlags(dbgFlags, ProgrammingOperation::Replace, finishInit);
+			} else {
 				finishInit(true);
 			}
 		}
@@ -174,10 +186,9 @@ namespace Config::SettingsManager
 		outSettings.version = SETTINGS_VERSION;
 		setDefaultParameters(outSettings);
 		setDefaultCalibrationData(outSettings);
-		outSettings.debugFlags = 0;
+		outSettings.debugFlags = DEFAULT_DEBUG_FLAGS;
+		outSettings.defaultDebugFlags = DEFAULT_DEBUG_FLAGS;
 		outSettings.tailMarker = SETTINGS_VALID_KEY;
-		// For testing
-		// outSettings.debugFlags = (uint32_t)DebugFlags::OnBootToggleLEDsStayOff | (uint32_t)DebugFlags::LoopCycleAnimation;
 	}
 
 	void programDefaults(SettingsWrittenCallback callback) {
@@ -281,6 +292,9 @@ namespace Config::SettingsManager
 		Settings settingsCopy;
 		memcpy(&settingsCopy, settings, sizeof(Settings));
 
+		// Store the firmware defaults
+		settingsCopy.defaultDebugFlags = DEFAULT_DEBUG_FLAGS;
+
 		// Update debug flags
 		switch (operation) {
 			case ProgrammingOperation::Add:
@@ -296,9 +310,11 @@ namespace Config::SettingsManager
 				NRF_LOG_ERROR("Invalid programming operation in programDebugMode(): %d", (int)operation);
 		}
 
-		if (settingsCopy.debugFlags != settings->debugFlags) {
+		if ((settingsCopy.debugFlags != settings->debugFlags)
+			|| (settingsCopy.defaultDebugFlags != settings->defaultDebugFlags)) {
 			// Reprogram settings
-			NRF_LOG_INFO("Updating debug flags to %d", settingsCopy.debugFlags);
+			NRF_LOG_INFO("Updating debug flags %x => %x and defaults %x => %x",
+				settings->debugFlags, settingsCopy.debugFlags, settings->defaultDebugFlags, settingsCopy.defaultDebugFlags);
 			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 		}
 		else {

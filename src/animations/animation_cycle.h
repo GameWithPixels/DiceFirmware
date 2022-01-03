@@ -15,6 +15,7 @@ namespace Animations
 		uint32_t faceMask;
 		uint8_t count;
 		uint8_t fade;
+		uint8_t rainbow; // 0: red-green-blue animation, 1: rainbow
 	};
 
 	/// <summary>
