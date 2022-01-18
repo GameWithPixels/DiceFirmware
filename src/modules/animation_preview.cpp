@@ -15,29 +15,26 @@
 using namespace Bluetooth;
 using namespace DataSet;
 
-namespace Modules
+namespace Modules::AnimationPreview
 {
-namespace AnimationPreview
-{
-    void ReceiveTestAnimSet(void* context, const Message* msg);
-    void FlashDie(void* context, const Message* msg);
+    static AnimationBits animationBits;
+    static const Animation* animation;
+    static void* animationData;
+    static uint32_t animationDataHash;
 
-    AnimationBits animationBits;
-    const Animation* animation;
-    void* animationData;
-    uint32_t animationDataHash;
+    void ReceiveTestAnimSet(void *context, const Message *msg);
+    void BlinkLEDs(void *context, const Message *msg);
 
     void init()
     {
         MessageService::RegisterMessageHandler(Message::MessageType_TransferTestAnimSet, nullptr, ReceiveTestAnimSet);
-        MessageService::RegisterMessageHandler(Message::MessageType_Flash, nullptr, FlashDie);
+        MessageService::RegisterMessageHandler(Message::MessageType_Blink, nullptr, BlinkLEDs);
         animationData = nullptr;
         animation = nullptr;
         animationDataHash = 0;
 
 		NRF_LOG_INFO("Animation Preview Initialized");
     }
-
 
     void ReceiveTestAnimSet(void* context, const Message* msg)
     {
@@ -144,37 +141,38 @@ namespace AnimationPreview
             // Play the ANIMATION NOW!!!
             AnimController::play(animation, &animationBits, 19, false);
        }
-   }
+    }
 
-    AnimationSimple flashAnim;
-    void FlashDie(void* context, const Message* msg)
+    void BlinkLEDs(void* context, const Message* msg)
     {
-		NRF_LOG_INFO("Received Request to flash the die");
-		const MessageFlash* message = (const MessageFlash*)msg;
+        static AnimationSimple blinkAnim;
+        static uint8_t animPalette[3];
+        static AnimationBits animBits{nullptr};
+
+        // One time init of animBits
+        if (animBits.palette == nullptr) {
+            animBits.Clear();
+            animBits.palette = animPalette;
+            animBits.paletteSize = 3;
+        }
+
+        const MessageFlash* message = (const MessageFlash*)msg;
+        NRF_LOG_INFO("Received Request to blink the LEDs %d times with duration of " NRF_LOG_FLOAT_MARKER, message->flashCount, message->duration);
+
+        // Store color in palette
+        animPalette[0] = Utils::getRed(message->color);
+        animPalette[1] = Utils::getGreen(message->color);
+        animPalette[2] = Utils::getBlue(message->color);
 
         // Create a small anim on the spot
-        animationBits.Clear();
-        flashAnim.type = Animation_Simple;
-        flashAnim.duration = 1000;
-		flashAnim.faceMask = 0xFFFFF;
-        flashAnim.count = message->flashCount;
-        flashAnim.fade = 255;
+        blinkAnim.type = Animation_Simple;
+        blinkAnim.duration = message->duration;
+        blinkAnim.faceMask = 0xFFFFF;
+        blinkAnim.count = message->flashCount;
+        blinkAnim.fade = 255;
+        blinkAnim.colorIndex = 0;
 
-        int colorIndex = 0;
-        auto animationBits = DataSet::getAnimationBits();
-        for (; colorIndex < animationBits->getPaletteSize() / 3; ++colorIndex) {
-            uint32_t color = animationBits->getPaletteColor(colorIndex);
-            if (Utils::getRed(color) > 127 || Utils::getGreen(color) > 127 || Utils::getBlue(color) > 127) {
-                break;
-            }
-        }
-
-        if (colorIndex < animationBits->getPaletteSize() / 3) {
-            //flashAnim.colorIndex = message->color;
-            flashAnim.colorIndex = colorIndex;
-            AnimController::play(&flashAnim, 0, false);
-            MessageService::SendMessage(Message::MessageType_FlashFinished);
-        }
+        AnimController::play(&blinkAnim, &animBits);
+        MessageService::SendMessage(Message::MessageType_BlinkFinished);
     }
-}
 }

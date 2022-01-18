@@ -23,20 +23,24 @@ using namespace Config;
 using namespace Modules;
 using namespace DataSet;
 
-namespace Config
+namespace Config::SettingsManager
 {
-
-namespace SettingsManager
-{
-	Settings const * settings = nullptr;
+	static Settings const * settings = nullptr;
 
 	void ProgramDefaultParametersHandler(void* context, const Message* msg);
 	void SetDesignTypeAndColorHandler(void* context, const Message* msg);
 	void SetNameHandler(void* context, const Message* msg);
+	void SetDebugFlagsHandler(void* context, const Message* msg);
 	
 	#if BLE_LOG_ENABLED
-	void PrintNormals(void* context, const Message* msg);
+	void PrintNormals(void* context, const Message* msg) {
+		auto m = static_cast<const MessagePrintNormals*>(msg);
+		int i = m->face;
+		auto settings = getSettings();
+		BLE_LOG_INFO("Face %d: %d, %d, %d", i, (int)(settings->faceNormals[i].x * 100), (int)(settings->faceNormals[i].y * 100), (int)(settings->faceNormals[i].z * 100));
+	}
 	#endif
+
 	void init(SettingsWrittenCallback callback) {
 		static SettingsWrittenCallback _callback; // Don't initialize this static inline because it would only do it on first call!
 		_callback = callback;
@@ -48,12 +52,14 @@ namespace SettingsManager
 			MessageService::RegisterMessageHandler(Message::MessageType_ProgramDefaultParameters, nullptr, ProgramDefaultParametersHandler);
 			MessageService::RegisterMessageHandler(Message::MessageType_SetDesignAndColor, nullptr, SetDesignTypeAndColorHandler);
 			MessageService::RegisterMessageHandler(Message::MessageType_SetName, nullptr, SetNameHandler);
+			MessageService::RegisterMessageHandler(Message::MessageType_SetDebugFlags, nullptr, SetDebugFlagsHandler);
 			
 			#if BLE_LOG_ENABLED
 			MessageService::RegisterMessageHandler(Message::MessageType_PrintNormals, nullptr, PrintNormals);
 			#endif
 
-			NRF_LOG_INFO("Settings initialized, size: %d bytes", sizeof(Settings));
+			NRF_LOG_INFO("Settings initialized, size=%d bytes, debug flags=%x, defaults=%x", sizeof(Settings), settings->debugFlags, settings->defaultDebugFlags);
+
 			auto callBackCopy = _callback;
 			_callback = nullptr;
 			if (callBackCopy != nullptr) {
@@ -62,10 +68,31 @@ namespace SettingsManager
 		};
 
 		if (!checkValid()) {
-			NRF_LOG_WARNING("Settings not found in flash, programming defaults");
+			NRF_LOG_WARNING("Settings not found in flash, programming defaults (%x)", DEFAULT_DEBUG_FLAGS);
 			programDefaults(finishInit);
-		} else {
-			finishInit(true);
+		}
+		else {
+			uint32_t dbgFlags = settings->debugFlags;
+
+			// Have we been flashed with new default debug flags?
+			if (settings->defaultDebugFlags != DEFAULT_DEBUG_FLAGS) {
+				NRF_LOG_WARNING("New default debug flags: %x", DEFAULT_DEBUG_FLAGS);
+				dbgFlags = DEFAULT_DEBUG_FLAGS;
+			} else {
+				// Check if we need to toggle the LEDsStayOff flag
+				bool toggleLEDsStayOff = (dbgFlags & (uint32_t)Config::DebugFlags::OnBootToggleLEDsStayOff) != 0;
+				if (toggleLEDsStayOff) {
+					// Toggle LEDs stay off state and write to flash
+					dbgFlags ^= (uint32_t)Config::DebugFlags::LEDsStayOff;
+				}
+			}
+
+			// Update settings if needed
+			if ((settings->debugFlags != dbgFlags) || (settings->defaultDebugFlags != DEFAULT_DEBUG_FLAGS)) {
+				programDebugFlags(dbgFlags, ProgrammingOperation::Replace, finishInit);
+			} else {
+				finishInit(true);
+			}
 		}
 	}
 
@@ -103,6 +130,15 @@ namespace SettingsManager
 		NRF_LOG_INFO("Received request to rename die to %s", nameMsg->name);
 		programName(nameMsg->name, [](bool result) {
 			MessageService::SendMessage(Message::MessageType_SetNameAck);
+		});
+	}
+
+	void SetDebugFlagsHandler(void* context, const Message* msg) {
+		auto dbgFlagsMsg = (const MessageSetDebugFlags*)msg;
+		NRF_LOG_INFO("Received request to update debug flags to %i with operation=%i",
+			dbgFlagsMsg->debugFlags, dbgFlagsMsg->programmingOperation);
+		programDebugFlags(dbgFlagsMsg->debugFlags, dbgFlagsMsg->programmingOperation, [](bool result) {
+			MessageService::SendMessage(Message::MessageType_SetDebugFlagsAck);
 		});
 	}
 
@@ -150,6 +186,8 @@ namespace SettingsManager
 		outSettings.version = SETTINGS_VERSION;
 		setDefaultParameters(outSettings);
 		setDefaultCalibrationData(outSettings);
+		outSettings.debugFlags = DEFAULT_DEBUG_FLAGS;
+		outSettings.defaultDebugFlags = DEFAULT_DEBUG_FLAGS;
 		outSettings.tailMarker = SETTINGS_VALID_KEY;
 	}
 
@@ -196,41 +234,92 @@ namespace SettingsManager
 		memcpy(settingsCopy.faceToLEDLookup, newFaceToLEDLookup, count * sizeof(uint8_t));
 
 		// Reprogram settings
-		NRF_LOG_INFO("Programming settings in flash");
 		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 	}
 
 	void programDesignAndColor(DiceVariants::DesignAndColor design, SettingsWrittenCallback callback) {
-		Settings settingsCopy;
-		memcpy(&settingsCopy, settings, sizeof(Settings));
-		settingsCopy.designAndColor = design;
-		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
+
+		if (settings->designAndColor != design) {
+
+			// Grab current settings
+			Settings settingsCopy;
+			memcpy(&settingsCopy, settings, sizeof(Settings));
+
+			// Update design and color
+			settingsCopy.designAndColor = design;
+
+			// Reprogram settings
+			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
+		}
+		else {
+			NRF_LOG_INFO("DesignAndColor already set to %s", design);
+			callback(true);
+		}
 	}
 
-	SettingsWrittenCallback programNameCallback = nullptr;
 	void programName(const char* newName, SettingsWrittenCallback callback) {
+
+		if (strncmp(settings->name, newName, sizeof(settings->name))) {
+
+			// Grab current settings
+			Settings settingsCopy;
+			memcpy(&settingsCopy, settings, sizeof(Settings));
+
+			// Update name
+			strncpy(settingsCopy.name, newName, sizeof(settingsCopy.name));
+
+			// Reprogram settings
+			static SettingsWrittenCallback programNameCallback = nullptr;
+			programNameCallback = callback;
+			DataSet::ProgramDefaultDataSet(settingsCopy, [] (bool success) {
+				// We want to reset once disconnected so to apply the name change
+				Bluetooth::Stack::resetOnDisconnect();
+				auto callback = programNameCallback;
+				programNameCallback = nullptr;
+				if (callback)
+					callback(success);
+			});
+		}
+		else {
+			NRF_LOG_INFO("Name already set to %s", newName);
+			callback(true);
+		}
+	}
+
+	void programDebugFlags(uint32_t dbgFlags, ProgrammingOperation operation, SettingsWrittenCallback callback) {
+
+		// Grab current settings
 		Settings settingsCopy;
 		memcpy(&settingsCopy, settings, sizeof(Settings));
-		strcpy(settingsCopy.name, newName);
-		programNameCallback = callback;
-		DataSet::ProgramDefaultDataSet(settingsCopy, [] (bool success) {
-			Bluetooth::Stack::resetOnDisconnect();
-			auto callbackCopy = programNameCallback;
-			programNameCallback = nullptr;
-			if (callbackCopy)
-				callbackCopy(success);
-		});
+
+		// Store the firmware defaults
+		settingsCopy.defaultDebugFlags = DEFAULT_DEBUG_FLAGS;
+
+		// Update debug flags
+		switch (operation) {
+			case ProgrammingOperation::Add:
+				settingsCopy.debugFlags |= dbgFlags;
+				break;
+			case ProgrammingOperation::Remove:
+				settingsCopy.debugFlags &= ~dbgFlags;
+				break;
+			case ProgrammingOperation::Replace:
+				settingsCopy.debugFlags = dbgFlags;
+				break;
+			default:
+				NRF_LOG_ERROR("Invalid programming operation in programDebugMode(): %d", (int)operation);
+		}
+
+		if ((settingsCopy.debugFlags != settings->debugFlags)
+			|| (settingsCopy.defaultDebugFlags != settings->defaultDebugFlags)) {
+			// Reprogram settings
+			NRF_LOG_INFO("Updating debug flags %x => %x and defaults %x => %x",
+				settings->debugFlags, settingsCopy.debugFlags, settings->defaultDebugFlags, settingsCopy.defaultDebugFlags);
+			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
+		}
+		else {
+			NRF_LOG_INFO("Debug flags already set to %d", settingsCopy.debugFlags);
+			callback(true);
+		}
 	}
-
-	#if BLE_LOG_ENABLED
-	void PrintNormals(void* context, const Message* msg) {
-		auto m = static_cast<const MessagePrintNormals*>(msg);
-		int i = m->face;
-		auto settings = getSettings();
-		BLE_LOG_INFO("Face %d: %d, %d, %d", i, (int)(settings->faceNormals[i].x * 100), (int)(settings->faceNormals[i].y * 100), (int)(settings->faceNormals[i].z * 100));
-	}
-	#endif
-
 }
-}
-

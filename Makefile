@@ -3,8 +3,11 @@ TARGETS = firmware_d firmware # debug and release targets
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 
-VERSION = 12_10_21
+VERSION = 01_03_22
 SDK_VER = 17
+DEFAULT_DEBUG_FLAGS = 0 # Release build
+#DEFAULT_DEBUG_FLAGS = 6 # Test build: on each boot alternatively turn all LEDs off or make them blink one by one
+
 # JLINK = 851002454 #- Plus Olivier
 # JLINK = 851002453 #- Plus Jean
 # JLINK = 821005567 #- Base
@@ -93,6 +96,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_rainbow.cpp \
 	$(PROJ_DIR)/src/animations/animation_gradientpattern.cpp \
 	$(PROJ_DIR)/src/animations/animation_noise.cpp \
+	$(PROJ_DIR)/src/animations/animation_cycle.cpp \
 	$(PROJ_DIR)/src/animations/keyframes.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \
 	$(PROJ_DIR)/src/behaviors/condition.cpp \
@@ -264,6 +268,7 @@ COMMON_FLAGS += -DNRF_DFU_SVCI_ENABLED
 COMMON_FLAGS += -DNRF_DFU_TRANSPORT_BLE=1
 COMMON_FLAGS += -DFIRMWARE_VERSION=\"$(VERSION)\"
 COMMON_FLAGS += -DSDK_VER=$(SDK_VER)
+COMMON_FLAGS += -DDEFAULT_DEBUG_FLAGS=$(DEFAULT_DEBUG_FLAGS)
 
 # COMMON_FLAGS += -DDEVELOP_IN_NRF52832
 

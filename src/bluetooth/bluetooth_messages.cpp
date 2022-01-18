@@ -43,7 +43,7 @@ namespace Bluetooth
 			return "RequestTelemetry";
 		case MessateType_ProgramDefaultAnimSet:
 			return "ProgramDefaultAnimSet";
-		case MessageType_Flash:
+		case MessageType_Blink:
 			return "Flash";
 		case MessageType_RequestDefaultAnimSetColor:
 			return "RequestDefaultAnimSetColor";

@@ -2,6 +2,7 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 #include "config/board_config.h"
+#include "config/settings.h"
 #include "core/delegate_array.h"
 #include "drivers_hw/apa102.h"
 #include "drivers_hw/neopixel.h"
@@ -19,15 +20,15 @@ using namespace DriversNRF;
 #define OFFSET_BLUE 0
 
 #define MAX_APA102_CLIENTS 2
-namespace Modules
+
+namespace Modules::LEDs
 {
-namespace LEDs
-{
-	DelegateArray<LEDClientMethod, MAX_APA102_CLIENTS> ledPowerClients;
-	static uint8_t powerPin;
+    static DelegateArray<LEDClientMethod, MAX_APA102_CLIENTS> ledPowerClients;
+    static uint8_t powerPin;
     static uint8_t numLed;
     static bool powerOn = false;
-    uint32_t pixels[MAX_LED_COUNT];
+    static bool stayOff = false;
+    static uint32_t pixels[MAX_LED_COUNT];
 
     void show();
     void setPowerOn();
@@ -57,7 +58,13 @@ namespace LEDs
         memset(pixels, 0, MAX_LED_COUNT * sizeof(uint32_t));
         numLed = board->ledCount;
 
-        NRF_LOG_INFO("LEDs Initialized with powerPin=%d", (int)powerPin);
+        // Check debug mode
+        auto settings = Config::SettingsManager::getSettings();
+        stayOff = (settings->debugFlags & (uint32_t)Config::DebugFlags::LEDsStayOff) != 0;
+
+        NRF_LOG_INFO("LEDs initialized with powerPin=%d", (int)powerPin);
+        if (stayOff)
+            NRF_LOG_INFO("LEDs will always stay off!");
     }
 
     void clear() {
@@ -158,6 +165,10 @@ namespace LEDs
 	}
 
     void setPowerOn() {
+        // Are we allowed to turn LEDs on?
+        if (stayOff)
+            return;
+
         // Notify clients we're turning led power on
         for (int i = 0; i < ledPowerClients.Count(); ++i) {
             ledPowerClients[i].handler(ledPowerClients[i].token, true);
@@ -180,5 +191,4 @@ namespace LEDs
             ledPowerClients[i].handler(ledPowerClients[i].token, true);
         }
    }
-}
 }

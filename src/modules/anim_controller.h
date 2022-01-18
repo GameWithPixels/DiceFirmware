@@ -30,9 +30,6 @@ namespace Modules
 		void stop(int animIndex, uint8_t remapFace = 0);
 		void stop(const Animations::Animation* animationPreset, uint8_t remapFace = 0);
 		void stopAll();
-
-		int getCurrentRainbowOffset();
-		float getCurrentHeat();
 	}
 }
 

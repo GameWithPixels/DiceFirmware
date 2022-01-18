@@ -23,6 +23,7 @@ namespace Animations
 		Animation_GradientPattern,
 		Animation_Gradient,
 		Animation_Noise,
+		Animation_Cycle,
 	};
 
 	/// <summary>
