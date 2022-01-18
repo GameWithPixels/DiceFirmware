@@ -18,10 +18,17 @@ namespace DriversHW
 		void read(Core::float3* outAccel);
 
 		void enableInterrupt();
+        void enableDataInterrupt();
 		void disableInterrupt();
 		void clearInterrupt();
 
 		void lowPower();
+
+		// Notification management
+		typedef void(*KXTJ3ClientMethod)(void* param, const Core::float3& acceleration);
+		void hook(KXTJ3ClientMethod method, void* param);
+		void unHook(KXTJ3ClientMethod client);
+		void unHookWithParam(void* param);
 	}
 }
 

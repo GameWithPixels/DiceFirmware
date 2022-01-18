@@ -149,25 +149,25 @@ namespace BoardManager
         //     .ledCount = 20,
         //     .name = "D20v9.1",
         // },
-        // //D20BoardV9Alt2
-        // {
-        //     .boardResistorValueInKOhms = 71, // 71.5k Resistor
-        //     .ledDataPin = 1,
-        //     .ledClockPin = 0xFF,
-        //     .ledPowerPin = 9,
-        //     .i2cDataPin = 14,
-        //     .i2cClockPin = 15,
-        //     .accInterruptPin = 12,
-        //     .chargingStatePin = 6,
-        //     .coilSensePin = NRF_SAADC_INPUT_AIN3,
-        //     .vbatSensePin = NRF_SAADC_INPUT_AIN6,
-        //     .vledSensePin = NRF_SAADC_INPUT_AIN2,
-        //     .magnetPin = 0xFF,
-        //     .accModel = AccelerometerModel::KXTJ3_1057,
-        //     .ledModel = LEDModel::NEOPIXEL_GRB,
-        //     .ledCount = 20,
-        //     .name = "D20v9.2",
-        // },
+        //D20BoardV9Alt2
+        {
+            .boardResistorValueInKOhms = 77, // 71.5k Resistor
+            .ledDataPin = 1,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 9,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN3,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 20,
+            .name = "D20v9.2",
+        },
         // //D20BoardV9Alt3
         // {
         //     .boardResistorValueInKOhms = 79, // 78.7k Resistor

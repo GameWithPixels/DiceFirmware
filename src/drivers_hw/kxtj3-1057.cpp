@@ -1,8 +1,13 @@
 #include "kxtj3-1057.h"
 #include "drivers_nrf/i2c.h"
 #include "nrf_log.h"
-#include "../core/float3.h"
-#include "../utils/Utils.h"
+#include "core/float3.h"
+#include "utils/Utils.h"
+#include "core/delegate_array.h"
+#include "nrf_gpio.h"
+#include "config/board_config.h"
+#include "drivers_nrf/gpiote.h"
+#include "drivers_nrf/scheduler.h"
 
 using namespace DriversNRF;
 using namespace Config;
@@ -70,9 +75,12 @@ namespace KXTJ3
     const uint8_t devAddress = 0x0E;
     const Scale fsr = SCALE_4G;
     const float scaleMult = 4.0f;
-    const DataRate dataRate = ODR_200;
+    const DataRate dataRate = ODR_6_25;
     const uint16_t wakeUpThreshold = 32;
     const uint8_t wakeUpCount = 1;
+
+    #define MAX_CLIENTS 2
+	DelegateArray<KXTJ3ClientMethod, MAX_CLIENTS> clients;
 
     void ApplySettings();
 	void standby();
@@ -94,16 +102,25 @@ namespace KXTJ3
 		// Make sure our interrupts are cleared to begin with!
 		disableInterrupt();
 		clearInterrupt();
+        enableDataInterrupt();
 
 		NRF_LOG_INFO("KXTJ3 Initialized");
 	}
 
     void read(Core::float3* outAccel) {
 
-        uint16_t cx, cy, cz;
-        cx = Utils::twosComplement16(I2C::readRegisterInt16(devAddress, OUT_X_L));
-        cy = Utils::twosComplement16(I2C::readRegisterInt16(devAddress, OUT_Y_L));
-        cz = Utils::twosComplement16(I2C::readRegisterInt16(devAddress, OUT_Z_L));
+        // Read accelerometer data
+        uint8_t accBuffer[6];
+        I2C::readRegisters(devAddress, OUT_X_L, accBuffer, 6);
+
+        // Convert acc (12 bits)
+        int16_t cx = (((int16_t)accBuffer[1] << 8) | accBuffer[0]) >> 4;
+        if (cx & 0x0800) cx |= 0xF000;
+        int16_t cy = (((int16_t)accBuffer[3] << 8) | accBuffer[2]) >> 4;
+        if (cy & 0x0800) cy |= 0xF000;
+        int16_t cz = (((int16_t)accBuffer[5] << 8) | accBuffer[4]) >> 4;
+        if (cz & 0x0800) cz |= 0xF000;
+
         outAccel->x = (float)cx / (float)(1 << 11) * scaleMult;
         outAccel->y = (float)cy / (float)(1 << 11) * scaleMult;
         outAccel->z = (float)cz / (float)(1 << 11) * scaleMult;
@@ -112,13 +129,13 @@ namespace KXTJ3
     void standby()
     {
         uint8_t c = I2C::readRegister(devAddress, CTRL_REG1);
-        I2C::writeRegister(devAddress, CTRL_REG1, c & ~(0x08)); //Clear the active bit to go into standby
+        I2C::writeRegister(devAddress, CTRL_REG1, c & ~(0b10000000)); //Clear the active bit to go into standby
     }
 
     void active()
     {
         uint8_t c = I2C::readRegister(devAddress, CTRL_REG1);
-        I2C::writeRegister(devAddress, CTRL_REG1, c | 0x08); //Set the active bit to begin detection
+        I2C::writeRegister(devAddress, CTRL_REG1, c | 0b10000000); //Set the active bit to begin detection
     }
 
     void ApplySettings() {
@@ -170,12 +187,91 @@ namespace KXTJ3
 		I2C::readRegister(devAddress, INT_REL);
 	}
 
+
+    /// <summary>
+    /// Interrupt handler when data is ready
+    /// </summary>
+	void dataInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
+
+        //I2C::readRegister(devAddress, STATUS_REG);
+        Core::float3 acc;
+        read(&acc);
+
+        // Trigger the callbacks
+        Scheduler::push(&acc, sizeof(Core::float3), [](void* accCopyPtr, uint16_t event_size) {
+
+            // Cast the param to the right type
+            Core::float3* accCopy = (Core::float3*)(accCopyPtr);
+
+            NRF_LOG_INFO("x: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->x));
+            NRF_LOG_INFO("y: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->y));
+            NRF_LOG_INFO("z: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->z));
+
+
+            for (int i = 0; i < clients.Count(); ++i) {
+                clients[i].handler(clients[i].token, *accCopy);
+            }
+        });
+        clearInterrupt();
+    }
+
+	/// <summary>
+	/// Enable Data ready interrupt
+	/// </summary>
+	void enableDataInterrupt() {
+        standby();
+        {
+            // Set interrupt pin
+            GPIOTE::enableInterrupt(
+                BoardManager::getBoard()->accInterruptPin,
+                NRF_GPIO_PIN_NOPULL,
+                NRF_GPIOTE_POLARITY_HITOLO,
+                dataInterruptHandler);
+
+            // Enable interrupt pin and set polarity
+            I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00100000);
+
+            // Enable data ready interrupt
+            uint8_t ctrl = I2C::readRegister(devAddress, CTRL_REG1);
+            ctrl |= 0b01100000;
+            I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
+        }
+        active();
+	}
+
 	void disableInterrupt()
 	{
 		standby();
 		// Disable interrupt on xyz axes
 		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00010000);
 		active();
+	}
+
+	/// <summary>
+	/// Method used by clients to request timer callbacks when accelerometer readings are in
+	/// </summary>
+	void hook(KXTJ3ClientMethod method, void* parameter)
+	{
+		if (!clients.Register(parameter, method))
+		{
+			NRF_LOG_ERROR("Too many KXTJ3 hooks registered.");
+		}
+	}
+
+	/// <summary>
+	/// Method used by clients to stop getting accelerometer reading callbacks
+	/// </summary>
+	void unHook(KXTJ3ClientMethod method)
+	{
+		clients.UnregisterWithHandler(method);
+	}
+
+	/// <summary>
+	/// Method used by clients to stop getting accelerometer reading callbacks
+	/// </summary>
+	void unHookWithParam(void* param)
+	{
+		clients.UnregisterWithToken(param);
 	}
 
 }

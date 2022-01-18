@@ -80,6 +80,9 @@ namespace Accelerometer
 			case Config::AccelerometerModel::MXC4005XC:
 				MXC4005XC::init();
 				break;
+			case Config::AccelerometerModel::KXTJ3_1057:
+				KXTJ3::init();
+				break;
 			default:
 				NRF_LOG_ERROR("Invalid Accelerometer Model");
 				break;
@@ -123,6 +126,11 @@ namespace Accelerometer
     void LIS2DE12Handler(void* param, const Core::float3& acc) {
         AccHandler(acc);
     }
+
+    void KXTJ3Handler(void* param, const Core::float3& acc) {
+        AccHandler(acc);
+    }
+
 
     void update(void* context) {
         Core::float3 acc;
@@ -281,6 +289,9 @@ namespace Accelerometer
 			case Config::AccelerometerModel::MXC4005XC:
 				MXC4005XC::hook(MXC4005XCHandler, nullptr);
 				break;
+			case Config::AccelerometerModel::KXTJ3_1057:
+				KXTJ3::hook(KXTJ3Handler, nullptr);
+                break;
 			default:
 				NRF_LOG_ERROR("Invalid Accelerometer Model");
 				break;
@@ -305,6 +316,9 @@ namespace Accelerometer
 				break;
 			case Config::AccelerometerModel::MXC4005XC:
 				MXC4005XC::unHook(MXC4005XCHandler);
+				break;
+			case Config::AccelerometerModel::KXTJ3_1057:
+				KXTJ3::unHook(KXTJ3Handler);
 				break;
 			default:
 				NRF_LOG_ERROR("Invalid Accelerometer Model");
@@ -618,7 +632,9 @@ namespace Accelerometer
                 break;
             case Config::AccelerometerModel::MXC4005XC:
                 MXC4005XC::read(acc);
-                // MXC4005XC::getCurrentAccel(acc);
+                break;
+            case Config::AccelerometerModel::KXTJ3_1057:
+                KXTJ3::read(acc);
                 break;
             default:
                 NRF_LOG_ERROR("Invalid Accelerometer Model");
