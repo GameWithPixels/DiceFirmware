@@ -1,12 +1,11 @@
-#PROJECT_NAME = Firmware don't know what this is used for
-TARGETS = firmware_d firmware # debug and release targets
+TARGETS = firmware_d firmware firmware_fact # debug, release and factory targets (the latest is a release build with some settings turned on to help with dice manufacturing)
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 
-VERSION = 01_03_22
+VERSION = 01_18_22
 SDK_VER = 17
-DEFAULT_DEBUG_FLAGS = 0 # Release build
-#DEFAULT_DEBUG_FLAGS = 6 # Test build: on each boot alternatively turn all LEDs off or make them blink one by one
+DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
+firmware_factory: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
 
 # JLINK = 851002454 #- Plus Olivier
 # JLINK = 851002453 #- Plus Jean
@@ -16,7 +15,6 @@ JLINK = #-s 821005566 #- Base
 
 PROJ_DIR = .
 LINKER_SCRIPT = Firmware.ld
-NRFUTIL = nrfutil.exe
 
 ifeq ($(SDK_VER),17)
 	SDK_ROOT := C:/nRF5_SDK
@@ -340,10 +338,13 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 SETTINGS_FLAGS := --family NRF52810 --application-version 0xff --bootloader-version 0xff --bl-settings-version 1
 
 settings_d: firmware_d
-	$(NRFUTIL) settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_d.hex $(OUTPUT_DIRECTORY)/firmware_settings_d.hex
+	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_d.hex $(OUTPUT_DIRECTORY)/firmware_settings_d.hex
 
 settings: firmware
-	$(NRFUTIL) settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
+	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
+
+settings_fact: firmware_fact
+	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex
 
 #
 # Common commands
@@ -423,7 +424,25 @@ flash_board: erase flash_softdevice flash_bootloader flash_release
 .PHONY: flash_ble
 flash_ble: zip
 	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip over BLE DFU
-	$(NRFUTIL) dfu ble -cd 0 -ic NRF51 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+	nrfutil dfu ble -cd 0 -ic NRF51 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+
+#
+# Factory build
+#
+
+.PHONY: firmware_factory
+firmware_factory: firmware_fact
+
+.PHONY: settings_factory
+settings_factory: settings_fact
+
+.PHONY: factory
+factory: firmware_factory settings_factory
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE) $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex -o $(OUTPUT_DIRECTORY)/factory.hex
+
+.PHONY: flash_factory
+flash_factory: erase factory
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/factory.hex --sectorerase --verify --reset
 
 #
 # Publishing commands
@@ -432,10 +451,10 @@ flash_ble: zip
 .PHONY: zip
 ifeq ($(SDK_VER),12)
 zip: firmware_release
-	$(NRFUTIL) pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0xB0 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0xB0 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
 else
 zip: firmware_release
-	$(NRFUTIL) pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0x103 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0x103 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
 endif
 
 .PHONY: publish

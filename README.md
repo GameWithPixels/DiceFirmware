@@ -28,8 +28,17 @@ Flashing a die is done in 3 steps: erase, program and reset:
 
 ```
 nrfjprog -f nrf52 --eraseall
-nrfjprog -f nrf52 --program firmware.hex --sectorerase
+nrfjprog -f nrf52 --program firmware.hex --verify
 nrfjprog -f nrf52 --reset
+```
+
+The `--verify` option compares the provided hex file contents with the data in the chip memory
+and fails if there is a mismatch.
+
+It's possible to combine all 3 steps together:
+
+```
+nrfjprog -f nrf52 --program firmware.hex --sectorerase --verify --reset
 ```
 
 Firmware releases are available on the releases
