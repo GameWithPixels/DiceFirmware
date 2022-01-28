@@ -72,7 +72,7 @@ namespace KXTJ3
         ODR_1600  = 7,
     };
 
-    const uint8_t devAddress = 0x0E;
+    const uint8_t devAddress = 0x0F;
     const Scale fsr = SCALE_4G;
     const float scaleMult = 4.0f;
     const DataRate dataRate = ODR_6_25;
