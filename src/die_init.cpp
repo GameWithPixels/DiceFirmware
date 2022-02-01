@@ -97,32 +97,31 @@ namespace Die
         // Then the log system
         Log::init();
 
-        // Then the timers
+        // Then the scheduler, so we can avoid executing big stuff inside callbacks or interrupt handlers
         Scheduler::init();
 
-        // Then the timers
+        // Then the timers, used for periodic operations, like checking battery
         Timers::init();
 
         // Power manager handles going to sleep and resetting the board
         //PowerManager::init();
 
-        // GPIO Interrupts
+        // GPIO Interrupts, we use this to know when the accelerometer has a new reading available
         GPIOTE::init();
 
-        // Analog to digital converter next, so we can
-        // identify the board we're dealing with
+        // Analog to digital converter next, so we can identify the board we're dealing with
         A2D::init();
         
-        // Enable bluetooth
+        // Initializte bluetooth
         Stack::init();
 
         // // Watchdog may setup a timer to verify app stability
         // Watchdog::initClearResetFlagTimer();
 
-        // Add generic data service
+        // Add generic bluetooth data service
         MessageService::init();
 
-        // Initialize the DFU service
+        // Initialize the DFU service so we can upgrade the firmware without needing to reset the die
         DFU::init();
 
         // Now that the message service added its uuid to the softdevice, initialize the advertising
@@ -139,30 +138,29 @@ namespace Die
         // on the board and determine what kind of die this is.
         BoardManager::init();
 
-        // Magnet, so we know if ne need to go into quiet mode
+        // Magnet, so we know if ne need to go into quiet mode, this is no longer used
         //Magnet::init(); 
         
         // Now that we know which board we are, initialize the battery monitoring A2D
         A2D::initBoardPins();
 
-        
-        // The we read user settings from flash, or set some defaults if none are found
+        // Then we read user settings from flash, or set some defaults if none are found
         SettingsManager::init([] (bool result) {
 
             // The advertising name depends on settings
             Stack::initAdvertisingName();
 
-            // Now that the settings are set, update custom advertising data
+            // Now that the settings are set, update custom advertising data such as die type and battery level
             Stack::initCustomAdvertisingData();
 
-            // I2C is needed for the accelerometer, but depends on the board info
+            // I2C is needed for the accelerometer, but depends on the board info to know which pins to use
             I2C::init();
 
             //--------------------
             // Initialize Hardware drivers
             //--------------------
 
-            // Lights depend on board info
+            // Lights depend on board info as well
             LEDs::init();
 
             // Accel pins depend on the board info
