@@ -38,7 +38,7 @@ namespace Modules::AnimationPreview
 
     void ReceiveTestAnimSet(void* context, const Message* msg)
     {
-		NRF_LOG_INFO("Received Request to play test animation");
+		NRF_LOG_INFO("Received request to play test animation");
 		const MessageTransferTestAnimSet* message = (const MessageTransferTestAnimSet*)msg;
 
         if (animationData == nullptr || animationDataHash != message->hash) {
@@ -156,8 +156,8 @@ namespace Modules::AnimationPreview
             animBits.paletteSize = 3;
         }
 
-        const MessageFlash* message = (const MessageFlash*)msg;
-        NRF_LOG_INFO("Received Request to blink the LEDs %d times with duration of " NRF_LOG_FLOAT_MARKER, message->flashCount, message->duration);
+        const MessageBlink* message = (const MessageBlink*)msg;
+        NRF_LOG_INFO("Received request to blink the LEDs %d times with duration of " NRF_LOG_FLOAT_MARKER, message->flashCount, message->duration);
 
         // Store color in palette
         animPalette[0] = Utils::getRed(message->color);

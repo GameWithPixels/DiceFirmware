@@ -285,14 +285,14 @@ struct MessageProgramDefaultAnimSet
 	inline MessageProgramDefaultAnimSet() : Message(Message::MessateType_ProgramDefaultAnimSet) {}
 };
 
-struct MessageFlash
+struct MessageBlink
 	: public Message
 {
 	uint8_t flashCount;
 	uint32_t color;
 	uint16_t duration;
 
-	inline MessageFlash() : Message(Message::MessageType_Blink) {}
+	inline MessageBlink() : Message(Message::MessageType_Blink) {}
 };
 
 struct MessageDefaultAnimSetColor

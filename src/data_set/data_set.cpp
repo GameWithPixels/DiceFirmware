@@ -148,7 +148,7 @@ namespace DataSet
 	int offset = 0;
 
 	void ReceiveDataSetHandler(void* context, const Message* msg) {
-		NRF_LOG_INFO("Received Request to download new animation set");
+		NRF_LOG_INFO("Received request to download new animation set");
 		const MessageTransferAnimSet* message = (const MessageTransferAnimSet*)msg;
 
 		NRF_LOG_DEBUG("Animation Data to be received:");

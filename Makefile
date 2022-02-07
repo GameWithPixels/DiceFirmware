@@ -2,7 +2,7 @@ TARGETS = firmware_d firmware firmware_fact # debug, release and factory targets
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 
-VERSION = 01_18_22
+VERSION = 02_07_22
 SDK_VER = 17
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
 firmware_factory: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one

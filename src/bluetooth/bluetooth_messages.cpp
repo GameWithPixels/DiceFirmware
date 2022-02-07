@@ -44,7 +44,7 @@ namespace Bluetooth
 		case MessateType_ProgramDefaultAnimSet:
 			return "ProgramDefaultAnimSet";
 		case MessageType_Blink:
-			return "Flash";
+			return "Blink";
 		case MessageType_RequestDefaultAnimSetColor:
 			return "RequestDefaultAnimSetColor";
 		default:
