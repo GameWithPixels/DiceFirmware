@@ -2,7 +2,7 @@ TARGETS = firmware_d firmware firmware_fact # debug, release and factory targets
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 
-VERSION = 02_07_22
+VERSION = 02_14_22
 SDK_VER = 17
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
 firmware_factory: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
@@ -16,6 +16,7 @@ JLINK = #-s 821005566 #- Base
 PROJ_DIR = .
 LINKER_SCRIPT = Firmware.ld
 
+# SoftDevice file and path
 ifeq ($(SDK_VER),17)
 	SDK_ROOT := C:/nRF5_SDK
 	SOFTDEVICE_HEX_FILE := s112_nrf52_7.2.0_softdevice.hex
@@ -23,6 +24,7 @@ else
 	SDK_ROOT := C:/nRF5_SDK_old
 	SOFTDEVICE_HEX_FILE := s112_nrf52_6.1.1_softdevice.hex
 endif
+SOFTDEVICE_HEX_PATH := $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE)
 
 # Default target - first one defined
 .PHONY: default
@@ -365,7 +367,7 @@ erase:
 .PHONY: flash_softdevice
 flash_softdevice:
 	@echo ==== Flashing: $(SOFTDEVICE_HEX_FILE) ====
-	nrfjprog -f nrf52 $(JLINK) --program $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE) --sectorerase
+	nrfjprog -f nrf52 $(JLINK) --program $(SOFTDEVICE_HEX_PATH) --sectorerase
 	nrfjprog -f nrf52 $(JLINK) --reset
 
 .PHONY: flash_bootloader
@@ -436,9 +438,9 @@ firmware_factory: firmware_fact
 .PHONY: settings_factory
 settings_factory: settings_fact
 
-.PHONY: factory
-factory: firmware_factory settings_factory
-	mergehex -m $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE) $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex -o $(OUTPUT_DIRECTORY)/factory.hex
+.PHONY: hex_factory
+hex_factory: firmware_factory settings_factory
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex $(SOFTDEVICE_HEX_PATH) $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex -o $(OUTPUT_DIRECTORY)/full_firmware_factory.hex
 
 .PHONY: flash_factory
 flash_factory: erase factory
@@ -447,6 +449,10 @@ flash_factory: erase factory
 #
 # Publishing commands
 #
+
+.PHONY: hex_release
+hex_release: firmware_release settings_release
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex $(SOFTDEVICE_HEX_PATH) $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex -o $(OUTPUT_DIRECTORY)/full_firmware.hex
 
 .PHONY: zip
 ifeq ($(SDK_VER),12)

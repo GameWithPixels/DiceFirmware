@@ -38,7 +38,7 @@ and fails if there is a mismatch.
 It's possible to combine all 3 steps together:
 
 ```
-nrfjprog -f nrf52 --program firmware.hex --sectorerase --verify --reset
+nrfjprog -f nrf52 --program firmware.hex --chiperase --verify --reset
 ```
 
 Firmware releases are available on the releases
