@@ -24,6 +24,7 @@ namespace Watchdog
     {
         //Configure WDT.
         nrf_drv_wdt_config_t config = NRF_DRV_WDT_DEAFULT_CONFIG;
+        config.behaviour = NRF_WDT_BEHAVIOUR_PAUSE_SLEEP_HALT;
         ret_code_t err_code = nrf_drv_wdt_init(&config, wdt_event_handler);
         APP_ERROR_CHECK(err_code);
 
