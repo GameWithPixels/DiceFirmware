@@ -367,14 +367,12 @@ erase:
 .PHONY: flash_softdevice
 flash_softdevice:
 	@echo ==== Flashing: $(SOFTDEVICE_HEX_FILE) ====
-	nrfjprog -f nrf52 $(JLINK) --program $(SOFTDEVICE_HEX_PATH) --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(SOFTDEVICE_HEX_PATH) --sectorerase --verify --reset
 
 .PHONY: flash_bootloader
 flash_bootloader:
 	@echo ==== Flashing: $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex ====
-	nrfjprog -f nrf52 $(JLINK) --program $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex --sectorerase --verify --reset
 
 #
 # Debug commands
@@ -390,9 +388,8 @@ settings_debug: settings_d
 .PHONY: flash
 flash: firmware_debug settings_debug
 	@echo ==== Flashing: $(OUTPUT_DIRECTORY)/firmware_d.hex ====
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_d.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings_d.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_d.hex --sectorerase --verify
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings_d.hex --sectorerase --verify --reset
 
 .PHONY: reflash
 reflash: erase flash_softdevice flash
@@ -411,9 +408,8 @@ settings_release: settings
 .PHONY: flash_release
 flash_release: firmware_release settings_release
 	@echo ==== Flashing: $(OUTPUT_DIRECTORY)/firmware.hex ====
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase
-	nrfjprog -f nrf52 $(JLINK) --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase --verify
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase --verify --reset
 
 .PHONY: reflash_release
 reflash_release: erase flash_softdevice flash_release
@@ -443,8 +439,8 @@ hex_factory: firmware_factory settings_factory
 	mergehex -m $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex $(SOFTDEVICE_HEX_PATH) $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex -o $(OUTPUT_DIRECTORY)/full_firmware_factory.hex
 
 .PHONY: flash_factory
-flash_factory: erase factory
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/factory.hex --sectorerase --verify --reset
+flash_factory: erase hex_factory
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_factory.hex --sectorerase --verify --reset
 
 #
 # Publishing commands
