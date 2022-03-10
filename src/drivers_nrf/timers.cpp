@@ -23,9 +23,9 @@ namespace Timers
         int callbackTime;
     };
 
-    delayedCallbacksTimerInfo delayedCallbacks[MAX_DELAYED_CALLS];
-    int delayedCallbacksCount;
-    int delayedCallbackPauseRequestCount;
+    static delayedCallbacksTimerInfo delayedCallbacks[MAX_DELAYED_CALLS];
+    static int delayedCallbacksCount;
+    static int delayedCallbackPauseRequestCount;
 
     void init() {
         ret_code_t err_code;
@@ -45,10 +45,15 @@ namespace Timers
         // Wait for the clock to be ready.
         while (!nrf_clock_lf_is_running()) {;}
 
-        // Create a temp timer that can be used by modules, like the behavior controller
+        // Create a timer that runs delayed callbacks (see setDelayedCallback)
         createTimer(&delayedCallbacksTimer, APP_TIMER_MODE_SINGLE_SHOT, delayedCallbacksTimerCallback);
         delayedCallbacksCount = 0;
         delayedCallbackPauseRequestCount = 0;
+
+        #if NRF_LOG_ENABLED
+        // Start RTC activity right away to logger timestamps dont stay at 0 (until first timer is started)
+        app_timer_resume();
+        #endif
 
         NRF_LOG_INFO("App Timers initialized");
 

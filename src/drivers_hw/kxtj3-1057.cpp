@@ -203,10 +203,9 @@ namespace KXTJ3
             // Cast the param to the right type
             Core::float3* accCopy = (Core::float3*)(accCopyPtr);
 
-            NRF_LOG_INFO("x: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->x));
-            NRF_LOG_INFO("y: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->y));
-            NRF_LOG_INFO("z: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->z));
-
+            // NRF_LOG_INFO("x: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->x));
+            // NRF_LOG_INFO("y: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->y));
+            // NRF_LOG_INFO("z: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->z));
 
             for (int i = 0; i < clients.Count(); ++i) {
                 clients[i].handler(clients[i].token, *accCopy);

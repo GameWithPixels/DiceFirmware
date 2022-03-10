@@ -266,7 +266,7 @@ namespace Stack
         {
             case BLE_ADV_EVT_FAST:
             {
-                NRF_LOG_INFO("Fast advertising.");
+                NRF_LOG_INFO("Fast advertising");
 #if SDK_VER == 17
                 ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
 #else
@@ -283,7 +283,7 @@ namespace Stack
             break;
 
             case BLE_ADV_EVT_IDLE:
-                NRF_LOG_INFO("Advertising Idle.");
+                NRF_LOG_INFO("Advertising Idle");
                 currentlyAdvertising = false;
                 //sleep_mode_enter();
                 break;

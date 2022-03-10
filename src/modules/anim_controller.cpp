@@ -32,13 +32,14 @@ namespace Modules::AnimController
 	static Animations::AnimationInstance *animations[MAX_ANIMS];
 	static int animationCount = 0;
 
+	// Some local functions
+	void update(int ms);
 	uint32_t getColorForAnim(void* token, uint32_t colorIndex);
 	uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
-
 	void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
-
 	void printAnimControllerState(void *context, const Message *msg);
 
+	// Update timer
 	APP_TIMER_DEF(animControllerTimer);
 	// To be passed to the timer
 	static int animControllerTicks = 0;

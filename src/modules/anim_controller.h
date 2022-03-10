@@ -18,8 +18,6 @@ namespace Modules
 	{
 		void stopAtIndex(int animIndex);
 		void removeAtIndex(int animIndex);
-		void update();
-		void update(int ms);
 
 		void init();
 		void stop();

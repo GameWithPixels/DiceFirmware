@@ -13,6 +13,8 @@
 using namespace Core;
 using namespace Config;
 
+static const int scaler = 64 * 1024;
+
 namespace Utils
 {
 	uint32_t roundUpTo4(uint32_t address) {
@@ -28,7 +30,6 @@ namespace Utils
 
 	uint32_t interpolateColors(uint32_t color1, uint32_t time1, uint32_t color2, uint32_t time2, uint32_t time) {
 		// To stick to integer math, we'll scale the values
-		int scaler = 1024;
 		int scaledPercent = (time - time1) * scaler / (time2 - time1);
 		int scaledRed = getRed(color1)* (scaler - scaledPercent) + getRed(color2) * scaledPercent;
 		int scaledGreen = getGreen(color1) * (scaler - scaledPercent) + getGreen(color2) * scaledPercent;
@@ -402,7 +403,6 @@ for x in range(256):
 	}	
 
 	uint8_t interpolateIntensity(uint8_t intensity1, int time1, uint8_t intensity2, int time2, int time) {
-		int scaler = 1024;
 		int scaledPercent = (time - time1) * scaler / (time2 - time1);
 		return (uint8_t)((intensity1 * (scaler - scaledPercent) + intensity2 * scaledPercent) / scaler);
     }
@@ -421,4 +421,13 @@ for x in range(256):
 		return (uint16_t)((a * (uint32_t)prevRand + c) % m);
 	}
 
+	void spinWait(uint32_t ms) {
+		#if defined(DEBUG)
+			NRF_LOG_INFO("!! Spin wait for %d ms", ms);
+			const uint32_t tickEnd = app_timer_cnt_get() + APP_TIMER_TICKS(ms);
+			// Active wait
+			while (tickEnd >= app_timer_cnt_get());
+			NRF_LOG_INFO("Done waiting");
+		#endif
+	}
 }

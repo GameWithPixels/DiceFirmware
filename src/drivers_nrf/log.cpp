@@ -4,6 +4,7 @@
 #include "nrf_log_default_backends.h"
 #include "app_error.h"
 #include "app_error_weak.h"
+#include "app_timer.h"
 //#include "SEGGER_RTT.h"
 
 namespace DriversNRF
@@ -11,7 +12,7 @@ namespace DriversNRF
 namespace Log
 {
     void init() {
-        ret_code_t err_code = NRF_LOG_INIT(NULL);
+        ret_code_t err_code = NRF_LOG_INIT(app_timer_cnt_get);
         APP_ERROR_CHECK(err_code);
 
         NRF_LOG_DEFAULT_BACKENDS_INIT();

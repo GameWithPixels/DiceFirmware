@@ -226,7 +226,6 @@ namespace LIS2DE12
             // NRF_LOG_INFO("y: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy.y));
             // NRF_LOG_INFO("z: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy.z));
 
-
             for (int i = 0; i < clients.Count(); ++i) {
                 clients[i].handler(clients[i].token, accCopy);
             }

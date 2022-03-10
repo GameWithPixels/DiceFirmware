@@ -64,7 +64,7 @@
 #define NRF_LOG_USES_COLORS 0
 
 // <e> NRF_LOG_USES_TIMESTAMP - Enable timestamping
-#define NRF_LOG_USES_TIMESTAMP 0
+#define NRF_LOG_USES_TIMESTAMP 1
 
 // <o> NRF_LOG_TIMESTAMP_DEFAULT_FREQUENCY - Default frequency of the timestamp (in Hz) or 0 to use app_timer frequency. 
 #define NRF_LOG_TIMESTAMP_DEFAULT_FREQUENCY 0
@@ -75,7 +75,7 @@
 //==========================================================
 
 // <q> NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED  - nrf_log_str_formatter - Log string formatter
-#define NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED 0
+#define NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED 1
 
 
 #define NRF_LOG_BACKEND_UART_ENABLED 1

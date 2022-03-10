@@ -3,6 +3,7 @@
 #include "drivers_nrf/scheduler.h"
 #include "drivers_nrf/power_manager.h"
 #include "drivers_nrf/flash.h"
+#include "drivers_nrf/log.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
@@ -254,6 +255,10 @@ int main() {
     for (;;)
     {
         Die::update();
+
+        #if NRF_LOG_DEFERRED
+            Log::process();
+        #endif
     }
     return 0;
 }
