@@ -1,32 +1,41 @@
 TARGETS = firmware_d firmware firmware_fact # debug, release and factory targets (the latest is a release build with some settings turned on to help with dice manufacturing)
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
-
-VERSION = 02_14_22
+PROJ_DIR = .
 SDK_VER = 17
+
+VERSION = 03_14_22
+
+# Debug flags
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
 firmware_factory: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
 
-# JLINK = 851002454 #- Plus Olivier
-# JLINK = 851002453 #- Plus Jean
-# JLINK = 821005567 #- Base
-# JLINK = 821005568 #- Base
-JLINK = #-s 821005566 #- Base
+# We don't use the firmware version at the moment.
+# For future reference, to prevent downgrading, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
+FW_VER = 0x1
+BL_VER = 0x1
 
-PROJ_DIR = .
+# SDK 17 path
+SDK_ROOT := C:/nRF5_SDK
+
+# SoftDevice image filename and path
+# Download latest SoftDevice here: https://www.nordicsemi.com/Products/Development-software/s112/download
+#SOFTDEVICE_HEX_FILE := s112_nrf52_7.0.1_softdevice.hex
+#SOFTDEVICE_HEX_FILE := s112_nrf52_7.2.0_softdevice.hex
+SOFTDEVICE_HEX_FILE := s112_nrf52_7.3.0_softdevice.hex
+SOFTDEVICE_HEX_PATHNAME := $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE)
+SD_REQ_ID := 0xCD,0x103,0x126
+# Any version: 0xFFFE
+
+# Bootloader image filename and path
+BOOTLOADER_HEX_FILE := nrf52810_xxaa_s112.hex
+BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX_FILE)
+
+ZIP_PATHNAME := $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+
 LINKER_SCRIPT = Firmware.ld
 
-# SoftDevice file and path
-ifeq ($(SDK_VER),17)
-	SDK_ROOT := C:/nRF5_SDK
-	SOFTDEVICE_HEX_FILE := s112_nrf52_7.2.0_softdevice.hex
-else
-	SDK_ROOT := C:/nRF5_SDK_old
-	SOFTDEVICE_HEX_FILE := s112_nrf52_6.1.1_softdevice.hex
-endif
-SOFTDEVICE_HEX_PATH := $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE)
-
-# Default target - first one defined
+# Default target = first one defined
 .PHONY: default
 default: firmware_debug
  
@@ -97,6 +106,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_gradientpattern.cpp \
 	$(PROJ_DIR)/src/animations/animation_noise.cpp \
 	$(PROJ_DIR)/src/animations/animation_cycle.cpp \
+	$(PROJ_DIR)/src/animations/blink.cpp \
 	$(PROJ_DIR)/src/animations/keyframes.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \
 	$(PROJ_DIR)/src/behaviors/condition.cpp \
@@ -159,14 +169,8 @@ SRC_FILES += \
 	# $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
 	# $(SDK_ROOT)/components/libraries/button/app_button.c \
 
-ifeq ($(SDK_VER),17)
 SRC_FILES += \
  	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c
-else
-SRC_FILES += \
-    $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twim.c
-endif
-
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -236,12 +240,6 @@ INC_FOLDERS += \
 	# $(ARDUINO_ROOT)/libraries/SPI \
 	# $(ARDUINO_ROOT)/
 
-
-ifneq ($(SDK_VER),17)
-INC_FOLDERS += \
-	$(SDK_ROOT)/components/softdevice/mbr/nrf52810/headers
-endif
-
 # Libraries common to all targets
 LIB_FILES += \
 
@@ -306,6 +304,7 @@ CXXFLAGS += $(OPT)
 CXXFLAGS += $(COMMON_FLAGS)
 CXXFLAGS += -fno-rtti
 CXXFLAGS += -fno-exceptions
+CXXFLAGS += -fno-threadsafe-statics
 
 # Assembler flags common to all targets
 ASMFLAGS += -g3
@@ -337,7 +336,7 @@ include $(TEMPLATE_PATH)/Makefile.common
 $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
 # Settings
-SETTINGS_FLAGS := --family NRF52810 --application-version 0xff --bootloader-version 0xff --bl-settings-version 1
+SETTINGS_FLAGS := --family NRF52810 --application-version $(FW_VER) --bootloader-version $(BL_VER) --bl-settings-version 1
 
 settings_d: firmware_d
 	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_d.hex $(OUTPUT_DIRECTORY)/firmware_settings_d.hex
@@ -367,12 +366,12 @@ erase:
 .PHONY: flash_softdevice
 flash_softdevice:
 	@echo ==== Flashing: $(SOFTDEVICE_HEX_FILE) ====
-	nrfjprog -f nrf52 $(JLINK) --program $(SOFTDEVICE_HEX_PATH) --sectorerase --verify --reset
+	nrfjprog -f nrf52 $(JLINK) --program $(SOFTDEVICE_HEX_PATHNAME) --sectorerase --verify --reset
 
 .PHONY: flash_bootloader
 flash_bootloader:
-	@echo ==== Flashing: $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex ====
-	nrfjprog -f nrf52 $(JLINK) --program $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex --sectorerase --verify --reset
+	@echo ==== Flashing: $(BOOTLOADER_HEX_FILE) ====
+	nrfjprog -f nrf52 $(JLINK) --program $(BOOTLOADER_HEX_PATHNAME) --sectorerase --verify --reset
 
 #
 # Debug commands
@@ -421,8 +420,8 @@ flash_board: erase flash_softdevice flash_bootloader flash_release
 # e.g. make flash_ble DICE=D_71902510
 .PHONY: flash_ble
 flash_ble: zip
-	@echo Flashing: $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip over BLE DFU
-	nrfutil dfu ble -cd 0 -ic NRF51 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+	@echo Flashing: $(ZIP_PATHNAME) over BLE DFU
+	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(ZIP_PATHNAME)
 
 #
 # Factory build
@@ -436,7 +435,7 @@ settings_factory: settings_fact
 
 .PHONY: hex_factory
 hex_factory: firmware_factory settings_factory
-	mergehex -m $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex $(SOFTDEVICE_HEX_PATH) $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex -o $(OUTPUT_DIRECTORY)/full_firmware_factory.hex
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware_factory.hex
 
 .PHONY: flash_factory
 flash_factory: erase hex_factory
@@ -448,17 +447,12 @@ flash_factory: erase hex_factory
 
 .PHONY: hex_release
 hex_release: firmware_release settings_release
-	mergehex -m $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex $(SOFTDEVICE_HEX_PATH) $(PROJ_DIR)/../DiceBootloader/_build/nrf52810_xxaa_s112.hex -o $(OUTPUT_DIRECTORY)/full_firmware.hex
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware.hex
 
 .PHONY: zip
-ifeq ($(SDK_VER),12)
 zip: firmware_release
-	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0xB0 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
-else
-zip: firmware_release
-	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version 0xff --hw-version 52 --key-file private.pem --sd-req 0x103 $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
-endif
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(ZIP_PATHNAME)
 
 .PHONY: publish
 publish: zip
-	copy $(OUTPUT_DIRECTORY)\firmware_$(VERSION)_sdk$(SDK_VER).zip $(PUBLISH_DIRECTORY)
+	copy "$(ZIP_PATHNAME)" $(PUBLISH_DIRECTORY)
