@@ -1,7 +1,6 @@
 #include "animation_preview.h"
 #include "animations/animation.h"
-#include "animations/animation_simple.h"
-#include "data_set/data_set.h"
+#include "animations/blink.h"
 #include "data_set/data_animation_bits.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
@@ -145,34 +144,12 @@ namespace Modules::AnimationPreview
 
     void BlinkLEDs(void* context, const Message* msg)
     {
-        static AnimationSimple blinkAnim;
-        static uint8_t animPalette[3];
-        static AnimationBits animBits{nullptr};
-
-        // One time init of animBits
-        if (animBits.palette == nullptr) {
-            animBits.Clear();
-            animBits.palette = animPalette;
-            animBits.paletteSize = 3;
-        }
-
-        const MessageBlink* message = (const MessageBlink*)msg;
+        const MessageBlink *message = (const MessageBlink *)msg;
         NRF_LOG_INFO("Received request to blink the LEDs %d times with duration of " NRF_LOG_FLOAT_MARKER, message->flashCount, message->duration);
 
-        // Store color in palette
-        animPalette[0] = Utils::getRed(message->color);
-        animPalette[1] = Utils::getGreen(message->color);
-        animPalette[2] = Utils::getBlue(message->color);
+        static Blink blink;
+        blink.play(message->color, message->duration, message->flashCount, 255);
 
-        // Create a small anim on the spot
-        blinkAnim.type = Animation_Simple;
-        blinkAnim.duration = message->duration;
-        blinkAnim.faceMask = 0xFFFFF;
-        blinkAnim.count = message->flashCount;
-        blinkAnim.fade = 255;
-        blinkAnim.colorIndex = 0;
-
-        AnimController::play(&blinkAnim, &animBits);
         MessageService::SendMessage(Message::MessageType_BlinkFinished);
     }
 }

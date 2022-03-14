@@ -12,6 +12,7 @@
 #include "utils/utils.h"
 #include "drivers_nrf/a2d.h"
 #include "leds.h"
+#include "animations\blink.h"
 
 using namespace DriversHW;
 using namespace DriversNRF;
@@ -29,9 +30,8 @@ using namespace Utils;
 #define CHARGE_FULL (4.0f) // 4.0V
 #define INVALID_CHARGE_TIMEOUT 5000
 #define VBAT_READINGS_SIZE 10
-namespace Modules
-{
-namespace BatteryController
+
+namespace Modules::BatteryController
 {
     void getBatteryLevel(void* context, const Message* msg);
     void update(void* context);
@@ -40,22 +40,22 @@ namespace BatteryController
     BatteryState computeCurrentState();
     float LookupChargeLevel(float voltage);
 
-    float vcoil = 0.0f;
-    bool charging = false;
-    float lowestVBat = 0.0f;
-    bool lazyChargeDetect = false;
-    BatteryState currentBatteryState = BatteryState_Unknown;
-    uint32_t lastUpdateTime = 0;
+    static float vcoil = 0.0f;
+    static bool charging = false;
+    static float lowestVBat = 0.0f;
+    static bool lazyChargeDetect = false;
+    static BatteryState currentBatteryState = BatteryState_Unknown;
+    static uint32_t lastUpdateTime = 0;
 
-    float vBatWhenChargingStart = 0.0f;
-    uint32_t chargingStartedTime = 0;
+    static float vBatWhenChargingStart = 0.0f;
+    static uint32_t chargingStartedTime = 0;
 
-	DelegateArray<BatteryStateChangeHandler, MAX_BATTERY_CLIENTS> clients;
-    DelegateArray<BatteryLevelChangeHandler, MAX_LEVEL_CLIENTS> levelClients;
+	static DelegateArray<BatteryStateChangeHandler, MAX_BATTERY_CLIENTS> clients;
+    static DelegateArray<BatteryLevelChangeHandler, MAX_LEVEL_CLIENTS> levelClients;
 
-    float vBat = 0.0f; // Average reading
-    float vBatReadings[VBAT_READINGS_SIZE]; // Last readings
-    int vBatReadingsCount = 0;
+    static float vBat = 0.0f;               // Average reading
+    static float vBatReadings[VBAT_READINGS_SIZE]; // Last readings
+    static int vBatReadingsCount = 0;
     float readVBat() {
         if (vBatReadingsCount == VBAT_READINGS_SIZE) {
             // Shift readings down
@@ -460,5 +460,4 @@ namespace BatteryController
 	// 	return scaledLevel;
     // }
 
-}
 }
