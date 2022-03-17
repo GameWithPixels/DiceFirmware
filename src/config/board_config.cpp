@@ -278,7 +278,7 @@ namespace BoardManager
         float boardVoltages[boardCount];
         for (int i = 0; i < boardCount; ++i) {
             boardVoltages[i] = (vdd * boards[i].boardResistorValueInKOhms * 1000) / (float)(BOARD_DETECT_RESISTOR + boards[i].boardResistorValueInKOhms * 1000);
-            NRF_LOG_INFO("%s: voltage:" NRF_LOG_FLOAT_MARKER, boards[i].name, NRF_LOG_FLOAT(boardVoltages[i]));
+            NRF_LOG_DEBUG("%s: voltage:" NRF_LOG_FLOAT_MARKER, boards[i].name, NRF_LOG_FLOAT(boardVoltages[i]));
         }
         float midpointVoltages[boardCount-1];
         for (int i = 0; i < boardCount-1; ++i) {
