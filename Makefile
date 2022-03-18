@@ -1,4 +1,4 @@
-TARGETS = firmware_d firmware firmware_fact # debug, release and factory targets (the latest is a release build with some settings turned on to help with dice manufacturing)
+TARGETS = firmware_d firmware_ut firmware firmware_fact # debug, release and factory targets (the latest is a release build with some settings turned on to help with dice manufacturing)
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 PROJ_DIR = .
@@ -169,6 +169,10 @@ SRC_FILES += \
 	# $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
 	# $(SDK_ROOT)/components/libraries/button/app_button.c \
 
+firmware_unit_test:
+SRC_FILES += \
+	$(PROJ_DIR)/unit_test/test.cpp
+
 SRC_FILES += \
  	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c
 
@@ -278,6 +282,7 @@ FSTORAGE_ADDR = 0x26000 # 0x19000 + 0xD000 (max app size = 53248 bytes = 52 kB)
 
 # Debug builds are bigger, but the bootloader is not present so we can use higher addresses
 firmware_debug: FSTORAGE_ADDR = 0x2E000 
+firmware_unit_test: FSTORAGE_ADDR = 0x2E000 
 
 COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR)
 
@@ -289,7 +294,14 @@ firmware_debug: DEBUG_FLAGS = -DDEBUG
 firmware_debug: DEBUG_FLAGS += -DDEBUG_NRF
 firmware_debug: DEBUG_FLAGS += -DNRF_LOG_ENABLED=1
 
+firmware_unit_test: DEBUG_FLAGS = -DDEBUG
+firmware_unit_test: DEBUG_FLAGS += -DDEBUG_NRF
+firmware_unit_test: DEBUG_FLAGS += -DNRF_LOG_ENABLED=1
+
 COMMON_FLAGS += $(DEBUG_FLAGS)
+
+firmware_unit_test:
+COMMON_FLAGS += -DUNIT_TEST=1
 
 # C flags common to all targets
 CFLAGS += $(OPT)
@@ -340,6 +352,9 @@ SETTINGS_FLAGS := --family NRF52810 --application-version $(FW_VER) --bootloader
 
 settings_d: firmware_d
 	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_d.hex $(OUTPUT_DIRECTORY)/firmware_settings_d.hex
+
+settings_ut: firmware_ut
+	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_ut.hex $(OUTPUT_DIRECTORY)/firmware_settings_ut.hex
 
 settings: firmware
 	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
@@ -392,6 +407,26 @@ flash: firmware_debug settings_debug
 
 .PHONY: reflash
 reflash: erase flash_softdevice flash
+
+#
+# Unit Testing commands
+#
+
+.PHONY: firmware_unit_test
+firmware_unit_test: firmware_ut
+
+.PHONY: settings_unit_test
+settings_unit_test: settings_ut
+
+# Flash the program
+.PHONY: flash_ut
+flash_ut: firmware_unit_test settings_unit_test
+	@echo ==== Flashing: $(OUTPUT_DIRECTORY)/firmware_ut.hex ====
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_ut.hex --sectorerase --verify
+	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings_ut.hex --sectorerase --verify --reset
+
+.PHONY: reflash_ut
+reflash_ut: erase flash_softdevice flash_ut
 
 #
 # Release commands
