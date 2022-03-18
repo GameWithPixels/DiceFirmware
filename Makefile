@@ -170,8 +170,7 @@ SRC_FILES += \
 	# $(SDK_ROOT)/components/libraries/button/app_button.c \
 
 firmware_unit_test:
-SRC_FILES += \
-	$(PROJ_DIR)/unit_test/test.cpp
+SRC_FILES += $(PROJ_DIR)/unit_test/test.cpp
 
 SRC_FILES += \
  	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c
@@ -281,8 +280,7 @@ COMMON_FLAGS += -DDEFAULT_DEBUG_FLAGS=$(DEFAULT_DEBUG_FLAGS)
 FSTORAGE_ADDR = 0x26000 # 0x19000 + 0xD000 (max app size = 53248 bytes = 52 kB)
 
 # Debug builds are bigger, but the bootloader is not present so we can use higher addresses
-firmware_debug: FSTORAGE_ADDR = 0x2E000 
-firmware_unit_test: FSTORAGE_ADDR = 0x2E000 
+firmware_debug firmware_unit_test: FSTORAGE_ADDR = 0x2E000 
 
 COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR)
 
@@ -290,18 +288,13 @@ COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR)
 DEBUG_FLAGS = -DNRF_LOG_ENABLED=0
 DEBUG_FLAGS += -DDICE_SELFTEST=0
 
-firmware_debug: DEBUG_FLAGS = -DDEBUG
-firmware_debug: DEBUG_FLAGS += -DDEBUG_NRF
-firmware_debug: DEBUG_FLAGS += -DNRF_LOG_ENABLED=1
-
-firmware_unit_test: DEBUG_FLAGS = -DDEBUG
-firmware_unit_test: DEBUG_FLAGS += -DDEBUG_NRF
-firmware_unit_test: DEBUG_FLAGS += -DNRF_LOG_ENABLED=1
+firmware_debug firmware_unit_test: DEBUG_FLAGS = -DDEBUG
+firmware_debug firmware_unit_test: DEBUG_FLAGS += -DDEBUG_NRF
+firmware_debug firmware_unit_test: DEBUG_FLAGS += -DNRF_LOG_ENABLED=1
 
 COMMON_FLAGS += $(DEBUG_FLAGS)
 
-firmware_unit_test:
-COMMON_FLAGS += -DUNIT_TEST=1
+firmware_unit_test: COMMON_FLAGS += -DUNIT_TEST=1
 
 # C flags common to all targets
 CFLAGS += $(OPT)

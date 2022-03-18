@@ -70,6 +70,8 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
     app_error_handler(0xDEADBEEF, line_num, p_file_name);
 }
 
+void startUnitTesting();
+
 namespace Die
 {
     void loopCycleAnimation() {
@@ -223,6 +225,10 @@ namespace Die
                 if (!loopAnim) {
                     BehaviorController::onDiceInitialized();
                 }
+            #endif
+
+            #if UNIT_TEST
+                startUnitTesting();
             #endif
             });
         });

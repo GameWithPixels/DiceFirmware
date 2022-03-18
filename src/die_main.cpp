@@ -28,8 +28,6 @@ using namespace Accelerometer;
 using namespace Config;
 using namespace Animations;
 
-void runUnitTest();
-
 static void on_error(void)
 {
     NRF_LOG_FINAL_FLUSH();
@@ -253,9 +251,6 @@ namespace Die
 }
 
 int main() {
-#if UNIT_TEST
-    runUnitTest();
-#else
     Die::init();
     for (;;)
     {
@@ -266,5 +261,4 @@ int main() {
         #endif
     }
     return 0;
-#endif
 }
