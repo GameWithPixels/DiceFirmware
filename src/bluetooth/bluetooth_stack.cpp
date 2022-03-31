@@ -644,7 +644,8 @@ namespace Stack
 
     void hookRssi(RssiEventMethod method, void* param) {
         if (rssiClients.Count() == 0) {
-            sd_ble_gap_rssi_start(m_conn_handle, RSSI_THRESHOLD_DBM, 1); 
+            ret_code_t ret_code = sd_ble_gap_rssi_start(m_conn_handle, RSSI_THRESHOLD_DBM, 1); 
+            APP_ERROR_CHECK(ret_code);
         }
         rssiClients.Register(param, method);
     }
@@ -653,7 +654,8 @@ namespace Stack
         rssiClients.UnregisterWithHandler(client);
         if (rssiClients.Count() == 0) {
             // No longer need rssi levels
-            sd_ble_gap_rssi_stop(m_conn_handle);
+            ret_code_t ret_code = sd_ble_gap_rssi_stop(m_conn_handle);
+            APP_ERROR_CHECK(ret_code);
         }
     }
 

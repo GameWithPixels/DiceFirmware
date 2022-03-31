@@ -5,6 +5,7 @@
 #include "utils/rainbow.h"
 #include "modules/accelerometer.h"
 #include "config/board_config.h"
+#include "app_error.h"
 
 using namespace Modules;
 using namespace Config;
@@ -35,7 +36,7 @@ namespace DataSet
 	}
 
 	const RGBKeyframe& AnimationBits::getRGBKeyframe(uint16_t keyFrameIndex) const {
-		assert(keyFrameIndex < rgbKeyFrameCount);
+		APP_ERROR_CHECK_BOOL(keyFrameIndex < rgbKeyFrameCount);
 		return rgbKeyframes[keyFrameIndex];
 	}
 
@@ -44,12 +45,12 @@ namespace DataSet
 	}
 
 	const RGBTrack& AnimationBits::getRGBTrack(uint16_t trackIndex) const {
-		assert(trackIndex < rgbTrackCount);
+		APP_ERROR_CHECK_BOOL(trackIndex < rgbTrackCount);
 		return rgbTracks[trackIndex];
 	}
 
 	RGBTrack const * const AnimationBits::getRGBTracks(uint16_t tracksStartIndex)const  {
-		assert(tracksStartIndex < rgbTrackCount);
+		APP_ERROR_CHECK_BOOL(tracksStartIndex < rgbTrackCount);
 		return &(rgbTracks[tracksStartIndex]);
 	}
 
@@ -58,7 +59,7 @@ namespace DataSet
 	}
 
 	const Keyframe& AnimationBits::getKeyframe(uint16_t keyFrameIndex) const {
-		assert(keyFrameIndex < keyFrameCount);
+		APP_ERROR_CHECK_BOOL(keyFrameIndex < keyFrameCount);
 		return keyframes[keyFrameIndex];
 	}
 
@@ -67,12 +68,12 @@ namespace DataSet
 	}
 
 	const Track& AnimationBits::getTrack(uint16_t trackIndex) const {
-		assert(trackIndex < trackCount);
+		APP_ERROR_CHECK_BOOL(trackIndex < trackCount);
 		return tracks[trackIndex];
 	}
 
 	Track const * const AnimationBits::getTracks(uint16_t tracksStartIndex) const {
-		assert(tracksStartIndex < trackCount);
+		APP_ERROR_CHECK_BOOL(tracksStartIndex < trackCount);
 		return &(tracks[tracksStartIndex]);
 	}
 

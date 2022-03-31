@@ -5,6 +5,7 @@
 #include "assert.h"
 #include "../utils/utils.h"
 #include "nrf_log.h"
+#include "app_error.h"
 
 // FIXME!!!
 #include "modules/anim_controller.h"
@@ -129,7 +130,7 @@ namespace Animations
 	/// </summary>
 	const Track& AnimationInstanceGradientPattern::GetTrack(int index) const	{
 		auto preset = getPreset();
-		assert(index < preset->trackCount);
+		APP_ERROR_CHECK_BOOL(index < preset->trackCount);
 		return animationBits->getTrack(preset->tracksOffset + index);
 	}
 

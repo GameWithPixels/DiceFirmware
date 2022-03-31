@@ -4,6 +4,7 @@
 #include "data_set/data_animation_bits.h"
 #include "assert.h"
 #include "../utils/utils.h"
+#include "app_error.h"
 
 // FIXME!!!
 #include "modules/anim_controller.h"
@@ -116,7 +117,7 @@ namespace Animations
 	/// </summary>
 	const RGBTrack& AnimationInstanceKeyframed::GetTrack(int index) const	{
 		auto preset = getPreset();
-		assert(index < preset->trackCount);
+		APP_ERROR_CHECK_BOOL(index < preset->trackCount);
 		return animationBits->getRGBTrack(preset->tracksOffset + index);
 	}
 }

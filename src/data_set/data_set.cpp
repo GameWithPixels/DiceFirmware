@@ -17,6 +17,7 @@
 #include "assert.h"
 #include "nrf_log.h"
 #include "nrf_delay.h"
+#include "app_error.h"
 
 
 using namespace Utils;
@@ -103,45 +104,45 @@ namespace DataSet
 	}
 
 	uint16_t getAnimationCount() {
-		assert(CheckValid());
+		APP_ERROR_CHECK_BOOL(CheckValid());
 		return data->animationCount;
 	}
 
 	const Condition* getCondition(int conditionIndex) {
-		assert(CheckValid());
+		APP_ERROR_CHECK_BOOL(CheckValid());
 		uint32_t conditionAddress = (uint32_t)(const void*)data->conditions + data->conditionsOffsets[conditionIndex];
 		return (const Condition*)conditionAddress;
 	}
 
 	uint16_t getConditionCount() {
-		assert(CheckValid());
+		APP_ERROR_CHECK_BOOL(CheckValid());
 		return data->conditionCount;
 	}
 
 	const Action* getAction(int actionIndex) {
-		assert(CheckValid());
+		APP_ERROR_CHECK_BOOL(CheckValid());
 		uint32_t actionAddress = (uint32_t)(const void*)data->actions + data->actionsOffsets[actionIndex];
 		return (const Action*)actionAddress;
 	}
 
 	uint16_t getActionCount() {
-		assert(CheckValid());
+		APP_ERROR_CHECK_BOOL(CheckValid());
 		return data->actionCount;
 	}
 
 	const Rule* getRule(int ruleIndex) {
-		assert(CheckValid());
+		APP_ERROR_CHECK_BOOL(CheckValid());
 		return &data->rules[ruleIndex];
 	}
 
 	uint16_t getRuleCount() {
-		assert(CheckValid());
+		APP_ERROR_CHECK_BOOL(CheckValid());
 		return data->ruleCount;
 	}
 
 	// Behaviors
 	const Behavior* getBehavior() {
-		assert(CheckValid());
+		APP_ERROR_CHECK_BOOL(CheckValid());
 		return data->behavior;
 	}
 

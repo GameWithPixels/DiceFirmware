@@ -21,8 +21,9 @@ namespace Scheduler
     }
 
     bool push(const void* eventData, uint16_t size, app_sched_event_handler_t handler) {
-        ASSERT(size <= SCHED_MAX_EVENT_DATA_SIZE);
+        APP_ERROR_CHECK_BOOL(size <= SCHED_MAX_EVENT_DATA_SIZE);
         ret_code_t ret = app_sched_event_put((void*)eventData, size, handler);
+        APP_ERROR_CHECK(ret);
         return ret == NRF_SUCCESS;
     }
 }

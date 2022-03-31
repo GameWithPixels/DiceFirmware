@@ -3,6 +3,7 @@
 #include "../utils/utils.h"
 #include "config/board_config.h"
 #include "data_set/data_animation_bits.h"
+#include "app_error.h"
 
 using namespace Config;
 
@@ -37,7 +38,7 @@ namespace Animations
 	/// Grab a keyframe from the track
 	/// </sumary>
 	const RGBKeyframe& RGBTrack::getRGBKeyframe(const DataSet::AnimationBits* bits, uint16_t keyframeIndex) const {
-		assert(keyframeIndex < keyFrameCount);
+		APP_ERROR_CHECK_BOOL(keyframeIndex < keyFrameCount);
 		return bits->getRGBKeyframe(keyframesOffset + keyframeIndex);
 	}
 
@@ -142,7 +143,7 @@ namespace Animations
 	/// Grab a keyframe from the track
 	/// </sumary>
 	const Keyframe& Track::getKeyframe(const DataSet::AnimationBits* bits, uint16_t keyframeIndex) const {
-		assert(keyframeIndex < keyFrameCount);
+		APP_ERROR_CHECK_BOOL(keyframeIndex < keyFrameCount);
 		return bits->getKeyframe(keyframesOffset + keyframeIndex);
 	}
 
