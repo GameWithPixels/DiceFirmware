@@ -99,6 +99,7 @@ namespace DataSet
 
 	const Animation* getAnimation(int animationIndex) {
 		// Grab the preset data
+		if (animationIndex >= getAnimationCount() || animationIndex < 0) return nullptr;
 		uint32_t animationAddress = (uint32_t)(const void*)data->animations + data->animationOffsets[animationIndex];
 		return (const Animation *)animationAddress;
 	}
@@ -110,6 +111,7 @@ namespace DataSet
 
 	const Condition* getCondition(int conditionIndex) {
 		APP_ERROR_CHECK_BOOL(CheckValid());
+		if (conditionIndex >= getConditionCount() || conditionIndex < 0) return nullptr;
 		uint32_t conditionAddress = (uint32_t)(const void*)data->conditions + data->conditionsOffsets[conditionIndex];
 		return (const Condition*)conditionAddress;
 	}
@@ -121,6 +123,7 @@ namespace DataSet
 
 	const Action* getAction(int actionIndex) {
 		APP_ERROR_CHECK_BOOL(CheckValid());
+		if (actionIndex >= getActionCount() || actionIndex < 0) return nullptr;
 		uint32_t actionAddress = (uint32_t)(const void*)data->actions + data->actionsOffsets[actionIndex];
 		return (const Action*)actionAddress;
 	}
@@ -132,6 +135,7 @@ namespace DataSet
 
 	const Rule* getRule(int ruleIndex) {
 		APP_ERROR_CHECK_BOOL(CheckValid());
+		if (ruleIndex >= getRuleCount() || ruleIndex < 0) return nullptr;
 		return &data->rules[ruleIndex];
 	}
 

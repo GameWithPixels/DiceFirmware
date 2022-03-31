@@ -221,10 +221,12 @@ namespace Die
                 initMainLogic();
                 NRF_LOG_INFO("---------------");
 
+                #if !UNIT_TEST
                 // Entering the main loop! Play Hello! anim
                 if (!loopAnim) {
                     BehaviorController::onDiceInitialized();
                 }
+                #endif
             #endif
 
             #if UNIT_TEST
