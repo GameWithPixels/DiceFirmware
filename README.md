@@ -151,3 +151,7 @@ It enables access to the serial port to the die's electronic board (through USB)
 To connect to the die electronic board, run the following commands in VS Code:
 * `Arduino: Select Port` and select SEGGER
 * `Arduino: Open Serial Monitor`
+
+## Firmware Coding Style Guide
+
+Check [style guide](style.md) for up-to-date style guidelines. 
