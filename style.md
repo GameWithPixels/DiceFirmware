@@ -55,6 +55,7 @@
     - `for (int i = 0; i < 10; i++) `
 - `else` statements go on next line from closing curly brace
 - No assignments within expressions, I.E. `if (a = b)...`
+- Keep lines under 100 characters
 
 ## Commit Messages:
 - Always use present tense in commit messages
