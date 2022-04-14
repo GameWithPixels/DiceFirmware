@@ -50,6 +50,7 @@ namespace Modules::LEDs
         // Initialize Power pin
 		powerPin = board->ledPowerPin;
 
+        // Nothing to validate
 		nrf_gpio_cfg_output(powerPin);
 		nrf_gpio_pin_clear(powerPin);
         powerOn = false;

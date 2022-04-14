@@ -69,6 +69,7 @@ namespace Flash
         NRF_LOG_INFO(" - erase unit: \t%d bytes",      fstorage.p_flash_info->erase_unit);
         NRF_LOG_INFO(" - program unit: \t%d bytes",    fstorage.p_flash_info->program_unit);
 
+        // Not needed for validation
         #if DICE_SELFTEST && FLASH_SELFTEST
         selfTest();
         #endif

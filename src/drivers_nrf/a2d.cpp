@@ -62,6 +62,7 @@ namespace A2D
 
         NRF_LOG_INFO("A2D Initialized, VDD=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vcc));
 
+        // Not needed for validation
         #if DICE_SELFTEST && A2D_SELFTEST
         selfTest();
         #endif

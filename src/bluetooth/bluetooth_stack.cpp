@@ -365,6 +365,7 @@ namespace Stack
         APP_ERROR_CHECK(err_code);
 
         // Register a handler for BLE events.
+        // Nothing to validate
         NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
 
         //  GAP Params

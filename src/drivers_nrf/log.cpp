@@ -15,11 +15,13 @@ namespace Log
         ret_code_t err_code = NRF_LOG_INIT(app_timer_cnt_get);
         APP_ERROR_CHECK(err_code);
 
+        // No error code to check
         NRF_LOG_DEFAULT_BACKENDS_INIT();
 
         NRF_LOG_INFO("---------------");
         NRF_LOG_INFO("Log initialized");
 
+        // Not needed for validation
         #if DICE_SELFTEST && LOG_SELFTEST
         selfTest();
         #endif

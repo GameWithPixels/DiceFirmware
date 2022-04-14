@@ -40,6 +40,7 @@ namespace I2C
         }
 
         // Enable the interface
+        // No return value to check
         nrf_drv_twi_enable(&m_twi);
 
         //scanBus();

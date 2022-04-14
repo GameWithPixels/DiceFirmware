@@ -40,6 +40,7 @@ namespace Timers
         err_code = app_timer_init();
         APP_ERROR_CHECK(err_code);
 
+        // No return value to check
         nrf_drv_clock_lfclk_request(NULL);
         
         // Wait for the clock to be ready.
@@ -57,6 +58,7 @@ namespace Timers
 
         NRF_LOG_INFO("App Timers initialized");
 
+        // Not needed for validation, but possible unit testing
         #if DICE_SELFTEST && TIMERS_SELFTEST
         selfTest();
         #endif

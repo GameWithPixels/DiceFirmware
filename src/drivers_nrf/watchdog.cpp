@@ -30,6 +30,8 @@ namespace Watchdog
 
         err_code = nrf_drv_wdt_channel_alloc(&m_channel_id);
         APP_ERROR_CHECK(err_code);
+
+        // Returns no error code to check
         nrf_drv_wdt_enable();
     }
 

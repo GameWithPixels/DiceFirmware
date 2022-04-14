@@ -85,10 +85,131 @@ namespace Die
         AnimController::play(&anim, nullptr, 0, true); // Loop forever!
     }
 
+    /// ***********************************************************************
+    /// Init function validation checks:
+    ///
+    ///     - Watchdog::init():
+    ///         * if watchdog driver init fails
+    ///         * if channel allocation fails
+    ///
+    ///     - Log::init():
+    ///         * if log driver initialization fails
+    ///
+    ///     - Scheduler::init():
+    ///         * if scheduler driver init fails
+    ///
+    ///     - Timers::init():
+    ///         * if timer driver init fails
+    ///
+    ///     - GPIOTE::init():
+    ///         * if gpiote driver init fails
+    ///
+    ///     - A2D::init():
+    ///         * if saadc driver init fails
+    ///
+    ///     - Stack::init():
+    ///         * if softdevice enable fails
+    ///         * if BLE stack config fails
+    ///         * if BLE enable fails
+    ///         * if setting GAP connection parameters fails
+    ///         * if GATT init fails
+    ///
+    ///     - MessageSevice::init():
+    ///         * if adding custom base UUID fails
+    ///         * if adding GATT service fails   
+    ///         * if adding RX characteristic fails
+    ///         * if adding TX characteristic fails
+    ///
+    ///     - DFU::init():
+    ///         * if aysnc SVCI init fails
+    ///         * if DFU driver init failse
+    ///
+    ///     - Stack::initAdvertising():
+    ///         * if advertising init fails
+    ///         * if queued writes module init fails
+    ///         * if connection parameters module init fails       
+    ///
+    ///     - Flash::init():
+    ///         * if fstorage init fails
+    ///
+    ///     - BoardManager::init():
+    ///         * no validation checks
+    ///         * may want to fail-safe for unexpectedly 
+    ///             high voltage measurement?
+    ///
+    ///     - A2D::initBoardPins():
+    ///         * no validation checks (needed?)
+    ///
+    ///     - SettingsManager::init():
+    ///         * if Flash::write() fails to write dataset
+    ///     
+    ///     - Stack::initAdvertisingName():
+    ///         * if setting GAP device name fails
+    ///
+    ///     - Stack::initCustomAdvertisingData():
+    ///         * if advertising data update fails
+    ///         * if advertising data encode fail (SDK_VER 12)
+    ///
+    ///     - I2C::init():
+    ///         * if twi driver init fails
+    ///
+    ///     - LEDs::init():
+    ///         * if pwm_init fails (neopixel)
+    ///         * maybe check getSettings() return value?
+    ///
+    ///     - Accelerometer::init():
+    ///         * maybe throw error for invalid accel model 
+    ///             in init() and start()?
+    ///
+    ///     - Battery::init():
+    ///         * maybe use self-test?
+    ///
+    ///     - DataSet::init:
+    ///         * nothing is checked?
+    ///
+    ///     - Telemetry::init():
+    ///         * nothing is checked?
+    ///
+    ///     - AnimController::init():
+    ///         * if create animControllerTimer fails 
+    ///         * if start animControllerTimer fails
+    ///
+    ///     - BatteryController::init():
+    ///         * if create batteryControllerTimer fails
+    ///         * if start batteryControllerTimer fails
+    ///
+    ///     - BehaviorController::init():
+    ///         * nothing is checked?
+    ///
+    ///     - AnimationPreview::init():
+    ///         * nothing is checked?
+    ///
+    ///     - RssiController::init():
+    ///         * nothing is checked?
+    ///
+    ///     - HardwareTest::init():
+    ///         * this test does not seem necessary for validation
+    ///
+    ///     - Stack::startAdvertising():
+    ///         * if advertising data update fails
+    ///         * if advertising data encode fails (SDK_VER 12)
+    ///         * if advertising start fails
+    ///
+    ///     - initMainLogic():
+    ///         * nothing is checked?
+    ///
+    ///     - BehaviorController::onDiceInitialized():
+    ///         * will probably use alternative function 
+    ///             for validation blinks
+    ///
+    /// ***********************************************************************
+
     void init() {
         //--------------------
         // Initialize NRF drivers
         //--------------------
+
+        // ** Reminder ** Update above list of validation checks if adding new functions
 
         // Very first thing we want to init is the watchdog so we don't brick
         // later on if something bad happens.
