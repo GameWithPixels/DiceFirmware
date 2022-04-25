@@ -225,7 +225,7 @@ namespace Die
         Timers::init();
 
         // Power manager handles going to sleep and resetting the board
-        //PowerManager::init();
+        PowerManager::init();
 
         // GPIO Interrupts, we use this to know when the accelerometer has a new reading available
         GPIOTE::init();
@@ -340,8 +340,15 @@ namespace Die
                 initMainLogic();
                 NRF_LOG_INFO("---------------");
 
+                // Get contents of reset register to check why we're booting
+                uint32_t reason = 0;
+                ret_code_t ret = sd_power_reset_reason_get(&reason);
+                ret = sd_power_reset_reason_clr(0xF000F);
+                bool fromSleep = (reason >> 16) == 1;
+
                 // Entering the main loop! Play Hello! anim
-                if (!loopAnim) {
+                // if not using loop anim and not resetting from sleep
+                if (!loopAnim && !fromSleep) {
                     BehaviorController::onDiceInitialized();
                 }
             #endif

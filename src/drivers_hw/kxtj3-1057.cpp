@@ -100,7 +100,7 @@ namespace KXTJ3
         ApplySettings();
 
 		// Make sure our interrupts are cleared to begin with!
-		disableInterrupt();
+		disableInterrupt(false);
 		clearInterrupt();
         enableDataInterrupt();
 
@@ -157,16 +157,12 @@ namespace KXTJ3
     }
 
 	void enableInterrupt()
-	{
+	{        
+        // Make sure our interrupts are cleared to begin with!
+        disableInterrupt(true);
+        clearInterrupt();
+
 		standby();
-
-        // Enable interrupt, active High, latched
-		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00110010);
-
-    	// WUFE – enables the Wake-Up (motion detect) function.
-    	uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
-    	_reg1 |= (0x01 << 1);
-		I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
 
         // enable interrupt on all axis any direction - Latched
     	I2C::writeRegister(devAddress, INT_CTRL_REG2, 0b00111111);
@@ -178,6 +174,16 @@ namespace KXTJ3
 	    // WAKEUP_COUNTER -> Sets the time motion must be present before a wake-up interrupt is set
 	    // WAKEUP_COUNTER (counts) = Wake-Up Delay Time (sec) x Wake-Up Function ODR(Hz)
 	    I2C::writeRegister(devAddress, WAKEUP_COUNTER, wakeUpCount);
+
+        // Enable interrupt, active High, latched
+        uint8_t _reg2 = I2C::readRegister(devAddress, INT_CTRL_REG1);
+        _reg2 |= 0b00100010;
+		I2C::writeRegister(devAddress, INT_CTRL_REG1, _reg2);
+
+        // WUFE – enables the Wake-Up (motion detect) function.
+    	uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
+    	_reg1 |= (0x01 << 1);
+		I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
 
 		active();
 	}
@@ -238,11 +244,22 @@ namespace KXTJ3
         active();
 	}
 
-	void disableInterrupt()
+	void disableInterrupt(bool dataInt)
 	{
 		standby();
 		// Disable interrupt on xyz axes
-		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00010000);
+
+        uint8_t ctrl = I2C::readRegister(devAddress, CTRL_REG1);
+        ctrl &= ~(0b01100000);
+        I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
+
+		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00000000);
+
+        if (dataInt) 
+        {
+            GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
+        }
+
 		active();
 	}
 
