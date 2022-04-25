@@ -47,6 +47,8 @@ namespace Bluetooth
 			return "Blink";
 		case MessageType_RequestDefaultAnimSetColor:
 			return "RequestDefaultAnimSetColor";
+		case MessageType_Sleep:
+			return "Sleep";
 		default:
 			return "<missing>";
 		}

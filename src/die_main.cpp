@@ -80,7 +80,7 @@ namespace Die
 	void EnterStandardState(void* context, const Message* msg);
 	void EnterLEDAnimState(void* context, const Message* msg);
 	void EnterBattleState(void* context, const Message* msg);
-
+    void EnterSleepMode(void* token, const Message* message);
     void onConnection(void* token, bool connected);
 
     void initMainLogic() {
@@ -93,6 +93,7 @@ namespace Die
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetLEDAnimState, nullptr, EnterLEDAnimState);
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetBattleState, nullptr, EnterBattleState);
 		//Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_AttractMode, nullptr, StartAttractMode);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_Sleep, nullptr, EnterSleepMode);
 
         Bluetooth::Stack::hook(onConnection, nullptr);
 
@@ -233,6 +234,10 @@ namespace Die
                 // Nothing to do
                 break;
        }
+    }
+
+    void EnterSleepMode(void* token, const Message* msg) {
+        PowerManager::goToSystemOff();
     }
 
 	uint32_t getDeviceID()

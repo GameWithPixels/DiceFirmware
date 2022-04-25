@@ -88,7 +88,8 @@ struct Message
 		MessageType_SetDebugFlags,
 		MessageType_SetDebugFlagsAck,
 
-		MessageType_Count
+		MessageType_Count,
+		MessageType_Sleep
 	};
 
 	MessageType type;
@@ -415,6 +416,13 @@ struct MessageSetDebugFlags
 	uint32_t debugFlags;												// Combination of values from DebugFlags enum
 	Config::SettingsManager::ProgrammingOperation programmingOperation; // 8 bits, 0: add, 1:remove, 2: replace
 	inline MessageSetDebugFlags() : Message(Message::MessageType_SetDebugFlags) {}
+};
+
+struct MessageSleep
+: public Message
+{
+	//not sure what fields we'd need here, if any
+	inline MessageSleep() : Message(Message::MessageType_Sleep) {}
 };
 
 }
