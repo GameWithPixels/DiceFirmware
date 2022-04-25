@@ -1,0 +1,43 @@
+#pragma once
+
+#include "animations/Animation.h"
+
+#pragma pack(push, 1)
+
+namespace Animations
+{
+	/// <summary>
+	/// Procedural on off animation
+	/// </summary>
+	struct AnimationName
+		: public Animation
+	{
+		uint32_t faceMask;
+        uint16_t colorIndex;
+        uint8_t count;
+        uint8_t fade;
+	};
+
+	/// <summary>
+	/// Procedural on off animation instance data
+	/// </summary>
+	class AnimationInstanceName
+		: public AnimationInstance
+	{
+	private:
+		uint32_t rgb; // The color is determined at the beginning of the animation
+	public:
+		AnimationInstanceName(const AnimationName* preset, const DataSet::AnimationBits* bits);
+		virtual ~AnimationInstanceName();
+		virtual int animationSize() const;
+
+		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
+		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
+		virtual int stop(int retIndices[]);
+
+	private:
+		const AnimationName* getPreset() const;
+	};
+}
+
+#pragma pack(pop)

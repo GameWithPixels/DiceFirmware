@@ -106,6 +106,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_gradientpattern.cpp \
 	$(PROJ_DIR)/src/animations/animation_noise.cpp \
 	$(PROJ_DIR)/src/animations/animation_cycle.cpp \
+	$(PROJ_DIR)/src/animations/animation_name.cpp \
 	$(PROJ_DIR)/src/animations/blink.cpp \
 	$(PROJ_DIR)/src/animations/keyframes.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \
