@@ -430,4 +430,10 @@ for x in range(256):
 			NRF_LOG_INFO("Done waiting");
 		#endif
 	}
+
+	bool inValidateMode()
+    {
+        uint32_t* validate = (uint32_t *)0x10001080;
+        return (*validate == 0xFFFFFFFE);
+    }
 }

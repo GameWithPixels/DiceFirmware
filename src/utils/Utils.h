@@ -87,4 +87,6 @@ namespace Utils
 	int twosComplement16(uint16_t registerValue);
 
 	void spinWait(uint32_t ms);
+
+	bool inValidateMode();
 }
