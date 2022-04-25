@@ -287,6 +287,7 @@ namespace Flash
 			});
             return true;
 		} else {
+            NRF_LOG_ERROR("Not enough available data to flash");
             return false;
 		}
 	}
