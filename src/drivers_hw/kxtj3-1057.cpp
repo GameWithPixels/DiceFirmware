@@ -100,7 +100,7 @@ namespace KXTJ3
         ApplySettings();
 
 		// Make sure our interrupts are cleared to begin with!
-		disableInterrupt(false);
+		disableInterrupt();
 		clearInterrupt();
         enableDataInterrupt();
 
