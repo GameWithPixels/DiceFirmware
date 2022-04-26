@@ -34,7 +34,7 @@ namespace Animations
 	void AnimationInstanceName::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
         auto preset = getPreset();
-        rgb = animationBits->getPaletteColor(preset->colorIndex);
+        counter = 0;
 	}
 
 	/// <summary>
@@ -51,39 +51,35 @@ namespace Animations
         // Compute color
         uint32_t black = 0;
         uint32_t color = 0;
-        int period = preset->duration / preset->count;
-        int fadeTime = period * preset->fade / (255 * 2);
-        int onOffTime = (period - fadeTime * 2) / 2;
+        int period = preset->duration / NAME_COUNT;
+        int onOffTime = period / 2;
         int time = (ms - startTime) % period;
         int count = (ms - startTime) / period;
-        bool bitIsOne = Utils::inValidateMode() ? (count == 0) ? true : 
-            ((Die::getDeviceID() >> (count-1)) & 1) == 1 :
-            true;
+        bool bitIsOne = ((Die::getDeviceID() >> count) & 1) == 1;
 
-        if (count == 0) {
-            color = animationBits->getPaletteColor(2);
-        } else if (time <= fadeTime && bitIsOne) {
-            // Ramp up
-            color = Utils::interpolateColors(black, 0, rgb, fadeTime, time);
-        } else if (time <= fadeTime + onOffTime && bitIsOne) {
-            color = rgb;
-        } else if (time <= fadeTime * 2 + onOffTime && bitIsOne) {
-            // Ramp down
-            color = Utils::interpolateColors(rgb, fadeTime + onOffTime, black, fadeTime * 2 + onOffTime, time);
-        } else {
+        if (bitIsOne) counter = (counter + 1) % 3;
+
+        if (time <= onOffTime) 
+        {
+            color = animationBits->getPaletteColor(counter);
+        } 
+        else 
+        {
             color = black;
         }
 
         // Fill the indices and colors for the anim controller to know how to update leds
         int retCount = 0;
         for (int i = 0; i < 20; ++i) {
-            if ((preset->faceMask & (1 << i)) != 0)
+            if ((NAME_FACEMASK & (1 << i)) != 0)
             {
                 retIndices[retCount] = i;
                 retColors[retCount] = color;
                 retCount++;
             }
         }
+
+        counter = (counter + 1) % 3;
         return retCount;
 	}
 
@@ -94,7 +90,7 @@ namespace Animations
         auto preset = getPreset();
         int retCount = 0;
         for (int i = 0; i < 20; ++i) {
-            if ((preset->faceMask & (1 << i)) != 0)
+            if ((NAME_FACEMASK & (1 << i)) != 0)
             {
                 retIndices[retCount] = i;
                 retCount++;

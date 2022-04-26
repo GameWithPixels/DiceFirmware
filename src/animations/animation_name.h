@@ -4,6 +4,9 @@
 
 #pragma pack(push, 1)
 
+#define NAME_FACEMASK	0xFFFFF
+#define NAME_COUNT		32
+
 namespace Animations
 {
 	/// <summary>
@@ -12,10 +15,6 @@ namespace Animations
 	struct AnimationName
 		: public Animation
 	{
-		uint32_t faceMask;
-        uint16_t colorIndex;
-        uint8_t count;
-        uint8_t fade;
 	};
 
 	/// <summary>
@@ -25,7 +24,7 @@ namespace Animations
 		: public AnimationInstance
 	{
 	private:
-		uint32_t rgb; // The color is determined at the beginning of the animation
+		uint8_t counter;
 	public:
 		AnimationInstanceName(const AnimationName* preset, const DataSet::AnimationBits* bits);
 		virtual ~AnimationInstanceName();
