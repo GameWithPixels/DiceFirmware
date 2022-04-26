@@ -33,7 +33,6 @@ namespace Animations
 	/// </summary>
 	void AnimationInstanceName::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
-        auto preset = getPreset();
         counter = 0;
 	}
 
@@ -87,7 +86,6 @@ namespace Animations
 	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
 	/// </summary>
 	int AnimationInstanceName::stop(int retIndices[]) {
-        auto preset = getPreset();
         int retCount = 0;
         for (int i = 0; i < 20; ++i) {
             if ((NAME_FACEMASK & (1 << i)) != 0)
