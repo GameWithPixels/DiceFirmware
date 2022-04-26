@@ -677,7 +677,7 @@ namespace Accelerometer
                 LIS2DE12::disableInterrupt();
                 break;
             case Config::AccelerometerModel::KXTJ3_1057:
-                KXTJ3::disableInterrupt(false);
+                KXTJ3::disableInterrupt();
                 break;
             case Config::AccelerometerModel::MXC4005XC:
                 MXC4005XC::disableInterrupt();

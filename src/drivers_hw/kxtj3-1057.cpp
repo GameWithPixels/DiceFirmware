@@ -100,7 +100,7 @@ namespace KXTJ3
         ApplySettings();
 
 		// Make sure our interrupts are cleared to begin with!
-		disableInterrupt(false);
+		disableInterrupt();
 		clearInterrupt();
         enableDataInterrupt();
 
@@ -244,7 +244,7 @@ namespace KXTJ3
         active();
 	}
 
-	void disableInterrupt(bool dataInt)
+	void disableInterrupt(bool dataInterrupt)
 	{
 		standby();
 		// Disable interrupt on xyz axes
@@ -255,7 +255,7 @@ namespace KXTJ3
 
 		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00000000);
 
-        if (dataInt) 
+        if (dataInterrupt) 
         {
             GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
         }

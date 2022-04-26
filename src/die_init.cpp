@@ -341,10 +341,14 @@ namespace Die
                 NRF_LOG_INFO("---------------");
 
                 // Get contents of reset register to check why we're booting
+                // If we fail to read reason register, continue as if normal boot
                 uint32_t reason = 0;
                 ret_code_t ret = sd_power_reset_reason_get(&reason);
-                ret = sd_power_reset_reason_clr(0xF000F);
-                bool fromSleep = (reason >> 16) == 1;
+                bool fromSleep = false;
+                if (ret == NRF_SUCCESS) {
+                    sd_power_reset_reason_clr(0xF000F);
+                    fromSleep = (reason >> 16) == 1;
+                }
 
                 // Entering the main loop! Play Hello! anim
                 // if not using loop anim and not resetting from sleep
