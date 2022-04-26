@@ -347,7 +347,7 @@ namespace Die
                 bool fromSleep = false;
                 if (ret == NRF_SUCCESS) {
                     sd_power_reset_reason_clr(0xF000F);
-                    fromSleep = (reason >> 16) == 1;
+                    fromSleep = (reason & 0x00010000) != 0;
                 }
 
                 // Entering the main loop! Play Hello! anim
