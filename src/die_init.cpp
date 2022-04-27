@@ -225,7 +225,7 @@ namespace Die
         Timers::init();
 
         // Power manager handles going to sleep and resetting the board
-        //PowerManager::init();
+        PowerManager::init();
 
         // GPIO Interrupts, we use this to know when the accelerometer has a new reading available
         GPIOTE::init();
@@ -341,6 +341,7 @@ namespace Die
                 NRF_LOG_INFO("---------------");
 
                 // Entering the main loop! Play Hello! anim
+                // if not using loop anim and not resetting from sleep
                 if (!loopAnim) {
                     BehaviorController::onDiceInitialized();
                 }

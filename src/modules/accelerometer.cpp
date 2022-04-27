@@ -62,6 +62,7 @@ namespace Accelerometer
     void CalibrateHandler(void* context, const Message* msg);
 	void CalibrateFaceHandler(void* context, const Message* msg);
 	void onSettingsProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
+	void onPowerEvent(void* context, nrf_pwr_mgmt_evt_t event);
     void readAccelerometer(float3* acc);
     void LIS2DE12Handler(void* param, const Core::float3& acc);
     void MXC4005XCHandler(void* param, const Core::float3& acc, float temp);
@@ -108,7 +109,7 @@ namespace Accelerometer
 		buffer.push(newFrame);
 
 		// Attach to the power manager, so we can wake the device up
-		//PowerManager::hook(onPowerEvent, nullptr);
+		PowerManager::hook(onPowerEvent, nullptr);
 
 		// // Create the accelerometer timer
 		// ret_code_t ret_code = app_timer_create(&accelControllerTimer, APP_TIMER_MODE_REPEATED, update);
@@ -622,6 +623,17 @@ namespace Accelerometer
 		} else {
             NRF_LOG_INFO("Starting axel from programming event");
 			start();
+		}
+	}
+
+	void onPowerEvent(void* context, nrf_pwr_mgmt_evt_t event) {
+		if (event == NRF_PWR_MGMT_EVT_PREPARE_WAKEUP) {
+			// Setup interrupt to wake the device up
+			NRF_LOG_INFO("Setting accelerometer to trigger interrupt");
+
+			// Set interrupt pin
+			nrf_gpio_cfg_sense_input(BoardManager::getBoard()->accInterruptPin, NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_SENSE_LOW);
+			enableInterrupt();
 		}
 	}
 
