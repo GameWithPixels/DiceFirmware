@@ -34,6 +34,8 @@ namespace Animations
 	void AnimationInstanceName::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
         counter = 0;
+        last_bit = 0;
+        skip = false;
 	}
 
 	/// <summary>
@@ -56,9 +58,20 @@ namespace Animations
         int count = (ms - startTime) / period;
         bool bitIsOne = ((Die::getDeviceID() >> count) & 1) == 1;
 
-        if (bitIsOne) counter = (counter + 1) % 3;
+        if (count == 0 && bitIsOne && !skip) {
+            counter = (counter + 1) % 3;
+            skip = true;
+        }
 
-        if (time <= onOffTime) 
+        if (count > last_bit) {
+            counter = (counter + 1) % 3;
+            last_bit = count;
+            if (bitIsOne) {
+                counter = (counter + 1) % 3;
+            }
+        }
+
+        if (time <= onOffTime && count < 32) 
         {
             color = animationBits->getPaletteColor(counter);
         } 
@@ -78,7 +91,6 @@ namespace Animations
             }
         }
 
-        counter = (counter + 1) % 3;
         return retCount;
 	}
 

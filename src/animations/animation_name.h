@@ -25,6 +25,8 @@ namespace Animations
 	{
 	private:
 		uint8_t counter;
+		uint16_t last_bit;
+		bool skip;
 	public:
 		AnimationInstanceName(const AnimationName* preset, const DataSet::AnimationBits* bits);
 		virtual ~AnimationInstanceName();
