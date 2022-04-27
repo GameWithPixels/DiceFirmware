@@ -87,6 +87,19 @@ namespace PowerManager
         nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_RESET);
     }
 
+    bool checkFromSleep() {
+        // Get contents of reset register to check why we're booting
+        // If we fail to read reason register, continue as if normal boot
+        uint32_t reason = 0;
+        ret_code_t ret = sd_power_reset_reason_get(&reason);
+        bool fromSleep = false;
+        if (ret == NRF_SUCCESS) {
+            sd_power_reset_reason_clr(0xF000F);
+            fromSleep = (reason & 0x00010000) != 0;
+        }
+        return fromSleep;
+    }
+
 }
 }
 
