@@ -19,7 +19,8 @@ namespace DriversHW
 
 		void enableInterrupt();
         void enableDataInterrupt();
-		void disableInterrupt(bool dataInt = false);
+		void disableInterrupt();
+		void disableDataInterrupt();
 		void clearInterrupt();
 
 		void lowPower();
