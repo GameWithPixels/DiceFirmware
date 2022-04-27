@@ -18,5 +18,6 @@ namespace DriversNRF
 		typedef void(*PowerManagerClientMethod)(void* param, nrf_pwr_mgmt_evt_t event);
 		void hook(PowerManagerClientMethod method, void* param);
 		void unHook(PowerManagerClientMethod client);
+        bool checkFromSleep();
     }
 }
