@@ -2,6 +2,7 @@
 #include "bluetooth/bluetooth_stack.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/flash.h"
+#include "drivers_nrf/power_manager.h"
 #include "data_set/data_set.h"
 #include "modules/battery_controller.h"
 #include "modules/accelerometer.h"

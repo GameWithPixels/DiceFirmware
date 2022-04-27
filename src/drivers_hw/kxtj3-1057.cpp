@@ -159,7 +159,7 @@ namespace KXTJ3
 	void enableInterrupt()
 	{        
         // Make sure our interrupts are cleared to begin with!
-        disableInterrupt(true);
+        disableDataInterrupt();
         clearInterrupt();
 
 		standby();
@@ -244,7 +244,7 @@ namespace KXTJ3
         active();
 	}
 
-	void disableInterrupt(bool dataInterrupt)
+	void disableInterrupt()
 	{
 		standby();
 		// Disable interrupt on xyz axes
@@ -255,13 +255,24 @@ namespace KXTJ3
 
 		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00000000);
 
-        if (dataInterrupt) 
-        {
-            GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
-        }
-
 		active();
 	}
+
+    void disableDataInterrupt() 
+    {
+        standby();
+		// Disable interrupt on xyz axes
+
+        uint8_t ctrl = I2C::readRegister(devAddress, CTRL_REG1);
+        ctrl &= ~(0b01100000);
+        I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
+
+		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00000000);
+
+        GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
+
+		active();
+    }
 
 	/// <summary>
 	/// Method used by clients to request timer callbacks when accelerometer readings are in
