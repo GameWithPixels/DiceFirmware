@@ -80,10 +80,14 @@ namespace BehaviorController
                 if (cond->checkTrigger(true)) {
                     // // Check the battery level!
                     // if (BatteryController::getCurrentLevel() > BATT_TOO_LOW_LEVEL) {
-                        NRF_LOG_INFO("Triggering a HelloGoodbye Condition");
                         // Go on, do the thing!
-                        if (!PowerManager::checkFromSleep()) 
+                        if (PowerManager::checkFromSleep()) 
                         {
+                            NRF_LOG_INFO("Skipping HelloGoodbye Condition");
+                        }
+                        else
+                        {
+                            NRF_LOG_INFO("Triggering a HelloGoodbye Condition");
                             Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
                         }
                     // } else {
