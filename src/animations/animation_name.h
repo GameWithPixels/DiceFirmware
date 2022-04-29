@@ -15,6 +15,7 @@ namespace Animations
 	struct AnimationName
 		: public Animation
 	{
+		uint8_t preamble_count;
 	};
 
 	/// <summary>

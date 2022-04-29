@@ -52,33 +52,52 @@ namespace Animations
         // Compute color
         uint32_t black = 0;
         uint32_t color = 0;
-        int period = preset->duration / NAME_COUNT;
-        int onOffTime = period / 2;
+        uint8_t preamble = preset->preamble_count;
+        int period = preset->duration / (NAME_COUNT + preamble);
         int time = (ms - startTime) % period;
         int count = (ms - startTime) / period;
-        bool bitIsOne = ((Die::getDeviceID() >> count) & 1) == 1;
+        bool bitIsOne = ((Die::getDeviceID() >> (count-(preamble+1))) & 1) == 1;    // is current bit 1?
 
-        if (count == 0 && bitIsOne && !skip) {
+
+        // Update color counter for bit 0
+        if (count == (preamble + 1) && bitIsOne && !skip) {
             counter = (counter + 1) % 3;
             skip = true;
         }
-
-        if (count > last_bit) {
+        // Update color counter for bits > 0
+        else if (count - (preamble + 1) > last_bit && count > preamble) {
             counter = (counter + 1) % 3;
-            last_bit = count;
+            last_bit = count - (preamble + 1);
             if (bitIsOne) {
                 counter = (counter + 1) % 3;
             }
         }
 
-        if (time <= onOffTime && count < 32) 
-        {
-            color = animationBits->getPaletteColor(counter);
-        } 
-        else 
+        // Preamble black (even counts)
+        if (count < (preamble + 1) && count % 2 == 0)
         {
             color = black;
         }
+        // Preamble white (odd counts)
+        else if (count < (preamble + 1))
+        {
+            color = 0x00040404;
+        }
+        // Bit colors (preamble < count < 32)
+        else if (count - (preamble + 1) < 32) 
+        {
+            switch (counter) {
+                case 0:
+                    color = 0x00040000;     // R (counter == 0)
+                    break;
+                case 1:
+                    color = 0x00000400;     // G (counter == 1)
+                    break;
+                case 2:
+                    color = 0x00000004;     // B (counter == 2)
+                    break;
+            }
+        } 
 
         // Fill the indices and colors for the anim controller to know how to update leds
         int retCount = 0;
@@ -89,6 +108,13 @@ namespace Animations
                 retColors[retCount] = color;
                 retCount++;
             }
+        }
+
+        // Reset fields at end of name
+        if (count*period + time + 33 > preset->duration) {
+            counter = 0;
+            last_bit = 0;
+            skip = false;
         }
 
         return retCount;
