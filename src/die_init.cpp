@@ -341,11 +341,17 @@ namespace Die
                 Stack::startAdvertising();
 
             #if defined(DEBUG_FIRMWARE)
-                initDebugLogic();
+                if (!validation) 
+                {
+                    initDebugLogic();
+                }
                 NRF_LOG_INFO("---------------");
             #else
                 // Initialize main logic manager
-                initMainLogic();
+                if (!validation) 
+                {
+                    initMainLogic();
+                }
                 NRF_LOG_INFO("---------------");
 
                 // Entering the main loop! Play Hello! anim
