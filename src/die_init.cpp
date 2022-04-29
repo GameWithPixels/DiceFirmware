@@ -38,6 +38,8 @@
 #include "modules/behavior_controller.h"
 #include "modules/hardware_test.h"
 #include "modules/rssi_controller.h"
+#include "utils/Utils.h"
+#include "modules/validation_manager.h"
 
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
@@ -316,6 +318,7 @@ namespace Die
                 BatteryController::init();
 
                 bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
+                bool validation = Utils::inValidateMode();
                 if (loopAnim) {
                     AnimController::hook(feed, nullptr);
                     loopCycleAnimation();
@@ -346,8 +349,13 @@ namespace Die
                 NRF_LOG_INFO("---------------");
 
                 // Entering the main loop! Play Hello! anim
-                // if not using loop anim and not resetting from sleep
-                if (!loopAnim) {
+                // if in validation mode
+                if (validation) {
+                    ValidManager::init();
+                    ValidManager::onDiceInitialized();
+                }
+                // if not using loop anim
+                else if (!loopAnim) {
                     AnimController::hook(feed, nullptr);
                     BehaviorController::onDiceInitialized();
                 }
