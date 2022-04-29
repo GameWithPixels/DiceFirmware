@@ -85,6 +85,10 @@ namespace Die
         AnimController::play(&anim, nullptr, 0, true); // Loop forever!
     }
 
+    void feed(void* token) {
+        PowerManager::feed();
+    }
+
     /// ***********************************************************************
     /// Init function validation checks:
     ///
@@ -313,6 +317,7 @@ namespace Die
 
                 bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
                 if (loopAnim) {
+                    AnimController::hook(feed, nullptr);
                     loopCycleAnimation();
                 }
                 else {
@@ -343,6 +348,7 @@ namespace Die
                 // Entering the main loop! Play Hello! anim
                 // if not using loop anim and not resetting from sleep
                 if (!loopAnim) {
+                    AnimController::hook(feed, nullptr);
                     BehaviorController::onDiceInitialized();
                 }
             #endif
