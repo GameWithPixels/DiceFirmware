@@ -11,8 +11,9 @@ namespace Animations
 namespace Modules
 {
 	/// <summary>
-	/// Manages a set of running animations, talking to the LED controller
-	/// to tell it what LEDs must have what intensity at what time.
+	/// Manages validation structures and functions including 
+	/// a name blinking animation and the function that plays
+	/// this animation after the system boots.
 	/// </summary>
 	namespace ValidManager
 	{

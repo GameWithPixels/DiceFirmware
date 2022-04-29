@@ -16,6 +16,7 @@ namespace Animations
 		: public Animation
 	{
 		uint8_t preamble_count;
+		uint8_t brightness;
 	};
 
 	/// <summary>

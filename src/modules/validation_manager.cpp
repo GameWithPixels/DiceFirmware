@@ -25,16 +25,18 @@ namespace Modules::ValidManager
         nameAnim.type = Animation_Name;
         switch (ledCount) 	// Change duration and count by board type
         {
-			// D20
+		    // D20
             case 20:
                 nameAnim.preamble_count = 4;
                 nameAnim.duration = 1188;
+			    nameAnim.brightness = 15;
                 break;
 			
-			// D6
-			case 6:
+		    // D6
+		    case 6:
                 nameAnim.preamble_count = 6;
                 nameAnim.duration = 1254;
+			    nameAnim.brightness = 4;
                 break;
         }
 

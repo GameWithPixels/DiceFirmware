@@ -53,6 +53,7 @@ namespace Animations
         uint32_t black = 0;
         uint32_t color = 0;
         uint8_t preamble = preset->preamble_count;
+        uint32_t brightness = (uint32_t)preset->brightness;
         int period = preset->duration / (NAME_COUNT + preamble);
         int time = (ms - startTime) % period;
         int count = (ms - startTime) / period;
@@ -81,20 +82,20 @@ namespace Animations
         // Preamble white (odd counts)
         else if (count < (preamble + 1))
         {
-            color = 0x00040404;
+            color |= (brightness | brightness << 8 | brightness << 16);
         }
         // Bit colors (preamble < count < 32)
         else if (count - (preamble + 1) < 32) 
         {
             switch (counter) {
                 case 0:
-                    color = 0x00040000;     // R (counter == 0)
+                    color |= (brightness << 16);    // R (counter == 0)
                     break;
                 case 1:
-                    color = 0x00000400;     // G (counter == 1)
+                    color |= (brightness << 8);     // G (counter == 1)
                     break;
                 case 2:
-                    color = 0x00000004;     // B (counter == 2)
+                    color |= brightness;            // B (counter == 2)
                     break;
             }
         } 
