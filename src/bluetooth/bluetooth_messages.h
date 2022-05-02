@@ -74,6 +74,8 @@ struct Message
 		MessageType_SetCurrentBehaviorAck,
 		MessageType_SetName,
 		MessageType_SetNameAck,
+        MessageType_Sleep,
+        MessageType_ExitValidation,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -87,8 +89,6 @@ struct Message
 		MessageType_PrintAnimControllerState,
 		MessageType_SetDebugFlags,
 		MessageType_SetDebugFlagsAck,
-        MessageType_Sleep,
-        MessageType_ExitValidation,
 
 		MessageType_Count,
 	};
@@ -424,6 +424,13 @@ struct MessageSleep
 {
 	//not sure what fields we'd need here, if any
 	inline MessageSleep() : Message(Message::MessageType_Sleep) {}
+};
+
+struct MessageExitValidation
+: public Message
+{
+	//not sure what fields we'd need here, if any
+	inline MessageExitValidation() : Message(Message::MessageType_ExitValidation) {}
 };
 
 }
