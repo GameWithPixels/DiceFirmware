@@ -76,8 +76,7 @@ namespace DataSet
 		//ProgramDefaultDataSet();
         if (!CheckValid()) {
 			NRF_LOG_INFO("Animation Set not valid, programming default");
-			ProgramDefaultDataSet(*SettingsManager::getSettings(), finishInit, 
-				inValidateMode(), !inValidateMode(), !inValidateMode());  
+			ProgramDefaultDataSet(*SettingsManager::getSettings(), finishInit, !inValidation(), !inValidation(), !inValidation());  
 		} else {
 			finishInit(true);
 		}

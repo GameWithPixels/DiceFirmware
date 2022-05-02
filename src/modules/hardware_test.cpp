@@ -133,7 +133,7 @@ namespace HardwareTest
                     }
                 }
             });
-        }, false, true, true);
+        }, true, true, true);
     }
 
 }
