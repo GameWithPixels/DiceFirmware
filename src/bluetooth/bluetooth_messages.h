@@ -87,9 +87,10 @@ struct Message
 		MessageType_PrintAnimControllerState,
 		MessageType_SetDebugFlags,
 		MessageType_SetDebugFlagsAck,
+        MessageType_Sleep,
+        MessageType_ExitValidation,
 
 		MessageType_Count,
-		MessageType_Sleep
 	};
 
 	MessageType type;
