@@ -318,7 +318,8 @@ namespace Die
                 BatteryController::init();
 
                 bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
-                bool validation = Utils::inValidateMode();
+                bool inValidation = Utils::inValidation();
+
                 if (loopAnim) {
                     AnimController::hook(feed, nullptr);
                     loopCycleAnimation();
@@ -341,14 +342,14 @@ namespace Die
                 Stack::startAdvertising();
 
             #if defined(DEBUG_FIRMWARE)
-                if (!validation) 
+                if (!inValidation) 
                 {
                     initDebugLogic();
                 }
                 NRF_LOG_INFO("---------------");
             #else
                 // Initialize main logic manager
-                if (!validation) 
+                if (!inValidation) 
                 {
                     initMainLogic();
                 }
@@ -356,7 +357,7 @@ namespace Die
 
                 // Entering the main loop! Play Hello! anim
                 // if in validation mode
-                if (validation) {
+                if (inValidation) {
                     ValidManager::init();
                     ValidManager::onDiceInitialized();
                 }

@@ -8,6 +8,8 @@
 #include "config/dice_variants.h"
 #include "nrf_log.h"
 #include "bluetooth/bluetooth_message_service.h"
+#include <nrf_sdm.h>
+#include "nrf_nvmc.h"
 
 
 using namespace Core;
@@ -431,9 +433,23 @@ for x in range(256):
 		#endif
 	}
 
-	bool inValidateMode()
+    void leaveValidation()
     {
-        uint32_t* validate = (uint32_t *)0x10001080;
-        return (*validate == 0xFFFFFFFE);
+        //ret_code_t err = sd_softdevice_disable();
+        //APP_ERROR_CHECK(err);
+
+        nrf_nvmc_write_byte(0x10001080, 0xFC);
+    }
+
+	bool inValidation()
+    {
+        uint32_t* validation = (uint32_t*)0x10001080;
+        return (*validation == 0xFFFFFFFE);
+    }
+
+    bool fromValidation()
+    {
+        uint32_t* validation = (uint32_t*)0x10001080;
+        return (*validation == 0xFFFFFFFC);
     }
 }

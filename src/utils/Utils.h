@@ -88,5 +88,7 @@ namespace Utils
 
 	void spinWait(uint32_t ms);
 
-	bool inValidateMode();
+    void leaveValidation();
+	bool inValidation();
+    bool fromValidation();
 }
