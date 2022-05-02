@@ -429,6 +429,14 @@ flash_ble: zip
 # Factory build
 #
 
+.PHONY: flash_uicr
+flash_uicr: 
+	@echo ===== Writing UICR register =====
+	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
+
+.PHONY: uicr_test
+uicr_test: erase flash_uicr flash_softdevice flash
+
 .PHONY: firmware_factory
 firmware_factory: firmware_fact
 
