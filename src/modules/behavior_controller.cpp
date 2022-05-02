@@ -10,12 +10,14 @@
 #include "config/settings.h"
 #include "nrf_log.h"
 #include "die.h"
+#include "utils/Utils.h"
 
 using namespace Bluetooth;
 using namespace Animations;
 using namespace Config;
 using namespace DriversNRF;
 using namespace DataSet;
+using namespace Utils;
 
 #define BATT_TOO_LOW_LEVEL 0.5f
 
@@ -81,7 +83,7 @@ namespace BehaviorController
                     // // Check the battery level!
                     // if (BatteryController::getCurrentLevel() > BATT_TOO_LOW_LEVEL) {
                         // Go on, do the thing!
-                        if (PowerManager::checkFromSleep()) 
+                        if (PowerManager::checkFromSleep() && !fromValidation()) 
                         {
                             NRF_LOG_INFO("Skipping HelloGoodbye Condition");
                         }
