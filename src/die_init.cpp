@@ -341,17 +341,21 @@ namespace Die
                 // Start advertising!
                 Stack::startAdvertising();
 
+                // Initialize common logic
+                initMainLogic();
+
             #if defined(DEBUG_FIRMWARE)
                 if (!inValidation) 
                 {
+                    // Initialize debug logic
                     initDebugLogic();
                 }
                 NRF_LOG_INFO("---------------");
             #else
-                // Initialize main logic manager
+                // Initialize main die logic
                 if (!inValidation) 
                 {
-                    initMainLogic();
+                    initDieLogic();
                 }
                 NRF_LOG_INFO("---------------");
 

@@ -76,9 +76,7 @@ namespace Modules::ValidManager
 	void onDiceInitialized() 
 	{
 		// May want other validation function calls here as well
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_WhoAreYou, nullptr, WhoAreYouHandler);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, nullptr, exitValidationMode);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_Sleep, nullptr, EnterSleepMode);
 
 		// Hook local connection function to BLE connection events
 		Bluetooth::Stack::hook(onConnection, nullptr);
@@ -127,22 +125,6 @@ namespace Modules::ValidManager
     {
         SettingsManager::programDefaults(nullptr);
         Utils::leaveValidation();
-        PowerManager::goToSystemOff();
-    }
-
-    void WhoAreYouHandler(void* token, const Message* message) {
-        // Central asked for the die state, return it!
-        Bluetooth::MessageIAmADie identityMessage;
-        identityMessage.deviceId = Die::getDeviceID();
-        identityMessage.dataSetHash = DataSet::dataHash();
-        strncpy(identityMessage.versionInfo, FIRMWARE_VERSION, VERSION_INFO_SIZE);
-        identityMessage.faceCount = (uint8_t)BoardManager::getBoard()->ledCount;
-        identityMessage.designAndColor = SettingsManager::getSettings()->designAndColor;
-        identityMessage.flashSize = DataSet::availableDataSize();
-        Bluetooth::MessageService::SendMessage(&identityMessage);
-    }
-
-    void EnterSleepMode(void* token, const Message* msg) {
         PowerManager::goToSystemOff();
     }
 }
