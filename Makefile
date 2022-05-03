@@ -1,4 +1,4 @@
-TARGETS = firmware_d firmware firmware_fact # debug, release and factory targets (the latest is a release build with some settings turned on to help with dice manufacturing)
+TARGETS = firmware_d firmware firmware_cycleleds # debug, release and cycleleds targets (the latest is a release build with some settings turned on to help with dice manufacturing)
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 PROJ_DIR = .
@@ -8,7 +8,7 @@ VERSION = 03_14_22
 
 # Debug flags
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
-firmware_factory: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
+firmware_cycleleds: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
 
 # We don't use the firmware version at the moment.
 # For future reference, to prevent downgrading, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
@@ -347,8 +347,8 @@ settings_d: firmware_d
 settings: firmware
 	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
 
-settings_fact: firmware_fact
-	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex
+settings_cycleleds: firmware_cycleleds
+	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_cycleleds.hex $(OUTPUT_DIRECTORY)/firmware_settings_cycleleds.hex
 
 #
 # Common commands
@@ -427,7 +427,7 @@ flash_ble: zip
 	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(ZIP_PATHNAME)
 
 #
-# Factory build
+# Validation build
 #
 
 .PHONY: flash_uicr
@@ -438,19 +438,26 @@ flash_uicr:
 .PHONY: uicr_test
 uicr_test: erase flash_uicr flash_softdevice flash
 
-.PHONY: firmware_factory
-firmware_factory: firmware_fact
+.PHONY: uicr_release
+uicr_release: erase flash_uicr flash_softdevice flash_bootloader flash_release
 
-.PHONY: settings_factory
-settings_factory: settings_fact
+#
+# Cycle LEDs build
+#
 
-.PHONY: hex_factory
-hex_factory: firmware_factory settings_factory
-	mergehex -m $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware_factory.hex
+.PHONY: firmware_cycleleds
+firmware_cycleleds: firmware_cycleleds
 
-.PHONY: flash_factory
-flash_factory: erase hex_factory
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_factory.hex --sectorerase --verify --reset
+.PHONY: settings_cycleleds
+settings_cycleleds: settings_cycleleds
+
+.PHONY: hex_cycleleds
+hex_cycleleds: firmware_cycleleds settings_cycleleds
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware_cycleleds.hex $(OUTPUT_DIRECTORY)/firmware_settings_cycleleds.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex
+
+.PHONY: flash_cycleleds
+flash_cycleleds: erase hex_cycleleds
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex --sectorerase --verify --reset
 
 #
 # Publishing commands
