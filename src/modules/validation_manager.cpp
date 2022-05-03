@@ -43,28 +43,14 @@ namespace Modules::ValidManager
 	// Initializes validation animation objects and hooks AnimController callback
 	void init() 
 	{
-		// Determine which board is running
-		int ledCount = BoardManager::getBoard()->ledCount;
 		isPlaying = false;
 
 		// Name animation object
         nameAnim.type = Animation_Name;
-        switch (ledCount) 	// Change duration and count by board type
-        {
-		    // D20
-            case 20:
-                nameAnim.preamble_count = 4;
-                nameAnim.duration = 1188;
-			    nameAnim.brightness = 15;
-                break;
-			
-		    // D6
-		    case 6:
-                nameAnim.preamble_count = 6;
-                nameAnim.duration = 1254;
-			    nameAnim.brightness = 4;
-                break;
-        }
+		nameAnim.preambleCount = 10;
+		// Animation updates every 33 ms and we want to send 32 bits, with 3 animation frames per color
+		nameAnim.duration = 33 * (nameAnim.preambleCount + 32) * 3; // = 4158
+		nameAnim.brightness = 0x10;
 
 		// Assign callback for AnimController to skip PowerManager::feed
 		AnimController::hook(skipFeed, nullptr);

@@ -4,9 +4,6 @@
 
 #pragma pack(push, 1)
 
-#define NAME_FACEMASK	0xFFFFF
-#define NAME_COUNT		32
-
 namespace Animations
 {
 	/// <summary>
@@ -15,7 +12,7 @@ namespace Animations
 	struct AnimationName
 		: public Animation
 	{
-		uint8_t preamble_count;
+		uint8_t preambleCount;
 		uint8_t brightness;
 	};
 
@@ -25,10 +22,6 @@ namespace Animations
 	class AnimationInstanceName
 		: public AnimationInstance
 	{
-	private:
-		uint8_t counter;
-		uint16_t last_bit;
-		bool skip;
 	public:
 		AnimationInstanceName(const AnimationName* preset, const DataSet::AnimationBits* bits);
 		virtual ~AnimationInstanceName();

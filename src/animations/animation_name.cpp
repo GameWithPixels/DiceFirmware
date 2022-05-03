@@ -4,6 +4,7 @@
 #include "data_set/data_animation_bits.h"
 #include "data_set/data_set.h"
 #include "die.h"
+#include "nrf_log.h"
 
 namespace Animations
 {
@@ -12,31 +13,32 @@ namespace Animations
 	/// Needs to have an associated preset passed in
 	/// </summary>
 	AnimationInstanceName::AnimationInstanceName(const AnimationName* preset, const DataSet::AnimationBits* bits)
-		: AnimationInstance(preset, bits) {
+		: AnimationInstance(preset, bits)
+    {
 	}
 
 	/// <summary>
 	/// destructor
 	/// </summary>
-	AnimationInstanceName::~AnimationInstanceName() {
+	AnimationInstanceName::~AnimationInstanceName()
+    {
 	}
 
 	/// <summary>
 	/// Small helper to return the expected size of the preset data
 	/// </summary>
-	int AnimationInstanceName::animationSize() const {
+	int AnimationInstanceName::animationSize() const
+    {
 		return sizeof(AnimationName);
 	}
 
 	/// <summary>
 	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
 	/// </summary>
-	void AnimationInstanceName::start(int _startTime, uint8_t _remapFace, bool _loop) {
+	void AnimationInstanceName::start(int _startTime, uint8_t _remapFace, bool _loop)
+    {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
-        counter = 0;
-        last_bit = 0;
-        skip = false;
-	}
+    }
 
 	/// <summary>
 	/// Computes the list of LEDs that need to be on, and what their intensities should be.
@@ -45,77 +47,57 @@ namespace Animations
 	/// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
 	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
 	/// <returns>The number of leds/intensities added to the return array</returns>
-	int AnimationInstanceName::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
-        
+	int AnimationInstanceName::updateLEDs(int ms, int retIndices[], uint32_t retColors[])
+    {
         auto preset = getPreset();
 
         // Compute color
-        uint32_t black = 0;
         uint32_t color = 0;
-        uint8_t preamble = preset->preamble_count;
-        uint32_t brightness = (uint32_t)preset->brightness;
-        int period = preset->duration / (NAME_COUNT + preamble);
-        int time = (ms - startTime) % period;
-        int count = (ms - startTime) / period;
-        bool bitIsOne = ((Die::getDeviceID() >> (count-(preamble+1))) & 1) == 1;    // is current bit 1?
+        const uint32_t brightness = (uint32_t)preset->brightness;
+        const uint8_t preamble = preset->preambleCount;
+        const int numTicks = preamble + 8 * sizeof(Die::getDeviceID());
+        const int period = preset->duration / numTicks; // "tick" must always be less than "numTicks", otherwise we'll blink an extra bit/color
+        const int tick = (ms - startTime) / period;
 
+        // -- Note --
+        // (ms - startTime) starts at 33 and ends = preset->duration
 
-        // Update color counter for bit 0
-        if (count == (preamble + 1) && bitIsOne && !skip) {
-            counter = (counter + 1) % 3;
-            skip = true;
+        // White preamble
+        if (tick < preamble)
+        {
+            color = brightness | brightness << 8 | brightness << 16;
+
+            // NRF_LOG_INFO("white - (%d / %d) - id=%x", ms - startTime, preset->duration, Die::getDeviceID());
         }
-        // Update color counter for bits > 0
-        else if (count - (preamble + 1) > last_bit && count > preamble) {
-            counter = (counter + 1) % 3;
-            last_bit = count - (preamble + 1);
-            if (bitIsOne) {
-                counter = (counter + 1) % 3;
+        // Bit color
+        else if (tick < numTicks) // We want to skip the last tick if that gets past the last bit
+        {
+            // Compute the color of the current bit
+            auto value = Die::getDeviceID();
+            int rgbIndex = -1;
+            for (int i = preamble; i <= tick; ++i)
+            {
+                rgbIndex += 1 + (value & 1);
+                value >>= 1;
             }
-        }
 
-        // Preamble black (even counts)
-        if (count < (preamble + 1) && count % 2 == 0)
-        {
-            color = black;
+            // rgbIndex = 0 => red, 1 => green, 2 => blue
+            rgbIndex %= 3;
+            color = brightness << (16 - 8 * rgbIndex);
+
+            // NRF_LOG_INFO("#%d (%d) - bit = %d - color = %d", tick - preamble, ms - startTime, (Die::getDeviceID() >> (tick - preamble)) & 1, rgbIndex);
         }
-        // Preamble white (odd counts)
-        else if (count < (preamble + 1))
-        {
-            color |= (brightness | brightness << 8 | brightness << 16);
-        }
-        // Bit colors (preamble < count < 32)
-        else if (count - (preamble + 1) < 32) 
-        {
-            switch (counter) {
-                case 0:
-                    color |= (brightness << 16);    // R (counter == 0)
-                    break;
-                case 1:
-                    color |= (brightness << 8);     // G (counter == 1)
-                    break;
-                case 2:
-                    color |= brightness;            // B (counter == 2)
-                    break;
-            }
-        } 
 
         // Fill the indices and colors for the anim controller to know how to update leds
         int retCount = 0;
-        for (int i = 0; i < 20; ++i) {
-            if ((NAME_FACEMASK & (1 << i)) != 0)
+        if (color != 0)
+        {
+            for (int i = 0; i < 20; ++i)
             {
                 retIndices[retCount] = i;
                 retColors[retCount] = color;
                 retCount++;
             }
-        }
-
-        // Reset fields at end of name
-        if (count*period + time + 33 > preset->duration) {
-            counter = 0;
-            last_bit = 0;
-            skip = false;
         }
 
         return retCount;
@@ -124,20 +106,19 @@ namespace Animations
 	/// <summary>
 	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
 	/// </summary>
-	int AnimationInstanceName::stop(int retIndices[]) {
+	int AnimationInstanceName::stop(int retIndices[])
+    {
         int retCount = 0;
-        for (int i = 0; i < 20; ++i) {
-            if ((NAME_FACEMASK & (1 << i)) != 0)
-            {
-                retIndices[retCount] = i;
-                retCount++;
-            }
+        for (int i = 0; i < 20; ++i)
+        {
+            retIndices[retCount] = i;
+            retCount++;
         }
         return retCount;
 	}
 
-	const AnimationName* AnimationInstanceName::getPreset() const {
+	const AnimationName* AnimationInstanceName::getPreset() const
+    {
         return static_cast<const AnimationName*>(animationPreset);
     }
-
 }
