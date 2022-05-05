@@ -7,13 +7,19 @@
 namespace Animations
 {
 	/// <summary>
-	/// Procedural on off animation
+	/// Procedural animation that starts with a white preamble and then
+	/// blinks a message on all LEDs using a color scheme.
+	/// The message is composed of a header, a CRC and the Device Id.
+	/// Each blink lasts for the given number of frames.
+	/// Use setDuration() to compute the correct duration.
 	/// </summary>
 	struct AnimationName
 		: public Animation
 	{
-		uint8_t preambleCount;
+		uint8_t framesPerBlink;
 		uint8_t brightness;
+
+		void setDuration(uint16_t preambleDuration);
 	};
 
 	/// <summary>
@@ -33,6 +39,8 @@ namespace Animations
 
 	private:
 		const AnimationName* getPreset() const;
+		static uint64_t getMessage();
+		const uint64_t message;
 	};
 }
 

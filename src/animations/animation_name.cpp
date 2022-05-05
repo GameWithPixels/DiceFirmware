@@ -1,23 +1,57 @@
 #include "animation_name.h"
-#include "utils/utils.h"
-#include "config/board_config.h"
-#include "data_set/data_animation_bits.h"
-#include "data_set/data_set.h"
+#include "modules/anim_controller.h"
 #include "die.h"
-#include "nrf_log.h"
+
+#define HEADER_BITS_COUNT 3
+#define DEVICE_BITS_COUNT (8 * sizeof(Die::getDeviceID()))
+#define CRC_BITS_COUNT 3
+#define CRC_DIVISOR 0xB // = 1011
+#define CRC_MASK 0x7
 
 namespace Animations
 {
-	/// <summary>
-	/// constructor for simple animations
-	/// Needs to have an associated preset passed in
-	/// </summary>
-	AnimationInstanceName::AnimationInstanceName(const AnimationName* preset, const DataSet::AnimationBits* bits)
-		: AnimationInstance(preset, bits)
-    {
-	}
 
-	/// <summary>
+    /// <summary>
+    /// Update the animation duration based on the passed preamble duration
+    /// and number of frames per blink.
+    /// </summary>
+    void AnimationName::setDuration(uint16_t preambleDuration)
+    {
+        // Add preamble duration to time it takes to blink the header and the device id
+        duration = preambleDuration + ANIM_FRAME_DURATION * framesPerBlink * (HEADER_BITS_COUNT + DEVICE_BITS_COUNT);
+    }
+
+    /// <summary>
+    /// constructor for simple animations
+    /// Needs to have an associated preset passed in
+    /// </summary>
+    AnimationInstanceName::AnimationInstanceName(const AnimationName *preset, const DataSet::AnimationBits *bits)
+        : AnimationInstance(preset, bits), message(AnimationInstanceName::getMessage())
+    {
+    }
+
+    uint64_t AnimationInstanceName::getMessage()
+    {
+        // 3-bit CRC
+        // https://en.wikipedia.org/wiki/Cyclic_redundancy_check#Computation
+        const uint64_t shiftedValue = (uint64_t)Die::getDeviceID() << CRC_BITS_COUNT;
+        const uint64_t mask = (uint64_t)(-1) ^ CRC_MASK;
+        uint64_t div = (uint64_t)CRC_DIVISOR << DEVICE_BITS_COUNT;
+        uint64_t crc = shiftedValue;
+        uint64_t firstBit = (uint64_t)1 << (DEVICE_BITS_COUNT + CRC_BITS_COUNT);
+        do
+        {
+            while ((crc & firstBit) == 0)
+            {
+                firstBit >>= 1;
+                div >>= 1;
+            }
+            crc ^= div;
+        } while ((crc & mask) != 0);
+        return (shiftedValue | crc) << HEADER_BITS_COUNT; // Shift the results to add the initial "RGB" header
+    }
+
+    /// <summary>
 	/// destructor
 	/// </summary>
 	AnimationInstanceName::~AnimationInstanceName()
@@ -40,7 +74,7 @@ namespace Animations
 		AnimationInstance::start(_startTime, _remapFace, _loop);
     }
 
-	/// <summary>
+    /// <summary>
 	/// Computes the list of LEDs that need to be on, and what their intensities should be.
 	/// </summary>
 	/// <param name="ms">The animation time (in milliseconds)</param>
@@ -54,38 +88,35 @@ namespace Animations
         // Compute color
         uint32_t color = 0;
         const uint32_t brightness = (uint32_t)preset->brightness;
-        const uint8_t preamble = preset->preambleCount;
-        const int numTicks = preamble + 8 * sizeof(Die::getDeviceID());
-        const int period = preset->duration / numTicks; // "tick" must always be less than "numTicks", otherwise we'll blink an extra bit/color
-        const int tick = (ms - startTime) / period;
+        const uint32_t frameCounter = (ms - startTime) / ANIM_FRAME_DURATION;
+        const uint32_t tick = frameCounter / preset->framesPerBlink;
+        const uint32_t totalTicks = preset->duration / preset->framesPerBlink / ANIM_FRAME_DURATION;
+        const uint32_t preambleNumTicks = totalTicks - DEVICE_BITS_COUNT - HEADER_BITS_COUNT - CRC_BITS_COUNT;
 
-        // -- Note --
-        // (ms - startTime) starts at 33 and ends = preset->duration
-
-        // White preamble
-        if (tick < preamble)
+        if (tick < preambleNumTicks || tick >= totalTicks)
         {
-            color = brightness | brightness << 8 | brightness << 16;
-
-            // NRF_LOG_INFO("white - (%d / %d) - id=%x", ms - startTime, preset->duration, Die::getDeviceID());
+            // Show white for the preamble (and possibly the last frame)
+            color = (brightness << 16) | (brightness << 8) | brightness;
         }
-        // Bit color
-        else if (tick < numTicks) // We want to skip the last tick if that gets past the last bit
+        else
         {
-            // Compute the color of the current bit
-            auto value = Die::getDeviceID();
-            int rgbIndex = -1;
-            for (int i = preamble; i <= tick; ++i)
+            // Find the color index of the current bit of our message
+            // Send lower order bit first (which is the header,
+            // then CRC and finally the device id)
+            uint64_t msg = message;
+            uint32_t colorIndex = -1;
+            for (uint32_t i = preambleNumTicks; i <= tick; ++i)
             {
-                rgbIndex += 1 + (value & 1);
-                value >>= 1;
+                // Skip a color when getting a 1
+                colorIndex += 1 + (msg & 1);
+                msg >>= 1;
             }
 
-            // rgbIndex = 0 => red, 1 => green, 2 => blue
-            rgbIndex %= 3;
-            color = brightness << (16 - 8 * rgbIndex);
+            // We use 3 colors
+            colorIndex %= 3;
 
-            // NRF_LOG_INFO("#%d (%d) - bit = %d - color = %d", tick - preamble, ms - startTime, (Die::getDeviceID() >> (tick - preamble)) & 1, rgbIndex);
+            // colorIndex = 0 => red, 1 => green, 2 => blue
+            color = brightness << (16 - 8 * colorIndex);
         }
 
         // Fill the indices and colors for the anim controller to know how to update leds
@@ -101,7 +132,7 @@ namespace Animations
         }
 
         return retCount;
-	}
+    }
 
 	/// <summary>
 	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.

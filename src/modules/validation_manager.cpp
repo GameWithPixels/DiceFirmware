@@ -47,9 +47,8 @@ namespace Modules::ValidManager
 
 		// Name animation object
         nameAnim.type = Animation_Name;
-		nameAnim.preambleCount = 10;
-		// Animation updates every 33 ms and we want to send 32 bits, with 3 animation frames per color
-		nameAnim.duration = 33 * (nameAnim.preambleCount + 32) * 3; // = 4158
+		nameAnim.framesPerBlink = 3; // 3 animation frames per blink
+		nameAnim.setDuration(1000);
 		nameAnim.brightness = 0x10;
 
 		// Assign callback for AnimController to skip PowerManager::feed
