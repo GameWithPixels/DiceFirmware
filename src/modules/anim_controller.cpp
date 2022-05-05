@@ -24,8 +24,7 @@ using namespace Config;
 using namespace DriversNRF;
 using namespace Bluetooth;
 
-#define MAX_ANIMS (20)
-#define TIMER2_RESOLUTION 33 //ms
+#define MAX_ANIMS 20
 
 namespace Modules::AnimController
 {
@@ -49,7 +48,7 @@ namespace Modules::AnimController
 	void animationControllerUpdate(void* param)
 	{
 		animControllerTicks++;
-		int timeMs = animControllerTicks * TIMER2_RESOLUTION;
+		int timeMs = animControllerTicks * ANIM_FRAME_DURATION;
 		update(timeMs);
 	}
 
@@ -182,7 +181,7 @@ namespace Modules::AnimController
 	void start()
 	{
 		NRF_LOG_INFO("Starting anim controller");
-		Timers::startTimer(animControllerTimer, TIMER2_RESOLUTION, NULL);
+		Timers::startTimer(animControllerTimer, ANIM_FRAME_DURATION, NULL);
 	}
 
 	/// <summary>
@@ -228,7 +227,7 @@ namespace Modules::AnimController
 			}
 		}
 
-		int ms = animControllerTicks * TIMER2_RESOLUTION;
+		int ms = animControllerTicks * ANIM_FRAME_DURATION;
 		if (prevAnimIndex < animationCount)
 		{
 			// Replace a previous animation
