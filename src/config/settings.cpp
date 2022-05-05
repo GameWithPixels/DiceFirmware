@@ -22,7 +22,6 @@ using namespace Bluetooth;
 using namespace Config;
 using namespace Modules;
 using namespace DataSet;
-using namespace Utils;
 
 namespace Config::SettingsManager
 {
@@ -195,7 +194,7 @@ namespace Config::SettingsManager
 	void programDefaults(SettingsWrittenCallback callback) {
 		Settings defaults;
 		setDefaults(defaults);
-		DataSet::ProgramDefaultDataSet(defaults, callback, true, true, true);
+		DataSet::ProgramDefaultDataSet(defaults, callback);
 	}
 
 	void programDefaultParameters(SettingsWrittenCallback callback) {
@@ -213,7 +212,7 @@ namespace Config::SettingsManager
 		setDefaultParameters(settingsCopy);
 
 		// Reprogram settings
-		DataSet::ProgramDefaultDataSet(settingsCopy, callback, true, true, true);
+		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 	}
 
 	void programCalibrationData(const Core::float3* newNormals, int faceLayoutLookupIndex, const uint8_t* newFaceToLEDLookup, int count, SettingsWrittenCallback callback) {
@@ -235,7 +234,7 @@ namespace Config::SettingsManager
 		memcpy(settingsCopy.faceToLEDLookup, newFaceToLEDLookup, count * sizeof(uint8_t));
 
 		// Reprogram settings
-		DataSet::ProgramDefaultDataSet(settingsCopy, callback, true, true, true);
+		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 	}
 
 	void programDesignAndColor(DiceVariants::DesignAndColor design, SettingsWrittenCallback callback) {
@@ -250,7 +249,7 @@ namespace Config::SettingsManager
 			settingsCopy.designAndColor = design;
 
 			// Reprogram settings
-			DataSet::ProgramDefaultDataSet(settingsCopy, callback, true, true, true);
+			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 		}
 		else {
 			NRF_LOG_INFO("DesignAndColor already set to %s", design);
@@ -279,7 +278,7 @@ namespace Config::SettingsManager
 				programNameCallback = nullptr;
 				if (callback)
 					callback(success);
-			}, true, true, true);
+			});
 		}
 		else {
 			NRF_LOG_INFO("Name already set to %s", newName);
@@ -316,7 +315,7 @@ namespace Config::SettingsManager
 			// Reprogram settings
 			NRF_LOG_INFO("Updating debug flags %x => %x and defaults %x => %x",
 				settings->debugFlags, settingsCopy.debugFlags, settings->defaultDebugFlags, settingsCopy.defaultDebugFlags);
-			DataSet::ProgramDefaultDataSet(settingsCopy, callback, true, true, true);
+			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 		}
 		else {
 			NRF_LOG_INFO("Debug flags already set to %d", settingsCopy.debugFlags);

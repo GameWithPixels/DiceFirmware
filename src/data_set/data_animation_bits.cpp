@@ -20,9 +20,6 @@ namespace DataSet
 			// Not implemented
 			return 0xFFFFFFFF;
 		}
-		else if (colorIndex == PALETTE_COLOR_NAME) {
-			return 0x00101010;
-		}
 		else if (colorIndex < (paletteSize / 3)) {
 			return Utils::toColor(
 					palette[colorIndex * 3 + 0],

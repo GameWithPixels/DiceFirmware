@@ -2,7 +2,6 @@
 #include "data_set_data.h"
 #include "config/board_config.h"
 #include "animations/animation_simple.h"
-#include "animations/animation_name.h"
 #include "behaviors/action.h"
 #include "behaviors/behavior.h"
 #include "behaviors/condition.h"
@@ -66,8 +65,7 @@ namespace DataSet
 
 #endif
 
-	void ProgramDefaultDataSet(const Settings& settingsPackAlong, 
-            DataSetWrittenCallback callback, bool helloBlink, bool bleBlink, bool rollBlink) {
+	void ProgramDefaultDataSet(const Settings& settingsPackAlong, DataSetWrittenCallback callback) {
 
         NRF_LOG_INFO("Programming default data set");
 
@@ -90,7 +88,7 @@ namespace DataSet
         int rgbTrackCount = 0;
 		int keyframeCount = 0;
         int trackCount = 0;
-        int animCount = 3 + 3;
+		int animCount = 3 + 3;
         int animOffsetSize = Utils::roundUpTo4(animCount * sizeof(uint16_t));
         int animSize = sizeof(AnimationSimple) * animCount;
         int actionCount = 4;
@@ -220,7 +218,7 @@ namespace DataSet
         writePalette[7] = 0;
         writePalette[8] = 4;
 
-        // Create animations
+		// Create animations
 		for (int c = 0; c < 3; ++c) {
             writeAnimations[c].type = Animation_Simple;
             writeAnimations[c].duration = 1000;
@@ -229,7 +227,7 @@ namespace DataSet
             writeAnimations[c].fade = 255;
             writeAnimations[c].colorIndex = c;
 		}
-        
+
 		for (int c = 0; c < 3; ++c) {
             writeAnimations[3 + c].type = Animation_Simple;
             writeAnimations[3 + c].duration = 1000;
@@ -237,7 +235,7 @@ namespace DataSet
             writeAnimations[3 + c].count = 2;
             writeAnimations[3 + c].fade = 255;
             writeAnimations[3 + c].colorIndex = c;
-        }
+		}
 
 		// Create offsets
 		for (int i = 0; i < animCount; ++i) {
@@ -248,52 +246,44 @@ namespace DataSet
         uint32_t address = reinterpret_cast<uint32_t>(writeConditions);
         uint16_t offset = 0;
 
-        if (helloBlink) 
-        {
-            ConditionHelloGoodbye* hello = reinterpret_cast<ConditionHelloGoodbye*>(address);
-            hello->type = Condition_HelloGoodbye;
-            hello->flags = ConditionHelloGoodbye_Hello;
-            writeConditionsOffsets[0] = offset;
-            offset += sizeof(ConditionHelloGoodbye);
-            address += sizeof(ConditionHelloGoodbye);
-            // And matching action
-            writeActions[0].type = Action_PlayAnimation;
-            writeActions[0].animIndex = 4; // All LEDs white
-            writeActions[0].faceIndex = 0; // doesn't matter
-            writeActions[0].loopCount = 1;
-        }
+        // Add Hello condition (index 0)
+        ConditionHelloGoodbye* hello = reinterpret_cast<ConditionHelloGoodbye*>(address);
+        hello->type = Condition_HelloGoodbye;
+        hello->flags = ConditionHelloGoodbye_Hello;
+        writeConditionsOffsets[0] = offset;
+        offset += sizeof(ConditionHelloGoodbye);
+        address += sizeof(ConditionHelloGoodbye);
+        // And matching action
+        writeActions[0].type = Action_PlayAnimation;
+        writeActions[0].animIndex = 4; // All LEDs green
+        writeActions[0].faceIndex = 0; // doesn't matter
+        writeActions[0].loopCount = 1;
 
-        if (bleBlink) 
-        {
-            // Add New Connection condition (index 1)
-            ConditionConnectionState* connected = reinterpret_cast<ConditionConnectionState*>(address);
-            connected->type = Condition_ConnectionState;
-            connected->flags = ConditionConnectionState_Connected | ConditionConnectionState_Disconnected;
-            writeConditionsOffsets[1] = offset;
-            offset += sizeof(ConditionConnectionState);
-            address += sizeof(ConditionConnectionState);
-            // And matching action
-            writeActions[1].type = Action_PlayAnimation;
-            writeActions[1].animIndex = 5; // All LEDs blue
-            writeActions[1].faceIndex = 0; // doesn't matter
-            writeActions[1].loopCount = 1;
-        }
+        // Add New Connection condition (index 1)
+        ConditionConnectionState* connected = reinterpret_cast<ConditionConnectionState*>(address);
+        connected->type = Condition_ConnectionState;
+        connected->flags = ConditionConnectionState_Connected | ConditionConnectionState_Disconnected;
+        writeConditionsOffsets[1] = offset;
+        offset += sizeof(ConditionConnectionState);
+        address += sizeof(ConditionConnectionState);
+        // And matching action
+        writeActions[1].type = Action_PlayAnimation;
+        writeActions[1].animIndex = 5; // All LEDs blue
+        writeActions[1].faceIndex = 0; // doesn't matter
+        writeActions[1].loopCount = 1;
 
-        if (rollBlink) 
-        {
-            // Add Rolling condition (index 2)
-            ConditionRolling* rolling = reinterpret_cast<ConditionRolling*>(address);
-            rolling->type = Condition_Rolling;
-            rolling->repeatPeriodMs = 500;
-            writeConditionsOffsets[2] = offset;
-            offset += sizeof(ConditionRolling);
-            address += sizeof(ConditionRolling);
-            // And matching action
-            writeActions[2].type = Action_PlayAnimation;
-            writeActions[2].animIndex = 0; // face led red
-            writeActions[2].faceIndex = FACE_INDEX_CURRENT_FACE;
-            writeActions[2].loopCount = 1;
-        }
+        // Add Rolling condition (index 2)
+        ConditionRolling* rolling = reinterpret_cast<ConditionRolling*>(address);
+        rolling->type = Condition_Rolling;
+        rolling->repeatPeriodMs = 500;
+        writeConditionsOffsets[2] = offset;
+        offset += sizeof(ConditionRolling);
+        address += sizeof(ConditionRolling);
+        // And matching action
+        writeActions[2].type = Action_PlayAnimation;
+        writeActions[2].animIndex = 0; // face led red
+        writeActions[2].faceIndex = FACE_INDEX_CURRENT_FACE;
+        writeActions[2].loopCount = 1;
 
         // // Add Idle condition (index 4)
         // ConditionIdle* idle = reinterpret_cast<ConditionIdle*>(address);
@@ -321,7 +311,6 @@ namespace DataSet
         writeActions[3].animIndex = 0; // face led green
         writeActions[3].faceIndex = FACE_INDEX_CURRENT_FACE;
         writeActions[3].loopCount = 1;
-        
 
         // Create action offsets
 		for (int i = 0; i < actionCount; ++i) {

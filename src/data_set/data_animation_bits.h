@@ -15,7 +15,6 @@ namespace DataSet
 
         #define PALETTE_COLOR_FROM_FACE     127
         #define PALETTE_COLOR_FROM_RANDOM   126
-        #define PALETTE_COLOR_NAME          125
 
         // The individual RGB keyframes we have, i.e. time and color, packed in
         const Animations::RGBKeyframe* rgbKeyframes; // pointer to the array of tracks
