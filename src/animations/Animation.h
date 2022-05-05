@@ -9,6 +9,8 @@ namespace DataSet
 	struct AnimationBits;
 }
 
+#define ANIM_FACEMASK_ALL_LEDS 0xFFFFF;
+
 namespace Animations
 {
 	/// <summary>

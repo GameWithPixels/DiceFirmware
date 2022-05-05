@@ -78,7 +78,7 @@ namespace Die
         static AnimationCycle anim;
         anim.type = Animation_Cycle;
         anim.duration = 25000;
-        anim.faceMask = 0xFFFFF;
+        anim.faceMask = ANIM_FACEMASK_ALL_LEDS;
         anim.count = 1;
         anim.fade = 0;
         anim.rainbow = 0;
