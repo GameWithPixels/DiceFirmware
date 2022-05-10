@@ -120,18 +120,7 @@ namespace Animations
         }
 
         // Fill the indices and colors for the anim controller to know how to update leds
-        int retCount = 0;
-        if (color != 0)
-        {
-            for (int i = 0; i < 20; ++i)
-            {
-                retIndices[retCount] = i;
-                retColors[retCount] = color;
-                retCount++;
-            }
-        }
-
-        return retCount;
+        return setColor(color, ANIM_FACEMASK_ALL_LEDS, retIndices, retColors);
     }
 
 	/// <summary>
@@ -139,14 +128,8 @@ namespace Animations
 	/// </summary>
 	int AnimationInstanceName::stop(int retIndices[])
     {
-        int retCount = 0;
-        for (int i = 0; i < 20; ++i)
-        {
-            retIndices[retCount] = i;
-            retCount++;
-        }
-        return retCount;
-	}
+        return setIndices(ANIM_FACEMASK_ALL_LEDS, retIndices);
+    }
 
 	const AnimationName* AnimationInstanceName::getPreset() const
     {

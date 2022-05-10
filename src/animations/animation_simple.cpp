@@ -68,16 +68,7 @@ namespace Animations
         }
 
         // Fill the indices and colors for the anim controller to know how to update leds
-        int retCount = 0;
-        for (int i = 0; i < 20; ++i) {
-            if ((preset->faceMask & (1 << i)) != 0)
-            {
-                retIndices[retCount] = i;
-                retColors[retCount] = color;
-                retCount++;
-            }
-        }
-        return retCount;
+		return setColor(color, preset->faceMask, retIndices, retColors);
 	}
 
 	/// <summary>
@@ -85,15 +76,7 @@ namespace Animations
 	/// </summary>
 	int AnimationInstanceSimple::stop(int retIndices[]) {
         auto preset = getPreset();
-        int retCount = 0;
-        for (int i = 0; i < 20; ++i) {
-            if ((preset->faceMask & (1 << i)) != 0)
-            {
-                retIndices[retCount] = i;
-                retCount++;
-            }
-        }
-        return retCount;
+		return setIndices(preset->faceMask, retIndices);
 	}
 
 	const AnimationSimple* AnimationInstanceSimple::getPreset() const {

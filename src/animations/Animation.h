@@ -9,7 +9,7 @@ namespace DataSet
 	struct AnimationBits;
 }
 
-#define ANIM_FACEMASK_ALL_LEDS 0xFFFFF;
+#define ANIM_FACEMASK_ALL_LEDS 0xFFFFF
 
 namespace Animations
 {
@@ -62,6 +62,8 @@ namespace Animations
 		virtual int animationSize() const = 0;
 		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]) = 0;
 		virtual int stop(int retIndices[]) = 0;
+		int setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]);
+		int setIndices(uint32_t faceMask, int retIndices[]);
 	};
 
 	Animations::AnimationInstance* createAnimationInstance(int animationIndex);

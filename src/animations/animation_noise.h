@@ -18,7 +18,7 @@ namespace Animations
 	};
 
 	/// <summary>
-	/// Procedural rainbow animation instance data
+	/// Procedural noise animation instance data
 	/// </summary>
 	class AnimationInstanceNoise
 		: public AnimationInstance
@@ -32,10 +32,9 @@ namespace Animations
 		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
 		virtual int stop(int retIndices[]);
 
-        uint16_t curRand;
-
 	private:
 		const AnimationNoise* getPreset() const;
+		uint16_t curRand;
 	};
 }
 
