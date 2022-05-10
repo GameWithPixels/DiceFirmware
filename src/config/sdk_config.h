@@ -331,7 +331,7 @@
 
 // <o> NRF_PWR_MGMT_CONFIG_STANDBY_TIMEOUT_S - Standby timeout (in seconds). 
 // <i> Shutdown procedure will begin no earlier than after this number of seconds.
-#define NRF_PWR_MGMT_CONFIG_STANDBY_TIMEOUT_S 60
+#define NRF_PWR_MGMT_CONFIG_STANDBY_TIMEOUT_S 300
 
 // <q> NRF_PWR_MGMT_CONFIG_FPU_SUPPORT_ENABLED  - Enables FPU event cleaning.
 #define NRF_PWR_MGMT_CONFIG_FPU_SUPPORT_ENABLED 0
