@@ -188,6 +188,26 @@ namespace KXTJ3
 		active();
 	}
 
+    	void disableInterrupt()
+	{
+		standby();
+
+        // disables the Wake-Up (motion detect) function.
+    	uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
+    	_reg1 &= ~(0x01 << 1);
+		I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
+
+        // disable interrupt, active High, latched
+        uint8_t _reg2 = I2C::readRegister(devAddress, INT_CTRL_REG1);
+        _reg2 &= ~(0b00100010);
+		I2C::writeRegister(devAddress, INT_CTRL_REG1, _reg2);
+
+        // disable interrupt on all axis any direction - Latched
+    	I2C::writeRegister(devAddress, INT_CTRL_REG2, 0b00000000);
+
+		active();
+	}
+
 	void clearInterrupt()
 	{
 		I2C::readRegister(devAddress, INT_REL);
@@ -242,20 +262,6 @@ namespace KXTJ3
             I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
         }
         active();
-	}
-
-	void disableInterrupt()
-	{
-		standby();
-		// Disable interrupt on xyz axes
-
-        uint8_t ctrl = I2C::readRegister(devAddress, CTRL_REG1);
-        ctrl &= ~(0b01100000);
-        I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
-
-		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00000000);
-
-		active();
 	}
 
     void disableDataInterrupt() 
