@@ -90,5 +90,4 @@ namespace Utils
 
     void leaveValidation();
 	bool inValidation();
-    bool fromValidation();
 }

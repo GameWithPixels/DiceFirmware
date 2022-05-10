@@ -446,10 +446,4 @@ for x in range(256):
         uint32_t* validation = (uint32_t*)0x10001080;
         return (*validation == 0xFFFFFFFE);
     }
-
-    bool fromValidation()
-    {
-        uint32_t* validation = (uint32_t*)0x10001080;
-        return (*validation == 0xFFFFFFFC);
-    }
 }
