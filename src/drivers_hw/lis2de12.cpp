@@ -4,7 +4,7 @@ Modified by Jean Simonet, Systemic Games
 
 ******************************************************************************/
 
-#include "lis2de12.h"
+#include "accel_chip.h"
 #include "drivers_nrf/i2c.h"
 #include "nrf_log.h"
 #include "drivers_nrf/log.h"
@@ -24,7 +24,7 @@ using namespace Config;
 
 namespace DriversHW
 {
-namespace LIS2DE12
+namespace AccelChip
 {
 
     // LIS2DE12 Register Definitions
@@ -102,7 +102,7 @@ namespace LIS2DE12
     #define DATA_RATE (ODR_10)
 
     #define MAX_CLIENTS 2
-	DelegateArray<LIS2DE12ClientMethod, MAX_CLIENTS> clients;
+	DelegateArray<AccelClientMethod, MAX_CLIENTS> clients;
 
     void ApplySettings();
 	void standby();
@@ -317,7 +317,7 @@ namespace LIS2DE12
 	/// <summary>
 	/// Method used by clients to request timer callbacks when accelerometer readings are in
 	/// </summary>
-	void hook(LIS2DE12ClientMethod method, void* parameter)
+	void hook(AccelClientMethod method, void* parameter)
 	{
 		if (!clients.Register(parameter, method))
 		{
@@ -328,7 +328,7 @@ namespace LIS2DE12
 	/// <summary>
 	/// Method used by clients to stop getting accelerometer reading callbacks
 	/// </summary>
-	void unHook(LIS2DE12ClientMethod method)
+	void unHook(AccelClientMethod method)
 	{
 		clients.UnregisterWithHandler(method);
 	}
