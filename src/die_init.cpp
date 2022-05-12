@@ -362,17 +362,14 @@ namespace Die
                 // Initialize common logic
                 initMainLogic();
 
-            #if defined(DEBUG_FIRMWARE)
-                if (!inValidation) 
+                // Skip registering unecessary BLE messages in validation mode
+                if (!inValidation)
                 {
+            #if defined(DEBUG_FIRMWARE)
                     // Initialize debug logic
                     initDebugLogic();
-                }
-                NRF_LOG_INFO("---------------");
             #else
-                // Initialize main die logic
-                if (!inValidation) 
-                {
+                    // Initialize main die logic
                     initDieLogic();
                 }
                 NRF_LOG_INFO("---------------");
