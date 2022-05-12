@@ -422,14 +422,12 @@ struct MessageSetDebugFlags
 struct MessageSleep
 : public Message
 {
-	//not sure what fields we'd need here, if any
 	inline MessageSleep() : Message(Message::MessageType_Sleep) {}
 };
 
 struct MessageExitValidation
 : public Message
 {
-	//not sure what fields we'd need here, if any
 	inline MessageExitValidation() : Message(Message::MessageType_ExitValidation) {}
 };
 
