@@ -39,19 +39,19 @@ namespace PowerManager
         switch (event)
         {
             case NRF_PWR_MGMT_EVT_PREPARE_SYSOFF:
-                NRF_LOG_INFO("NRF_PWR_MGMT_EVT_PREPARE_SYSOFF");
+                NRF_LOG_INFO("Power event! Prepare system off");
                 break;
 
             case NRF_PWR_MGMT_EVT_PREPARE_WAKEUP:
-                NRF_LOG_INFO("NRF_PWR_MGMT_EVT_PREPARE_WAKEUP");
+                NRF_LOG_INFO("Power event! Prepare wake up");
                 break;
 
             case NRF_PWR_MGMT_EVT_PREPARE_DFU:
-                NRF_LOG_INFO("NRF_PWR_MGMT_EVT_PREPARE_DFU");
+                NRF_LOG_INFO("Power event! Prepare wake DFU");
                 break;
 
             case NRF_PWR_MGMT_EVT_PREPARE_RESET:
-                NRF_LOG_INFO("NRF_PWR_MGMT_EVT_PREPARE_RESET");
+                NRF_LOG_INFO("Power event! Prepare wake reset");
                 break;
         }
 
