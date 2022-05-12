@@ -28,7 +28,7 @@ using namespace Bluetooth;
 
 namespace Modules::AnimController
 {
-	DelegateArray<AnimControllerClientMethod, 1> clients;
+	static DelegateArray<AnimControllerClientMethod, 1> clients;
 
 	// Our currently running animations
 	static Animations::AnimationInstance *animations[MAX_ANIMS];
@@ -382,7 +382,7 @@ namespace Modules::AnimController
 	{
 		if (!clients.Register(parameter, method))
 		{
-			NRF_LOG_ERROR("Too many animation controller hooks registered.");
+			NRF_LOG_ERROR("Failed to register AnimationController hook because client array is full");
 		}
 	}
 
