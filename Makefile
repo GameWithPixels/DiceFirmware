@@ -16,7 +16,7 @@ FW_VER = 0x1
 BL_VER = 0x1
 
 # SDK 17 path
-SDK_ROOT := C:/nRF5_SDK
+SDK_ROOT := D:/nRF5_SDK
 
 # SoftDevice image filename and path
 # Download latest SoftDevice here: https://www.nordicsemi.com/Products/Development-software/s112/download
@@ -33,6 +33,7 @@ BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX
 
 # Filename for the zip file used for DFU over Bluetooth
 ZIP_FILE := firmware_$(VERSION)_sdk$(SDK_VER).zip
+VALIDATION_ZIP := firmware_validation_$(VERSION)_sdk$(SDK_VER).zip
 
 LINKER_SCRIPT = Firmware.ld
 
@@ -441,6 +442,23 @@ hex_factory: firmware_factory settings_factory
 .PHONY: flash_factory
 flash_factory: erase hex_factory
 	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_factory.hex --sectorerase --verify --reset
+
+#
+# Validation commands
+#
+
+.PHONY: hex_validation
+hex_validation: firmware_release settings_release
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware.hex
+	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_bit.hex -o $(OUTPUT_DIRECTORY)/firmware_validation.hex
+
+.PHONY: flash_validation
+flash_validation: erase hex_validation
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/firmware_validation.hex --sectorerase --verify --reset
+
+.PHONY: zip_validation
+zip_validation: hex_validation
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware_validation.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(VALIDATION_ZIP)
 
 #
 # Publishing commands
