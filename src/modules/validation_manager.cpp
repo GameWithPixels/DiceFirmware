@@ -51,9 +51,6 @@ namespace Modules::ValidManager
 		nameAnim.setDuration(1000);
 		nameAnim.brightness = 0x10;
 
-		// Assign callback for AnimController to skip PowerManager::feed
-		AnimController::hook(skipFeed, nullptr);
-
 		NRF_LOG_INFO("Validation Manager Initialized");
 	}
 
@@ -68,12 +65,6 @@ namespace Modules::ValidManager
 
 		// Play preamble/name animation
         startNameAnim();
-	}
-
-	// Callback for explicitly skipping PowerManager::feed call in AnimController
-	void skipFeed(void* token)
-	{
-		return;
 	}
 
 	// Stop playing name animation
@@ -108,7 +99,6 @@ namespace Modules::ValidManager
     // Clear bits to signal exit of valdidation mode, go to sleep
     void exitValidationMode(void* token, const Message* msg)
     {
-        SettingsManager::programDefaults(nullptr);
         Utils::leaveValidation();
         PowerManager::goToSystemOff();
     }

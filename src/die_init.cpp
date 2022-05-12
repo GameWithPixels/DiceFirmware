@@ -87,9 +87,17 @@ namespace Die
         AnimController::play(&anim, nullptr, 0, true); // Loop forever!
     }
 
-    void feed(void* token) {
+    // Callback for calling PowerManager::feed to prevent sleep mode due to animations
+    void feed(void* token) 
+    {
         PowerManager::feed();
     }
+
+    // Callback for explicitly skipping PowerManager::feed to allow sleep mode despite animations
+	void skipFeed(void* token)
+	{
+		return;
+	}
 
     /// ***********************************************************************
     /// Init function validation checks:
@@ -320,8 +328,18 @@ namespace Die
                 bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
                 bool inValidation = Utils::inValidation();
 
-                if (loopAnim) {
+                if (inValidation)
+                {
+                    // Want to go to sleep mode despite animations
+		            AnimController::hook(skipFeed, nullptr);
+                }
+                else 
+                {
+                    // Want to prevent sleep mode due to animations
                     AnimController::hook(feed, nullptr);
+                }
+
+                if (loopAnim) {
                     loopCycleAnimation();
                 }
                 else {
@@ -367,7 +385,6 @@ namespace Die
                 }
                 // if not using loop anim
                 else if (!loopAnim) {
-                    AnimController::hook(feed, nullptr);
                     BehaviorController::onDiceInitialized();
                 }
             #endif
