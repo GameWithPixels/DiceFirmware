@@ -435,15 +435,13 @@ for x in range(256):
 
     void leaveValidation()
     {
-        //ret_code_t err = sd_softdevice_disable();
-        //APP_ERROR_CHECK(err);
-
-        nrf_nvmc_write_byte(0x10001080, 0xFC);
+        // Use additional bit in UICR register to skip validation functions, perform normal functions
+        nrf_nvmc_write_byte((uint32_t)&NRF_UICR->CUSTOMER[0], 0xFC);
     }
 
 	bool inValidation()
     {
-        uint32_t* validation = (uint32_t*)0x10001080;
+        uint32_t* validation = (uint32_t*)&NRF_UICR->CUSTOMER[0];
         return (*validation == 0xFFFFFFFE);
     }
 }
