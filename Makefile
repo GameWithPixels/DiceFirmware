@@ -4,7 +4,7 @@ PUBLISH_DIRECTORY = binaries
 PROJ_DIR = .
 SDK_VER = 17
 
-VERSION = 03_14_22
+VERSION = 05_10_22
 
 # Debug flags
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
@@ -31,7 +31,8 @@ SD_REQ_ID := 0xCD,0x103,0x126
 BOOTLOADER_HEX_FILE := nrf52810_xxaa_s112.hex
 BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX_FILE)
 
-ZIP_PATHNAME := $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+# Filename for the zip file used for DFU over Bluetooth
+ZIP_FILE := firmware_$(VERSION)_sdk$(SDK_VER).zip
 
 LINKER_SCRIPT = Firmware.ld
 
@@ -420,8 +421,8 @@ flash_board: erase flash_softdevice flash_bootloader flash_release
 # e.g. make flash_ble DICE=D_71902510
 .PHONY: flash_ble
 flash_ble: zip
-	@echo Flashing: $(ZIP_PATHNAME) over BLE DFU
-	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(ZIP_PATHNAME)
+	@echo Flashing: $(ZIP_FILE) over BLE DFU
+	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
 #
 # Factory build
@@ -451,8 +452,9 @@ hex_release: firmware_release settings_release
 
 .PHONY: zip
 zip: firmware_release
-	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(ZIP_PATHNAME)
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
+# Be sure to use a backslash in the pathname, otherwise the copy command will fail (in CMD environment) 
 .PHONY: publish
 publish: zip
-	copy "$(ZIP_PATHNAME)" $(PUBLISH_DIRECTORY)
+	copy $(OUTPUT_DIRECTORY)\$(ZIP_FILE) $(PUBLISH_DIRECTORY)
