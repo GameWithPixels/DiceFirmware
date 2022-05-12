@@ -249,6 +249,15 @@ namespace LIS2DE12
 		I2C::writeRegister(devAddress, CTRL_REG3, 0b00010000);
 	}
 
+    void disableDataInterrupt()
+    {
+        // Disable interrupt on data update
+		I2C::writeRegister(devAddress, CTRL_REG3, 0b00000000);
+
+        // Disable interrupt pin
+		GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
+    }
+
 	/// <summary>
 	/// DISABLE TRANSIENT INTERRUPT
 	/// </summary>

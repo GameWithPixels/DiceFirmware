@@ -260,6 +260,15 @@ namespace MXC4005XC
 			dataInterruptHandler);
 	}
 
+    void disableDataInterrupt()
+    {
+        // Disable interrupt pin
+		GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
+
+        // Disable interrupt on data ready
+		I2C::writeRegister(devAddress, INT_MASK1, 0b00000000);
+    }
+
     void clearDataInterrupt() {
         I2C::writeRegister(devAddress, INT_CLR1, 0b00000001);
     }
