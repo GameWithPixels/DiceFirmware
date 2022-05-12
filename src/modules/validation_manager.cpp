@@ -22,82 +22,75 @@ using namespace Config;
 using namespace DriversNRF;
 using namespace Bluetooth;
 
-#if !defined(FIRMWARE_VERSION)
-    #warning Firmware version not defined
-    #define FIRMWARE_VERSION "Unknown"
-#endif
-
-namespace Modules::ValidManager
+namespace Modules::ValidationManager
 {
-	static AnimationName nameAnim;
-	bool isPlaying;
+    static AnimationName nameAnim;
+    static bool isPlaying;
 
-	void skipFeed(void* token);
-	void stopNameAnim();
-	void startNameAnim();
-	void onConnection(void* token, bool connected);
-    void exitValidationMode(void* token, const Message* msg);
-    void WhoAreYouHandler(void* token, const Message* message);
-    void EnterSleepMode(void* token, const Message* msg);
+    void skipFeed(void *token);
+    void stopNameAnim();
+    void startNameAnim();
+    void onConnection(void *token, bool connected);
+    void exitValidationMode(void *token, const Message *msg);
 
-	// Initializes validation animation objects and hooks AnimController callback
-	void init() 
-	{
-		isPlaying = false;
+    // Initializes validation animation objects and hooks AnimController callback
+    void init()
+    {
+        isPlaying = false;
 
-		// Name animation object
+        // Name animation object
         nameAnim.type = Animation_Name;
-		nameAnim.framesPerBlink = 3; // 3 animation frames per blink
-		nameAnim.setDuration(1000);
-		nameAnim.brightness = 0x10;
+        nameAnim.framesPerBlink = 3; // 3 animation frames per blink
+        nameAnim.setDuration(1000);
+        nameAnim.brightness = 0x10;
 
-		NRF_LOG_INFO("Validation Manager Initialized");
-	}
+        NRF_LOG_INFO("Validation Manager Initialized");
+    }
 
-	// Function for playing validation animations
-	void onDiceInitialized() 
-	{
-		// May want other validation function calls here as well
+    // Function for playing validation animations
+    void onDiceInitialized()
+    {
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, nullptr, exitValidationMode);
 
-		// Hook local connection function to BLE connection events
-		Bluetooth::Stack::hook(onConnection, nullptr);
+        // Hook local connection function to BLE connection events
+        Bluetooth::Stack::hook(onConnection, nullptr);
 
-		// Play preamble/name animation
+        // Play preamble/name animation
         startNameAnim();
-	}
+    }
 
-	// Stop playing name animation
-	void stopNameAnim() 
-	{
-		NRF_LOG_INFO("Stopping name animation");
-		AnimController::stopAll();
-		isPlaying = false;
-	}
-
-	// Start playing name animation
-	void startNameAnim()
-	{
-		NRF_LOG_INFO("Starting name animation");
-		AnimController::play(&nameAnim, nullptr, 0, true); 		// Loop forever! (until timeout)
-		isPlaying = true;
-	}
-
-	// Function for name animation behavior on BLE connection event
-	void onConnection(void* token, bool connected) 
+    // Stop playing name animation
+    void stopNameAnim()
     {
-        if (connected) 
-		{
-            stopNameAnim();		// Stop animation on connect
-        } 
-		else 
-		{
-            if (!isPlaying) startNameAnim();	// Resume animation on disconnect
+        NRF_LOG_INFO("Stopping name animation");
+        AnimController::stopAll();
+        isPlaying = false;
+    }
+
+    // Start playing name animation
+    void startNameAnim()
+    {
+        NRF_LOG_INFO("Starting name animation");
+        AnimController::play(&nameAnim, nullptr, 0, true); // Loop forever! (until timeout)
+        isPlaying = true;
+    }
+
+    // Function for name animation behavior on BLE connection event
+    void onConnection(void *token, bool connected)
+    {
+        if (connected)
+        {
+            stopNameAnim(); // Stop animation on connect
+        }
+        else
+        {
+            if (!isPlaying)
+                startNameAnim(); // Resume animation on disconnect
         }
     }
 
     // Clear bits to signal exit of valdidation mode, go to sleep
-    void exitValidationMode(void* token, const Message* msg)
+    void exitValidationMode(void *token, const Message *msg)
     {
         Utils::leaveValidation();
         PowerManager::goToSystemOff();

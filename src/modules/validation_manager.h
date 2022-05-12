@@ -5,20 +5,19 @@
 
 namespace Animations
 {
-	struct Animation;
+    struct Animation;
 }
 
 namespace Modules
 {
-	/// <summary>
-	/// Manages validation structures and functions including 
-	/// a name blinking animation and the function that plays
-	/// this animation after the system boots.
-	/// </summary>
-	namespace ValidManager
-	{
-		void init();
-		void onDiceInitialized();
-	}
+    /// <summary>
+    /// Manages validation structures and functions including
+    /// a name blinking animation and the function that plays
+    /// this animation after the system boots.
+    /// </summary>
+    namespace ValidationManager
+    {
+        void init();
+        void onDiceInitialized();
+    }
 }
-

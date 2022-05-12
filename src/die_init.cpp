@@ -377,8 +377,8 @@ namespace Die
                 // Entering the main loop! Play Hello! anim
                 // if in validation mode
                 if (inValidation) {
-                    ValidManager::init();
-                    ValidManager::onDiceInitialized();
+                    ValidationManager::init();
+                    ValidationManager::onDiceInitialized();
                 }
                 // if not using loop anim
                 else if (!loopAnim) {
