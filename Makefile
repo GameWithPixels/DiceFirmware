@@ -448,8 +448,7 @@ flash_factory: erase hex_factory
 #
 
 .PHONY: hex_validation
-hex_validation: firmware_release settings_release
-	mergehex -m $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware.hex
+hex_validation: hex_release
 	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_bit.hex -o $(OUTPUT_DIRECTORY)/firmware_validation.hex
 
 .PHONY: flash_validation
