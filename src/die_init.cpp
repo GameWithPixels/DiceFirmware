@@ -320,7 +320,7 @@ namespace Die
                 BatteryController::init();
 
                 const bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
-                const bool inValidation = Utils::inValidation();
+                const bool inValidation = ValidationManager::inValidation();
 
                 if (!inValidation)
                 {

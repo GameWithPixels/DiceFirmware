@@ -8,9 +8,6 @@
 #include "config/dice_variants.h"
 #include "nrf_log.h"
 #include "bluetooth/bluetooth_message_service.h"
-#include <nrf_sdm.h>
-#include "nrf_nvmc.h"
-
 
 using namespace Core;
 using namespace Config;
@@ -432,16 +429,4 @@ for x in range(256):
 			NRF_LOG_INFO("Done waiting");
 		#endif
 	}
-
-    void leaveValidation()
-    {
-        // Use additional bit in UICR register to skip validation functions, perform normal functions
-        nrf_nvmc_write_byte((uint32_t)&NRF_UICR->CUSTOMER[0], 0xFC);
-    }
-
-	bool inValidation()
-    {
-        uint32_t* validation = (uint32_t*)&NRF_UICR->CUSTOMER[0];
-        return (*validation == 0xFFFFFFFE);
-    }
 }

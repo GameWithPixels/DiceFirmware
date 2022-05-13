@@ -2,19 +2,15 @@
 #include "validation_manager.h"
 #include "config/board_config.h"
 #include "nrf_log.h"
-
 #include "animations/animation.h"
 #include "modules/anim_controller.h"
 #include "animations/animation_name.h"
-
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
-
 #include "drivers_nrf/power_manager.h"
 #include "data_set/data_set.h"
-
-#include "utils/Utils.h"
+#include "nrf_nvmc.h"
 
 using namespace Animations;
 using namespace Modules;
@@ -91,7 +87,20 @@ namespace Modules::ValidationManager
     // Clear bits to signal exit of valdidation mode, go to sleep
     void exitValidationMode(void *token, const Message *msg)
     {
-        Utils::leaveValidation();
+        leaveValidation();
         PowerManager::goToSystemOff();
+    }
+
+    void leaveValidation()
+    {
+        // Use additional bit in UICR register to skip validation functions, perform normal functions
+        nrf_nvmc_write_byte((uint32_t)&NRF_UICR->CUSTOMER[0], 0xFC);
+    }
+
+    // Check if system is in validation mode
+    bool inValidation()
+    {
+        uint32_t *validation = (uint32_t *)&NRF_UICR->CUSTOMER[0];
+        return (*validation == 0xFFFFFFFE);
     }
 }

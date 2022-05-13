@@ -19,5 +19,8 @@ namespace Modules
     {
         void init();
         void onDiceInitialized();
+
+        void leaveValidation();
+        bool inValidation();
     }
 }
