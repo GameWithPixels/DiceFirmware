@@ -22,7 +22,7 @@ FW_VER = 0x1
 BL_VER = 0x1
 
 # SDK 17 path
-SDK_ROOT := D:/nRF5_SDK
+SDK_ROOT := C:/nRF5_SDK
 
 # SoftDevice image filename and path
 # Download latest SoftDevice here: https://www.nordicsemi.com/Products/Development-software/s112/download
