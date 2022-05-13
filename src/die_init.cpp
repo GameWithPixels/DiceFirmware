@@ -356,7 +356,6 @@ namespace Die
                 {
                     // Initialize main die logic
                     initDieLogic();
-                    NRF_LOG_INFO("---------------");
                 }
 
                 // Entering the main loop! Play Hello! anim
@@ -369,6 +368,8 @@ namespace Die
                 else if (!loopAnim) {
                     BehaviorController::onDiceInitialized();
                 }
+
+                NRF_LOG_INFO("----- Initialized! -----");
             });
         });
     }

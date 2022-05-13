@@ -39,17 +39,17 @@ namespace Modules::ValidationManager
         nameAnim.setDuration(1000);
         nameAnim.brightness = 0x10;
 
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, nullptr, exitValidationMode);
+
+        // Hook local connection function to BLE connection events
+        Bluetooth::Stack::hook(onConnection, nullptr);
+
         NRF_LOG_INFO("Validation Manager Initialized");
     }
 
     // Function for playing validation animations
     void onDiceInitialized()
     {
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, nullptr, exitValidationMode);
-
-        // Hook local connection function to BLE connection events
-        Bluetooth::Stack::hook(onConnection, nullptr);
-
         // Play preamble/name animation
         startNameAnim();
     }
