@@ -354,14 +354,10 @@ namespace Die
                 // Skip registering unecessary BLE messages in validation mode
                 if (!inValidation)
                 {
-            #if defined(DEBUG_FIRMWARE)
-                    // Initialize debug logic
-                    initDebugLogic();
-            #else
                     // Initialize main die logic
                     initDieLogic();
+                    NRF_LOG_INFO("---------------");
                 }
-                NRF_LOG_INFO("---------------");
 
                 // Entering the main loop! Play Hello! anim
                 // if in validation mode
