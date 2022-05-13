@@ -24,7 +24,7 @@ namespace Animations
         // Create a small anim on the spot
         blinkAnim.type = Animation_Simple;
         blinkAnim.duration = durationMs;
-        blinkAnim.faceMask = 0xFFFFF;
+        blinkAnim.faceMask = ANIM_FACEMASK_ALL_LEDS;
         blinkAnim.count = flashCount;
         blinkAnim.fade = fade;
         blinkAnim.colorIndex = 0;

@@ -73,15 +73,7 @@ namespace Animations
 		} else {
 			// All leds same color
 			color = Rainbow::wheel((uint8_t)wheelPos, intensity);
-
-			for (int i = 0; i < 20; ++i) {
-				if ((preset->faceMask & (1 << i)) != 0)
-				{
-					retIndices[retCount] = i;
-					retColors[retCount] = color;
-					retCount++;
-				}
-			}
+			retCount = setColor(color, preset->faceMask, retIndices, retColors);
 		}
 		return retCount;
 	}
@@ -91,15 +83,7 @@ namespace Animations
 	/// </summary>
 	int AnimationInstanceRainbow::stop(int retIndices[]) {
 		auto preset = getPreset();
-            int retCount = 0;
-            for (int i = 0; i < 20; ++i) {
-                if ((preset->faceMask & (1 << i)) != 0)
-                {
-                    retIndices[retCount] = i;
-                    retCount++;
-                }
-            }
-            return retCount;
+		return setIndices(preset->faceMask, retIndices);
 	}
 
 	const AnimationRainbow* AnimationInstanceRainbow::getPreset() const {
