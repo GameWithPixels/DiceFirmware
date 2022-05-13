@@ -10,13 +10,19 @@ VERSION = 05_10_22
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
 firmware_factory: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
 
+# Different accelerometer hw for compiling old boards, uncomment to compile its source
+# Can override the default in cmd line by calling "make ACCEL_HW='*name*' *target*"
+# ACCEL_HW = lis2de12		#	D20v9.3, D20v9.1, D20v8, D20v5, D6, D20v1, DevD20
+# ACCEL_HW = mxc4005xc		#	D20v10, D20v9.4
+ACCEL_HW = kxtj3-1057
+
 # We don't use the firmware version at the moment.
 # For future reference, to prevent downgrading, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
 FW_VER = 0x1
 BL_VER = 0x1
 
 # SDK 17 path
-SDK_ROOT := C:/nRF5_SDK
+SDK_ROOT := D:/nRF5_SDK
 
 # SoftDevice image filename and path
 # Download latest SoftDevice here: https://www.nordicsemi.com/Products/Development-software/s112/download
@@ -124,7 +130,6 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \
 	$(PROJ_DIR)/src/drivers_hw/apa102.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
-	$(PROJ_DIR)/src/drivers_hw/kxtj3-1057.cpp \
 	$(PROJ_DIR)/src/drivers_hw/magnet.cpp \
 	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/a2d.cpp \
@@ -149,29 +154,9 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/utils/abi.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
 	$(PROJ_DIR)/src/utils/utils.cpp \
-	# $(PROJ_DIR)/src/drivers_hw/lis2de12.cpp \
-	# $(PROJ_DIR)/src/drivers_hw/mxc4005xc.cpp \
-	# $(SDK_ROOT)/components/libraries/util/app_error.c \
-	# $(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_data_storage.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_database.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_id.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_manager.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_manager_handler.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/pm_buffer.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/security_dispatcher.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/security_manager.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/gatt_cache_manager.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/gatts_cache_manager.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/id_manager.c \
-	# $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
-	# $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
-	# $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
-	# $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
-	# $(SDK_ROOT)/components/libraries/button/app_button.c \
-
-SRC_FILES += \
- 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
+	$(PROJ_DIR)/src/drivers_hw/$(ACCEL_HW).cpp 
+	
 
 # Include folders common to all targets
 INC_FOLDERS += \

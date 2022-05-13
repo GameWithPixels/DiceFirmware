@@ -221,10 +221,10 @@ namespace AccelChip
                 acc.x = (float)sumsCopy->xSum * SENSITIVITY / sumsCopy->count;
                 acc.y = (float)sumsCopy->ySum * SENSITIVITY / sumsCopy->count;
                 acc.z = (float)sumsCopy->zSum * SENSITIVITY / sumsCopy->count;
-                float temp = ((float)sumsCopy->tSum * T_SENSITIVITY / sumsCopy->count) + T_ZERO;
+                //float temp = ((float)sumsCopy->tSum * T_SENSITIVITY / sumsCopy->count) + T_ZERO;
 
 				for (int i = 0; i < clients.Count(); ++i) {
-					clients[i].handler(clients[i].token, acc, temp);
+					clients[i].handler(clients[i].token, acc);
 				}
             });
 
