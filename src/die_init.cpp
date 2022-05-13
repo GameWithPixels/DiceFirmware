@@ -319,8 +319,8 @@ namespace Die
                 // Battery controller relies on the battery driver
                 BatteryController::init();
 
-                bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
-                bool inValidation = Utils::inValidation();
+                const bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
+                const bool inValidation = Utils::inValidation();
 
                 if (!inValidation)
                 {
