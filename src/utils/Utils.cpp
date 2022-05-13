@@ -9,6 +9,7 @@
 #include "nrf_log.h"
 #include "bluetooth/bluetooth_message_service.h"
 
+
 using namespace Core;
 using namespace Config;
 
