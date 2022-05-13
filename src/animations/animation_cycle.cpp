@@ -137,16 +137,8 @@ namespace Animations
 	/// </summary>
 	int AnimationInstanceCycle::stop(int retIndices[]) {
         auto preset = getPreset();
-        int retCount = 0;
-        for (int i = 0; i < 20; ++i) {
-            if ((preset->faceMask & (1 << i)) != 0)
-            {
-                retIndices[retCount] = i;
-                retCount++;
-            }
-        }
-        return retCount;
-	}
+        return setIndices(preset->faceMask, retIndices);
+    }
 
 	const AnimationCycle* AnimationInstanceCycle::getPreset() const {
         return static_cast<const AnimationCycle*>(animationPreset);

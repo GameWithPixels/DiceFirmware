@@ -1,14 +1,14 @@
-TARGETS = firmware_d firmware firmware_fact # debug, release and factory targets (the latest is a release build with some settings turned on to help with dice manufacturing)
+TARGETS = firmware_d firmware firmware_cycleleds # debug, release and cycleleds targets (the latest is a release build with some settings turned on to help with dice manufacturing)
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 PROJ_DIR = .
 SDK_VER = 17
 
-VERSION = 03_14_22
+VERSION = 05_10_22
 
 # Debug flags
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
-firmware_factory: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
+firmware_cycleleds: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
 
 # We don't use the firmware version at the moment.
 # For future reference, to prevent downgrading, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
@@ -31,7 +31,8 @@ SD_REQ_ID := 0xCD,0x103,0x126
 BOOTLOADER_HEX_FILE := nrf52810_xxaa_s112.hex
 BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX_FILE)
 
-ZIP_PATHNAME := $(OUTPUT_DIRECTORY)/firmware_$(VERSION)_sdk$(SDK_VER).zip
+# Filename for the zip file used for DFU over Bluetooth
+ZIP_FILE := firmware_$(VERSION)_sdk$(SDK_VER).zip
 
 LINKER_SCRIPT = Firmware.ld
 
@@ -96,6 +97,7 @@ SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_wdt.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
+	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \
 	$(PROJ_DIR)/src/animations/animation.cpp \
@@ -106,6 +108,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_gradientpattern.cpp \
 	$(PROJ_DIR)/src/animations/animation_noise.cpp \
 	$(PROJ_DIR)/src/animations/animation_cycle.cpp \
+	$(PROJ_DIR)/src/animations/animation_name.cpp \
 	$(PROJ_DIR)/src/animations/blink.cpp \
 	$(PROJ_DIR)/src/animations/keyframes.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \
@@ -147,6 +150,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/battery_controller.cpp \
 	$(PROJ_DIR)/src/modules/hardware_test.cpp \
 	$(PROJ_DIR)/src/modules/rssi_controller.cpp \
+	$(PROJ_DIR)/src/modules/validation_manager.cpp \
 	$(PROJ_DIR)/src/utils/abi.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
 	$(PROJ_DIR)/src/utils/utils.cpp \
@@ -344,8 +348,8 @@ settings_d: firmware_d
 settings: firmware
 	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
 
-settings_fact: firmware_fact
-	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex
+settings_cycleleds: firmware_cycleleds
+	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_cycleleds.hex $(OUTPUT_DIRECTORY)/firmware_settings_cycleleds.hex
 
 #
 # Common commands
@@ -420,26 +424,41 @@ flash_board: erase flash_softdevice flash_bootloader flash_release
 # e.g. make flash_ble DICE=D_71902510
 .PHONY: flash_ble
 flash_ble: zip
-	@echo Flashing: $(ZIP_PATHNAME) over BLE DFU
-	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(ZIP_PATHNAME)
+	@echo Flashing: $(ZIP_FILE) over BLE DFU
+	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
 #
-# Factory build
+# Validation build
 #
 
-.PHONY: firmware_factory
-firmware_factory: firmware_fact
+.PHONY: validation_bit
+validation_bit: 
+	@echo ===== Writing validation bit =====
+	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
 
-.PHONY: settings_factory
-settings_factory: settings_fact
+.PHONY: flash_validation_debug
+flash_validation_debug: erase validation_bit flash_softdevice flash
 
-.PHONY: hex_factory
-hex_factory: firmware_factory settings_factory
-	mergehex -m $(OUTPUT_DIRECTORY)/firmware_fact.hex $(OUTPUT_DIRECTORY)/firmware_settings_fact.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware_factory.hex
+.PHONY: flash_validation
+flash_validation: erase validation_bit flash_softdevice flash_bootloader flash_release
 
-.PHONY: flash_factory
-flash_factory: erase hex_factory
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_factory.hex --sectorerase --verify --reset
+#
+# Cycle LEDs build
+#
+
+.PHONY: firmware_cycleleds
+firmware_cycleleds: firmware_cycleleds
+
+.PHONY: settings_cycleleds
+settings_cycleleds: settings_cycleleds
+
+.PHONY: hex_cycleleds
+hex_cycleleds: firmware_cycleleds settings_cycleleds
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware_cycleleds.hex $(OUTPUT_DIRECTORY)/firmware_settings_cycleleds.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex
+
+.PHONY: flash_cycleleds
+flash_cycleleds: erase hex_cycleleds
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex --sectorerase --verify --reset
 
 #
 # Publishing commands
@@ -451,8 +470,9 @@ hex_release: firmware_release settings_release
 
 .PHONY: zip
 zip: firmware_release
-	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(ZIP_PATHNAME)
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
+# Be sure to use a backslash in the pathname, otherwise the copy command will fail (in CMD environment) 
 .PHONY: publish
 publish: zip
-	copy "$(ZIP_PATHNAME)" $(PUBLISH_DIRECTORY)
+	copy $(OUTPUT_DIRECTORY)\$(ZIP_FILE) $(PUBLISH_DIRECTORY)

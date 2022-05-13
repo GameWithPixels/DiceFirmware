@@ -13,6 +13,7 @@
 #include "animation_gradientpattern.h"
 #include "animation_noise.h"
 #include "animation_cycle.h"
+#include "animation_name.h"
 
 
 // Define new and delete
@@ -53,6 +54,29 @@ namespace Animations
 		loop = _loop;
 	}
 
+	int AnimationInstance::setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]) {
+		int retCount = 0;
+		for (int i = 0; i < 20; ++i) {
+			if ((faceMask & (1 << i)) != 0) {
+				retIndices[retCount] = i;
+				retColors[retCount] = color;
+				retCount++;
+			}
+		}
+		return retCount;
+	}
+
+	int AnimationInstance::setIndices(uint32_t faceMask, int retIndices[]) {
+		int retCount = 0;
+		for (int i = 0; i < 20; ++i) {
+			if ((faceMask & (1 << i)) != 0) {
+				retIndices[retCount] = i;
+				retCount++;
+			}
+		}
+		return retCount;
+	}
+
 	AnimationInstance* createAnimationInstance(int animationIndex) {
 		// Grab the preset data
 		const Animation* preset = DataSet::getAnimation(animationIndex);
@@ -83,6 +107,9 @@ namespace Animations
 				break;
 			case Animation_Cycle:
 				ret = new AnimationInstanceCycle(static_cast<const AnimationCycle *>(preset), bits);
+				break;
+			case Animation_Name:
+				ret = new AnimationInstanceName(static_cast<const AnimationName*>(preset), bits);
 				break;
 			default:
 				NRF_LOG_ERROR("Unknown animation preset type");
