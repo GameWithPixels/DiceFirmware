@@ -430,16 +430,16 @@ flash_ble: zip
 # Validation build
 #
 
-.PHONY: flash_uicr
-flash_uicr: 
-	@echo ===== Writing UICR register =====
+.PHONY: validation_bit
+validation_bit: 
+	@echo ===== Writing validation bit =====
 	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
 
-.PHONY: uicr_test
-uicr_test: erase flash_uicr flash_softdevice flash
+.PHONY: flash_validation_debug
+flash_validation_debug: erase validation_bit flash_softdevice flash
 
-.PHONY: uicr_release
-uicr_release: erase flash_uicr flash_softdevice flash_bootloader flash_release
+.PHONY: flash_validation
+flash_validation: erase validation_bit flash_softdevice flash_bootloader flash_release
 
 #
 # Cycle LEDs build
