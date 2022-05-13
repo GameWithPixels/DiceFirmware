@@ -93,12 +93,6 @@ namespace Die
         PowerManager::feed();
     }
 
-    // Callback for explicitly skipping PowerManager::feed to allow sleep mode despite animations
-	void skipFeed(void* token)
-	{
-		return;
-	}
-
     /// ***********************************************************************
     /// Init function validation checks:
     ///
@@ -328,14 +322,9 @@ namespace Die
                 bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
                 bool inValidation = Utils::inValidation();
 
-                if (inValidation)
+                if (!inValidation)
                 {
-                    // Want to go to sleep mode despite animations
-		            AnimController::hook(skipFeed, nullptr);
-                }
-                else 
-                {
-                    // Want to prevent sleep mode due to animations
+                    // Want to prevent sleep mode due to animations while not in validation
                     AnimController::hook(feed, nullptr);
                 }
 
