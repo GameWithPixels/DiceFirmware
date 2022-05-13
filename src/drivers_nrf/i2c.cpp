@@ -48,6 +48,12 @@ namespace I2C
         NRF_LOG_INFO("I2C Initialized with freq=%d", (int)freq);
     }
 
+    void deinit()
+    {
+        // Disable I2C bus
+        nrf_drv_twi_disable(&m_twi);
+    }
+
     bool write(uint8_t device, uint8_t value, bool no_stop)
     {
         return write(device, &value, 1, no_stop);

@@ -433,6 +433,10 @@ namespace Stack
         err_code = ble_conn_params_init(&cp_init);
         APP_ERROR_CHECK(err_code);
 
+        // Set TX Power to max
+        err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, m_advertising.adv_handle, 4); 
+        APP_ERROR_CHECK(err_code); 
+
         // Copy advertising data for later, when we update the manufacturer data
         memcpy(&adv_data, &init.advdata, sizeof(ble_advdata_t));
         memcpy(&sr_data, &init.srdata, sizeof(ble_advdata_t));

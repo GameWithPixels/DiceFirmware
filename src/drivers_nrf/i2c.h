@@ -11,6 +11,7 @@ namespace DriversNRF
 	namespace I2C
 	{
 		void init();
+        void deinit();
 
 		bool write(uint8_t device, uint8_t value, bool no_stop = false);
 		bool write(uint8_t device, const uint8_t* data, size_t size, bool no_stop = false);

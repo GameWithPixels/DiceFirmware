@@ -164,7 +164,7 @@ namespace KXTJ3
 
 		standby();
 
-        // enable interrupt on all axis any direction - Latched
+        // Enable interrupt on all axis any direction
     	I2C::writeRegister(devAddress, INT_CTRL_REG2, 0b00111111);
 
     	// Set WAKE-UP (motion detect) Threshold
@@ -175,20 +175,26 @@ namespace KXTJ3
 	    // WAKEUP_COUNTER (counts) = Wake-Up Delay Time (sec) x Wake-Up Function ODR(Hz)
 	    I2C::writeRegister(devAddress, WAKEUP_COUNTER, wakeUpCount);
 
-        // Enable interrupt, active High, latched
-        uint8_t _reg2 = I2C::readRegister(devAddress, INT_CTRL_REG1);
-        _reg2 |= 0b00100010;
-		I2C::writeRegister(devAddress, INT_CTRL_REG1, _reg2);
+        // Enable interrupt, active Low, latched
+        uint8_t _int_reg1 = I2C::readRegister(devAddress, INT_CTRL_REG1);
+        _int_reg1 |= 0b00100010;
+		I2C::writeRegister(devAddress, INT_CTRL_REG1, _int_reg1);
 
         // WUFE – enables the Wake-Up (motion detect) function.
     	uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
     	_reg1 |= (0x01 << 1);
 		I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
 
+        // Set Wake up function data rate to lowest value (0b000 <==> 0.781Hz)
+        uint8_t _reg2 = I2C::readRegister(devAddress, CTRL_REG2);
+        _reg2 &= 0b11111000;
+		I2C::writeRegister(devAddress, CTRL_REG2, _reg2);
+
+
 		active();
 	}
 
-    	void disableInterrupt()
+    void disableInterrupt()
 	{
 		standby();
 
