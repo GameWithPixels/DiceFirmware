@@ -27,7 +27,6 @@ namespace Modules::ValidationManager
     static AnimationName nameAnim;
     static bool isPlaying;
 
-    void skipFeed(void *token);
     void stopNameAnim();
     void startNameAnim();
     void onConnection(void *token, bool connected);

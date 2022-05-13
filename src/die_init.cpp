@@ -369,7 +369,6 @@ namespace Die
                 else if (!loopAnim) {
                     BehaviorController::onDiceInitialized();
                 }
-            #endif
             });
         });
     }
