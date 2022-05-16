@@ -4,7 +4,7 @@ PUBLISH_DIRECTORY = binaries
 PROJ_DIR = .
 SDK_VER = 17
 
-VERSION = 05_10_22
+VERSION = 05_16_22
 
 # Debug flags
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
@@ -459,7 +459,7 @@ hex_cycleleds: firmware_cycleleds settings_cycleleds
 
 .PHONY: flash_cycleleds
 flash_cycleleds: erase hex_cycleleds
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex --sectorerase --verify --reset
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex --chiperase --verify --reset
 
 #
 # Publishing commands
