@@ -89,13 +89,13 @@ namespace Die
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, nullptr, PlayLEDAnim);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, nullptr, StopLEDAnim);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_Sleep, nullptr, EnterSleepMode);
+        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRollState, nullptr, RequestStateHandler);
 
-		NRF_LOG_INFO("Main Logic Initialized");
+        NRF_LOG_INFO("Main Logic Initialized");
     }
 
     void initDieLogic() 
     {
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestState, nullptr, RequestStateHandler);
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetStandardState, nullptr, EnterStandardState);
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetLEDAnimState, nullptr, EnterLEDAnimState);
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetBattleState, nullptr, EnterBattleState);
@@ -111,25 +111,16 @@ namespace Die
         NRF_LOG_INFO("Die Logic Initialized");
     }
 
-    void initDebugLogic() 
-    {
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestState, nullptr, RequestStateHandler);
-
-        BatteryController::hook(onBatteryStateChange, nullptr);
-
-		NRF_LOG_INFO("DEBUG FIRMWARE Initialized");
-    }
-
     void RequestStateHandler(void* token, const Message* message) {
         SendRollState(Accelerometer::currentRollState(), Accelerometer::currentFace());
     }
 
     void SendRollState(Accelerometer::RollState rollState, int face) {
         // Central asked for the die state, return it!
-        Bluetooth::MessageDieState currentStateMsg;
-        currentStateMsg.state = (uint8_t)rollState;
-        currentStateMsg.face = (uint8_t)face;
-        Bluetooth::MessageService::SendMessage(&currentStateMsg);
+        Bluetooth::MessageRollState rollStateMsg;
+        rollStateMsg.state = (uint8_t)rollState;
+        rollStateMsg.face = (uint8_t)face;
+        Bluetooth::MessageService::SendMessage(&rollStateMsg);
     }
 
     void WhoAreYouHandler(void* token, const Message* message) {
