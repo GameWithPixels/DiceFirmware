@@ -20,6 +20,7 @@ SDK_ROOT := C:/nRF5_SDK
 
 # SoftDevice image filename and path
 # Download latest SoftDevice here: https://www.nordicsemi.com/Products/Development-software/s112/download
+# but do not update the SDK header files!
 #SOFTDEVICE_HEX_FILE := s112_nrf52_7.0.1_softdevice.hex
 #SOFTDEVICE_HEX_FILE := s112_nrf52_7.2.0_softdevice.hex
 SOFTDEVICE_HEX_FILE := s112_nrf52_7.3.0_softdevice.hex
