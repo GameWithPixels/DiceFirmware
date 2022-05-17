@@ -1,8 +1,6 @@
 #include "accelerometer.h"
 
-#include "drivers_hw/lis2de12.h"
-#include "drivers_hw/kxtj3-1057.h"
-#include "drivers_hw/mxc4005xc.h"
+#include "drivers_hw/accel_chip.h"
 #include "utils/utils.h"
 #include "core/ring_buffer.h"
 #include "config/board_config.h"
@@ -71,30 +69,13 @@ namespace Accelerometer
 	void update(void* context);
 
     void init() {
-        auto board = Config::BoardManager::getBoard();
 
-		// Accel pins depend on the board info
-		switch (board->accModel) {
-			case Config::AccelerometerModel::LID2DE12:
-				LIS2DE12::init();
-				break;
-			case Config::AccelerometerModel::MXC4005XC:
-				MXC4005XC::init();
-				break;
-			case Config::AccelerometerModel::KXTJ3_1057:
-				KXTJ3::init();
-				break;
-			default:
-				NRF_LOG_ERROR("Invalid Accelerometer Model");
-				break;
-		}
+        AccelChip::init();
 
         MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, nullptr, CalibrateHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, nullptr, CalibrateFaceHandler);
 
 		Flash::hookProgrammingEvent(onSettingsProgrammingEvent, nullptr);
-
-        accelerometerModel = board->accModel;
 
 		face = 0;
 		confidence = 0.0f;
@@ -115,23 +96,9 @@ namespace Accelerometer
 		// ret_code_t ret_code = app_timer_create(&accelControllerTimer, APP_TIMER_MODE_REPEATED, update);
 		// APP_ERROR_CHECK(ret_code);
 
-
 		start();
 		NRF_LOG_INFO("Accelerometer initialized with accelerometerModel=%d", (int)accelerometerModel);
 	}
-
-    void MXC4005XCHandler(void* param, const Core::float3& acc, float temp) {
-        AccHandler(acc);
-    }
-
-    void LIS2DE12Handler(void* param, const Core::float3& acc) {
-        AccHandler(acc);
-    }
-
-    void KXTJ3Handler(void* param, const Core::float3& acc) {
-        AccHandler(acc);
-    }
-
 
     void update(void* context) {
         Core::float3 acc;
@@ -139,7 +106,7 @@ namespace Accelerometer
         AccHandler(acc);
     }
 
-    void AccHandler(const Core::float3& acc) {
+    void AccHandler(void* param, const Core::float3& acc) {
 
 		auto settings = SettingsManager::getSettings();
 		auto& lastFrame = buffer.last();
@@ -262,8 +229,6 @@ namespace Accelerometer
 	{
 		NRF_LOG_INFO("Starting accelerometer");
         
-        auto board = Config::BoardManager::getBoard();
-
 		// Set initial value
 		float3 acc;
         readAccelerometer(&acc);
@@ -278,25 +243,7 @@ namespace Accelerometer
             rollState = RollState_Crooked;
         }
 
-		// Accel pins depend on the board info
-		switch (board->accModel) {
-			case Config::AccelerometerModel::LID2DE12:
-				LIS2DE12::hook(LIS2DE12Handler, nullptr);
-                // {
-              	// 	ret_code_t ret_code = app_timer_start(accelControllerTimer, APP_TIMER_TICKS(500), NULL);
-            	// 	APP_ERROR_CHECK(ret_code);
-                // }
-				break;
-			case Config::AccelerometerModel::MXC4005XC:
-				MXC4005XC::hook(MXC4005XCHandler, nullptr);
-				break;
-			case Config::AccelerometerModel::KXTJ3_1057:
-				KXTJ3::hook(KXTJ3Handler, nullptr);
-                break;
-			default:
-				NRF_LOG_ERROR("Invalid Accelerometer Model");
-				break;
-		}
+        AccelChip::hook(AccHandler, nullptr);
 	}
 
 	/// <summary>
@@ -304,27 +251,7 @@ namespace Accelerometer
 	/// </summary>
 	void stop()
 	{
-        auto board = Config::BoardManager::getBoard();
-
-		// Accel pins depend on the board info
-		switch (board->accModel) {
-			case Config::AccelerometerModel::LID2DE12:
-				LIS2DE12::unHook(LIS2DE12Handler);
-                // {
-                //     ret_code_t ret_code = app_timer_stop(accelControllerTimer);
-                //     APP_ERROR_CHECK(ret_code);
-                // }
-				break;
-			case Config::AccelerometerModel::MXC4005XC:
-				MXC4005XC::unHook(MXC4005XCHandler);
-				break;
-			case Config::AccelerometerModel::KXTJ3_1057:
-				KXTJ3::unHook(KXTJ3Handler);
-				break;
-			default:
-				NRF_LOG_ERROR("Invalid Accelerometer Model");
-				break;
-		}
+        AccelChip::unHook(AccHandler);
 		NRF_LOG_INFO("Stopped accelerometer");
 	}
 
@@ -637,72 +564,24 @@ namespace Accelerometer
 		}
 	}
 
-    void readAccelerometer(float3* acc) {
-        switch (accelerometerModel) {
-            case Config::AccelerometerModel::LID2DE12:
-                LIS2DE12::read(acc);
-                break;
-            case Config::AccelerometerModel::MXC4005XC:
-                MXC4005XC::read(acc);
-                break;
-            case Config::AccelerometerModel::KXTJ3_1057:
-                KXTJ3::read(acc);
-                break;
-            default:
-                NRF_LOG_ERROR("Invalid Accelerometer Model");
-                break;
-        }
+    void readAccelerometer(float3* acc) 
+    {
+        AccelChip::read(acc);
     }
 
-    void enableInterrupt() {
-        switch (accelerometerModel) {
-            case Config::AccelerometerModel::LID2DE12:
-                LIS2DE12::enableInterrupt();
-                break;
-            case Config::AccelerometerModel::KXTJ3_1057:
-                KXTJ3::enableInterrupt();
-                break;
-            case Config::AccelerometerModel::MXC4005XC:
-                MXC4005XC::enableInterrupt();
-                break;
-            default:
-                NRF_LOG_ERROR("Invalid Accelerometer Model");
-                break;
-        }
+    void enableInterrupt() 
+    {
+        AccelChip::enableInterrupt();
     }
 
-    void disableInterrupt() {
-        switch (accelerometerModel) {
-            case Config::AccelerometerModel::LID2DE12:
-                LIS2DE12::disableInterrupt();
-                break;
-            case Config::AccelerometerModel::KXTJ3_1057:
-                KXTJ3::disableInterrupt();
-                break;
-            case Config::AccelerometerModel::MXC4005XC:
-                MXC4005XC::disableInterrupt();
-                break;
-            default:
-                NRF_LOG_ERROR("Invalid Accelerometer Model");
-                break;
-        }
+    void disableInterrupt() 
+    {
+        AccelChip::disableInterrupt();
     }
 
-    void clearInterrupt() {
-        switch (accelerometerModel) {
-            case Config::AccelerometerModel::LID2DE12:
-                LIS2DE12::clearInterrupt();
-                break;
-            case Config::AccelerometerModel::KXTJ3_1057:
-                KXTJ3::clearInterrupt();
-                break;
-            case Config::AccelerometerModel::MXC4005XC:
-                MXC4005XC::clearInterrupt();
-                break;
-            default:
-                NRF_LOG_ERROR("Invalid Accelerometer Model");
-                break;
-        }
+    void clearInterrupt() 
+    {
+        AccelChip::clearInterrupt();
     }
 
 	bool checkIntPin() {

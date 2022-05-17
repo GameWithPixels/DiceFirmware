@@ -1,4 +1,4 @@
-#include "kxtj3-1057.h"
+#include "accel_chip.h"
 #include "drivers_nrf/i2c.h"
 #include "nrf_log.h"
 #include "core/float3.h"
@@ -14,7 +14,7 @@ using namespace Config;
 
 namespace DriversHW
 {
-namespace KXTJ3
+namespace AccelChip
 {
 
     enum Registers
@@ -80,7 +80,7 @@ namespace KXTJ3
     const uint8_t wakeUpCount = 1;
 
     #define MAX_CLIENTS 2
-	DelegateArray<KXTJ3ClientMethod, MAX_CLIENTS> clients;
+	DelegateArray<AccelClientMethod, MAX_CLIENTS> clients;
 
     void ApplySettings();
 	void standby();
@@ -283,7 +283,7 @@ namespace KXTJ3
 	/// <summary>
 	/// Method used by clients to request timer callbacks when accelerometer readings are in
 	/// </summary>
-	void hook(KXTJ3ClientMethod method, void* parameter)
+	void hook(AccelClientMethod method, void* parameter)
 	{
 		if (!clients.Register(parameter, method))
 		{
@@ -294,7 +294,7 @@ namespace KXTJ3
 	/// <summary>
 	/// Method used by clients to stop getting accelerometer reading callbacks
 	/// </summary>
-	void unHook(KXTJ3ClientMethod method)
+	void unHook(AccelClientMethod method)
 	{
 		clients.UnregisterWithHandler(method);
 	}
