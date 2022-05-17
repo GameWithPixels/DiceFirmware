@@ -18,7 +18,7 @@ namespace Log
         // No error code to check
         NRF_LOG_DEFAULT_BACKENDS_INIT();
 
-        NRF_LOG_INFO("---------------");
+        NRF_LOG_INFO("----- Initializing -----");
         NRF_LOG_INFO("Log initialized");
 
         // Not needed for validation

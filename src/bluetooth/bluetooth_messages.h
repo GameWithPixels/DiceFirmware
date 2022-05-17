@@ -23,7 +23,7 @@ struct Message
 		MessageType_None = 0,
 		MessageType_WhoAreYou,
 		MessageType_IAmADie,
-		MessageType_State,
+		MessageType_RollState,
 		MessageType_Telemetry,
 		MessageType_BulkSetup,
 		MessageType_BulkSetupAck,
@@ -44,7 +44,7 @@ struct Message
 		MessageType_PlayAnimEvent,
 		MessageType_StopAnim,
 		MessageType_PlaySound,
-		MessageType_RequestState,
+		MessageType_RequestRollState,
 		MessageType_RequestAnimSet,
 		MessageType_RequestSettings,
 		MessageType_RequestTelemetry,
@@ -74,6 +74,8 @@ struct Message
 		MessageType_SetCurrentBehaviorAck,
 		MessageType_SetName,
 		MessageType_SetNameAck,
+        MessageType_Sleep,
+        MessageType_ExitValidation,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -88,7 +90,7 @@ struct Message
 		MessageType_SetDebugFlags,
 		MessageType_SetDebugFlagsAck,
 
-		MessageType_Count
+		MessageType_Count,
 	};
 
 	MessageType type;
@@ -122,13 +124,13 @@ struct MessageIAmADie
 /// <summary>
 /// Describes a state change detection message
 /// </summary>
-struct MessageDieState
+struct MessageRollState
 	: public Message
 {
 	uint8_t state;
 	uint8_t face;
 
-	inline MessageDieState() : Message(Message::MessageType_State) {}
+	inline MessageRollState() : Message(Message::MessageType_RollState) {}
 };
 
 /// <summary>
@@ -415,6 +417,18 @@ struct MessageSetDebugFlags
 	uint32_t debugFlags;												// Combination of values from DebugFlags enum
 	Config::SettingsManager::ProgrammingOperation programmingOperation; // 8 bits, 0: add, 1:remove, 2: replace
 	inline MessageSetDebugFlags() : Message(Message::MessageType_SetDebugFlags) {}
+};
+
+struct MessageSleep
+: public Message
+{
+	inline MessageSleep() : Message(Message::MessageType_Sleep) {}
+};
+
+struct MessageExitValidation
+: public Message
+{
+	inline MessageExitValidation() : Message(Message::MessageType_ExitValidation) {}
 };
 
 }

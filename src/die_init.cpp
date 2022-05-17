@@ -38,6 +38,8 @@
 #include "modules/behavior_controller.h"
 #include "modules/hardware_test.h"
 #include "modules/rssi_controller.h"
+#include "utils/Utils.h"
+#include "modules/validation_manager.h"
 
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
@@ -76,13 +78,30 @@ namespace Die
         static AnimationCycle anim;
         anim.type = Animation_Cycle;
         anim.duration = 25000;
-        anim.faceMask = 0xFFFFF;
+        anim.faceMask = ANIM_FACEMASK_ALL_LEDS;
         anim.count = 1;
         anim.fade = 0;
         anim.rainbow = 0;
 
         NRF_LOG_INFO("Loop cycle animation");
         AnimController::play(&anim, nullptr, 0, true); // Loop forever!
+    }
+
+    // Callback for calling PowerManager::feed to prevent sleep mode due to animations
+    void feed(void* token)  {
+        PowerManager::feed();
+    }
+
+    void printDeviceInfo() {
+        #if NRF_LOG_ENABLED
+            uint8_t name[sizeof(((Settings*)nullptr)->name)];
+            uint16_t len = sizeof(name);
+            sd_ble_gap_device_name_get(name, &len);
+            name[std::min(len, (uint16_t)sizeof(name))] = 0;
+            NRF_LOG_INFO("Device info:");
+            NRF_LOG_INFO(" - id: 0x%x", getDeviceID());
+            NRF_LOG_INFO(" - name: %s", name);
+        #endif
     }
 
     /// ***********************************************************************
@@ -311,7 +330,15 @@ namespace Die
                 // Battery controller relies on the battery driver
                 BatteryController::init();
 
-                bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
+                const bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
+                const bool inValidation = ValidationManager::inValidation();
+
+                if (!inValidation)
+                {
+                    // Want to prevent sleep mode due to animations while not in validation
+                    AnimController::hook(feed, nullptr);
+                }
+
                 if (loopAnim) {
                     loopCycleAnimation();
                 }
@@ -332,20 +359,30 @@ namespace Die
                 // Start advertising!
                 Stack::startAdvertising();
 
-            #if defined(DEBUG_FIRMWARE)
-                initDebugLogic();
-                NRF_LOG_INFO("---------------");
-            #else
-                // Initialize main logic manager
+                // Initialize common logic
                 initMainLogic();
-                NRF_LOG_INFO("---------------");
+
+                // Skip registering unecessary BLE messages in validation mode
+                if (!inValidation)
+                {
+                    // Initialize main die logic
+                    initDieLogic();
+                }
 
                 // Entering the main loop! Play Hello! anim
-                // if not using loop anim and not resetting from sleep
-                if (!loopAnim) {
+                // if in validation mode
+                if (inValidation) {
+                    ValidationManager::init();
+                    ValidationManager::onDiceInitialized();
+                }
+                // if not using loop anim
+                else if (!loopAnim) {
                     BehaviorController::onDiceInitialized();
                 }
-            #endif
+
+                // Print name and id
+                printDeviceInfo();
+                NRF_LOG_INFO("----- Device initialized! -----");
             });
         });
     }

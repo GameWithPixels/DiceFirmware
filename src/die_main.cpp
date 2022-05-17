@@ -80,20 +80,26 @@ namespace Die
 	void EnterStandardState(void* context, const Message* msg);
 	void EnterLEDAnimState(void* context, const Message* msg);
 	void EnterBattleState(void* context, const Message* msg);
-
+    void EnterSleepMode(void* token, const Message* message);
     void onConnection(void* token, bool connected);
 
-    void initMainLogic() {
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestState, nullptr, RequestStateHandler);
-
+    void initMainLogic() 
+    {
         Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_WhoAreYou, nullptr, WhoAreYouHandler);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, nullptr, PlayLEDAnim);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, nullptr, StopLEDAnim);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_Sleep, nullptr, EnterSleepMode);
+        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRollState, nullptr, RequestStateHandler);
+
+        NRF_LOG_INFO("Main Logic Initialized");
+    }
+
+    void initDieLogic() 
+    {
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetStandardState, nullptr, EnterStandardState);
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetLEDAnimState, nullptr, EnterLEDAnimState);
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetBattleState, nullptr, EnterBattleState);
-		//Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_AttractMode, nullptr, StartAttractMode);
-
+        
         Bluetooth::Stack::hook(onConnection, nullptr);
 
         BatteryController::hook(onBatteryStateChange, nullptr);
@@ -102,19 +108,7 @@ namespace Die
 
         currentFace = Accelerometer::currentFace();
 
-		NRF_LOG_INFO("Main Die Logic Initialized");
-    }
-
-    void initDebugLogic() {
-
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestState, nullptr, RequestStateHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_WhoAreYou, nullptr, WhoAreYouHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, nullptr, PlayLEDAnim);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, nullptr, StopLEDAnim);
-
-        BatteryController::hook(onBatteryStateChange, nullptr);
-
-		NRF_LOG_INFO("DEBUG FIRMWARE Initialized");
+        NRF_LOG_INFO("Die Logic Initialized");
     }
 
     void RequestStateHandler(void* token, const Message* message) {
@@ -123,10 +117,10 @@ namespace Die
 
     void SendRollState(Accelerometer::RollState rollState, int face) {
         // Central asked for the die state, return it!
-        Bluetooth::MessageDieState currentStateMsg;
-        currentStateMsg.state = (uint8_t)rollState;
-        currentStateMsg.face = (uint8_t)face;
-        Bluetooth::MessageService::SendMessage(&currentStateMsg);
+        Bluetooth::MessageRollState rollStateMsg;
+        rollStateMsg.state = (uint8_t)rollState;
+        rollStateMsg.face = (uint8_t)face;
+        Bluetooth::MessageService::SendMessage(&rollStateMsg);
     }
 
     void WhoAreYouHandler(void* token, const Message* message) {
@@ -233,6 +227,10 @@ namespace Die
                 // Nothing to do
                 break;
        }
+    }
+
+    void EnterSleepMode(void* token, const Message* msg) {
+        PowerManager::goToSystemOff();
     }
 
 	uint32_t getDeviceID()
