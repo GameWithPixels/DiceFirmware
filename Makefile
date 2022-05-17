@@ -34,6 +34,7 @@ BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX
 
 # Filename for the zip file used for DFU over Bluetooth
 ZIP_FILE := firmware_$(VERSION)_sdk$(SDK_VER).zip
+VALIDATION_ZIP := firmware_validation_$(VERSION)_sdk$(SDK_VER).zip
 
 LINKER_SCRIPT = Firmware.ld
 
@@ -428,20 +429,6 @@ flash_ble: zip
 	@echo Flashing: $(ZIP_FILE) over BLE DFU
 	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
-#
-# Validation build
-#
-
-.PHONY: validation_bit
-validation_bit: 
-	@echo ===== Writing validation bit =====
-	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
-
-.PHONY: flash_validation_debug
-flash_validation_debug: erase validation_bit flash_softdevice flash
-
-.PHONY: flash_validation
-flash_validation: erase validation_bit flash_softdevice flash_bootloader flash_release
 
 #
 # Cycle LEDs build
@@ -460,6 +447,33 @@ hex_cycleleds: firmware_cycleleds settings_cycleleds
 .PHONY: flash_cycleleds
 flash_cycleleds: erase hex_cycleleds
 	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex --chiperase --verify --reset
+
+#
+# Validation commands
+#
+
+# UICR_bit.hex file uses the intel hex format:
+# https://www.intel.com/content/www/us/en/support/programmable/articles/000076770.html
+# Each byte following the ':' follows this format:
+# Record length (1B), load addr (2B), record type (1B - types outlined in above documentation),
+# 	data (number of bytes specified in record length), checksum (2's complement of sum of all bytes)
+
+.PHONY: validation_bit
+validation_bit: 
+	@echo ===== Writing validation bit =====
+	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
+
+.PHONY: hex_validation
+hex_validation: hex_release
+	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_ValidationModeEnabled.hex -o $(OUTPUT_DIRECTORY)/full_firmware_validation.hex
+
+.PHONY: flash_validation
+flash_validation: erase hex_validation
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --chiperase --verify --reset
+
+.PHONY: zip_validation
+zip_validation: hex_validation
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(VALIDATION_ZIP)
 
 #
 # Publishing commands
