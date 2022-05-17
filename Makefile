@@ -429,20 +429,6 @@ flash_ble: zip
 	@echo Flashing: $(ZIP_FILE) over BLE DFU
 	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
-#
-# Validation build
-#
-
-.PHONY: validation_bit
-validation_bit: 
-	@echo ===== Writing validation bit =====
-	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
-
-.PHONY: flash_validation_debug
-flash_validation_debug: erase validation_bit flash_softdevice flash
-
-.PHONY: flash_validation
-flash_validation: erase validation_bit flash_softdevice flash_bootloader flash_release
 
 #
 # Cycle LEDs build
@@ -471,6 +457,11 @@ flash_cycleleds: erase hex_cycleleds
 # Each byte following the ':' follows this format:
 # Record length (1B), load addr (2B), record type (1B - types outlined in above documentation),
 # 	data (number of bytes specified in record length), checksum (2's complement of sum of all bytes)
+
+.PHONY: validation_bit
+validation_bit: 
+	@echo ===== Writing validation bit =====
+	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
 
 .PHONY: hex_validation
 hex_validation: hex_release
