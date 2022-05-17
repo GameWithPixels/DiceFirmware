@@ -4,7 +4,7 @@ Modified by Jean Simonet, Systemic Games
 
 ******************************************************************************/
 
-#include "mxc4005xc.h"
+#include "accel_chip.h"
 #include "drivers_nrf/i2c.h"
 #include "nrf_log.h"
 #include "drivers_nrf/log.h"
@@ -25,7 +25,7 @@ using namespace Config;
 
 namespace DriversHW
 {
-namespace MXC4005XC
+namespace AccelChip
 {
     // MXC4005XC Register Definitions
     enum Registers : uint8_t
@@ -84,7 +84,7 @@ namespace MXC4005XC
     #define SENSITIVITY (1.0f / (float)(1024 >> RANGE))
 
     #define MAX_CLIENTS 2
-	DelegateArray<MXC4005ClientMethod, MAX_CLIENTS> clients;
+	DelegateArray<AccelClientMethod, MAX_CLIENTS> clients;
 
     #define READING_COUNTS 10
     int16_t zoffset = 0;
@@ -118,7 +118,6 @@ namespace MXC4005XC
     void reset();
     int AccAozHandle(float tmpr,float zoff, int z_dir);
     void SetAozPara(float offset);
-    void enableDataInterrupt();
     void clearDataInterrupt();
 
 	/// <summary>
@@ -221,10 +220,10 @@ namespace MXC4005XC
                 acc.x = (float)sumsCopy->xSum * SENSITIVITY / sumsCopy->count;
                 acc.y = (float)sumsCopy->ySum * SENSITIVITY / sumsCopy->count;
                 acc.z = (float)sumsCopy->zSum * SENSITIVITY / sumsCopy->count;
-                float temp = ((float)sumsCopy->tSum * T_SENSITIVITY / sumsCopy->count) + T_ZERO;
+                //float temp = ((float)sumsCopy->tSum * T_SENSITIVITY / sumsCopy->count) + T_ZERO;
 
 				for (int i = 0; i < clients.Count(); ++i) {
-					clients[i].handler(clients[i].token, acc, temp);
+					clients[i].handler(clients[i].token, acc);
 				}
             });
 
@@ -259,6 +258,15 @@ namespace MXC4005XC
 			NRF_GPIOTE_POLARITY_HITOLO,
 			dataInterruptHandler);
 	}
+
+    void disableDataInterrupt()
+    {
+        // Disable interrupt pin
+		GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
+
+        // Disable interrupt on data ready
+		I2C::writeRegister(devAddress, INT_MASK1, 0b00000000);
+    }
 
     void clearDataInterrupt() {
         I2C::writeRegister(devAddress, INT_CLR1, 0b00000001);
@@ -303,7 +311,7 @@ namespace MXC4005XC
 	/// <summary>
 	/// Method used by clients to request timer callbacks when accelerometer readings are in
 	/// </summary>
-	void hook(MXC4005ClientMethod method, void* parameter)
+	void hook(AccelClientMethod method, void* parameter)
 	{
 		if (!clients.Register(parameter, method))
 		{
@@ -314,7 +322,7 @@ namespace MXC4005XC
 	/// <summary>
 	/// Method used by clients to stop getting accelerometer reading callbacks
 	/// </summary>
-	void unHook(MXC4005ClientMethod method)
+	void unHook(AccelClientMethod method)
 	{
 		clients.UnregisterWithHandler(method);
 	}
