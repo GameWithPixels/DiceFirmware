@@ -38,21 +38,20 @@ namespace Modules
     {
         APP_TIMER_DEF(accelControllerTimer);
 
-        int face;
-        float confidence;
-        float sigma;
-        float3 smoothAcc;
-        RollState rollState = RollState_Unknown;
-        bool moving = false;
-        float3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
-        bool paused;
-        Config::AccelerometerModel accelerometerModel;
+        static int face;
+        static float confidence;
+        static float sigma;
+        static float3 smoothAcc;
+        static RollState rollState = RollState_Unknown;
+        static float3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
+        static bool paused;
+        static Config::AccelerometerModel accelerometerModel;
 
         // This small buffer stores about 1 second of Acceleration data
-        Core::RingBuffer<AccelFrame, ACCEL_BUFFER_SIZE> buffer;
+        static Core::RingBuffer<AccelFrame, ACCEL_BUFFER_SIZE> buffer;
 
-        DelegateArray<FrameDataClientMethod, MAX_ACC_CLIENTS> frameDataClients;
-        DelegateArray<RollStateClientMethod, MAX_ACC_CLIENTS> rollStateClients;
+        static DelegateArray<FrameDataClientMethod, MAX_ACC_CLIENTS> frameDataClients;
+        static DelegateArray<RollStateClientMethod, MAX_ACC_CLIENTS> rollStateClients;
 
         void updateState();
         void pauseNotifications();
@@ -71,7 +70,6 @@ namespace Modules
 
         void init()
         {
-
             AccelChip::init();
 
             MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, nullptr, CalibrateHandler);
@@ -111,7 +109,6 @@ namespace Modules
 
         void AccHandler(void *param, const Core::float3 &acc)
         {
-
             auto settings = SettingsManager::getSettings();
             auto &lastFrame = buffer.last();
 
@@ -426,7 +423,9 @@ namespace Modules
 
             CalibrationNormals() : calibrationInterrupted(false) {}
         };
-        CalibrationNormals *measuredNormals = nullptr;
+
+        static CalibrationNormals *measuredNormals = nullptr;
+
         void onConnectionLost(void *param, bool connected)
         {
             if (!connected)
@@ -435,7 +434,6 @@ namespace Modules
 
         void CalibrateHandler(void *context, const Message *msg)
         {
-
             // Turn off state change notifications
             stop();
             Bluetooth::Stack::hook(onConnectionLost, nullptr);
@@ -609,17 +607,18 @@ namespace Modules
                 // We don't want accel. to wake system in validation mode
                 if (!ValidationManager::inValidation())
                 {
-                    // Setup interrupt to wake the device up
-                    NRF_LOG_INFO("Setting accelerometer to trigger interrupt");
+					NRF_LOG_INFO("Setting interrupt to wake the device up");
 
-                    // Set interrupt pin
+					// Set interrupt pin
                     nrf_gpio_cfg_sense_input(BoardManager::getBoard()->accInterruptPin, NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_SENSE_LOW);
                     enableInterrupt();
                 }
                 else
-                    NRF_LOG_INFO("Skipping wake up configuration due to validation mode");
-            }
-        }
+				{
+					NRF_LOG_INFO("Skipping setting interrupt to wake the device up due to validation mode");
+				}
+			}
+		}
 
         void readAccelerometer(float3 *acc)
         {
