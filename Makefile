@@ -455,15 +455,15 @@ flash_factory: erase hex_factory
 
 .PHONY: hex_validation
 hex_validation: hex_release
-	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_bit.hex -o $(OUTPUT_DIRECTORY)/firmware_validation.hex
+	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_ValidationModeEnabled.hex -o $(OUTPUT_DIRECTORY)/full_firmware_validation.hex
 
 .PHONY: flash_validation
 flash_validation: erase hex_validation
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/firmware_validation.hex --chiperase --verify --reset
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --chiperase --verify --reset
 
 .PHONY: zip_validation
 zip_validation: hex_validation
-	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware_validation.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(VALIDATION_ZIP)
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(VALIDATION_ZIP)
 
 #
 # Publishing commands
