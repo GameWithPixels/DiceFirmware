@@ -118,7 +118,6 @@ namespace AccelChip
     void reset();
     int AccAozHandle(float tmpr,float zoff, int z_dir);
     void SetAozPara(float offset);
-    void enableDataInterrupt();
     void clearDataInterrupt();
 
 	/// <summary>
