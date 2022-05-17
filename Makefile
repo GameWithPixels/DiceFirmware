@@ -447,6 +447,12 @@ flash_factory: erase hex_factory
 # Validation commands
 #
 
+# UICR_bit.hex file uses the intel hex format:
+# https://www.intel.com/content/www/us/en/support/programmable/articles/000076770.html
+# Each byte following the ':' follows this format:
+# Record length (1B), load addr (2B), record type (1B - types outlined in above documentation),
+# 	data (number of bytes specified in record length), checksum (2's complement of sum of all bytes)
+
 .PHONY: hex_validation
 hex_validation: hex_release
 	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_bit.hex -o $(OUTPUT_DIRECTORY)/firmware_validation.hex
