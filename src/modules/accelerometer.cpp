@@ -77,8 +77,6 @@ namespace Accelerometer
 
 		Flash::hookProgrammingEvent(onSettingsProgrammingEvent, nullptr);
 
-        //accelerometerModel = board->accModel;
-
 		face = 0;
 		confidence = 0.0f;
 		smoothAcc = float3::zero();
@@ -97,7 +95,6 @@ namespace Accelerometer
 		// // Create the accelerometer timer
 		// ret_code_t ret_code = app_timer_create(&accelControllerTimer, APP_TIMER_MODE_REPEATED, update);
 		// APP_ERROR_CHECK(ret_code);
-
 
 		start();
 		NRF_LOG_INFO("Accelerometer initialized with accelerometerModel=%d", (int)accelerometerModel);
