@@ -448,6 +448,11 @@ validation_bit:
 	@echo ===== Writing validation bit =====
 	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
 
+.PHONY: exit_validation_bit
+exit_validation_bit: 
+	@echo ===== Writing exit validation bit =====
+	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFC
+
 .PHONY: hex_validation
 hex_validation: hex_release
 	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_ValidationModeEnabled.hex -o $(OUTPUT_DIRECTORY)/full_firmware_validation.hex
