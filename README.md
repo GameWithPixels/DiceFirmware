@@ -56,6 +56,11 @@ You may use Nordic's [nRF Toolbox](https://www.nordicsemi.com/Products/Developme
 app to push a firmware update to a Pixel. Once the app is started, scroll down and tap on
 "Device Firmware Upgrade (DFU)" and then "Connect".
 
+*Note*: the Bootloader DFU inactivity timeout is set to 1 second, which currently prevents the Android
+app to connect to the die for pushing an update. This is caused by delays introduced in the Android app
+code to support old phones. This [issue](https://github.com/NordicSemiconductor/Android-DFU-Library/issues/329)
+will be eventually fixed, please use an iOS device to do a DFU via Bluetooth until then.
+
 ![Connect screen listing nearby Bluetooth devices](images/connect_screen.jpg)
 
 This page shows the scanned Bluetooth Low Energy devices. The name of any nearby Pixel should appear.
