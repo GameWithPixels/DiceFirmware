@@ -2,6 +2,7 @@
 #include "bluetooth/bluetooth_stack.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/flash.h"
+#include "drivers_nrf/power_manager.h"
 #include "data_set/data_set.h"
 #include "modules/battery_controller.h"
 #include "modules/accelerometer.h"
@@ -79,9 +80,16 @@ namespace BehaviorController
                 if (cond->checkTrigger(true)) {
                     // // Check the battery level!
                     // if (BatteryController::getCurrentLevel() > BATT_TOO_LOW_LEVEL) {
-                        NRF_LOG_INFO("Triggering a HelloGoodbye Condition");
                         // Go on, do the thing!
-                        Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
+                        if (PowerManager::checkFromSleep()) 
+                        {
+                            NRF_LOG_INFO("Skipping HelloGoodbye Condition");
+                        }
+                        else
+                        {
+                            NRF_LOG_INFO("Triggering a HelloGoodbye Condition");
+                            Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
+                        }
                     // } else {
                     //     NRF_LOG_INFO("Skipped triggering a HelloGoodbye Condition because battery is too low");
                     // }
