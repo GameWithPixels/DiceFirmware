@@ -9,7 +9,7 @@ MEMORY
 {
   /* We have 192 KB Flash (0x30000), 24 KB RAM (0x6000) */
   /* Softdevice uses pages from 0x0 to 0x18000 included */
-  FLASH (rx) : ORIGIN = 0x19000, LENGTH = 0x13000 /* Total = 0x2C000 => max available memory in debug */
+  FLASH (rx) : ORIGIN = 0x19000, LENGTH = 0x20000 /* Total = 0x2C000 => max available memory in debug */
   RAM (rwx) :  ORIGIN = 0x20002000, LENGTH = 0x4000
   uicr_bootloader_start_address (r) : ORIGIN = 0x10001014, LENGTH = 0x4
 }

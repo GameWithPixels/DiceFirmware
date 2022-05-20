@@ -235,10 +235,14 @@ INC_FOLDERS += \
 LIB_FILES += \
 
 # Optimization flags
-OPT = -Os -g3
+#OPT = -Os -g3
 #OPT = -O0 -g3
 # Uncomment the line below to enable link time optimization
-OPT += -flto
+#OPT += -flto
+
+# !!! Build using `make firmware`. Can search through map file for app !!! #
+# !!!   symbols quickly by using find in page (ctrl+f) on string 'ZN'. !!! #
+# !!! Format:   .text._<NAME>    0x<ADDR>    0x<SIZE>                  !!! #
 
 COMMON_FLAGS = -DBL_SETTINGS_ACCESS_ONLY
 COMMON_FLAGS += -DNRF52_SERIES
