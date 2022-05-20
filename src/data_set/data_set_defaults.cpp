@@ -231,7 +231,7 @@ namespace DataSet
 		for (int c = 0; c < 3; ++c) {
             writeAnimations[3 + c].type = Animation_Simple;
             writeAnimations[3 + c].duration = 1000;
-		    writeAnimations[3 + c].faceMask = 0xFFFFF;
+            writeAnimations[3 + c].faceMask = ANIM_FACEMASK_ALL_LEDS;
             writeAnimations[3 + c].count = 2;
             writeAnimations[3 + c].fade = 255;
             writeAnimations[3 + c].colorIndex = c;

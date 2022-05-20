@@ -16,6 +16,7 @@
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "leds.h"
+#include "drivers_nrf/scheduler.h"
 
 using namespace Animations;
 using namespace Modules;
@@ -23,11 +24,12 @@ using namespace Config;
 using namespace DriversNRF;
 using namespace Bluetooth;
 
-#define MAX_ANIMS (20)
-#define TIMER2_RESOLUTION 33 //ms
+#define MAX_ANIMS 20
 
 namespace Modules::AnimController
 {
+	static DelegateArray<AnimControllerClientMethod, 1> clients;
+
 	// Our currently running animations
 	static Animations::AnimationInstance *animations[MAX_ANIMS];
 	static int animationCount = 0;
@@ -46,8 +48,16 @@ namespace Modules::AnimController
 	void animationControllerUpdate(void* param)
 	{
 		animControllerTicks++;
-		int timeMs = animControllerTicks * TIMER2_RESOLUTION;
+		int timeMs = animControllerTicks * ANIM_FRAME_DURATION;
 		update(timeMs);
+	}
+
+	// Stop all currently running animations when going to sleep
+	void onPowerEvent(void* context, nrf_pwr_mgmt_evt_t event) {
+		if (event == NRF_PWR_MGMT_EVT_PREPARE_WAKEUP) {
+			NRF_LOG_INFO("Stopping animations for sleep mode");
+			stopAll();
+		}
 	}
 
 	/// <summary>
@@ -58,6 +68,7 @@ namespace Modules::AnimController
 		Flash::hookProgrammingEvent(onProgrammingEvent, nullptr);
 		MessageService::RegisterMessageHandler(Message::MessageType_PrintAnimControllerState, nullptr, printAnimControllerState);
 		Timers::createTimer(&animControllerTimer, APP_TIMER_MODE_REPEATED, animationControllerUpdate);
+		PowerManager::hook(onPowerEvent, nullptr);
 
 		NRF_LOG_INFO("Anim Controller Initialized");
 
@@ -76,7 +87,12 @@ namespace Modules::AnimController
 		int c = b->ledCount;
 
 		if (animationCount > 0) {
-	        PowerManager::feed();
+			// Notify clients for feeding or not feeding PowerManager
+			Scheduler::push(nullptr, 0, [](void *p_event_data, uint16_t event_size) {
+				for (int i = 0; i < clients.Count(); ++i) {
+              	clients[i].handler(clients[i].token);
+            	}
+			});
 
 			// clear the global color array
 			uint32_t allColors[MAX_LED_COUNT];
@@ -165,7 +181,7 @@ namespace Modules::AnimController
 	void start()
 	{
 		NRF_LOG_INFO("Starting anim controller");
-		Timers::startTimer(animControllerTimer, TIMER2_RESOLUTION, NULL);
+		Timers::startTimer(animControllerTimer, ANIM_FRAME_DURATION, NULL);
 	}
 
 	/// <summary>
@@ -211,7 +227,7 @@ namespace Modules::AnimController
 			}
 		}
 
-		int ms = animControllerTicks * TIMER2_RESOLUTION;
+		int ms = animControllerTicks * ANIM_FRAME_DURATION;
 		if (prevAnimIndex < animationCount)
 		{
 			// Replace a previous animation
@@ -357,5 +373,24 @@ namespace Modules::AnimController
 			NRF_LOG_INFO("Anim %d is of type %d, duration %d", i, anim->animationPreset->type, anim->animationPreset->duration);
 			NRF_LOG_INFO("StartTime %d, remapFace %d, loop %d", anim->startTime, anim->remapFace, anim->loop ? 1: 0);
 		}
+	}
+
+	/// <summary>
+	/// Method used by clients to request timer callbacks
+	/// </summary>
+	void hook(AnimControllerClientMethod method, void* parameter)
+	{
+		if (!clients.Register(parameter, method))
+		{
+			NRF_LOG_ERROR("Failed to register AnimationController hook because client array is full");
+		}
+	}
+
+	/// <summary>
+	/// Method used by clients to stop getting callbacks
+	/// </summary>
+	void unHook(AnimControllerClientMethod method)
+	{
+		clients.UnregisterWithHandler(method);
 	}
 }

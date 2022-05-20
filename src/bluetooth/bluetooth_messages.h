@@ -74,6 +74,8 @@ struct Message
 		MessageType_SetCurrentBehaviorAck,
 		MessageType_SetName,
 		MessageType_SetNameAck,
+        MessageType_Sleep,
+        MessageType_ExitValidation,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -88,7 +90,7 @@ struct Message
 		MessageType_SetDebugFlags,
 		MessageType_SetDebugFlagsAck,
 
-		MessageType_Count
+		MessageType_Count,
 	};
 
 	MessageType type;
@@ -415,6 +417,18 @@ struct MessageSetDebugFlags
 	uint32_t debugFlags;												// Combination of values from DebugFlags enum
 	Config::SettingsManager::ProgrammingOperation programmingOperation; // 8 bits, 0: add, 1:remove, 2: replace
 	inline MessageSetDebugFlags() : Message(Message::MessageType_SetDebugFlags) {}
+};
+
+struct MessageSleep
+: public Message
+{
+	inline MessageSleep() : Message(Message::MessageType_Sleep) {}
+};
+
+struct MessageExitValidation
+: public Message
+{
+	inline MessageExitValidation() : Message(Message::MessageType_ExitValidation) {}
 };
 
 }
