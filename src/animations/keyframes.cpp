@@ -28,14 +28,14 @@ namespace Animations
 
 	/// <summary>
 	/// Returns the length of the track, based on the keyframes it is storing
-	/// </sumary>
+	/// </summary>
 	uint16_t RGBTrack::getDuration(const DataSet::AnimationBits* bits) const {
 		return bits->getRGBKeyframe(keyframesOffset + keyFrameCount - 1).time();
 	}
 
 	/// <summary>
 	/// Grab a keyframe from the track
-	/// </sumary>
+	/// </summary>
 	const RGBKeyframe& RGBTrack::getRGBKeyframe(const DataSet::AnimationBits* bits, uint16_t keyframeIndex) const {
 		assert(keyframeIndex < keyFrameCount);
 		return bits->getRGBKeyframe(keyframesOffset + keyframeIndex);
@@ -101,7 +101,7 @@ namespace Animations
 
 	/// <summary>
 	/// Extracts the LED indices from the led bit mask
-	/// </sumary>
+	/// </summary>
 	int RGBTrack::extractLEDIndices(int retIndices[]) const {
 		// Fill the return arrays
 		int currentCount = 0;
@@ -133,14 +133,14 @@ namespace Animations
 
 	/// <summary>
 	/// Returns the length of the track, based on the keyframes it is storing
-	/// </sumary>
+	/// </summary>
 	uint16_t Track::getDuration(const DataSet::AnimationBits* bits) const {
 		return bits->getKeyframe(keyframesOffset + keyFrameCount - 1).time();
 	}
 
 	/// <summary>
 	/// Grab a keyframe from the track
-	/// </sumary>
+	/// </summary>
 	const Keyframe& Track::getKeyframe(const DataSet::AnimationBits* bits, uint16_t keyframeIndex) const {
 		assert(keyframeIndex < keyFrameCount);
 		return bits->getKeyframe(keyframesOffset + keyframeIndex);
@@ -206,7 +206,7 @@ namespace Animations
 
 	/// <summary>
 	/// Extracts the LED indices from the led bit mask
-	/// </sumary>
+	/// </summary>
 	int Track::extractLEDIndices(int retIndices[]) const {
 		// Fill the return arrays
 		int currentCount = 0;

@@ -41,7 +41,7 @@ namespace Bluetooth
 			return "RequestSettings";
 		case MessageType_RequestTelemetry:
 			return "RequestTelemetry";
-		case MessateType_ProgramDefaultAnimSet:
+		case MessageType_ProgramDefaultAnimSet:
 			return "ProgramDefaultAnimSet";
 		case MessageType_Blink:
 			return "Blink";

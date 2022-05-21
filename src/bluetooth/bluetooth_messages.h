@@ -48,8 +48,8 @@ struct Message
 		MessageType_RequestAnimSet,
 		MessageType_RequestSettings,
 		MessageType_RequestTelemetry,
-		MessateType_ProgramDefaultAnimSet,
-		MessateType_ProgramDefaultAnimSetFinished,
+		MessageType_ProgramDefaultAnimSet,
+		MessageType_ProgramDefaultAnimSetFinished,
 		MessageType_Blink,
 		MessageType_BlinkFinished,
 		MessageType_RequestDefaultAnimSetColor,
@@ -284,7 +284,7 @@ struct MessageProgramDefaultAnimSet
 {
 	uint32_t color;
 
-	inline MessageProgramDefaultAnimSet() : Message(Message::MessateType_ProgramDefaultAnimSet) {}
+	inline MessageProgramDefaultAnimSet() : Message(Message::MessageType_ProgramDefaultAnimSet) {}
 };
 
 struct MessageBlink
@@ -342,14 +342,14 @@ struct MessageSetCurrentBehavior
 };
 
 struct MessageSetName
-: public Message
+	: public Message
 {
 	char name[10];
 	inline MessageSetName() : Message(Message::MessageType_SetName) {}
 };
 
 struct MessageNotifyUser
-: public Message
+	: public Message
 {
 	uint8_t timeout_s;
 	uint8_t ok; // Boolean
@@ -364,28 +364,28 @@ struct MessageNotifyUser
 };
 
 struct MessageNotifyUserAck
-: public Message
+	: public Message
 {
 	uint8_t okCancel; // Boolean
 	inline MessageNotifyUserAck() : Message(Message::MessageType_NotifyUserAck) {}
 };
 
 struct MessageCalibrateFace
-: public Message
+	: public Message
 {
 	uint8_t face;
 	inline MessageCalibrateFace() : Message(MessageType_CalibrateFace) {}
 };
 
 struct MessagePrintNormals
-: public Message
+	: public Message
 {
 	uint8_t face;
 	inline MessagePrintNormals() : Message(MessageType_PrintNormals) {}
 };
 
 struct MessageLightUpFace
-: public Message
+	: public Message
 {
 	uint8_t face; // face to light up
 	uint8_t opt_remapFace; // "up" face, 0 is default (no remapping), 0xFF to use current up face
@@ -402,9 +402,8 @@ struct MessageLightUpFace
 	inline MessageLightUpFace() : Message(MessageType_LightUpFace) {}
 };
 
-
 struct MessageSetLEDToColor
-: public Message
+	: public Message
 {
 	uint8_t ledIndex; // Starts at 0
 	uint32_t color;
@@ -412,7 +411,7 @@ struct MessageSetLEDToColor
 };
 
 struct MessageSetDebugFlags
-: public Message
+	: public Message
 {
 	uint32_t debugFlags;												// Combination of values from DebugFlags enum
 	Config::SettingsManager::ProgrammingOperation programmingOperation; // 8 bits, 0: add, 1:remove, 2: replace
@@ -420,13 +419,13 @@ struct MessageSetDebugFlags
 };
 
 struct MessageSleep
-: public Message
+	: public Message
 {
 	inline MessageSleep() : Message(Message::MessageType_Sleep) {}
 };
 
 struct MessageExitValidation
-: public Message
+	: public Message
 {
 	inline MessageExitValidation() : Message(Message::MessageType_ExitValidation) {}
 };
