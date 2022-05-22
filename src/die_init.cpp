@@ -88,9 +88,20 @@ namespace Die
     }
 
     // Callback for calling PowerManager::feed to prevent sleep mode due to animations
-    void feed(void* token) 
-    {
+    void feed(void* token)  {
         PowerManager::feed();
+    }
+
+    void printDeviceInfo() {
+        #if NRF_LOG_ENABLED
+            uint8_t name[sizeof(((Settings*)nullptr)->name)];
+            uint16_t len = sizeof(name);
+            sd_ble_gap_device_name_get(name, &len);
+            name[std::min(len, (uint16_t)sizeof(name))] = 0;
+            NRF_LOG_INFO("Device info:");
+            NRF_LOG_INFO(" - id: 0x%x", getDeviceID());
+            NRF_LOG_INFO(" - name: %s", name);
+        #endif
     }
 
     /// ***********************************************************************
@@ -369,7 +380,9 @@ namespace Die
                     BehaviorController::onDiceInitialized();
                 }
 
-                NRF_LOG_INFO("----- Initialized! -----");
+                // Print name and id
+                printDeviceInfo();
+                NRF_LOG_INFO("----- Device initialized! -----");
             });
         });
     }

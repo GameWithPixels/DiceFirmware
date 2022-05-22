@@ -56,6 +56,11 @@ You may use Nordic's [nRF Toolbox](https://www.nordicsemi.com/Products/Developme
 app to push a firmware update to a Pixel. Once the app is started, scroll down and tap on
 "Device Firmware Upgrade (DFU)" and then "Connect".
 
+*Note*: the Bootloader DFU inactivity timeout is set to 1 second, which currently prevents the Android
+app to connect to the die for pushing an update. This is caused by delays introduced in the Android app
+code to support old phones. This [issue](https://github.com/NordicSemiconductor/Android-DFU-Library/issues/329)
+will be eventually fixed, please use an iOS device to do a DFU via Bluetooth until then.
+
 ![Connect screen listing nearby Bluetooth devices](images/connect_screen.jpg)
 
 This page shows the scanned Bluetooth Low Energy devices. The name of any nearby Pixel should appear.
@@ -152,6 +157,28 @@ To connect to the die electronic board, run the following commands in VS Code:
 * `Arduino: Select Port` and select SEGGER
 * `Arduino: Open Serial Monitor`
 
-## Firmware Coding Style Guide
+# Firmware modes
+
+The firmware has 3 distinct runtime modes:
+- Release: the default mode, nothing special
+- Validation: make the die blink it's device id, allowing an app to read it for automatic BLE connection
+during the validation process of a board or a die
+- Cycle LEDs: test mode that switches behavior after each reset, alternating between all LEDs off and
+blinking the LEDs one by one
+
+The *Validation* mode is enabled by setting the lowest significant bit of the first UICR customer register to 0.
+It may be disabled afterwards by setting the second LSB of that same register to 0.
+This may be done by directly programming the UICR register (see `validation_bit` and `exit_validation_bit` targets
+in the *Makefile*) or by sending an `ExitValidation` Bluetooth message to the device.
+
+An hex image of a normal *Release* build may be altered to include the *Validation* UICR bit
+(see `hex_validation` target in the *Makefile*).
+
+The *Cycle LEDs* mode may be activated or deactivated at compile time (see `DEFAULT_DEBUG_FLAGS` in *Makefile*) or
+by sending a `SetDebugFlags` Bluetooth message to the device.
+It's currently not using a UICR register but will be [updated](https://github.com/GameWithPixels/DiceFirmware/issues/17)
+to do so.
+
+# Firmware Coding Style Guide
 
 Check [style guide](style.md) for up-to-date style guidelines. 

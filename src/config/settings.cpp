@@ -12,6 +12,7 @@
 #include "config/dice_variants.h"
 #include "utils/utils.h"
 #include "data_set/data_set.h"
+#include "die.h"
 
 #define SETTINGS_VALID_KEY (0x15E77165) // 1SETTINGS in leet speak ;)
 #define SETTINGS_VERSION 3
@@ -145,9 +146,8 @@ namespace Config::SettingsManager
 	void setDefaultParameters(Settings& outSettings) {
         // Generate our name
         outSettings.name[0] = '\0';
-        //strcpy(outSettings.name, "IAMADIE");
-		uint32_t uniqueId = NRF_FICR->DEVICEID[0] ^ NRF_FICR->DEVICEID[1];
-        for (int i = 0; i < 7; ++i) {
+		uint32_t uniqueId = Die::getDeviceID();
+		for (int i = 0; i < 7; ++i) {
             outSettings.name[i] = '0' + uniqueId % 10;
             uniqueId /= 10;
         }

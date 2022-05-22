@@ -4,11 +4,17 @@ PUBLISH_DIRECTORY = binaries
 PROJ_DIR = .
 SDK_VER = 17
 
-VERSION = 05_10_22
+VERSION = 05_16_22
 
 # Debug flags
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
 firmware_cycleleds: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
+
+# Different accelerometer hw for compiling old boards, uncomment to compile its source
+# Can override the default in cmd line by calling "make ACCEL_HW='*name*' *target*"
+# ACCEL_HW = lis2de12		#	D20v9.3, D20v9.1, D20v8, D20v5, D6, D20v1, DevD20
+# ACCEL_HW = mxc4005xc		#	D20v10, D20v9.4
+ACCEL_HW = kxtj3-1057
 
 # We don't use the firmware version at the moment.
 # For future reference, to prevent downgrading, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
@@ -20,6 +26,7 @@ SDK_ROOT := C:/nRF5_SDK
 
 # SoftDevice image filename and path
 # Download latest SoftDevice here: https://www.nordicsemi.com/Products/Development-software/s112/download
+# but do not update the SDK header files!
 #SOFTDEVICE_HEX_FILE := s112_nrf52_7.0.1_softdevice.hex
 #SOFTDEVICE_HEX_FILE := s112_nrf52_7.2.0_softdevice.hex
 SOFTDEVICE_HEX_FILE := s112_nrf52_7.3.0_softdevice.hex
@@ -33,6 +40,7 @@ BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX
 
 # Filename for the zip file used for DFU over Bluetooth
 ZIP_FILE := firmware_$(VERSION)_sdk$(SDK_VER).zip
+VALIDATION_ZIP := firmware_validation_$(VERSION)_sdk$(SDK_VER).zip
 
 LINKER_SCRIPT = Firmware.ld
 
@@ -126,10 +134,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \
 	$(PROJ_DIR)/src/drivers_hw/apa102.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
-	$(PROJ_DIR)/src/drivers_hw/kxtj3-1057.cpp \
-	$(PROJ_DIR)/src/drivers_hw/lis2de12.cpp \
 	$(PROJ_DIR)/src/drivers_hw/magnet.cpp \
-	$(PROJ_DIR)/src/drivers_hw/mxc4005xc.cpp \
 	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/a2d.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/dfu.cpp \
@@ -154,27 +159,9 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/utils/abi.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
 	$(PROJ_DIR)/src/utils/utils.cpp \
-	# $(SDK_ROOT)/components/libraries/util/app_error.c \
-	# $(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_data_storage.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_database.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_id.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_manager.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/peer_manager_handler.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/pm_buffer.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/security_dispatcher.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/security_manager.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/gatt_cache_manager.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/gatts_cache_manager.c \
-	# $(SDK_ROOT)/components/ble/peer_manager/id_manager.c \
-	# $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
-	# $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
-	# $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
-	# $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
-	# $(SDK_ROOT)/components/libraries/button/app_button.c \
-
-SRC_FILES += \
- 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
+	$(PROJ_DIR)/src/drivers_hw/$(ACCEL_HW).cpp 
+	
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -427,20 +414,6 @@ flash_ble: zip
 	@echo Flashing: $(ZIP_FILE) over BLE DFU
 	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
-#
-# Validation build
-#
-
-.PHONY: validation_bit
-validation_bit: 
-	@echo ===== Writing validation bit =====
-	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
-
-.PHONY: flash_validation_debug
-flash_validation_debug: erase validation_bit flash_softdevice flash
-
-.PHONY: flash_validation
-flash_validation: erase validation_bit flash_softdevice flash_bootloader flash_release
 
 #
 # Cycle LEDs build
@@ -458,7 +431,39 @@ hex_cycleleds: firmware_cycleleds settings_cycleleds
 
 .PHONY: flash_cycleleds
 flash_cycleleds: erase hex_cycleleds
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex --sectorerase --verify --reset
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex --chiperase --verify --reset
+
+#
+# Validation commands
+#
+
+# UICR_bit.hex file uses the intel hex format:
+# https://www.intel.com/content/www/us/en/support/programmable/articles/000076770.html
+# Each byte following the ':' follows this format:
+# Record length (1B), load addr (2B), record type (1B - types outlined in above documentation),
+# 	data (number of bytes specified in record length), checksum (2's complement of sum of all bytes)
+
+.PHONY: validation_bit
+validation_bit: 
+	@echo ===== Writing validation bit =====
+	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
+
+.PHONY: exit_validation_bit
+exit_validation_bit: 
+	@echo ===== Writing exit validation bit =====
+	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFC
+
+.PHONY: hex_validation
+hex_validation: hex_release
+	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_ValidationModeEnabled.hex -o $(OUTPUT_DIRECTORY)/full_firmware_validation.hex
+
+.PHONY: flash_validation
+flash_validation: erase hex_validation
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --chiperase --verify --reset
+
+.PHONY: zip_validation
+zip_validation: hex_validation
+	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(VALIDATION_ZIP)
 
 #
 # Publishing commands

@@ -12,20 +12,23 @@ namespace DriversHW
 	/// <summary>
 	/// The accelerometer I2C devices
 	/// </summary>
-	namespace MXC4005XC
+	namespace AccelChip
 	{
 		void init();
 		void read(Core::float3* outAccel);
 
 		void enableInterrupt();
+        void enableDataInterrupt();
 		void disableInterrupt();
+		void disableDataInterrupt();
 		void clearInterrupt();
+
 		void lowPower();
 
 		// Notification management
-		typedef void(*MXC4005ClientMethod)(void* param, const Core::float3& acceleration, float temperature);
-		void hook(MXC4005ClientMethod method, void* param);
-		void unHook(MXC4005ClientMethod client);
+		typedef void(*AccelClientMethod)(void* param, const Core::float3& acceleration);
+		void hook(AccelClientMethod method, void* param);
+		void unHook(AccelClientMethod client);
 		void unHookWithParam(void* param);
 	}
 }

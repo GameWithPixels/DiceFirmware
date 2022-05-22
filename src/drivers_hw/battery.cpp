@@ -97,6 +97,7 @@ namespace Battery
     bool checkCharging() {
         bool ret = false;
         // Status pin needs a pull-up, and is pulled low when charging
+        // High by default, should go low when charging
         uint8_t statePin = BoardManager::getBoard()->chargingStatePin;
         if (statePin != 0xFF) {
             //nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);

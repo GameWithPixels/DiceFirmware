@@ -1,4 +1,4 @@
-#include "kxtj3-1057.h"
+#include "accel_chip.h"
 #include "drivers_nrf/i2c.h"
 #include "nrf_log.h"
 #include "core/float3.h"
@@ -14,7 +14,7 @@ using namespace Config;
 
 namespace DriversHW
 {
-namespace KXTJ3
+namespace AccelChip
 {
 
     enum Registers
@@ -80,7 +80,7 @@ namespace KXTJ3
     const uint8_t wakeUpCount = 1;
 
     #define MAX_CLIENTS 2
-	DelegateArray<KXTJ3ClientMethod, MAX_CLIENTS> clients;
+	DelegateArray<AccelClientMethod, MAX_CLIENTS> clients;
 
     void ApplySettings();
 	void standby();
@@ -164,7 +164,7 @@ namespace KXTJ3
 
 		standby();
 
-        // Enable interrupt on all axis any direction
+        // enable interrupt on all axis any direction - Latched
     	I2C::writeRegister(devAddress, INT_CTRL_REG2, 0b00111111);
 
     	// Set WAKE-UP (motion detect) Threshold
@@ -175,26 +175,20 @@ namespace KXTJ3
 	    // WAKEUP_COUNTER (counts) = Wake-Up Delay Time (sec) x Wake-Up Function ODR(Hz)
 	    I2C::writeRegister(devAddress, WAKEUP_COUNTER, wakeUpCount);
 
-        // Enable interrupt, active Low, latched
-        uint8_t _int_reg1 = I2C::readRegister(devAddress, INT_CTRL_REG1);
-        _int_reg1 |= 0b00100010;
-		I2C::writeRegister(devAddress, INT_CTRL_REG1, _int_reg1);
+        // Enable interrupt, active High, latched
+        uint8_t _reg2 = I2C::readRegister(devAddress, INT_CTRL_REG1);
+        _reg2 |= 0b00100010;
+		I2C::writeRegister(devAddress, INT_CTRL_REG1, _reg2);
 
         // WUFE – enables the Wake-Up (motion detect) function.
     	uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
     	_reg1 |= (0x01 << 1);
 		I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
 
-        // Set Wake up function data rate to lowest value (0b000 <==> 0.781Hz)
-        uint8_t _reg2 = I2C::readRegister(devAddress, CTRL_REG2);
-        _reg2 &= 0b11111000;
-		I2C::writeRegister(devAddress, CTRL_REG2, _reg2);
-
-
 		active();
 	}
 
-    void disableInterrupt()
+    	void disableInterrupt()
 	{
 		standby();
 
@@ -289,7 +283,7 @@ namespace KXTJ3
 	/// <summary>
 	/// Method used by clients to request timer callbacks when accelerometer readings are in
 	/// </summary>
-	void hook(KXTJ3ClientMethod method, void* parameter)
+	void hook(AccelClientMethod method, void* parameter)
 	{
 		if (!clients.Register(parameter, method))
 		{
@@ -300,7 +294,7 @@ namespace KXTJ3
 	/// <summary>
 	/// Method used by clients to stop getting accelerometer reading callbacks
 	/// </summary>
-	void unHook(KXTJ3ClientMethod method)
+	void unHook(AccelClientMethod method)
 	{
 		clients.UnregisterWithHandler(method);
 	}

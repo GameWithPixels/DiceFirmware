@@ -9,8 +9,8 @@ namespace Bluetooth
 		{
 		case MessageType_None:
 			return "None";
-		case MessageType_State:
-			return "State";
+		case MessageType_RollState:
+			return "RollState";
 		case MessageType_Telemetry:
 			return "Telemetry";
 		case MessageType_BulkSetup:
@@ -33,15 +33,15 @@ namespace Bluetooth
 			return "DebugLog";
 		case MessageType_PlayAnim:
 			return "PlayAnim";
-		case MessageType_RequestState:
-			return "RequestState";
+		case MessageType_RequestRollState:
+			return "RequestRollState";
 		case MessageType_RequestAnimSet:
 			return "RequestAnimSet";
 		case MessageType_RequestSettings:
 			return "RequestSettings";
 		case MessageType_RequestTelemetry:
 			return "RequestTelemetry";
-		case MessateType_ProgramDefaultAnimSet:
+		case MessageType_ProgramDefaultAnimSet:
 			return "ProgramDefaultAnimSet";
 		case MessageType_Blink:
 			return "Blink";

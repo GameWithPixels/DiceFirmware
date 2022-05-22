@@ -118,7 +118,7 @@ namespace Behaviors
 
     /// <summary>
     /// Condition that triggers on a life state event
-    /// </sumary>
+    /// </summary>
     struct ConditionHelloGoodbye
         : public Condition
     {
@@ -130,7 +130,7 @@ namespace Behaviors
 
     /// <summary>
     /// Indicates when the condition should trigger, connected!, disconnected! or both
-    /// </sumary>
+    /// </summary>
     enum ConditionConnectionState_Flags : uint8_t
     {
         ConditionConnectionState_Connected      = 1 << 0,
@@ -139,7 +139,7 @@ namespace Behaviors
 
     /// <summary>
     /// Condition that triggers on connection events
-    /// </sumary>
+    /// </summary>
     struct ConditionConnectionState
         : public Condition
     {
@@ -151,7 +151,7 @@ namespace Behaviors
 
     /// <summary>
     /// Indicates which battery event the condition should trigger on
-    /// </sumary>
+    /// </summary>
     enum ConditionBatteryState_Flags : uint8_t
     {
         ConditionBatteryState_Ok        = 1 << 0,
@@ -162,7 +162,7 @@ namespace Behaviors
 
     /// <summary>
     /// Condition that triggers on battery state events
-    /// </sumary>
+    /// </summary>
     struct ConditionBatteryState
         : public Condition
     {
