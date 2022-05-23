@@ -420,14 +420,4 @@ for x in range(256):
 		const uint32_t c = 12345;
 		return (uint16_t)((a * (uint32_t)prevRand + c) % m);
 	}
-
-	void spinWait(uint32_t ms) {
-		#if defined(DEBUG)
-			NRF_LOG_INFO("!! Spin wait for %d ms", ms);
-			const uint32_t tickEnd = app_timer_cnt_get() + APP_TIMER_TICKS(ms);
-			// Active wait
-			while (tickEnd >= app_timer_cnt_get());
-			NRF_LOG_INFO("Done waiting");
-		#endif
-	}
 }

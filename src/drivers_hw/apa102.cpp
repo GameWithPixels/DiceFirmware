@@ -1,6 +1,7 @@
 #include "apa102.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
+#include "settings.h"
 #include "config/board_config.h"
 #include "string.h" // for memset
 #include "../utils/utils.h"

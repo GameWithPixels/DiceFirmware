@@ -1,6 +1,5 @@
 #pragma once
 
-#define MAX_LED_COUNT 21
 #define MAX_BOARD_RESISTOR_VALUES 2
 
 #include "stddef.h"

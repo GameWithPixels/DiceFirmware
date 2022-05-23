@@ -8,6 +8,7 @@
 #include "nrf_gpio.h"
 #include "nrf_drv_pwm.h"
 #include "nrf_delay.h"
+#include "settings.h"
 #include "config/board_config.h"
 #include "../drivers_nrf/log.h"
 

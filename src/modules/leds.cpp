@@ -25,7 +25,7 @@ namespace Modules::LEDs
 {
     static DelegateArray<LEDClientMethod, MAX_APA102_CLIENTS> ledPowerClients;
     static uint8_t powerPin;
-    static uint8_t numLed;
+    static uint8_t numLed = 0;
     static bool powerOn = false;
     static bool stayOff = false;
     static uint32_t pixels[MAX_LED_COUNT];
@@ -116,47 +116,33 @@ namespace Modules::LEDs
 	}
 
     bool isPixelDataZero() {
-        bool allOff = true;
         for (int i = 0; i < numLed; ++i) {
             if (pixels[i] != 0) {
-                allOff = false;
-                break;
+                return false;
             }
         }
-        return allOff;
+        return true;
     }
 
     void show() {
-		// Are all the physical LEDs already all off?
-		bool powerOff = nrf_gpio_pin_out_read(powerPin) == 0;
-
         // Do we want all the LEDs to be off?
-        bool allOff = isPixelDataZero();
-
-		if (powerOff && allOff) {
-            NRF_LOG_DEBUG("LED Power Already Off");
-
-			// Displaying all black and we've already turned every led off
-			return;
-		}
-
-		// Turn power on so we display something!!!
-		if (!powerOn) {
-			setPowerOn();
-		}
-
-        switch (Config::BoardManager::getBoard()->ledModel) {
-            case Config::LEDModel::APA102:
-                APA102::show(pixels);
-                break;
-            case Config::LEDModel::NEOPIXEL_RGB:
-            case Config::LEDModel::NEOPIXEL_GRB:
-                NeoPixel::show(pixels);
-                break;
-        }
-
-        if (allOff) {
+        if (isPixelDataZero()) {
             setPowerOff();
+        }
+        else
+        {
+            // Turn power on so we display something!!!
+            setPowerOn();
+
+            switch (Config::BoardManager::getBoard()->ledModel) {
+                case Config::LEDModel::APA102:
+                    APA102::show(pixels);
+                    break;
+                case Config::LEDModel::NEOPIXEL_RGB:
+                case Config::LEDModel::NEOPIXEL_GRB:
+                    NeoPixel::show(pixels);
+                    break;
+            }
         }
     }
 
@@ -166,8 +152,8 @@ namespace Modules::LEDs
 	}
 
     void setPowerOn() {
-        // Are we allowed to turn LEDs on?
-        if (stayOff)
+        // Are we allowed to turn LEDs on, or are we already on?
+        if (stayOff || powerOn)
             return;
 
         // Notify clients we're turning led power on
@@ -182,6 +168,10 @@ namespace Modules::LEDs
    }
 
     void setPowerOff() {
+        // Already off?
+        if (!powerOn)
+            return;
+
         nrf_delay_ms(2); 
         NRF_LOG_INFO("LED Power Off");
         nrf_gpio_pin_clear(powerPin);
