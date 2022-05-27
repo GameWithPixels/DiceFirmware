@@ -61,9 +61,13 @@ namespace Battery
 
         Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_PrintA2DReadings, nullptr, printA2DReadingsBLE);
 
+        float vCoil = checkVCoil();
         float vBat = checkVBat();
 
-        NRF_LOG_INFO("Battery initialized, Voltage= " NRF_LOG_FLOAT_MARKER ", Charging=%d", NRF_LOG_FLOAT(vBat), charging);
+        NRF_LOG_INFO("Battery initialized");
+        NRF_LOG_INFO(" Battery Voltage= " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+        NRF_LOG_INFO(" Charging= %d", charging);
+        NRF_LOG_INFO(" VCoil= " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoil));
         //printA2DReadings();
 
         #if DICE_SELFTEST && BATTERY_SELFTEST

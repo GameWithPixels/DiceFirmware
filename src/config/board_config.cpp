@@ -223,6 +223,12 @@ namespace BoardManager
             .accModel = AccelerometerModel::MXC4005XC,
             .ledModel = LEDModel::NEOPIXEL_GRB,
             .ledCount = 20,
+            .model = BoardModel::D20BoardV10,
+            .layout = {
+                .baseNormals = DiceVariants::twentySidedNormals,
+                .faceRemap = DiceVariants::twentySidedRemap,
+                .faceToLedLookup = DiceVariants::twentySidedFaceToLedLookup,
+            },
             .name = "D20v10",
         },
         //D20BoardV11
@@ -242,7 +248,38 @@ namespace BoardManager
             .accModel = AccelerometerModel::KXTJ3_1057,
             .ledModel = LEDModel::NEOPIXEL_GRB,
             .ledCount = 20,
+            .model = BoardModel::D20BoardV11,
+            .layout = {
+                .baseNormals = DiceVariants::twentySidedNormals,
+                .faceRemap = DiceVariants::twentySidedRemap,
+                .faceToLedLookup = DiceVariants::twentySidedFaceToLedLookup,
+            },
             .name = "D20v11",
+        },
+        //D6BoardV2
+        {
+            .boardResistorValueInKOhms = 120, // 120.0k Resistor
+            .ledDataPin = 1,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 0,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 6,
+            .model = BoardModel::D6BoardV2,
+            .layout = {
+                .baseNormals = DiceVariants::sixSidedNormals,
+                .faceRemap = DiceVariants::sixSidedRemap,
+                .faceToLedLookup = DiceVariants::sixSidedFaceToLedLookup,
+            },
+            .name = "D6v2",
         },
     };
 

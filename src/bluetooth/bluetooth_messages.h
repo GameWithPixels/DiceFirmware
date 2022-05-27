@@ -389,15 +389,12 @@ struct MessageLightUpFace
 {
 	uint8_t face; // face to light up
 	uint8_t opt_remapFace; // "up" face, 0 is default (no remapping), 0xFF to use current up face
-	uint8_t opt_layoutIndex; // layout index override, 0xFF to use index stored in settings
-	uint8_t opt_remapRot; // internal rotation index, 0 is default (no remapping), 0xFF to use index stored in settings
 	uint32_t color;
 
 	// For reference, the transformation is:
 	// animFaceIndex
 	//	-> rotatedOutsideAnimFaceIndex (based on remapFace and remapping table, i.e. what actual face should light up to "retarget" the animation around the current up face)
-	//		-> rotatedInsideFaceIndex (based on internal pcb rotation, i.e. what face the electronics should light up to account for the fact that the pcb is probably rotated inside the dice)
-	//			-> ledIndex (based on pcb face to led mapping, i.e. to account for the fact that the LEDs are not accessed in the same order as the number of the faces)
+	//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the fact that the LEDs are not accessed in the same order as the number of the faces)
 
 	inline MessageLightUpFace() : Message(MessageType_LightUpFace) {}
 };
@@ -408,14 +405,6 @@ struct MessageSetLEDToColor
 	uint8_t ledIndex; // Starts at 0
 	uint32_t color;
 	inline MessageSetLEDToColor() : Message(Message::MessageType_SetLEDToColor) {}
-};
-
-struct MessageSetDebugFlags
-	: public Message
-{
-	uint32_t debugFlags;												// Combination of values from DebugFlags enum
-	Config::SettingsManager::ProgrammingOperation programmingOperation; // 8 bits, 0: add, 1:remove, 2: replace
-	inline MessageSetDebugFlags() : Message(Message::MessageType_SetDebugFlags) {}
 };
 
 struct MessageSleep

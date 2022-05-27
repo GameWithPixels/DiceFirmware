@@ -59,34 +59,20 @@ namespace LEDColorTester
 		// The transformation is:
 		// animFaceIndex
 		//	-> rotatedOutsideAnimFaceIndex (based on remapFace and remapping table, i.e. what actual face should light up to "retarget" the animation around the current up face)
-		//		-> rotatedInsideFaceIndex (based on internal pcb rotation, i.e. what face the electronics should light up to account for the fact that the pcb is probably rotated inside the dice)
-		//			-> ledIndex (based on pcb face to led mapping, i.e. to account for the fact that the LEDs are not accessed in the same order as the number of the faces)
+		//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the fact that the LEDs are not accessed in the same order as the number of the faces)
 
-		auto s = SettingsManager::getSettings();
 		auto b = BoardManager::getBoard();
-		int c = b->ledCount;
 
         auto lufmsg = static_cast<const MessageLightUpFace*>(msg);
 
-        BLE_LOG_INFO("li: %d, %d", s->faceLayoutLookupIndex, Accelerometer::currentFace());
-
-        NRF_LOG_INFO("Light Up Face: face: %d, remapFace: %d, layoutIndex: %d, color: %08x", lufmsg->face, lufmsg->opt_remapFace, lufmsg->opt_layoutIndex, lufmsg->color);
-
-        int layoutIndex = lufmsg->opt_layoutIndex;
-        if (lufmsg->opt_layoutIndex == 0xFF) {
-            layoutIndex = s->faceLayoutLookupIndex;
-        }
-
-		auto l = DiceVariants::getLayout(c, layoutIndex);
+        NRF_LOG_INFO("Light Up Face: face: %d, remapFace: %d, color: %08x", lufmsg->face, lufmsg->opt_remapFace, lufmsg->color);
 
         int remapFace = lufmsg->opt_remapFace;
         if (remapFace == 0xFF) {
             remapFace = Accelerometer::currentFace();
         }
-        int rotatedOutsideAnimFaceIndex = l->faceRemap[remapFace * c + lufmsg->face];
-        BLE_LOG_INFO("roafi: %d", rotatedOutsideAnimFaceIndex);
 
-		uint16_t ledIndex = s->faceToLEDLookup[rotatedOutsideAnimFaceIndex];
+		uint16_t ledIndex = b->layout.faceToLedLookup[remapFace];
 
         NRF_LOG_INFO(" -> LED Index: %d, color: %08x", ledIndex, lufmsg->color);
         BLE_LOG_INFO("ledIndex: %d", ledIndex);

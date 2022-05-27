@@ -57,20 +57,11 @@ namespace Utils
 
 	const Core::float3* getDefaultNormals(int faceCount);
 
-	int CalibrateNormals(
+	float CalibrateNormals(
 		int face1Index, const Core::float3& face1Normal,
 		int face2Index, const Core::float3& face2Normal,
 		int face3Index, const Core::float3& face3Normal,
-		const Config::DiceVariants::Layouts* layouts,
 		Core::float3* outNormals, int faceCount);
-
-	bool CalibrateInternalRotation(
-		int led0Index, const Core::float3& led0Normal,
-		int led1Index, const Core::float3& led1Normal,
-		const Core::float3* newNormals,
-		const Config::DiceVariants::Layout* layout,
-		uint8_t* faceToLEDOut,
-		int faceCount);
 
 	uint32_t lz77_compress (uint8_t *uncompressed_text, uint32_t uncompressed_size, uint8_t *compressed_text);
 	uint32_t lz77_decompress (uint8_t *compressed_text, uint8_t *uncompressed_text);

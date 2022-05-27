@@ -126,6 +126,7 @@ namespace Timers
     }
 
     bool setDelayedCallback(DelayedCallback callback, void* param, int periodMs) {
+        
         bool ret = delayedCallbacksCount < MAX_DELAYED_CALLS;
         if (ret) {
             // Find where to insert this call
@@ -136,7 +137,7 @@ namespace Timers
             }
 
             // Shift all the elements after the new one to insert
-            if (delayedCallbacksCount > 1) {
+            if (delayedCallbacksCount >= 1) {
                 for (int i = delayedCallbacksCount - 1; i >= insertIndex; --i) {
                     delayedCallbacks[i+1] = delayedCallbacks[i];
                 }

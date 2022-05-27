@@ -19,7 +19,6 @@
 #include "config/settings.h"
 
 #include "drivers_hw/battery.h"
-#include "drivers_hw/magnet.h"
 
 #include "bluetooth/bluetooth_stack.h"
 #include "bluetooth/bluetooth_message_service.h"
@@ -255,8 +254,8 @@ namespace Die
         // Initializte bluetooth
         Stack::init();
 
-        // // Watchdog may setup a timer to verify app stability
-        // Watchdog::initClearResetFlagTimer();
+        //// Watchdog may setup a timer to verify app stability
+        //Watchdog::initClearResetFlagTimer();
 
         // Add generic bluetooth data service
         MessageService::init();
@@ -278,9 +277,6 @@ namespace Die
         // on the board and determine what kind of die this is.
         BoardManager::init();
 
-        // Magnet, so we know if ne need to go into quiet mode, this is no longer used
-        //Magnet::init(); 
-        
         // Now that we know which board we are, initialize the battery monitoring A2D
         A2D::initBoardPins();
 
@@ -330,22 +326,15 @@ namespace Die
                 // Battery controller relies on the battery driver
                 BatteryController::init();
 
-                const bool loopAnim = (SettingsManager::getSettings()->debugFlags & (uint32_t)DebugFlags::LoopCycleAnimation) != 0;
                 const bool inValidation = ValidationManager::inValidation();
-
                 if (!inValidation)
                 {
                     // Want to prevent sleep mode due to animations while not in validation
                     AnimController::hook(feed, nullptr);
                 }
 
-                if (loopAnim) {
-                    loopCycleAnimation();
-                }
-                else {
-                    // Behavior Controller relies on all the modules
-                    BehaviorController::init();
-                }
+                // Behavior Controller relies on all the modules
+                BehaviorController::init();
 
                 // Animation preview depends on bluetooth
                 AnimationPreview::init();
@@ -374,9 +363,7 @@ namespace Die
                 if (inValidation) {
                     ValidationManager::init();
                     ValidationManager::onDiceInitialized();
-                }
-                // if not using loop anim
-                else if (!loopAnim) {
+                } else {
                     BehaviorController::onDiceInitialized();
                 }
 

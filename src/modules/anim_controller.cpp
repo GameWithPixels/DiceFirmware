@@ -81,9 +81,8 @@ namespace Modules::AnimController
 	/// <param name="ms">Current global time in milliseconds</param>
 	void update(int ms)
 	{
-		auto s = SettingsManager::getSettings();
 		auto b = BoardManager::getBoard();
-		auto l = DiceVariants::getLayout(b->ledCount, s->faceLayoutLookupIndex);
+		auto l = b->layout;
 		int c = b->ledCount;
 
 		if (animationCount > 0) {
@@ -148,8 +147,8 @@ namespace Modules::AnimController
 						//	   face should light up to "retarget" the animation around the current up face)
 						//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
 						//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
-						int rotatedAnimFaceIndex = l->faceRemap[anim->remapFace * c + canonIndices[j]];
-						ledIndices[j] = s->faceToLEDLookup[rotatedAnimFaceIndex];
+						int rotatedAnimFaceIndex = l.faceRemap[anim->remapFace * c + canonIndices[j]];
+						ledIndices[j] = l.faceToLedLookup[rotatedAnimFaceIndex];
 					}
 
 					// Update color array
@@ -299,9 +298,8 @@ namespace Modules::AnimController
 	/// </summary>
 	void stopAtIndex(int animIndex)
 	{
-		auto s = SettingsManager::getSettings();
 		auto b = BoardManager::getBoard();
-		auto l = DiceVariants::getLayout(b->ledCount, s->faceLayoutLookupIndex);
+		auto l = b->layout;
 		int c = b->ledCount;
 
 		// Found the animation, start by killing the leds it controls
@@ -318,8 +316,8 @@ namespace Modules::AnimController
 			//	   face should light up to "retarget" the animation around the current up face)
 			//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
 			//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
-			int rotatedAnimFaceIndex = l->faceRemap[anim->remapFace * c + canonIndices[i]];
-			ledIndices[i] = s->faceToLEDLookup[rotatedAnimFaceIndex];
+			int rotatedAnimFaceIndex = l.faceRemap[anim->remapFace * c + canonIndices[i]];
+			ledIndices[i] = l.faceToLedLookup[rotatedAnimFaceIndex];
 		}
 		LEDs::setPixelColors(ledIndices, zeros, ledCount);
 	}
@@ -349,13 +347,12 @@ namespace Modules::AnimController
 		//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
 		//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
 
-		auto s = SettingsManager::getSettings();
 		auto b = BoardManager::getBoard();
-		auto l = DiceVariants::getLayout(b->ledCount, s->faceLayoutLookupIndex);
+		auto l = b->layout;
 		int c = b->ledCount;
 
-		int rotatedAnimFaceIndex = l->faceRemap[remapFace * c + animFaceIndex];
-		return s->faceToLEDLookup[rotatedAnimFaceIndex];
+		int rotatedAnimFaceIndex = l.faceRemap[remapFace * c + animFaceIndex];
+		return l.faceToLedLookup[rotatedAnimFaceIndex];
 	}
 
 	void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt){

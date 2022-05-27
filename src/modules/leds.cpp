@@ -8,6 +8,7 @@
 #include "drivers_hw/neopixel.h"
 #include "drivers_nrf/log.h"
 #include "drivers_nrf/timers.h"
+#include "drivers_nrf/scheduler.h"
 
 #include "string.h" // for memset
 
@@ -27,11 +28,11 @@ namespace Modules::LEDs
     static uint8_t powerPin;
     static uint8_t numLed = 0;
     static bool powerOn = false;
-    static bool stayOff = false;
     static uint32_t pixels[MAX_LED_COUNT];
 
     void show();
-    void setPowerOn();
+
+    void setPowerOn(Timers::DelayedCallback callback);
     void setPowerOff();
 
 	void init() {
@@ -59,13 +60,7 @@ namespace Modules::LEDs
         memset(pixels, 0, MAX_LED_COUNT * sizeof(uint32_t));
         numLed = board->ledCount;
 
-        // Check debug mode
-        auto settings = Config::SettingsManager::getSettings();
-        stayOff = (settings->debugFlags & (uint32_t)Config::DebugFlags::LEDsStayOff) != 0;
-
         NRF_LOG_INFO("LEDs initialized with powerPin=%d", (int)powerPin);
-        if (stayOff)
-            NRF_LOG_INFO("LEDs will always stay off!");
     }
 
     void clear() {
@@ -128,21 +123,19 @@ namespace Modules::LEDs
         // Do we want all the LEDs to be off?
         if (isPixelDataZero()) {
             setPowerOff();
-        }
-        else
-        {
+        } else {
             // Turn power on so we display something!!!
-            setPowerOn();
-
-            switch (Config::BoardManager::getBoard()->ledModel) {
-                case Config::LEDModel::APA102:
-                    APA102::show(pixels);
-                    break;
-                case Config::LEDModel::NEOPIXEL_RGB:
-                case Config::LEDModel::NEOPIXEL_GRB:
-                    NeoPixel::show(pixels);
-                    break;
-            }
+            setPowerOn([](void* ignore) {
+                switch (Config::BoardManager::getBoard()->ledModel) {
+                    case Config::LEDModel::APA102:
+                        APA102::show(pixels);
+                        break;
+                    case Config::LEDModel::NEOPIXEL_RGB:
+                    case Config::LEDModel::NEOPIXEL_GRB:
+                        NeoPixel::show(pixels);
+                        break;
+                }
+            });
         }
     }
 
@@ -151,20 +144,25 @@ namespace Modules::LEDs
 		return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 	}
 
-    void setPowerOn() {
-        // Are we allowed to turn LEDs on, or are we already on?
-        if (stayOff || powerOn)
-            return;
+    void setPowerOn(Timers::DelayedCallback callback) {
+        // Are we already on?
+        if (powerOn) {
+            // Power already on, just proceed.
+            callback(nullptr);
+        } else {
+            // Notify clients we're turning led power on
+            for (int i = 0; i < ledPowerClients.Count(); ++i) {
+                ledPowerClients[i].handler(ledPowerClients[i].token, true);
+            }
 
-        // Notify clients we're turning led power on
-        for (int i = 0; i < ledPowerClients.Count(); ++i) {
-            ledPowerClients[i].handler(ledPowerClients[i].token, true);
+            // Turn the power on
+            NRF_LOG_INFO("LED Power On");
+            nrf_gpio_pin_set(powerPin);
+            powerOn = true;
+
+            // Give enough time for the LEDs to power up (5ms)
+            Timers::setDelayedCallback(callback, nullptr, 5);
         }
-
-        nrf_gpio_pin_set(powerPin);
-        powerOn = true;
-        nrf_delay_ms(2); 
-        NRF_LOG_INFO("LED Power On");
    }
 
     void setPowerOff() {
@@ -172,14 +170,14 @@ namespace Modules::LEDs
         if (!powerOn)
             return;
 
-        nrf_delay_ms(2); 
+        // Turn power off
         NRF_LOG_INFO("LED Power Off");
         nrf_gpio_pin_clear(powerPin);
         powerOn = false;
 
         // Notify clients we're turning led power off
         for (int i = 0; i < ledPowerClients.Count(); ++i) {
-            ledPowerClients[i].handler(ledPowerClients[i].token, true);
+            ledPowerClients[i].handler(ledPowerClients[i].token, false);
         }
    }
 }

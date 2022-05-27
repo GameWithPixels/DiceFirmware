@@ -415,8 +415,9 @@ namespace Modules
             float3 face1;
             float3 face5;
             float3 face10;
-            float3 led0;
-            float3 led1;
+            // float3 led0;
+            // float3 led1;
+            float confidence;
 
             // Set to true if connection is lost to stop calibration
             bool calibrationInterrupted;
@@ -478,76 +479,27 @@ namespace Modules
 								// Read the normals
 								readAccelerometer(&measuredNormals->face10);
 
-								// Debugging
-								//BLE_LOG_INFO("Face 10 Normal: %d, %d, %d", (int)(measuredNormals->face10.x * 100), (int)(measuredNormals->face10.y * 100), (int)(measuredNormals->face10.z * 100));
-								LEDs::setPixelColor(0, 0x00FF00);
+                                // From the 3 measured normals we can calibrate the accelerometer
+                                auto b = BoardManager::getBoard();
 
-								// Place on led index 0
-								MessageService::NotifyUser("Place lit face up", true, true, 30, [] (bool okCancel)
-								{
-									LEDs::setPixelColor(0, 0x000000);
-									if (okCancel) {
-										// Read the normals
-										readAccelerometer(&measuredNormals->led0);
+                                float3 newNormals[b->ledCount];
+                                measuredNormals->confidence = Utils::CalibrateNormals(
+                                    0, measuredNormals->face1,
+                                    4, measuredNormals->face5,
+                                    9, measuredNormals->face10,
+                                    newNormals, b->ledCount);
 
+                                // And flash the new normals
+                                SettingsManager::programCalibrationData(newNormals, b->ledCount, [] (bool result) {
 
-										LEDs::setPixelColor(9, 0x00FF00);
-										// Place on led index 1
-										MessageService::NotifyUser("Place lit face up", true, true, 30, [] (bool okCancel)
-										{
-											LEDs::setPixelColor(9, 0x000000);
-											if (okCancel) {
-												// Read the normals
-												readAccelerometer(&measuredNormals->led1);
-
-												// Now we can calibrate
-
-												// From the 3 measured normals we can calibrate the accelerometer
-												auto b = BoardManager::getBoard();
-												auto l = DiceVariants::getLayouts(b->ledCount);
-
-												float3 newNormals[b->ledCount];
-												int layoutVersionIndex = Utils::CalibrateNormals(
-													0, measuredNormals->face1,
-													4, measuredNormals->face5,
-													9, measuredNormals->face10,
-													l, newNormals, b->ledCount);
-
-												// Now figure out the base remapping based on how the electronics is rotated inside the dice
-												auto ll = l->layouts[layoutVersionIndex];
-
-												uint8_t newFaceToLEDLookup[b->ledCount];
-												if (Utils::CalibrateInternalRotation(
-													0, measuredNormals->led0,
-													9, measuredNormals->led1,
-													newNormals, ll, newFaceToLEDLookup, b->ledCount)) {
-
-													// And flash the new normals
-													SettingsManager::programCalibrationData(newNormals, layoutVersionIndex, newFaceToLEDLookup, b->ledCount, [] (bool result) {
-
-														// Notify user that we're done, yay!!!
-														MessageService::NotifyUser("Calibrated", false, false, 30, nullptr);
-
-														// Restart notifications
-														restart();
-													});
-												} else {
-													// Notify user
-													MessageService::NotifyUser("Not calibrated", false, false, 30, nullptr);
-
-													// Restart notifications
-													restart();
-												}
-											} else {
-												// Process cancelled, restart notifications
-												restart();
-											}
-										});
-									} else {
-										// Process cancelled, restart notifications
-										restart();
-									}
-								});
+                                    // Notify user that we're done, yay!!!
+                                    char text[256] = "";
+                                    snprintf(text, 256, "Calibrated, confidence = %d", (int)(measuredNormals->confidence * 100));
+                                    MessageService::NotifyUser(text, true, false, 30, [] (bool okCancel) {
+                                        // Restart notifications
+                                        restart();
+                                    });
+                                });
 							} else {
 								// Process cancelled, restart notifications
 								restart();
@@ -574,15 +526,12 @@ namespace Modules
             int normalCount = BoardManager::getBoard()->ledCount;
             float3 calibratedNormalsCopy[normalCount];
             memcpy(calibratedNormalsCopy, SettingsManager::getSettings()->faceNormals, normalCount * sizeof(float3));
-            uint8_t ftlCopy[normalCount];
-            memcpy(ftlCopy, SettingsManager::getSettings()->faceToLEDLookup, normalCount * sizeof(uint8_t));
 
             // Replace the face's normal with what we measured
             readAccelerometer(&calibratedNormalsCopy[face]);
 
             // And flash the new normals
-            int fli = SettingsManager::getSettings()->faceLayoutLookupIndex;
-            SettingsManager::programCalibrationData(calibratedNormalsCopy, fli, ftlCopy, normalCount, [](bool result)
+            SettingsManager::programCalibrationData(calibratedNormalsCopy, normalCount, [](bool result)
                                                     { MessageService::NotifyUser("Face calibrated", true, false, 5, nullptr); });
         }
 

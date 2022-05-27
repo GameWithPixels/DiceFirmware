@@ -5,11 +5,17 @@
 #include "stddef.h"
 #include "core/float3.h"
 #include "stdint.h"
+#include "dice_variants.h"
 
 #pragma pack(push, 1)
 
 namespace Config
 {
+    namespace DiceVariants
+    {
+        struct Layout;
+    }
+
     enum class AccelerometerModel : uint8_t
     {
         LID2DE12,
@@ -23,6 +29,23 @@ namespace Config
         APA102,
         NEOPIXEL_RGB,
         NEOPIXEL_GRB
+    };
+
+    enum class BoardModel : uint8_t
+    {
+        DevBoard = 0,
+        D20Board,
+        D20BoardV5,
+        D6Board,
+        D20BoardV6,
+        D20BoardV8,
+        D20BoardV9Alt1,
+        D20BoardV9Alt2,
+        D20BoardV9Alt3,
+        D20BoardV9Alt4,
+        D20BoardV10,
+        D20BoardV11,
+        D6BoardV2,
     };
 
     namespace BoardManager
@@ -57,6 +80,12 @@ namespace Config
 
             // LED config
             uint8_t ledCount;
+
+            // Board
+            BoardModel model;
+
+            // Die layout information
+            DiceVariants::Layout layout;
 
             // Name of the board
             const char* name;

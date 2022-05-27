@@ -46,15 +46,7 @@ namespace Config
 		float batteryHigh;
 
 		// Calibration data
-		int faceLayoutLookupIndex;
-		int16_t MXC4005XCZOffset;
-        uint16_t padding0;
 		Core::float3 faceNormals[MAX_LED_COUNT];
-		uint8_t faceToLEDLookup[MAX_LED_COUNT];
-
-		// Debug mode
-		uint32_t debugFlags; // Combination of values from DebugFlags enum
-		uint32_t defaultDebugFlags; // Used to check if debug flags need to be reset to defaut value
 
 		// Indicates whether there is valid data
 		uint32_t tailMarker;
@@ -64,14 +56,6 @@ namespace Config
 	{
 		typedef void (*SettingsWrittenCallback)(bool success);
 
-		// Programming operation to run when modifying the debug mode
-		enum class ProgrammingOperation : uint8_t
-		{
-			Add = 0,
-			Remove,
-			Replace,
-		};
-
 		void init(SettingsWrittenCallback callback);
 		bool checkValid();
 		Config::Settings const * const getSettings();
@@ -79,9 +63,8 @@ namespace Config
 		void setDefaults(Settings& outSettings);
 		void programDefaults(SettingsWrittenCallback callback);
 		void programDefaultParameters(SettingsWrittenCallback callback);
-		void programCalibrationData(const Core::float3* newNormals, int faceLayoutLookupIndex, const uint8_t* newFaceToLEDLookup, int count, SettingsWrittenCallback callback);
+		void programCalibrationData(const Core::float3* newNormals, int count, SettingsWrittenCallback callback);
 		void programDesignAndColor(DiceVariants::DesignAndColor design, SettingsWrittenCallback callback);
 		void programName(const char* newName, SettingsWrittenCallback callback);
-		void programDebugFlags(uint32_t dbgFlags, ProgrammingOperation operation, SettingsWrittenCallback callback);
 	}
 }

@@ -53,13 +53,12 @@ namespace Config::SettingsManager
 			MessageService::RegisterMessageHandler(Message::MessageType_ProgramDefaultParameters, nullptr, ProgramDefaultParametersHandler);
 			MessageService::RegisterMessageHandler(Message::MessageType_SetDesignAndColor, nullptr, SetDesignTypeAndColorHandler);
 			MessageService::RegisterMessageHandler(Message::MessageType_SetName, nullptr, SetNameHandler);
-			MessageService::RegisterMessageHandler(Message::MessageType_SetDebugFlags, nullptr, SetDebugFlagsHandler);
 			
 			#if BLE_LOG_ENABLED
 			MessageService::RegisterMessageHandler(Message::MessageType_PrintNormals, nullptr, PrintNormals);
 			#endif
 
-			NRF_LOG_INFO("Settings initialized, size=%d bytes, debug flags=%x, defaults=%x", sizeof(Settings), settings->debugFlags, settings->defaultDebugFlags);
+			NRF_LOG_INFO("Settings initialized, size=%d bytes", sizeof(Settings));
 
 			auto callBackCopy = _callback;
 			_callback = nullptr;
@@ -69,31 +68,10 @@ namespace Config::SettingsManager
 		};
 
 		if (!checkValid()) {
-			NRF_LOG_WARNING("Settings not found in flash, programming defaults (%x)", DEFAULT_DEBUG_FLAGS);
+			NRF_LOG_WARNING("Settings not found in flash, programming defaults");
 			programDefaults(finishInit);
-		}
-		else {
-			uint32_t dbgFlags = settings->debugFlags;
-
-			// Have we been flashed with new default debug flags?
-			if (settings->defaultDebugFlags != DEFAULT_DEBUG_FLAGS) {
-				NRF_LOG_WARNING("New default debug flags: %x", DEFAULT_DEBUG_FLAGS);
-				dbgFlags = DEFAULT_DEBUG_FLAGS;
-			} else {
-				// Check if we need to toggle the LEDsStayOff flag
-				bool toggleLEDsStayOff = (dbgFlags & (uint32_t)Config::DebugFlags::OnBootToggleLEDsStayOff) != 0;
-				if (toggleLEDsStayOff) {
-					// Toggle LEDs stay off state and write to flash
-					dbgFlags ^= (uint32_t)Config::DebugFlags::LEDsStayOff;
-				}
-			}
-
-			// Update settings if needed
-			if ((settings->debugFlags != dbgFlags) || (settings->defaultDebugFlags != DEFAULT_DEBUG_FLAGS)) {
-				programDebugFlags(dbgFlags, ProgrammingOperation::Replace, finishInit);
-			} else {
-				finishInit(true);
-			}
+		} else {
+    		finishInit(true);
 		}
 	}
 
@@ -134,15 +112,6 @@ namespace Config::SettingsManager
 		});
 	}
 
-	void SetDebugFlagsHandler(void* context, const Message* msg) {
-		auto dbgFlagsMsg = (const MessageSetDebugFlags*)msg;
-		NRF_LOG_INFO("Received request to update debug flags to %i with operation=%i",
-			dbgFlagsMsg->debugFlags, dbgFlagsMsg->programmingOperation);
-		programDebugFlags(dbgFlagsMsg->debugFlags, dbgFlagsMsg->programmingOperation, [](bool result) {
-			MessageService::SendMessage(Message::MessageType_SetDebugFlagsAck);
-		});
-	}
-
 	void setDefaultParameters(Settings& outSettings) {
         // Generate our name
         outSettings.name[0] = '\0';
@@ -165,19 +134,16 @@ namespace Config::SettingsManager
 		outSettings.accDecay = 0.9f;
 		outSettings.heatUpRate = 0.0004f;
 		outSettings.coolDownRate = 0.995f;
-        outSettings.MXC4005XCZOffset = 256+79;
 	}
 
 	void setDefaultCalibrationData(Settings& outSettings) {
 		// Copy normals from defaults
-		int ledCount = BoardManager::getBoard()->ledCount;
-		const Core::float3* defaultNormals = Config::DiceVariants::getDefaultNormals(ledCount);
-		const uint8_t* defaultLookup = Config::DiceVariants::getDefaultLookup(ledCount);
+        auto board = BoardManager::getBoard();
+		int ledCount = board->ledCount;
+		const Core::float3* defaultNormals = board->layout.baseNormals;
 		for (int i = 0; i < ledCount; ++i) {
 			outSettings.faceNormals[i] = defaultNormals[i];
-			outSettings.faceToLEDLookup[i] = defaultLookup[i];
 		}
-		outSettings.faceLayoutLookupIndex = 0;
 	}
 
 
@@ -186,8 +152,6 @@ namespace Config::SettingsManager
 		outSettings.version = SETTINGS_VERSION;
 		setDefaultParameters(outSettings);
 		setDefaultCalibrationData(outSettings);
-		outSettings.debugFlags = DEFAULT_DEBUG_FLAGS;
-		outSettings.defaultDebugFlags = DEFAULT_DEBUG_FLAGS;
 		outSettings.tailMarker = SETTINGS_VALID_KEY;
 	}
 
@@ -215,7 +179,7 @@ namespace Config::SettingsManager
 		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 	}
 
-	void programCalibrationData(const Core::float3* newNormals, int faceLayoutLookupIndex, const uint8_t* newFaceToLEDLookup, int count, SettingsWrittenCallback callback) {
+	void programCalibrationData(const Core::float3* newNormals, int count, SettingsWrittenCallback callback) {
 
 		// Grab current settings
 		Settings settingsCopy;
@@ -228,10 +192,6 @@ namespace Config::SettingsManager
 
 		// Change normals
 		memcpy(&(settingsCopy.faceNormals[0]), newNormals, count * sizeof(Core::float3));
-
-		// Change remapping
-		settingsCopy.faceLayoutLookupIndex = faceLayoutLookupIndex;
-		memcpy(settingsCopy.faceToLEDLookup, newFaceToLEDLookup, count * sizeof(uint8_t));
 
 		// Reprogram settings
 		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
@@ -282,43 +242,6 @@ namespace Config::SettingsManager
 		}
 		else {
 			NRF_LOG_INFO("Name already set to %s", newName);
-			callback(true);
-		}
-	}
-
-	void programDebugFlags(uint32_t dbgFlags, ProgrammingOperation operation, SettingsWrittenCallback callback) {
-
-		// Grab current settings
-		Settings settingsCopy;
-		memcpy(&settingsCopy, settings, sizeof(Settings));
-
-		// Store the firmware defaults
-		settingsCopy.defaultDebugFlags = DEFAULT_DEBUG_FLAGS;
-
-		// Update debug flags
-		switch (operation) {
-			case ProgrammingOperation::Add:
-				settingsCopy.debugFlags |= dbgFlags;
-				break;
-			case ProgrammingOperation::Remove:
-				settingsCopy.debugFlags &= ~dbgFlags;
-				break;
-			case ProgrammingOperation::Replace:
-				settingsCopy.debugFlags = dbgFlags;
-				break;
-			default:
-				NRF_LOG_ERROR("Invalid programming operation in programDebugMode(): %d", (int)operation);
-		}
-
-		if ((settingsCopy.debugFlags != settings->debugFlags)
-			|| (settingsCopy.defaultDebugFlags != settings->defaultDebugFlags)) {
-			// Reprogram settings
-			NRF_LOG_INFO("Updating debug flags %x => %x and defaults %x => %x",
-				settings->debugFlags, settingsCopy.debugFlags, settings->defaultDebugFlags, settingsCopy.defaultDebugFlags);
-			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
-		}
-		else {
-			NRF_LOG_INFO("Debug flags already set to %d", settingsCopy.debugFlags);
 			callback(true);
 		}
 	}
