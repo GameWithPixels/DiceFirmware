@@ -134,7 +134,6 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \
 	$(PROJ_DIR)/src/drivers_hw/apa102.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
-	$(PROJ_DIR)/src/drivers_hw/magnet.cpp \
 	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/a2d.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/dfu.cpp \
@@ -335,9 +334,6 @@ settings_d: firmware_d
 settings: firmware
 	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
 
-settings_cycleleds: firmware_cycleleds
-	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_cycleleds.hex $(OUTPUT_DIRECTORY)/firmware_settings_cycleleds.hex
-
 #
 # Common commands
 #
@@ -414,25 +410,6 @@ flash_ble: zip
 	@echo Flashing: $(ZIP_FILE) over BLE DFU
 	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
-
-#
-# Cycle LEDs build
-#
-
-.PHONY: firmware_cycleleds
-firmware_cycleleds: firmware_cycleleds
-
-.PHONY: settings_cycleleds
-settings_cycleleds: settings_cycleleds
-
-.PHONY: hex_cycleleds
-hex_cycleleds: firmware_cycleleds settings_cycleleds
-	mergehex -m $(OUTPUT_DIRECTORY)/firmware_cycleleds.hex $(OUTPUT_DIRECTORY)/firmware_settings_cycleleds.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex
-
-.PHONY: flash_cycleleds
-flash_cycleleds: erase hex_cycleleds
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_cycleleds.hex --chiperase --verify --reset
-
 #
 # Validation commands
 #
@@ -481,3 +458,6 @@ zip: firmware_release
 .PHONY: publish
 publish: zip
 	copy $(OUTPUT_DIRECTORY)\$(ZIP_FILE) $(PUBLISH_DIRECTORY)
+
+
+	
