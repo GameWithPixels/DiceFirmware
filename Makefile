@@ -4,7 +4,7 @@ PUBLISH_DIRECTORY = binaries
 PROJ_DIR = .
 SDK_VER = 17
 
-VERSION = 05_16_22
+VERSION = 05_27_22
 
 # Debug flags
 DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
