@@ -11,12 +11,15 @@
 #include "drivers_nrf/power_manager.h"
 #include "data_set/data_set.h"
 #include "nrf_nvmc.h"
+#include "drivers_nrf/timers.h"
 
 using namespace Animations;
 using namespace Modules;
 using namespace Config;
 using namespace DriversNRF;
 using namespace Bluetooth;
+
+#define VALIDATION_MODE_SLEEP_DELAY_MS 15000 // 15 seconds
 
 namespace Modules::ValidationManager
 {
@@ -27,6 +30,8 @@ namespace Modules::ValidationManager
     void startNameAnim();
     void onConnection(void *token, bool connected);
     void exitValidationMode(void *token, const Message *msg);
+
+    void GoToSleepCallback(void* ignore);
 
     // Initializes validation animation objects and hooks AnimController callback
     void init()
@@ -50,6 +55,9 @@ namespace Modules::ValidationManager
     // Function for playing validation animations
     void onDiceInitialized()
     {
+        // Trigger a callback to turn die off
+        Timers::setDelayedCallback(GoToSleepCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
+
         // Play preamble/name animation
         startNameAnim();
     }
@@ -76,9 +84,11 @@ namespace Modules::ValidationManager
         if (connected)
         {
             stopNameAnim(); // Stop animation on connect
+            Timers::cancelDelayedCallback(GoToSleepCallback, nullptr);
         }
         else
         {
+            Timers::setDelayedCallback(GoToSleepCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
             if (!isPlaying)
                 startNameAnim(); // Resume animation on disconnect
         }
@@ -103,4 +113,10 @@ namespace Modules::ValidationManager
         uint32_t *validation = (uint32_t *)&NRF_UICR->CUSTOMER[0];
         return (*validation == 0xFFFFFFFE);
     }
+
+    void GoToSleepCallback(void* ignore)
+    {
+        PowerManager::goToSystemOff();
+    }
+
 }
