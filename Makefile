@@ -1,14 +1,10 @@
-TARGETS = firmware_d firmware firmware_cycleleds # debug, release and cycleleds targets (the latest is a release build with some settings turned on to help with dice manufacturing)
+TARGETS = firmware_d firmware # debug, release and cycleleds targets (the latest is a release build with some settings turned on to help with dice manufacturing)
 OUTPUT_DIRECTORY = _build
 PUBLISH_DIRECTORY = binaries
 PROJ_DIR = .
 SDK_VER = 17
 
 VERSION = 05_27_22
-
-# Debug flags
-DEFAULT_DEBUG_FLAGS = 0 # Regular builds don't require a specific debug flag
-firmware_cycleleds: DEFAULT_DEBUG_FLAGS = 6 # On each boot alternatively turn all LEDs off or make them blink one by one
 
 # Different accelerometer hw for compiling old boards, uncomment to compile its source
 # Can override the default in cmd line by calling "make ACCEL_HW='*name*' *target*"
@@ -458,6 +454,3 @@ zip: firmware_release
 .PHONY: publish
 publish: zip
 	copy $(OUTPUT_DIRECTORY)\$(ZIP_FILE) $(PUBLISH_DIRECTORY)
-
-
-	

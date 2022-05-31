@@ -157,14 +157,11 @@ To connect to the die electronic board, run the following commands in VS Code:
 * `Arduino: Select Port` and select SEGGER
 * `Arduino: Open Serial Monitor`
 
-# Firmware modes
+# Validation Mode
 
-The firmware has 3 distinct runtime modes:
-- Release: the default mode, nothing special
-- Validation: make the die blink it's device id, allowing an app to read it for automatic BLE connection
-during the validation process of a board or a die
-- Cycle LEDs: test mode that switches behavior after each reset, alternating between all LEDs off and
-blinking the LEDs one by one
+This special runtime mode makes the die blink it's device id using the LEDs,
+allowing an app to read it for automatic BLE connection.
+This is notably used during the validation process of a board or a die.
 
 The *Validation* mode is enabled by setting the lowest significant bit of the first UICR customer register to 0.
 It may be disabled afterwards by setting the second LSB of that same register to 0.
@@ -173,11 +170,6 @@ in the *Makefile*) or by sending an `ExitValidation` Bluetooth message to the de
 
 An hex image of a normal *Release* build may be altered to include the *Validation* UICR bit
 (see `hex_validation` target in the *Makefile*).
-
-The *Cycle LEDs* mode may be activated or deactivated at compile time (see `DEFAULT_DEBUG_FLAGS` in *Makefile*) or
-by sending a `SetDebugFlags` Bluetooth message to the device.
-It's currently not using a UICR register but will be [updated](https://github.com/GameWithPixels/DiceFirmware/issues/17)
-to do so.
 
 # Firmware Coding Style Guide
 

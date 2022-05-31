@@ -73,19 +73,6 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 
 namespace Die
 {
-    void loopCycleAnimation() {
-        static AnimationCycle anim;
-        anim.type = Animation_Cycle;
-        anim.duration = 25000;
-        anim.faceMask = ANIM_FACEMASK_ALL_LEDS;
-        anim.count = 1;
-        anim.fade = 0;
-        anim.rainbow = 0;
-
-        NRF_LOG_INFO("Loop cycle animation");
-        AnimController::play(&anim, nullptr, 0, true); // Loop forever!
-    }
-
     // Callback for calling PowerManager::feed to prevent sleep mode due to animations
     void feed(void* token)  {
         PowerManager::feed();
