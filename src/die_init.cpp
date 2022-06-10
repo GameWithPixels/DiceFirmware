@@ -78,18 +78,6 @@ namespace Die
         PowerManager::feed();
     }
 
-    void printDeviceInfo() {
-        #if NRF_LOG_ENABLED
-            uint8_t name[sizeof(((Settings*)nullptr)->name)];
-            uint16_t len = sizeof(name);
-            sd_ble_gap_device_name_get(name, &len);
-            name[std::min(len, (uint16_t)sizeof(name))] = 0;
-            NRF_LOG_INFO("Device info:");
-            NRF_LOG_INFO(" - id: 0x%x", getDeviceID());
-            NRF_LOG_INFO(" - name: %s", name);
-        #endif
-    }
-
     /// ***********************************************************************
     /// Init function validation checks:
     ///
@@ -354,8 +342,6 @@ namespace Die
                     BehaviorController::onDiceInitialized();
                 }
 
-                // Print name and id
-                printDeviceInfo();
                 NRF_LOG_INFO("----- Device initialized! -----");
             });
         });

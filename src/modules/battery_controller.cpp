@@ -149,7 +149,7 @@ namespace Modules::BatteryController
             NRF_LOG_INFO("Battery controller initialized - Battery %s", getChargeStateString(currentBatteryState));
         }
         float level = LookupChargeLevel(vBat);
-        NRF_LOG_INFO("\tBattery level %d%%", (int)(level * 100));
+        NRF_LOG_INFO("    Battery level %d%%", (int)(level * 100));
     }
 
 	BatteryState getCurrentChargeState() {
@@ -304,23 +304,23 @@ namespace Modules::BatteryController
                     NRF_LOG_INFO("Battery finished charging");
                     break;
                 case BatteryState_Ok:
-                    NRF_LOG_INFO(">>> Battery is now Ok, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+                    NRF_LOG_INFO("Battery is now Ok, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
                     break;
                 case BatteryState_Charging:
-                    NRF_LOG_INFO(">>> Battery is now Charging, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+                    NRF_LOG_INFO("Battery is now Charging, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
                     break;
                 case BatteryState_Low:
-                    NRF_LOG_INFO(">>> Battery is Low, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+                    NRF_LOG_INFO("Battery is Low, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
                     break;
                 default:
-                    NRF_LOG_INFO(">>> Battery is Unknown, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+                    NRF_LOG_INFO("Battery state is Unknown, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
                     break;
             }
             float level = LookupChargeLevel(vBat);
-            NRF_LOG_INFO("\tBat = " NRF_LOG_FLOAT_MARKER " %% ", NRF_LOG_FLOAT(level*100));
-            NRF_LOG_INFO("\tvBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+            NRF_LOG_INFO("    Bat = " NRF_LOG_FLOAT_MARKER " %% ", NRF_LOG_FLOAT(level*100));
+            NRF_LOG_INFO("    vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
             vcoil = Battery::checkVCoil();
-            NRF_LOG_INFO("\tvCoil = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vcoil));
+            NRF_LOG_INFO("    vCoil = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vcoil));
             currentBatteryState = newState;
             for (int i = 0; i < clients.Count(); ++i) {
     			clients[i].handler(clients[i].token, newState);

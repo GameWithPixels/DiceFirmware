@@ -126,12 +126,13 @@ namespace Die
     void WhoAreYouHandler(void* token, const Message* message) {
         // Central asked for the die state, return it!
         Bluetooth::MessageIAmADie identityMessage;
-        identityMessage.deviceId = getDeviceID();
-        identityMessage.dataSetHash = DataSet::dataHash();
-        strncpy(identityMessage.versionInfo, FIRMWARE_VERSION, VERSION_INFO_SIZE);
         identityMessage.faceCount = (uint8_t)BoardManager::getBoard()->ledCount;
         identityMessage.designAndColor = SettingsManager::getSettings()->designAndColor;
+        identityMessage.dataSetHash = DataSet::dataHash();
+        identityMessage.deviceId = getDeviceID();
         identityMessage.flashSize = DataSet::availableDataSize();
+        strncpy(identityMessage.versionInfo, FIRMWARE_VERSION, VERSION_INFO_SIZE);
+        identityMessage.firmwareBuild = FIRMWARE_BUILD;
         Bluetooth::MessageService::SendMessage(&identityMessage);
     }
 

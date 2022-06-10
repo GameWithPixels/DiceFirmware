@@ -219,14 +219,16 @@ namespace Config::SettingsManager
 
 	void programName(const char* newName, SettingsWrittenCallback callback) {
 
-		if (strncmp(settings->name, newName, sizeof(settings->name))) {
+		if (strncmp(settings->name, newName, MAX_NAME_LENGTH)) {
 
 			// Grab current settings
 			Settings settingsCopy;
 			memcpy(&settingsCopy, settings, sizeof(Settings));
 
 			// Update name
-			strncpy(settingsCopy.name, newName, sizeof(settingsCopy.name));
+			strncpy(settingsCopy.name, newName, MAX_NAME_LENGTH);
+			settingsCopy.name[MAX_NAME_LENGTH] = 0; // Make sure we always have a null terminated string
+			NRF_LOG_INFO("Setting name to %s", settingsCopy.name);
 
 			// Reprogram settings
 			static SettingsWrittenCallback programNameCallback = nullptr;

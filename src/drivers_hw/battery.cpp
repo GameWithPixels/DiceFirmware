@@ -157,18 +157,18 @@ namespace Battery
     void printA2DReadings() {
         if (canCheckCharging()) {
             if (checkCharging()) {
-                NRF_LOG_INFO("\tvBat=" NRF_LOG_FLOAT_MARKER ", charging.", NRF_LOG_FLOAT(checkVBat()));
+                NRF_LOG_INFO("    vBat=" NRF_LOG_FLOAT_MARKER ", charging.", NRF_LOG_FLOAT(checkVBat()));
             } else {
-                NRF_LOG_INFO("\tvBat=" NRF_LOG_FLOAT_MARKER ", not charging.", NRF_LOG_FLOAT(checkVBat()));
+                NRF_LOG_INFO("    vBat=" NRF_LOG_FLOAT_MARKER ", not charging.", NRF_LOG_FLOAT(checkVBat()));
             }
         } else {
-            NRF_LOG_INFO("\tvBat=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVBat()));
+            NRF_LOG_INFO("    vBat=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVBat()));
         }
         if (canCheckVCoil()) {
-            NRF_LOG_INFO("\tvCoil=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVCoil()));
+            NRF_LOG_INFO("    vCoil=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVCoil()));
         }
         if (canCheckVLED()) {
-            NRF_LOG_INFO("\tvLED=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVLED()));
+            NRF_LOG_INFO("    vLED=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVLED()));
         }
     }
 

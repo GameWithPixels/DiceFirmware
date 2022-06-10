@@ -41,13 +41,13 @@ namespace Stack
     #define APP_BLE_OBSERVER_PRIO           3                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
     #define APP_BLE_CONN_CFG_TAG            1                                       /**< A tag identifying the SoftDevice BLE configuration. */
 
-    #define MIN_CONN_INTERVAL               MSEC_TO_UNITS(20, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.02 seconds). */
+    #define MIN_CONN_INTERVAL               MSEC_TO_UNITS(20, UNIT_1_25_MS)         /**< Minimum acceptable connection interval (0.02 seconds). */
     #define MAX_CONN_INTERVAL               MSEC_TO_UNITS(200, UNIT_1_25_MS)        /**< Maximum acceptable connection interval (0.2 second). */
     #define SLAVE_LATENCY                   1                                       /**< Slave latency. */
     #define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(3000, UNIT_10_MS)         /**< Connection supervisory timeout (4 seconds). */
 
-    #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000)                  /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
-    #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                   /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
+    #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000)                   /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
+    #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                  /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
     #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                       /**< Number of attempts before giving up the connection parameter negotiation. */
 
     #define SEC_PARAM_BOND                  1                                       /**< No bonding. */
@@ -63,27 +63,25 @@ namespace Stack
 
     #define RSSI_THRESHOLD_DBM 1
 
-    uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
-    NRF_BLE_QWR_DEF(m_qwr);                                                  /**< Context for the Queued Write module.*/
-    NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
+    static uint16_t connectionHandle = BLE_CONN_HANDLE_INVALID;                     /**< Handle of the current connection. */
+    NRF_BLE_QWR_DEF(nrfQwr);                                                        /**< Context for the Queued Write module.*/
+    NRF_BLE_GATT_DEF(nrfGatt);                                                      /**< GATT module instance. */
 
-    BLE_ADVERTISING_DEF(m_advertising); /**< Advertising module instance. */
+    BLE_ADVERTISING_DEF(advertisingModule);                                         /**< Advertising module instance. */
 
-    bool notificationPending = false;
-    bool connected = false;
-    bool currentlyAdvertising = false;
-    bool resetOnDisconnectPending = false;
-    int8_t rssi;
-
-    char advertisingName[16];
+    static bool notificationPending = false;
+    static bool connected = false;
+    static bool currentlyAdvertising = false;
+    static bool resetOnDisconnectPending = false;
+    static int8_t rssi;
 
     /**< Universally unique service identifiers. */
-    ble_uuid_t m_adv_uuids[] = 
+    static ble_uuid_t advertisedUuids[] = 
     {
         {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
     };
 
-    ble_uuid_t m_srv_uuids[] = 
+    static ble_uuid_t advertisedUuidsExtended[] = 
     {
         {GENERIC_DATA_SERVICE_UUID_SHORT, BLE_UUID_TYPE_VENDOR_BEGIN},
     };
@@ -93,41 +91,59 @@ namespace Stack
 
 #pragma pack( push, 1)
     // Custom advertising data, so the Pixel app can identify dice before they're even connected
-    struct CustomAdvertisingData
+    struct CustomManufacturerData
     {
-        uint32_t deviceId; // Unique die ID
+        uint8_t faceCount;
+        uint8_t designAndColor;
         Accelerometer::RollState rollState; // Indicates whether the dice is being shaken, 8 bits
         uint8_t currentFace; // Which face is currently up
         uint8_t batteryLevel; // 8 bits, charge level 0 -> 255
     };
-#pragma pack(pop)
-    // Global custom manufacturer data
-    CustomAdvertisingData customAdvertisingData;
 
-    // Buffer pointing to the custom advertising data, so Softdevice knows where and how big it is
-    ble_advdata_manuf_data_t m_sp_manuf_advdata =
+    struct CustomServiceData
     {
-        .company_identifier = 0xABCD, // <-- will be replaced by design and face count
+        uint32_t deviceId;
+        uint16_t firmwareBuild;
+    };
+#pragma pack(pop)
+
+    // Global custom manufacturer and service data
+    static CustomManufacturerData customManufacturerData;
+    static CustomServiceData customServiceData;
+
+    // Buffers pointing to the custom advertising and service data
+    static ble_advdata_manuf_data_t advertisedManufData =
+    {
+        .company_identifier = 0xFFFF, // <-- Temporary until we get our Company Id Code
         .data               =
         {
-            .size   = sizeof(customAdvertisingData),
-            .p_data = (uint8_t*)(void*)&customAdvertisingData
+            .size   = sizeof(customManufacturerData),
+            .p_data = (uint8_t*)&customManufacturerData
+        }
+    };
+    static ble_advdata_service_data_t advertisedServiceData =
+    {
+        .service_uuid = BLE_UUID_DEVICE_INFORMATION_SERVICE,
+        .data =
+        {
+            .size   = sizeof(customServiceData),
+            .p_data = (uint8_t*)&customServiceData
         }
     };
 
     // Advertising data structs
-    ble_advdata_t adv_data;
-    ble_advdata_t sr_data;
+    static ble_advdata_t advertisementPacket;
+    static ble_advdata_t scanResponsePacket;
 
-#if SDK_VER == 12
+#if SDK_VER < 16
     // This will store packed versions of advertising structs
-    uint8_t adv_data_buffer[BLE_GAP_ADV_SET_DATA_SIZE_MAX];          /**< Advertising data buffer. */
-    uint8_t sr_data_buffer[BLE_GAP_ADV_SET_DATA_SIZE_MAX];          /**< Scan Response data buffer. */
+    static uint8_t adv_data_buffer[BLE_GAP_ADV_SET_DATA_SIZE_MAX];          /**< Advertising data buffer. */
+    static uint8_t sr_data_buffer[BLE_GAP_ADV_SET_DATA_SIZE_MAX];          /**< Scan Response data buffer. */
 
     // And this will tell the Softdevice where those buffers are
-    ble_gap_adv_data_t m_sp_advdata_buf = 
+    static ble_gap_adv_data_t m_sp_advdata_buf = 
     {
-        .adv_data =
+        .advertisementPacket =
         {
             .p_data = adv_data_buffer,
             .len    = sizeof(adv_data_buffer)
@@ -172,8 +188,8 @@ namespace Stack
 
             case BLE_GAP_EVT_CONNECTED:
                 NRF_LOG_INFO("Connected.");
-                m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-                err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
+                connectionHandle = p_ble_evt->evt.gap_evt.conn_handle;
+                err_code = nrf_ble_qwr_conn_handle_assign(&nrfQwr, connectionHandle);
                 APP_ERROR_CHECK(err_code);
                 currentlyAdvertising = false;
                 connected = true;
@@ -227,14 +243,14 @@ namespace Stack
             case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
                 // Pairing not supported
                 NRF_LOG_DEBUG("Pairing not supported!");
-                err_code = sd_ble_gap_sec_params_reply(m_conn_handle, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP, NULL, NULL);
+                err_code = sd_ble_gap_sec_params_reply(connectionHandle, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP, NULL, NULL);
                 APP_ERROR_CHECK(err_code);
                 break;
 
             case BLE_GATTS_EVT_SYS_ATTR_MISSING:
                 // No system attributes have been stored.
                 NRF_LOG_DEBUG("System Attributes Missing!");
-                err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0);
+                err_code = sd_ble_gatts_sys_attr_set(connectionHandle, NULL, 0, 0);
                 APP_ERROR_CHECK(err_code);
                 break;
 
@@ -267,10 +283,10 @@ namespace Stack
             case BLE_ADV_EVT_FAST:
             {
                 NRF_LOG_INFO("Fast advertising");
-#if SDK_VER == 17
-                ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
+#if SDK_VER >= 16
+                ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
 #else
-                ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &m_sp_advdata_buf, false);
+                ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &m_sp_advdata_buf, false);
 #endif
                 APP_ERROR_CHECK(err_code);
 
@@ -314,7 +330,7 @@ namespace Stack
 
         if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
         {
-            err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+            err_code = sd_ble_gap_disconnect(connectionHandle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
             APP_ERROR_CHECK(err_code);
         }
     }
@@ -381,40 +397,42 @@ namespace Stack
         err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
         APP_ERROR_CHECK(err_code);
 
-        err_code = nrf_ble_gatt_init(&m_gatt, NULL);
+        err_code = nrf_ble_gatt_init(&nrfGatt, NULL);
         APP_ERROR_CHECK(err_code);
 
         NRF_LOG_INFO("Bluetooth Stack Initialized");
     }
 
     void initAdvertising() {
-       ble_advertising_init_t init;
+        ble_advertising_init_t init;
         memset(&init, 0, sizeof(init));
 
         init.advdata.name_type               = BLE_ADVDATA_FULL_NAME;
-        init.advdata.include_appearance      = true;
+        init.advdata.include_appearance      = true; // Let Central know what kind of the device we are
         init.advdata.flags                   = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-        init.advdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
-        init.advdata.uuids_complete.p_uuids  = m_adv_uuids;
+        init.advdata.uuids_complete.uuid_cnt = sizeof(advertisedUuids) / sizeof(advertisedUuids[0]);
+        init.advdata.uuids_complete.p_uuids  = advertisedUuids;
 
-        init.srdata.uuids_complete.uuid_cnt = sizeof(m_srv_uuids) / sizeof(m_srv_uuids[0]);
-        init.srdata.uuids_complete.p_uuids  = m_srv_uuids;
+        init.srdata.uuids_complete.uuid_cnt = sizeof(advertisedUuidsExtended) / sizeof(advertisedUuidsExtended[0]);
+        init.srdata.uuids_complete.p_uuids  = advertisedUuidsExtended;
+        init.srdata.p_service_data_array    = &advertisedServiceData;
+        init.srdata.service_data_count      = 1;
 
         advertising_config_get(&init.config);
 
         init.evt_handler = on_adv_evt;
 
-        ret_code_t err_code = ble_advertising_init(&m_advertising, &init);
+        ret_code_t err_code = ble_advertising_init(&advertisingModule, &init);
         APP_ERROR_CHECK(err_code);
 
-        ble_advertising_conn_cfg_tag_set(&m_advertising, APP_BLE_CONN_CFG_TAG);
+        ble_advertising_conn_cfg_tag_set(&advertisingModule, APP_BLE_CONN_CFG_TAG);
 
         nrf_ble_qwr_init_t qwr_init = {0};
 
         // Initialize Queued Write Module.
         qwr_init.error_handler = nrf_qwr_error_handler;
 
-        err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
+        err_code = nrf_ble_qwr_init(&nrfQwr, &qwr_init);
         APP_ERROR_CHECK(err_code);
 
         ble_conn_params_init_t cp_init;
@@ -434,13 +452,13 @@ namespace Stack
         APP_ERROR_CHECK(err_code);
 
         // Set TX Power to max
-        err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, m_advertising.adv_handle, 4); 
-        APP_ERROR_CHECK(err_code); 
+        err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, advertisingModule.adv_handle, 4);
+        APP_ERROR_CHECK(err_code);
 
         // Copy advertising data for later, when we update the manufacturer data
-        memcpy(&adv_data, &init.advdata, sizeof(ble_advdata_t));
-        memcpy(&sr_data, &init.srdata, sizeof(ble_advdata_t));
-        adv_data.p_manuf_specific_data = &m_sp_manuf_advdata;
+        memcpy(&advertisementPacket, &init.advdata, sizeof(ble_advdata_t));
+        memcpy(&scanResponsePacket, &init.srdata, sizeof(ble_advdata_t));
+        advertisementPacket.p_manuf_specific_data = &advertisedManufData;
     }
 
     void initAdvertisingName() {
@@ -449,29 +467,33 @@ namespace Stack
         BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
         // Generate our name
-        strcpy(advertisingName, SettingsManager::getSettings()->name);
-        ret_code_t err_code = sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *)advertisingName, strlen(advertisingName));
+        auto name = SettingsManager::getSettings()->name;
+        ret_code_t err_code = sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *)name, strlen(name));
         APP_ERROR_CHECK(err_code);
     }
 
     void initCustomAdvertisingData() {
         // Initialize the custom advertising data
-        customAdvertisingData.deviceId = Die::getDeviceID();
-        customAdvertisingData.batteryLevel = (uint8_t)(BatteryController::getCurrentLevel() * 255.0f);
-        customAdvertisingData.currentFace = 0;
-        customAdvertisingData.rollState = Accelerometer::RollState_Unknown;
-        adv_data.p_manuf_specific_data->company_identifier = (uint16_t)Config::BoardManager::getBoard()->ledCount << 8 | (uint16_t)Config::SettingsManager::getSettings()->designAndColor;
+        customManufacturerData.faceCount = Config::BoardManager::getBoard()->ledCount;
+        customManufacturerData.designAndColor = Config::SettingsManager::getSettings()->designAndColor;
+        customManufacturerData.rollState = Accelerometer::RollState_Unknown;
+        customManufacturerData.currentFace = 0;
+        customManufacturerData.batteryLevel = (uint8_t)(BatteryController::getCurrentLevel() * 255.0f);
+        customServiceData.deviceId = Die::getDeviceID();
+        customServiceData.firmwareBuild = FIRMWARE_BUILD;
 
-#if SDK_VER == 17
-        ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
-#elif SDK_VER == 12
+#if SDK_VER >= 16
+        ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
+#else
         // Update advertising data
-        ret_code_t err_code = ble_advdata_encode(&adv_data, m_sp_advdata_buf.adv_data.p_data, &m_sp_advdata_buf.adv_data.len);
+        ret_code_t err_code = ble_advdata_encode(&advertisementPacket, m_sp_advdata_buf.advertisementPacket.p_data, &m_sp_advdata_buf.advertisementPacket.len);
         APP_ERROR_CHECK(err_code);
 
-        err_code = ble_advdata_encode(&sr_data, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
+        err_code = ble_advdata_encode(&scanResponsePacket, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
 #endif
         APP_ERROR_CHECK(err_code);
+
+        NRF_LOG_INFO("Advertisement payload size: %d, and scan response payload size: %d", advertisingModule.adv_data.adv_data.len, advertisingModule.adv_data.scan_rsp_data.len);
     }
 
     void onBatteryLevelChange(void* param, float newLevel) {
@@ -483,33 +505,33 @@ namespace Stack
     }
 
     void updateCustomAdvertisingDataBattery(float batteryLevel) {
-        customAdvertisingData.batteryLevel = (uint8_t)(batteryLevel * 255.0f);
+        customManufacturerData.batteryLevel = (uint8_t)(batteryLevel * 255.0f);
 
-#if SDK_VER == 17
-        ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
-#elif SDK_VER == 12
+#if SDK_VER >= 16
+        ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
+#else
         // Update advertising data
-        ret_code_t err_code = ble_advdata_encode(&adv_data, m_sp_advdata_buf.adv_data.p_data, &m_sp_advdata_buf.adv_data.len);
+        ret_code_t err_code = ble_advdata_encode(&advertisementPacket, m_sp_advdata_buf.advertisementPacket.p_data, &m_sp_advdata_buf.advertisementPacket.len);
         APP_ERROR_CHECK(err_code);
 
-        err_code = ble_advdata_encode(&sr_data, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
+        err_code = ble_advdata_encode(&scanResponsePacket, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
 #endif
         APP_ERROR_CHECK(err_code);
     }
 
     void updateCustomAdvertisingDataState(Accelerometer::RollState newState, int newFace) {
         // Update manufacturer specific advertising data
-        customAdvertisingData.currentFace = newFace;
-        customAdvertisingData.rollState = newState;
+        customManufacturerData.currentFace = newFace;
+        customManufacturerData.rollState = newState;
 
-#if SDK_VER == 17
-        ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
-#elif SDK_VER == 12
+#if SDK_VER >= 16
+        ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
+#else
         // Update advertising data
-        ret_code_t err_code = ble_advdata_encode(&adv_data, m_sp_advdata_buf.adv_data.p_data, &m_sp_advdata_buf.adv_data.len);
+        ret_code_t err_code = ble_advdata_encode(&advertisementPacket, m_sp_advdata_buf.advertisementPacket.p_data, &m_sp_advdata_buf.advertisementPacket.len);
         APP_ERROR_CHECK(err_code);
 
-        err_code = ble_advdata_encode(&sr_data, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
+        err_code = ble_advdata_encode(&scanResponsePacket, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
 #endif
         APP_ERROR_CHECK(err_code);
     }
@@ -541,23 +563,23 @@ namespace Stack
     }
 
     void startAdvertising() {
-        customAdvertisingData.currentFace = Accelerometer::currentFace();
-        customAdvertisingData.rollState = Accelerometer::currentRollState();
+        customManufacturerData.currentFace = Accelerometer::currentFace();
+        customManufacturerData.rollState = Accelerometer::currentRollState();
 
-#if SDK_VER == 17
-        ret_code_t err_code = ble_advertising_advdata_update(&m_advertising, &adv_data, &sr_data);
-#elif SDK_VER == 12
+#if SDK_VER >= 16
+        ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
+#else
         // Update advertising data
-        ret_code_t err_code = ble_advdata_encode(&adv_data, m_sp_advdata_buf.adv_data.p_data, &m_sp_advdata_buf.adv_data.len);
+        ret_code_t err_code = ble_advdata_encode(&advertisementPacket, m_sp_advdata_buf.advertisementPacket.p_data, &m_sp_advdata_buf.advertisementPacket.len);
         APP_ERROR_CHECK(err_code);
 
-        err_code = ble_advdata_encode(&sr_data, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
+        err_code = ble_advdata_encode(&scanResponsePacket, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
 #endif
         APP_ERROR_CHECK(err_code);
 
-        err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+        err_code = ble_advertising_start(&advertisingModule, BLE_ADV_MODE_FAST);
         APP_ERROR_CHECK(err_code);
-        NRF_LOG_INFO("Starting advertising as %s", advertisingName);
+        NRF_LOG_INFO("Starting advertising with name=%s and deviceId=0x%x", SettingsManager::getSettings()->name, customServiceData.deviceId);
     }
 
     void disableAdvertisingOnDisconnect() {
@@ -566,7 +588,7 @@ namespace Stack
         ble_adv_modes_config_t config;
         advertising_config_get(&config);
         config.ble_adv_on_disconnect_disabled = true;
-        ble_advertising_modes_config_set(&m_advertising, &config);
+        ble_advertising_modes_config_set(&advertisingModule, &config);
     }
 
     void enableAdvertisingOnDisconnect() {
@@ -575,7 +597,7 @@ namespace Stack
         ble_adv_modes_config_t config;
         advertising_config_get(&config);
         config.ble_adv_on_disconnect_disabled = false;
-        ble_advertising_modes_config_set(&m_advertising, &config);
+        ble_advertising_modes_config_set(&advertisingModule, &config);
     }
 
     void resetOnDisconnect() {
@@ -603,7 +625,7 @@ namespace Stack
                 hvx_params.p_len = &len;
                 hvx_params.type = BLE_GATT_HVX_NOTIFICATION;
                 notificationPending = true;
-                ret_code_t err_code = sd_ble_gatts_hvx(m_conn_handle, &hvx_params);
+                ret_code_t err_code = sd_ble_gatts_hvx(connectionHandle, &hvx_params);
                 if (err_code == NRF_SUCCESS) {
                     // Message was sent!
                     return SendResult_Ok;
@@ -624,11 +646,11 @@ namespace Stack
     }
 
     void slowAdvertising() {
-        ble_advertising_start(&m_advertising, BLE_ADV_MODE_SLOW);
+        ble_advertising_start(&advertisingModule, BLE_ADV_MODE_SLOW);
     }
 
     void stopAdvertising() {
-        ble_advertising_start(&m_advertising, BLE_ADV_MODE_IDLE);
+        ble_advertising_start(&advertisingModule, BLE_ADV_MODE_IDLE);
     }
 
     bool isConnected() {
@@ -649,7 +671,7 @@ namespace Stack
 
     void hookRssi(RssiEventMethod method, void* param) {
         if (rssiClients.Count() == 0) {
-            sd_ble_gap_rssi_start(m_conn_handle, RSSI_THRESHOLD_DBM, 1); 
+            sd_ble_gap_rssi_start(connectionHandle, RSSI_THRESHOLD_DBM, 1); 
         }
         rssiClients.Register(param, method);
     }
@@ -658,7 +680,7 @@ namespace Stack
         rssiClients.UnregisterWithHandler(client);
         if (rssiClients.Count() == 0) {
             // No longer need rssi levels
-            sd_ble_gap_rssi_stop(m_conn_handle);
+            sd_ble_gap_rssi_stop(connectionHandle);
         }
     }
 

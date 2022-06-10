@@ -87,8 +87,6 @@ struct Message
 		MessageType_LightUpFace,
 		MessageType_SetLEDToColor,
 		MessageType_PrintAnimControllerState,
-		MessageType_SetDebugFlags,
-		MessageType_SetDebugFlagsAck,
 
 		MessageType_Count,
 	};
@@ -109,7 +107,7 @@ protected:
 /// Identifies the dice
 /// </summary>
 struct MessageIAmADie
-: public Message
+	: public Message
 {
 	uint8_t faceCount; // Which kind of dice this is
 	Config::DiceVariants::DesignAndColor designAndColor; // Physical look
@@ -118,6 +116,7 @@ struct MessageIAmADie
 	uint32_t deviceId; // A unique identifier
 	uint16_t flashSize; // How much room available for data
 	char versionInfo[VERSION_INFO_SIZE]; // Firmware version string, i.e. "10_05_20"
+	uint16_t firmwareBuild;
 	inline MessageIAmADie() : Message(Message::MessageType_IAmADie) { versionInfo[0] = 0; }
 };
 
@@ -305,14 +304,14 @@ struct MessageDefaultAnimSetColor
 };
 
 struct MessageSetAllLEDsToColor
-: public Message
+	: public Message
 {
 	uint32_t color;
 	inline MessageSetAllLEDsToColor() : Message(Message::MessageType_SetAllLEDsToColor) {}
 };
 
 struct MessageBatteryLevel
-: public Message
+	: public Message
 {
 	float level;
 	float voltage;
@@ -321,21 +320,21 @@ struct MessageBatteryLevel
 };
 
 struct MessageRssi
-: public Message
+	: public Message
 {
 	int16_t rssi;
 	inline MessageRssi() : Message(Message::MessageType_Rssi) {}
 };
 
 struct MessageSetDesignAndColor
-: public Message
+	: public Message
 {
 	Config::DiceVariants::DesignAndColor designAndColor;
 	inline MessageSetDesignAndColor() : Message(Message::MessageType_SetDesignAndColor) {}
 };
 
 struct MessageSetCurrentBehavior
-: public Message
+	: public Message
 {
 	uint8_t currentBehavior;
 	inline MessageSetCurrentBehavior() : Message(Message::MessageType_SetCurrentBehavior) {}
@@ -344,7 +343,7 @@ struct MessageSetCurrentBehavior
 struct MessageSetName
 	: public Message
 {
-	char name[10];
+	char name[MAX_NAME_LENGTH + 1];
 	inline MessageSetName() : Message(Message::MessageType_SetName) {}
 };
 

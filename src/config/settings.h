@@ -6,6 +6,7 @@
 #include "dice_variants.h"
 
 #define MAX_LED_COUNT 21
+#define MAX_NAME_LENGTH 24
 
 namespace Config
 {
@@ -27,7 +28,7 @@ namespace Config
 		// Physical Appearance
 		DiceVariants::DesignAndColor designAndColor;
 
-		char name[10];
+		char name[MAX_NAME_LENGTH + 1]; // One extra byte for the zero terminator
 
 		// Face detector
 		float jerkClamp;
