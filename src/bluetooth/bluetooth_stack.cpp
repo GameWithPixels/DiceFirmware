@@ -408,7 +408,8 @@ namespace Stack
         memset(&init, 0, sizeof(init));
 
         init.advdata.name_type               = BLE_ADVDATA_FULL_NAME;
-        init.advdata.include_appearance      = true; // Let Central know what kind of the device we are
+        // We removed advertising the appearance to save 2 bytes of data so the advertised name can be longer
+        //init.advdata.include_appearance      = true; // Let Central know what kind of the device we are
         init.advdata.flags                   = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
         init.advdata.uuids_complete.uuid_cnt = sizeof(advertisedUuids) / sizeof(advertisedUuids[0]);
         init.advdata.uuids_complete.p_uuids  = advertisedUuids;
