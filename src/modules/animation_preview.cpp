@@ -148,7 +148,7 @@ namespace Modules::AnimationPreview
         NRF_LOG_INFO("Received request to blink the LEDs %d times with duration of %d ms", message->flashCount, message->duration);
 
         static Blink blink;
-        blink.play(message->color, message->duration, message->flashCount, 255);
+        blink.play(message->color, message->duration, message->flashCount, message->fade);
 
         MessageService::SendMessage(Message::MessageType_BlinkFinished);
     }
