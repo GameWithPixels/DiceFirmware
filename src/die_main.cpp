@@ -16,9 +16,9 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-#if !defined(FIRMWARE_VERSION)
-    #warning Firmware version not defined
-    #define FIRMWARE_VERSION "Unknown"
+#if !defined(BUILD_TIMESTAMP)
+    #warning Build timestamp not defined
+    #define BUILD_TIMESTAMP 0
 #endif
 
 using namespace DriversNRF;
@@ -131,8 +131,7 @@ namespace Die
         identityMessage.dataSetHash = DataSet::dataHash();
         identityMessage.deviceId = getDeviceID();
         identityMessage.flashSize = DataSet::availableDataSize();
-        strncpy(identityMessage.versionInfo, FIRMWARE_VERSION, VERSION_INFO_SIZE);
-        identityMessage.firmwareBuild = FIRMWARE_BUILD;
+        identityMessage.buildTimestamp = BUILD_TIMESTAMP;
         Bluetooth::MessageService::SendMessage(&identityMessage);
     }
 

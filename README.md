@@ -140,12 +140,35 @@ Some commands requires `nRF Util` to run properly (see
 [documentation](https://infocenter.nordicsemi.com/topic/ug_nrfutil/UG/nrfutil/nrfutil_intro.html)
 about this tool).
 
-The *Makefile* expects to find `nrfutil.exe` in the current folder or the `PATH`.
+The *Makefile* expects to find `nrfutil.exe` in the current folder or from the `PATH`.
 Search for `NRFUTIL` to set a different path.
 We're using the 6.1.3 build that can be downloaded from
 [GitHub](https://github.com/NordicSemiconductor/pc-nrfutil/releases/tag/v6.1.3).
 
-The version of the firmware is defined by the variable `VERSION` in the *Makefile*.
+The *Makefile* runs a few Python 3 code snippets and expects Python 3 to be available from the current directory.
+
+## Versioning
+
+The *Makefile* has several variables to manage build versioning:
+
+* `BUILD_TIMESTAMP`: the [Unix time](https://en.wikipedia.org/wiki/Unix_time) (or Epoch time) at which the build was started.
+* `BUILD_DATE_TIME`: the above timestamp formatted as an ISO 8601 date/time string.
+* `FW_VER`: the Firmware version number stored in the NRF settings.
+* `BL_VER`: the Bootloader version number stored in the NRF settings.
+
+The build timestamp is stored in the firmware code and communicated to applications via Bluetooth advertising and by BLE message once connected.
+This timestamp is used by applications to determine if the die is running the expected firmware version.
+
+The build date/time string is used for naming build filenames in order to indicate when the build was generated.
+This is purely informational and helps a human user manage build files.
+Removing or changing the date/time in the build filename has no consequence other than confusing people ;)
+
+The Firmware and Bootloader versions are used by the Nordic tools to control what  updates may be uploaded or not to the die flash memory.
+For example it can be used to prevent downgrading to an older version.
+Different applications using Pixels may expect different firmware versions, and we want those applications to flash the version they need to connected dice.
+So we are not using Nordic's versioning system at the moment. Both values are left to 1.
+
+*Note:* when generating a release build, be sure to fully rebuild the firmware as the source files using the build timestamp need to be recompiled to use the current timestamp.
 
 ## Output logs in Visual Studio Code
 

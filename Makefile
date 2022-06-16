@@ -1,21 +1,28 @@
-TARGETS = firmware_d firmware # debug, release and cycleleds targets (the latest is a release build with some settings turned on to help with dice manufacturing)
-OUTPUT_DIRECTORY = _build
-PUBLISH_DIRECTORY = binaries
-PROJ_DIR = .
-SDK_VER = 17
+TARGETS := firmware_d firmware # debug, release and cycleleds targets (the latest is a release build with some settings turned on to help with dice manufacturing)
+OUTPUT_DIRECTORY := _build
+PUBLISH_DIRECTORY := binaries
+PROJ_DIR := .
+SDK_VER := 17
 
-VERSION = 05_27_22
+# BUILD_TIMESTAMP := 1
+# BUILD_DATE_TIME := yo
+BUILD_TIMESTAMP := $(shell python -c "import time; print(round(time.time()))")
+BUILD_DATE_TIME := $(shell python -c "from datetime import datetime; \
+    tzinfo = datetime.utcnow().astimezone().tzinfo; \
+	dt = datetime.fromtimestamp($(BUILD_TIMESTAMP), tz=tzinfo); \
+	print(dt.strftime('%Y-%m-%dT%H%M%z')) \
+	")
 
 # Different accelerometer hw for compiling old boards, uncomment to compile its source
 # Can override the default in cmd line by calling "make ACCEL_HW='*name*' *target*"
 # ACCEL_HW = lis2de12		#	D20v9.3, D20v9.1, D20v8, D20v5, D6, D20v1, DevD20
 # ACCEL_HW = mxc4005xc		#	D20v10, D20v9.4
-ACCEL_HW = kxtj3-1057
+ACCEL_HW := kxtj3-1057
 
-# We don't use the firmware version at the moment.
+# We don't use the bootloader and firmware version at the moment.
 # For future reference, to prevent downgrading, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
-FW_VER = 0x1
-BL_VER = 0x1
+FW_VER := 0x1
+BL_VER := 0x1
 
 # SDK 17 path
 SDK_ROOT := C:/nRF5_SDK
@@ -35,10 +42,10 @@ BOOTLOADER_HEX_FILE := nrf52810_xxaa_s112.hex
 BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX_FILE)
 
 # Filename for the zip file used for DFU over Bluetooth
-ZIP_FILE := firmware_$(VERSION)_sdk$(SDK_VER).zip
-VALIDATION_ZIP := firmware_validation_$(VERSION)_sdk$(SDK_VER).zip
+ZIP_FILE := firmware_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
+VALIDATION_ZIP := firmware_validation_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
 
-LINKER_SCRIPT = Firmware.ld
+LINKER_SCRIPT := Firmware.ld
 
 # Default target = first one defined
 .PHONY: default
@@ -250,9 +257,8 @@ COMMON_FLAGS += -mfloat-abi=soft
 COMMON_FLAGS += -DNRF52_PAN_74
 COMMON_FLAGS += -DNRF_DFU_SVCI_ENABLED
 COMMON_FLAGS += -DNRF_DFU_TRANSPORT_BLE=1
-COMMON_FLAGS += -DFIRMWARE_VERSION=\"$(VERSION)\"
 COMMON_FLAGS += -DSDK_VER=$(SDK_VER)
-COMMON_FLAGS += -DFIRMWARE_BUILD=$(FW_VER)
+COMMON_FLAGS += -DBUILD_TIMESTAMP=$(BUILD_TIMESTAMP)
 
 # COMMON_FLAGS += -DDEVELOP_IN_NRF52832
 

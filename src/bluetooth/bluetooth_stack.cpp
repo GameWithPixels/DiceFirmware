@@ -103,7 +103,7 @@ namespace Stack
     struct CustomServiceData
     {
         uint32_t deviceId;
-        uint16_t firmwareBuild;
+        uint32_t buildTimestamp;
     };
 #pragma pack(pop)
 
@@ -481,7 +481,7 @@ namespace Stack
         customManufacturerData.currentFace = 0;
         customManufacturerData.batteryLevel = (uint8_t)(BatteryController::getCurrentLevel() * 255.0f);
         customServiceData.deviceId = Die::getDeviceID();
-        customServiceData.firmwareBuild = FIRMWARE_BUILD;
+        customServiceData.buildTimestamp = BUILD_TIMESTAMP;
 
 #if SDK_VER >= 16
         ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);

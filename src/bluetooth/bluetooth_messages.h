@@ -7,7 +7,6 @@
 #include "config/settings.h"
 
 #define MAX_DATA_SIZE 100
-#define VERSION_INFO_SIZE 10
 
 #pragma pack(push, 1)
 
@@ -115,9 +114,8 @@ struct MessageIAmADie
 	uint32_t dataSetHash;
 	uint32_t deviceId; // A unique identifier
 	uint16_t flashSize; // How much room available for data
-	char versionInfo[VERSION_INFO_SIZE]; // Firmware version string, i.e. "10_05_20"
-	uint16_t firmwareBuild;
-	inline MessageIAmADie() : Message(Message::MessageType_IAmADie) { versionInfo[0] = 0; }
+	uint32_t buildTimestamp;
+	inline MessageIAmADie() : Message(Message::MessageType_IAmADie) {}
 };
 
 /// <summary>
