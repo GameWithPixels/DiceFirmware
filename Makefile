@@ -342,25 +342,25 @@ settings: firmware
 
 .PHONY: reset
 reset:
-	nrfjprog -f nrf52 $(JLINK) --reset
+	nrfjprog -f nrf52 --reset
 
 .PHONY: hardreset
 hardreset:
-	nrfjprog -f nrf52 $(JLINK) --pinreset
+	nrfjprog -f nrf52 --pinreset
 
 .PHONY: erase
 erase:
-	nrfjprog -f nrf52 $(JLINK) --eraseall
+	nrfjprog -f nrf52 --eraseall
 
 .PHONY: flash_softdevice
 flash_softdevice:
 	@echo ==== Flashing: $(SOFTDEVICE_HEX_FILE) ====
-	nrfjprog -f nrf52 $(JLINK) --program $(SOFTDEVICE_HEX_PATHNAME) --sectorerase --verify --reset
+	nrfjprog -f nrf52 --program $(SOFTDEVICE_HEX_PATHNAME) --sectorerase --verify --reset
 
 .PHONY: flash_bootloader
 flash_bootloader:
 	@echo ==== Flashing: $(BOOTLOADER_HEX_FILE) ====
-	nrfjprog -f nrf52 $(JLINK) --program $(BOOTLOADER_HEX_PATHNAME) --sectorerase --verify --reset
+	nrfjprog -f nrf52 --program $(BOOTLOADER_HEX_PATHNAME) --sectorerase --verify --reset
 
 #
 # Debug commands
@@ -376,8 +376,8 @@ settings_debug: settings_d
 .PHONY: flash
 flash: firmware_debug settings_debug
 	@echo ==== Flashing: $(OUTPUT_DIRECTORY)/firmware_d.hex ====
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_d.hex --sectorerase --verify
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings_d.hex --sectorerase --verify --reset
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/firmware_d.hex --sectorerase --verify
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/firmware_settings_d.hex --sectorerase --verify --reset
 
 .PHONY: reflash
 reflash: erase flash_softdevice flash
@@ -396,8 +396,8 @@ settings_release: settings
 .PHONY: flash_release
 flash_release: firmware_release settings_release
 	@echo ==== Flashing: $(OUTPUT_DIRECTORY)/firmware.hex ====
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase --verify
-	nrfjprog -f nrf52 $(JLINK) --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase --verify --reset
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/firmware.hex --sectorerase --verify
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/firmware_settings.hex --sectorerase --verify --reset
 
 .PHONY: reflash_release
 reflash_release: erase flash_softdevice flash_release
