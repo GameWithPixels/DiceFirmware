@@ -28,7 +28,7 @@ namespace DataSet
 		const Animations::Animation* animations; // The animations we have, 4-byte aligned, so may need some padding
 		uint32_t animationsSize; // In bytes
 
-        // The conditionss. Because conditions can be one of multiple classes (simple inheritance system)
+        // The conditions. Because conditions can be one of multiple classes (simple inheritance system)
         // The dataset stores an offset into the conditions buffer for each entry. The first member of
         // The condition base class is a type enum indicating what it actually is.
 		const uint16_t* conditionsOffsets; // offsets to actual conditions from the conditions pointer below

@@ -58,6 +58,19 @@ namespace DataSet
 		_callback = callback;
 		data = (Data const *)Flash::getDataSetAddress();
 
+		// NRF_LOG_INFO("INITTTTTTTTTTTTTTTTTTTT");
+		// auto ptr = (uint8_t *)Flash::getDataSetAddress();
+		// uint32_t i0 = *(uint32_t *)(ptr + 0);
+		// uint32_t i1 = *(uint32_t *)(ptr + 1);
+		// uint32_t i2 = *(uint32_t *)(ptr + 2);
+		// uint32_t i3 = *(uint32_t *)(ptr + 3);
+		// NRF_LOG_INFO("0:%x, 1:%x, 2:%x, 3:%x", i0, i1, i2, i3);
+		// uint16_t s0 = *(uint16_t *)(ptr + 0);
+		// uint16_t s1 = *(uint16_t *)(ptr + 1);
+		// uint16_t s2 = *(uint16_t *)(ptr + 2);
+		// uint16_t s3 = *(uint16_t *)(ptr + 3);
+		// NRF_LOG_INFO("0:%x, 1:%x, 2:%x, 3:%x", s0, s1, s2, s3);
+
 		// This gets called after the animation set has been initialized
 		auto finishInit = [] (bool result) {
 
