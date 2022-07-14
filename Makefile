@@ -4,14 +4,18 @@ PUBLISH_DIRECTORY := binaries
 PROJ_DIR := .
 SDK_VER := 17
 
-# BUILD_TIMESTAMP := 1
-# BUILD_DATE_TIME := yo
-BUILD_TIMESTAMP := $(shell python -c "import time; print(round(time.time()))")
-BUILD_DATE_TIME := $(shell python -c "from datetime import datetime; \
+# Percent character is escaped in some versions of make when using the shell commands below
+PERCENT := %
+# Generate build timestamp
+BUILD_TIMESTAMP := $(shell python -c 'import time; print(round(time.time()))')
+# Format timestamp like this: 2022-07-14T0923+0200
+# No semicolon between hours and minutes because the date/time string is used in filenames.
+# This format is ISO 8601 conformant.
+BUILD_DATE_TIME := $(shell python -c 'from datetime import datetime; \
     tzinfo = datetime.utcnow().astimezone().tzinfo; \
 	dt = datetime.fromtimestamp($(BUILD_TIMESTAMP), tz=tzinfo); \
-	print(dt.strftime('%Y-%m-%dT%H%M%z')) \
-	")
+	print(dt.strftime("$(PERCENT)Y-$(PERCENT)m-$(PERCENT)dT$(PERCENT)H$(PERCENT)M$(PERCENT)z")) \
+	')
 
 # Different accelerometer hw for compiling old boards, uncomment to compile its source
 # Can override the default in cmd line by calling "make ACCEL_HW='*name*' *target*"
@@ -19,10 +23,10 @@ BUILD_DATE_TIME := $(shell python -c "from datetime import datetime; \
 # ACCEL_HW = mxc4005xc		#	D20v10, D20v9.4
 ACCEL_HW := kxtj3-1057
 
-# We don't use the bootloader and firmware version at the moment.
-# For future reference, to prevent downgrading, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
-FW_VER := 0x1
-BL_VER := 0x1
+# To prevent downgrading the firmware, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
+# The bootloader can only be upgraded (applying an update with a higher version number).
+FW_VER := 0x100
+BL_VER := 0x100
 
 # SDK 17 path
 SDK_ROOT := C:/nRF5_SDK
@@ -43,6 +47,7 @@ BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX
 
 # Filename for the zip file used for DFU over Bluetooth
 ZIP_FILE := firmware_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
+ZIPBL_FILE := bootloader_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
 VALIDATION_ZIP := firmware_validation_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
 
 LINKER_SCRIPT := Firmware.ld
@@ -455,6 +460,10 @@ hex_release: firmware_release settings_release
 .PHONY: zip
 zip: firmware_release
 	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
+
+.PHONY: zipbl
+zipbl:
+	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req 0x103 $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
 
 # Be sure to use a backslash in the pathname, otherwise the copy command will fail (in CMD environment) 
 .PHONY: publish
