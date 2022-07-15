@@ -3,14 +3,15 @@
 SEARCH_DIR(.)
 GROUP(-lgcc -lc -lnosys)
 
-/* More info about the memory layout here: */
+/* More info about the flash memory layout here: */
 /* https://infocenter.nordicsemi.com/topic/sdk_nrf5_v17.0.0/lib_bootloader.html#lib_bootloader_memory */
 MEMORY
 {
   /* We have 192 KB Flash (0x30000), 24 KB RAM (0x6000) */
+  /* https://www.nordicsemi.com/Products/nRF52810 */
   /* Softdevice uses pages from 0x0 to 0x18000 included */
   FLASH (rx) : ORIGIN = 0x19000, LENGTH = 0x14000 /* Total = 0x2C000 => max available memory in debug */
-  RAM (rwx) :  ORIGIN = 0x20002000, LENGTH = 0x4000
+  RAM (rwx) :  ORIGIN = 0x20001EB8, LENGTH = 0x4148
   uicr_bootloader_start_address (r) : ORIGIN = 0x10001014, LENGTH = 0x4
 }
 

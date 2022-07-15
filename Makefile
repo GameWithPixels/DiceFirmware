@@ -318,10 +318,14 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += --specs=nano.specs
 #LDFLAGS += -u _printf_float
 
-CFLAGS += -D__HEAP_SIZE=2048
-CFLAGS += -D__STACK_SIZE=2048
-ASMFLAGS += -D__HEAP_SIZE=2048
-ASMFLAGS += -D__STACK_SIZE=2048
+STACK_SIZE := 2048
+HEAP_SIZE := 5800
+firmware_debug: HEAP_SIZE := 3000
+
+CFLAGS += -D__HEAP_SIZE=$(HEAP_SIZE)
+CFLAGS += -D__STACK_SIZE=$(STACK_SIZE)
+ASMFLAGS += -D__HEAP_SIZE=$(HEAP_SIZE)
+ASMFLAGS += -D__STACK_SIZE=$(STACK_SIZE)
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.
