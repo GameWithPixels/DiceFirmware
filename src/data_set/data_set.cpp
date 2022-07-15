@@ -110,9 +110,12 @@ namespace DataSet
 	}
 
 	const Animation* getAnimation(int animationIndex) {
-		// Grab the preset data
-		uint32_t animationAddress = (uint32_t)(const void*)data->animations + data->animationOffsets[animationIndex];
-		return (const Animation *)animationAddress;
+		if (animationIndex >= 0 && (uint32_t)animationIndex < data->animationCount) {
+			// Grab the preset data
+			auto animationPtr = (const uint8_t *)data->animations + data->animationOffsets[animationIndex];
+			return (const Animation*)animationPtr;
+		}
+		return nullptr;
 	}
 
 	uint16_t getAnimationCount() {
@@ -122,8 +125,11 @@ namespace DataSet
 
 	const Condition* getCondition(int conditionIndex) {
 		assert(CheckValid());
-		uint32_t conditionAddress = (uint32_t)(const void*)data->conditions + data->conditionsOffsets[conditionIndex];
-		return (const Condition*)conditionAddress;
+		if (conditionIndex >= 0 && (uint32_t)conditionIndex < data->conditionCount) {
+			auto conditionPtr = (const uint8_t *)data->conditions + data->conditionsOffsets[conditionIndex];
+			return (const Condition*)conditionPtr;
+		}
+		return nullptr;
 	}
 
 	uint16_t getConditionCount() {
@@ -133,8 +139,11 @@ namespace DataSet
 
 	const Action* getAction(int actionIndex) {
 		assert(CheckValid());
-		uint32_t actionAddress = (uint32_t)(const void*)data->actions + data->actionsOffsets[actionIndex];
-		return (const Action*)actionAddress;
+		if (actionIndex >= 0 && (uint32_t)actionIndex < data->actionCount) {
+			auto actionPtr = (const uint8_t*)data->actions + data->actionsOffsets[actionIndex];
+			return (const Action*)actionPtr;
+		}
+		return nullptr;
 	}
 
 	uint16_t getActionCount() {
@@ -144,7 +153,10 @@ namespace DataSet
 
 	const Rule* getRule(int ruleIndex) {
 		assert(CheckValid());
-		return &data->rules[ruleIndex];
+		if (ruleIndex >= 0 && (uint32_t)ruleIndex < data->ruleCount) {
+			return &data->rules[ruleIndex];
+		}
+		return nullptr;
 	}
 
 	uint16_t getRuleCount() {
