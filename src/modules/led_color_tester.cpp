@@ -68,7 +68,7 @@ namespace LEDColorTester
         NRF_LOG_INFO("Light Up Face: face: %d, remapFace: %d, color: %08x", lufmsg->face, lufmsg->opt_remapFace, lufmsg->color);
 
         int remapFace = lufmsg->opt_remapFace;
-        if (remapFace == 0xFF) {
+        if (remapFace == FACE_INDEX_CURRENT_FACE) {
             remapFace = Accelerometer::currentFace();
         }
 
