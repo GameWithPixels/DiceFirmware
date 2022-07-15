@@ -33,6 +33,7 @@
 #include "modules/accelerometer.h"
 #include "modules/anim_controller.h"
 #include "modules/animation_preview.h"
+#include "modules/instant_anim_controller.h"
 #include "modules/battery_controller.h"
 #include "modules/behavior_controller.h"
 #include "modules/hardware_test.h"
@@ -311,8 +312,11 @@ namespace Die
                 // Behavior Controller relies on all the modules
                 BehaviorController::init();
 
-                // Animation preview depends on bluetooth
+                // Animation Preview depends on bluetooth
                 AnimationPreview::init();
+
+                // Instant Animation Controller preview depends on bluetooth
+                InstantAnimationController::init();
 
                 // Rssi controller requires the bluetooth stack
                 RssiController::init();

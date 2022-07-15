@@ -113,6 +113,7 @@ SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_wdt.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
 	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \
@@ -143,6 +144,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/drivers_hw/apa102.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
 	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
+	$(PROJ_DIR)/src/drivers_hw/$(ACCEL_HW).cpp \
 	$(PROJ_DIR)/src/drivers_nrf/a2d.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/dfu.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/flash.cpp \
@@ -163,12 +165,10 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/hardware_test.cpp \
 	$(PROJ_DIR)/src/modules/rssi_controller.cpp \
 	$(PROJ_DIR)/src/modules/validation_manager.cpp \
+	$(PROJ_DIR)/src/modules/instant_anim_controller.cpp \
 	$(PROJ_DIR)/src/utils/abi.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
-	$(PROJ_DIR)/src/utils/utils.cpp \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
-	$(PROJ_DIR)/src/drivers_hw/$(ACCEL_HW).cpp 
-	
+	$(PROJ_DIR)/src/utils/utils.cpp
 
 # Include folders common to all targets
 INC_FOLDERS += \

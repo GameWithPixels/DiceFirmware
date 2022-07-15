@@ -70,7 +70,7 @@ namespace Modules::AnimationPreview
             animationData = malloc(bufferSize);
             if (animationData != nullptr) {
                 // Setup pointers
-                NRF_LOG_DEBUG("bufferSize: 0x%04x", bufferSize);
+                NRF_LOG_DEBUG("Preview bufferSize: 0x%04x", bufferSize);
                 uint32_t address = (uint32_t)animationData;
                 animationBits.palette = (const uint8_t*)address;
                 animationBits.paletteSize = message->paletteSize;
@@ -96,7 +96,7 @@ namespace Modules::AnimationPreview
 
                 // Send Ack and receive data
                 MessageTransferTestAnimSetAck ackMsg;
-                ackMsg.ackType = TransferTestAnimSetAck_Download;
+                ackMsg.ackType = TransferInstantAnimSetAck_Download;
                 MessageService::SendMessage(&ackMsg);
 
                 // Receive all the buffers directly to flash
@@ -128,18 +128,18 @@ namespace Modules::AnimationPreview
                 animationDataHash = 0;
                 animation = nullptr;
                 MessageTransferTestAnimSetAck ackMsg;
-                ackMsg.ackType = TransferTestAnimSetAck_NoMemory;
+                ackMsg.ackType = TransferInstantAnimSetAck_NoMemory;
                 MessageService::SendMessage(&ackMsg);
             }
-       } else {
-           // The animation data is valid and matches the app data
+        } else {
+            // The animation data is valid and matches the app data
             MessageTransferTestAnimSetAck ackMsg;
-            ackMsg.ackType = TransferTestAnimSetAck_UpToDate;
+            ackMsg.ackType = TransferInstantAnimSetAck_UpToDate;
             MessageService::SendMessage(&ackMsg);
 
             // Play the ANIMATION NOW!!!
             AnimController::play(animation, &animationBits, 19, false);
-       }
+        }
     }
 
     void BlinkLEDs(void* context, const Message* msg)

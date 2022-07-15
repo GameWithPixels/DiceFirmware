@@ -38,7 +38,6 @@ struct Message
 		MessageType_TransferTestAnimSetAck,
 		MessageType_TransferTestAnimSetFinished,
 		MessageType_DebugLog,
-
 		MessageType_PlayAnim,
 		MessageType_PlayAnimEvent,
 		MessageType_StopAnim,
@@ -73,8 +72,12 @@ struct Message
 		MessageType_SetCurrentBehaviorAck,
 		MessageType_SetName,
 		MessageType_SetNameAck,
-        MessageType_Sleep,
-        MessageType_ExitValidation,
+		MessageType_Sleep,
+		MessageType_ExitValidation,
+		MessageType_TransferInstantAnimSet,
+		MessageType_TransferInstantAnimSetAck,
+		MessageType_TransferInstantAnimSetFinished,
+		MessageType_PlayInstantAnim,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -174,8 +177,10 @@ struct MessageTransferAnimSet
 	uint16_t rgbTrackCount;
 	uint16_t keyFrameCount;
 	uint16_t trackCount;
+
 	uint16_t animationCount;
 	uint16_t animationSize;
+
 	uint16_t conditionCount;
 	uint16_t conditionSize;
 	uint16_t actionCount;
@@ -197,11 +202,10 @@ struct MessageTransferTestAnimSet
 {
 	uint16_t paletteSize;
 	uint16_t rgbKeyFrameCount;
-
 	uint16_t rgbTrackCount;
 	uint16_t keyFrameCount;
-
 	uint16_t trackCount;
+
 	uint16_t animationSize;
 
 	uint32_t hash;
@@ -209,17 +213,17 @@ struct MessageTransferTestAnimSet
 	inline MessageTransferTestAnimSet() : Message(Message::MessageType_TransferTestAnimSet) {}
 };
 
-enum TransferTestAnimSetAckType : uint8_t
+enum TransferInstantAnimSetAckType : uint8_t
 {
-	TransferTestAnimSetAck_Download = 0,
-	TransferTestAnimSetAck_UpToDate,
-	TransferTestAnimSetAck_NoMemory
+	TransferInstantAnimSetAck_Download = 0,
+	TransferInstantAnimSetAck_UpToDate,
+	TransferInstantAnimSetAck_NoMemory
 };
 
 struct MessageTransferTestAnimSetAck
 	: Message
 {
-	TransferTestAnimSetAckType ackType;
+	TransferInstantAnimSetAckType ackType;
 	inline MessageTransferTestAnimSetAck() : Message(Message::MessageType_TransferTestAnimSetAck) {}
 };
 
@@ -417,6 +421,39 @@ struct MessageExitValidation
 	inline MessageExitValidation() : Message(Message::MessageType_ExitValidation) {}
 };
 
+struct MessageTransferInstantAnimSet
+	: Message
+{
+	uint16_t paletteSize;
+	uint16_t rgbKeyFrameCount;
+	uint16_t rgbTrackCount;
+	uint16_t keyFrameCount;
+	uint16_t trackCount;
+
+	uint16_t animationCount;
+	uint16_t animationSize;
+
+	uint32_t hash;
+
+	inline MessageTransferInstantAnimSet() : Message(Message::MessageType_TransferInstantAnimSet) {}
+};
+
+struct MessageTransferInstantAnimSetAck
+	: Message
+{
+	TransferInstantAnimSetAckType ackType;
+	inline MessageTransferInstantAnimSetAck() : Message(Message::MessageType_TransferInstantAnimSetAck) {}
+};
+
+struct MessagePlayInstantAnim
+	: public Message
+{
+	uint8_t animation;
+	uint8_t faceIndex;	// Assumes that an animation was made for face 0
+	uint8_t loop; 		// 1 == loop, 0 == once
+
+	inline MessagePlayInstantAnim() : Message(Message::MessageType_PlayInstantAnim) {}
+};
 }
 
 #pragma pack(pop)
