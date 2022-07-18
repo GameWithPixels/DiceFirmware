@@ -180,6 +180,25 @@ To connect to the die electronic board, run the following commands in VS Code:
 * `Arduino: Select Port` and select SEGGER
 * `Arduino: Open Serial Monitor`
 
+## Memory Optimizations
+
+One of the targets of the Firmware makefile is aimed to help track code size and ram utilization. For this we take advantage of [Govind Mukudan's MapViewer tool](https://github.com/govind-mukundan/MapViewer) which parses gcc's output files (.map and .elf) to compute function and variable sizes.
+
+### Setting up MapViewer
+- Download Mapviewer from their [Releases](https://github.com/govind-mukundan/MapViewer/releases) page.
+- Open Mapviewer and click on the Settings button.
+- Set the paths to NM and ReadElf according to your current SDK setup (see image below)
+![image](https://user-images.githubusercontent.com/8626854/179559718-a0000a2b-2f0c-4f3a-b765-52c790245e8a.png)
+
+### Building for MapViewer
+- Simply use the 'make memory_map' target, this will build the firmware in release mode (removing debug messages). However, it will not perform Link Time Optimizations (which normally reduce the code size further) because LTO mangles all the source files and symbols and make the map file unusable.
+
+### Inspecting firmware memory map
+- Open firmware.map and firmware.elf and click *Analyse*
+- You should see object files populate the left-side list view.
+![image](https://user-images.githubusercontent.com/8626854/179560229-73fbedde-f871-4ad6-8aab-e86632e1a23d.png)
+
+
 # Validation Mode
 
 This special runtime mode makes the die blink it's device id using the LEDs,
