@@ -324,8 +324,8 @@ LDFLAGS += --specs=nano.specs
 firmware_memory_map: LDFLAGS += -Wl,--cref
 
 STACK_SIZE := 2048
-HEAP_SIZE := 5800
-firmware_debug: HEAP_SIZE := 3000
+HEAP_SIZE := 5400
+firmware_debug: HEAP_SIZE := 2600
 
 CFLAGS += -D__HEAP_SIZE=$(HEAP_SIZE)
 CFLAGS += -D__STACK_SIZE=$(STACK_SIZE)

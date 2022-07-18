@@ -48,6 +48,8 @@ namespace Config
         D6BoardV2,
         D12BoardV1,
         PD6BoardV1,
+        D10BoardV1,
+        D8BoardV1,
     };
 
     namespace BoardManager
@@ -55,12 +57,13 @@ namespace Config
         struct Board
         {
             // Measuring board type
-            uint8_t boardResistorValueInKOhms;
+            uint16_t boardResistorValueInKOhms;
 
             // Talking to LEDs
             uint8_t ledDataPin;
             uint8_t ledClockPin;
             uint8_t ledPowerPin;
+            uint8_t ledReturnPin;
 
             // I2C Pins for accelerometer
             uint8_t i2cDataPin;
@@ -85,6 +88,9 @@ namespace Config
 
             // Board
             BoardModel model;
+
+            // Padding
+            uint16_t padding;
 
             // Die layout information
             DiceVariants::Layout layout;
