@@ -493,9 +493,9 @@ namespace Modules
                                 SettingsManager::programCalibrationData(newNormals, b->ledCount, [] (bool result) {
 
                                     // Notify user that we're done, yay!!!
-                                    char text[256] = "";
-                                    snprintf(text, 256, "Calibrated, confidence = %d", (int)(measuredNormals->confidence * 100));
-                                    MessageService::NotifyUser(text, true, false, 30, [] (bool okCancel) {
+                                    // char text[256] = "";
+                                    // snprintf(text, 256, "Calibrated, confidence = %d", (int)(measuredNormals->confidence * 100));
+                                    MessageService::NotifyUser("Calibrated", true, false, 30, [] (bool okCancel) {
                                         // Restart notifications
                                         restart();
                                     });

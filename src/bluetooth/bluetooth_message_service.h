@@ -2,7 +2,7 @@
 #include "bluetooth_messages.h"
 
 #ifndef BLE_LOG_ENABLED
-#define BLE_LOG_ENABLED 1
+#define BLE_LOG_ENABLED 0
 #endif
 
 namespace Bluetooth

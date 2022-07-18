@@ -1,4 +1,4 @@
-TARGETS := firmware_d firmware # debug, release and cycleleds targets (the latest is a release build with some settings turned on to help with dice manufacturing)
+TARGETS := firmware_d firmware firmware_m # debug, release and memory map
 OUTPUT_DIRECTORY := _build
 PUBLISH_DIRECTORY := binaries
 PROJ_DIR := .
@@ -243,9 +243,9 @@ LIB_FILES += \
 
 # Optimization flags
 OPT = -Os -g3
-#OPT = -O0 -g3
-# Uncomment the line below to enable link time optimization
-OPT += -flto
+
+# Enable link time optimizations on Release builds
+firmware_release: OPT += -flto
 
 COMMON_FLAGS = -DBL_SETTINGS_ACCESS_ONLY
 COMMON_FLAGS += -DNRF52_SERIES
@@ -285,6 +285,8 @@ DEBUG_FLAGS += -DDICE_SELFTEST=0
 firmware_debug: DEBUG_FLAGS = -DDEBUG
 firmware_debug: DEBUG_FLAGS += -DDEBUG_NRF
 firmware_debug: DEBUG_FLAGS += -DNRF_LOG_ENABLED=1
+firmware_release: DEBUG_FLAGS += -DNDEBUG
+firmware_memory_map: DEBUG_FLAGS += -DNDEBUG
 
 COMMON_FLAGS += $(DEBUG_FLAGS)
 
@@ -317,6 +319,9 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs
 #LDFLAGS += -u _printf_float
+
+# Generate cross reference table
+firmware_memory_map: LDFLAGS += -Wl,--cref
 
 STACK_SIZE := 2048
 HEAP_SIZE := 5800
@@ -420,6 +425,11 @@ flash_board: erase flash_softdevice flash_bootloader flash_release
 flash_ble: zip
 	@echo Flashing: $(ZIP_FILE) over BLE DFU
 	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
+
+.PHONY: firmware_memory_map
+firmware_memory_map: firmware_m
+	@echo Generating elf file from linker output
+	$(OBJCOPY) -O elf32-littlearm $(OUTPUT_DIRECTORY)/firmware_m.out $(OUTPUT_DIRECTORY)/firmware_m.elf
 
 #
 # Validation commands
