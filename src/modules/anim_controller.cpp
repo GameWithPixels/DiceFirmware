@@ -37,7 +37,6 @@ namespace Modules::AnimController
 	// Some local functions
 	void update(int ms);
 	uint32_t getColorForAnim(void* token, uint32_t colorIndex);
-	uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
 	void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
 	void printAnimControllerState(void *context, const Message *msg);
 
@@ -140,15 +139,7 @@ namespace Modules::AnimController
 					//NRF_LOG_INFO("track_count = %d", animTrackCount);
 					for (int j = 0; j < animTrackCount; ++j) {
 						//colors[j] = Utils::gamma(colors[j]);
-
-						// The transformation is:
-						// animFaceIndex (what face the animation says it wants to light up)
-						//	-> rotatedAnimFaceIndex (based on remapFace and remapping table, i.e. what actual
-						//	   face should light up to "retarget" the animation around the current up face)
-						//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
-						//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
-						int rotatedAnimFaceIndex = l.faceRemap[anim->remapFace * c + canonIndices[j]];
-						ledIndices[j] = l.faceToLedLookup[rotatedAnimFaceIndex];
+                        ledIndices[j] = l.animIndexToLEDIndex(canonIndices[j], anim->remapFace);
 					}
 
 					// Update color array
@@ -300,7 +291,6 @@ namespace Modules::AnimController
 	{
 		auto b = BoardManager::getBoard();
 		auto l = b->layout;
-		int c = b->ledCount;
 
 		// Found the animation, start by killing the leds it controls
 		int canonIndices[MAX_LED_COUNT];
@@ -310,14 +300,7 @@ namespace Modules::AnimController
 		auto anim = animations[animIndex];
 		int ledCount = anim->stop(canonIndices);
 		for (int i = 0; i < ledCount; ++i) {
-			// The transformation is:
-			// animFaceIndex (what face the animation says it wants to light up)
-			//	-> rotatedAnimFaceIndex (based on remapFace and remapping table, i.e. what actual
-			//	   face should light up to "retarget" the animation around the current up face)
-			//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
-			//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
-			int rotatedAnimFaceIndex = l.faceRemap[anim->remapFace * c + canonIndices[i]];
-			ledIndices[i] = l.faceToLedLookup[rotatedAnimFaceIndex];
+            ledIndices[i] = l.animIndexToLEDIndex(canonIndices[i], anim->remapFace);
 		}
 		LEDs::setPixelColors(ledIndices, zeros, ledCount);
 	}
@@ -337,22 +320,6 @@ namespace Modules::AnimController
 
 		// Reduce the count
 		animationCount--;
-	}
-
-	uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace) {
-		// The transformation is:
-		// animFaceIndex (what face the animation says it wants to light up)
-		//	-> rotatedAnimFaceIndex (based on remapFace and remapping table, i.e. what actual
-		//	   face should light up to "retarget" the animation around the current up face)
-		//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
-		//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
-
-		auto b = BoardManager::getBoard();
-		auto l = b->layout;
-		int c = b->ledCount;
-
-		int rotatedAnimFaceIndex = l.faceRemap[remapFace * c + animFaceIndex];
-		return l.faceToLedLookup[rotatedAnimFaceIndex];
 	}
 
 	void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt){

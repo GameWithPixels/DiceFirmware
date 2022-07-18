@@ -46,6 +46,8 @@ namespace Config
         D20BoardV10,
         D20BoardV11,
         D6BoardV2,
+        D12BoardV1,
+        PD6BoardV1,
     };
 
     namespace BoardManager

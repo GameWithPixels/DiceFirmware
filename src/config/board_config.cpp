@@ -208,7 +208,7 @@ namespace BoardManager
         // },
         //D20BoardV10
         {
-            .boardResistorValueInKOhms = 82, // 82.5k Resistor
+            .boardResistorValueInKOhms = 82, // 82.5k Resistor, at VCC = 3.1V, this means 3.1V * 82.5k / 182.5k = 1.4V
             .ledDataPin = 1,
             .ledClockPin = 0xFF,
             .ledPowerPin = 9,
@@ -233,7 +233,7 @@ namespace BoardManager
         },
         //D20BoardV11
         {
-            .boardResistorValueInKOhms = 100, // 100.0k Resistor
+            .boardResistorValueInKOhms = 100, // 100.0k Resistor, at VCC = 3.1V, this means 3.1V * 100k / 200k = 1.55V
             .ledDataPin = 6,
             .ledClockPin = 0xFF,
             .ledPowerPin = 0,
@@ -258,7 +258,7 @@ namespace BoardManager
         },
         //D6BoardV2
         {
-            .boardResistorValueInKOhms = 120, // 120.0k Resistor
+            .boardResistorValueInKOhms = 120, // 120.0k Resistor, at VCC = 3.1V, this means 3.1V * 120k / 220k = 1.69V
             .ledDataPin = 1,
             .ledClockPin = 0xFF,
             .ledPowerPin = 0,
@@ -281,6 +281,58 @@ namespace BoardManager
             },
             .name = "D6v2",
         },
+        //PD6BoardV1
+        {
+            .boardResistorValueInKOhms = 150, // 150.0k Resistor, at VCC = 3.1V, this means 3.1V * 150k / 250k = 1.86V
+            .ledDataPin = 1,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 0,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 21,
+            .model = BoardModel::PD6BoardV1,
+            .layout = {
+                .baseNormals = DiceVariants::sixSidedNormals,
+                .faceRemap = DiceVariants::sixSidedRemap,
+                .faceToLedLookup = DiceVariants::sixSidedFaceToLedLookup,
+            },
+            .name = "PD6v1",
+        },
+        //D12BoardV1
+        {
+            .boardResistorValueInKOhms = 180, // 180.0k Resistor, at VCC = 3.1V, this means 3.1V * 180k / 280k = 1.99V
+            .ledDataPin = 6,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 0,
+            .i2cDataPin = 15,
+            .i2cClockPin = 14,
+            .accInterruptPin = 12,
+            .chargingStatePin = 1,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 12,
+            .model = BoardModel::D12BoardV1,
+            .layout = {
+                .baseNormals = DiceVariants::twelveSidedNormals,
+                .faceRemap = DiceVariants::twelveSidedRemap,
+                .faceToLedLookup = DiceVariants::twelveSidedFaceToLedLookup,
+            },
+            .name = "D12v1",
+        },
+        //D10BoardV1 - 270.0k Resistor, at VCC = 3.1V, this means 3.1V * 270k / 370k = 2.26V
+        //D8BoardV1 - 390.0k Resistor, at VCC = 3.1V, this means 3.1V * 390k / 390k = 2.47V
     };
 
     // 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20   <-- prev
@@ -301,7 +353,6 @@ namespace BoardManager
         nrf_gpio_cfg_default(BOARD_DETECT_DRIVE_PIN);
 
         // Do some computation to figure out which variant we're working with!
-        // D20v5 board uses 33k over 100k voltage divider, or 56k over 100k (because I ran out of 33k 0402 resistors)
         // D20v3 board uses 20k over 100k voltage divider
         // i.e. the voltage read should be 3.1V * 20k / 120k = 0.55V
         // The D6v2 board uses 47k over 100k, i.e. 1.05V
@@ -315,7 +366,7 @@ namespace BoardManager
         float boardVoltages[boardCount];
         for (int i = 0; i < boardCount; ++i) {
             boardVoltages[i] = (vdd * boards[i].boardResistorValueInKOhms * 1000) / (float)(BOARD_DETECT_RESISTOR + boards[i].boardResistorValueInKOhms * 1000);
-            NRF_LOG_DEBUG("%s: voltage:" NRF_LOG_FLOAT_MARKER, boards[i].name, NRF_LOG_FLOAT(boardVoltages[i]));
+            NRF_LOG_INFO("%s: voltage:" NRF_LOG_FLOAT_MARKER, boards[i].name, NRF_LOG_FLOAT(boardVoltages[i]));
         }
         float midpointVoltages[boardCount-1];
         for (int i = 0; i < boardCount-1; ++i) {

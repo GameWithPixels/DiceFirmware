@@ -106,12 +106,53 @@ namespace Config
             { 0.1273862f, -0.3333025f, -0.9341605f},
         };
 
+        const uint8_t twelveSidedRemap[] = {
+            // FIXME!!!
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0,
+            2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 
+            3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 
+            4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 
+            5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 
+            6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 
+            7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 
+            8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 
+            9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 
+            10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
+        };
+
+        const Core::float3 twelveSidedNormals[] = {
+            // FIXME!!!
+            { 0, -1,  0},
+            { 0,  0,  1},
+            { 1,  0,  0},
+            {-1,  0,  0},
+            { 0,  0, -1},
+            { 0,  1,  0},
+            { 0, -1,  0},
+            { 0,  0,  1},
+            { 1,  0,  0},
+            {-1,  0,  0},
+            { 0,  0, -1},
+            { 0,  1,  0},
+        };
+
+        const uint8_t twelveSidedFaceToLedLookup[] = {
+            // FIXME!!!
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+        };
+
 
         struct Layout
         {
             const Core::float3* baseNormals;
             const uint8_t* faceRemap;
             const uint8_t* faceToLedLookup;
+            uint8_t faceCount;
+            uint8_t ledCount;
+
+            uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
         };
     }
 }
