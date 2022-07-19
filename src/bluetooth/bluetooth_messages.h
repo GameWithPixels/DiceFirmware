@@ -111,12 +111,12 @@ protected:
 struct MessageIAmADie
 	: public Message
 {
-	uint8_t faceCount; // Which kind of dice this is
+	uint8_t ledCount; // Number of LEDs
 	Config::DiceVariants::DesignAndColor designAndColor; // Physical look
 	uint8_t padding;
 	uint32_t dataSetHash;
-	uint32_t deviceId; // A unique identifier
-	uint16_t flashSize; // How much room available for data
+	uint32_t pixelId; // A unique identifier
+	uint16_t availableFlash; // How much room available for data
 	uint32_t buildTimestamp;
 	inline MessageIAmADie() : Message(Message::MessageType_IAmADie) {}
 };

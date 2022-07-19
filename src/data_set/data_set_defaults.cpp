@@ -120,12 +120,6 @@ namespace DataSet
 
 		uint32_t dataAddress = Flash::getDataSetDataAddress();
 
-		// NRF_LOG_INFO("Total size: %d", totalSize);
-		// NRF_LOG_INFO("Flash size: %d", flashSize);
-		// NRF_LOG_INFO("pageAddress size: %d", pageAddress);
-		// NRF_LOG_INFO("dataAddress: %d", dataAddress);
-		// NRF_LOG_INFO("page Count: %d", pageCount);
-
         // Allocate a buffer for all the data we're about to create
         // We'll write the data in the buffer and then program it into flash!
         writeBuffer = malloc(bufferSize);

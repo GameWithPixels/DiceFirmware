@@ -93,7 +93,7 @@ namespace Stack
     // Custom advertising data, so the Pixel app can identify dice before they're even connected
     struct CustomManufacturerData
     {
-        uint8_t faceCount;
+        uint8_t ledCount;
         uint8_t designAndColor;
         Accelerometer::RollState rollState; // Indicates whether the dice is being shaken, 8 bits
         uint8_t currentFace; // Which face is currently up
@@ -452,7 +452,7 @@ namespace Stack
 
     void initCustomAdvertisingData() {
         // Initialize the custom advertising data
-        customManufacturerData.faceCount = Config::BoardManager::getBoard()->ledCount;
+        customManufacturerData.ledCount = Config::BoardManager::getBoard()->ledCount;
         customManufacturerData.designAndColor = Config::SettingsManager::getSettings()->designAndColor;
         customManufacturerData.rollState = Accelerometer::RollState_Unknown;
         customManufacturerData.currentFace = 0;
