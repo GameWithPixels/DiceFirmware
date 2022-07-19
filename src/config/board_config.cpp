@@ -94,106 +94,106 @@ namespace BoardManager
             { 0.1273862f, -0.3333025f, -0.9341605f},
         };
 
-        // const uint8_t twelveSidedRemap[] = {
-        //     // FIXME!!!
-        //     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-        //     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0,
-        //     2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 
-        //     3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 
-        //     4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 
-        //     5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 
-        //     6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 
-        //     7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 
-        //     8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 
-        //     9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 
-        //     10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        //     11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
-        // };
+        const uint8_t twelveSidedRemap[] = {
+            // FIXME!!!
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0,
+            2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 
+            3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 
+            4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 
+            5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 
+            6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 
+            7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 
+            8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 
+            9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 
+            10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
+        };
 
-        // const Core::float3 twelveSidedNormals[] = {
-        //     // FIXME!!!
-        //     { 0, -1,  0},
-        //     { 0,  0,  1},
-        //     { 1,  0,  0},
-        //     {-1,  0,  0},
-        //     { 0,  0, -1},
-        //     { 0,  1,  0},
-        //     { 0, -1,  0},
-        //     { 0,  0,  1},
-        //     { 1,  0,  0},
-        //     {-1,  0,  0},
-        //     { 0,  0, -1},
-        //     { 0,  1,  0},
-        // };
+        const Core::float3 twelveSidedNormals[] = {
+            // FIXME!!!
+            { 0, -1,  0},
+            { 0,  0,  1},
+            { 1,  0,  0},
+            {-1,  0,  0},
+            { 0,  0, -1},
+            { 0,  1,  0},
+            { 0, -1,  0},
+            { 0,  0,  1},
+            { 1,  0,  0},
+            {-1,  0,  0},
+            { 0,  0, -1},
+            { 0,  1,  0},
+        };
 
-        // const uint8_t twelveSidedFaceToLedLookup[] = {
-        //     // FIXME!!!
-        //     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
-        // };
-
-
-        // const uint8_t tenSidedRemap[] = {
-        //     // FIXME!!!
-        //     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        //     1, 2, 3, 4, 5, 6, 7, 8, 9, 0,
-        //     2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 
-        //     3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 
-        //     4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 
-        //     5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 
-        //     6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 
-        //     7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 
-        //     8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 
-        //     9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 
-        // };
-
-        // const Core::float3 tenSidedNormals[] = {
-        //     // FIXME!!!
-        //     { 0, -1,  0},
-        //     { 0,  0,  1},
-        //     { 1,  0,  0},
-        //     {-1,  0,  0},
-        //     { 0,  0, -1},
-        //     { 0,  1,  0},
-        //     { 0, -1,  0},
-        //     { 0,  0,  1},
-        //     { 1,  0,  0},
-        //     {-1,  0,  0},
-        // };
-
-        // const uint8_t tenSidedFaceToLedLookup[] = {
-        //     // FIXME!!!
-        //     0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-        // };
+        const uint8_t twelveSidedFaceToLedLookup[] = {
+            // FIXME!!!
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+        };
 
 
-        // const uint8_t eightSidedRemap[] = {
-        //     // FIXME!!!
-        //     0, 1, 2, 3, 4, 5, 6, 7,
-        //     1, 2, 3, 4, 5, 6, 7, 0, 
-        //     2, 3, 4, 5, 6, 7, 0, 1, 
-        //     3, 4, 5, 6, 7, 0, 1, 2, 
-        //     4, 5, 6, 7, 0, 1, 2, 3, 
-        //     5, 6, 7, 0, 1, 2, 3, 4, 
-        //     6, 7, 0, 1, 2, 3, 4, 5, 
-        //     7, 0, 1, 2, 3, 4, 5, 6, 
-        // };
+        const uint8_t tenSidedRemap[] = {
+            // FIXME!!!
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 0,
+            2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 
+            3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 
+            4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 
+            5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 
+            6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 
+            7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 
+            8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 
+            9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 
+        };
 
-        // const Core::float3 eightSidedNormals[] = {
-        //     // FIXME!!!
-        //     { 0, -1,  0},
-        //     { 0,  0,  1},
-        //     { 1,  0,  0},
-        //     {-1,  0,  0},
-        //     { 0,  0, -1},
-        //     { 0,  1,  0},
-        //     { 0, -1,  0},
-        //     { 0,  0,  1},
-        // };
+        const Core::float3 tenSidedNormals[] = {
+            // FIXME!!!
+            { 0, -1,  0},
+            { 0,  0,  1},
+            { 1,  0,  0},
+            {-1,  0,  0},
+            { 0,  0, -1},
+            { 0,  1,  0},
+            { 0, -1,  0},
+            { 0,  0,  1},
+            { 1,  0,  0},
+            {-1,  0,  0},
+        };
 
-        // const uint8_t eightSidedFaceToLedLookup[] = {
-        //     // FIXME!!!
-        //     0, 1, 2, 3, 4, 5, 6, 7
-        // };
+        const uint8_t tenSidedFaceToLedLookup[] = {
+            // FIXME!!!
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        };
+
+
+        const uint8_t eightSidedRemap[] = {
+            // FIXME!!!
+            0, 1, 2, 3, 4, 5, 6, 7,
+            1, 2, 3, 4, 5, 6, 7, 0, 
+            2, 3, 4, 5, 6, 7, 0, 1, 
+            3, 4, 5, 6, 7, 0, 1, 2, 
+            4, 5, 6, 7, 0, 1, 2, 3, 
+            5, 6, 7, 0, 1, 2, 3, 4, 
+            6, 7, 0, 1, 2, 3, 4, 5, 
+            7, 0, 1, 2, 3, 4, 5, 6, 
+        };
+
+        const Core::float3 eightSidedNormals[] = {
+            // FIXME!!!
+            { 0, -1,  0},
+            { 0,  0,  1},
+            { 1,  0,  0},
+            {-1,  0,  0},
+            { 0,  0, -1},
+            { 0,  1,  0},
+            { 0, -1,  0},
+            { 0,  0,  1},
+        };
+
+        const uint8_t eightSidedFaceToLedLookup[] = {
+            // FIXME!!!
+            0, 1, 2, 3, 4, 5, 6, 7
+        };
 
 
     // Array of possible circuit boards configs
@@ -468,110 +468,110 @@ namespace BoardManager
             },
             .name = "D6v2",
         },
-        // //PD6BoardV1
-        // {
-        //     .boardResistorValueInKOhms = 150, // 150.0k Resistor, at VCC = 3.1V, this means 3.1V * 150k / 250k = 1.86V
-        //     .ledDataPin = 1,
-        //     .ledClockPin = 0xFF,
-        //     .ledPowerPin = 0,
-        //     .ledReturnPin = 0xFF,
-        //     .i2cDataPin = 14,
-        //     .i2cClockPin = 15,
-        //     .accInterruptPin = 12,
-        //     .chargingStatePin = 6,
-        //     .coilSensePin = NRF_SAADC_INPUT_AIN2,
-        //     .vbatSensePin = NRF_SAADC_INPUT_AIN3,
-        //     .vledSensePin = NRF_SAADC_INPUT_AIN6,
-        //     .magnetPin = 0xFF,
-        //     .accModel = AccelerometerModel::KXTJ3_1057,
-        //     .ledModel = LEDModel::NEOPIXEL_GRB,
-        //     .ledCount = 21,
-        //     .model = BoardModel::PD6BoardV1,
-        //     .layout = {
-        //         .baseNormals = sixSidedNormals,
-        //         .faceRemap = sixSidedRemap,
-        //         .faceToLedLookup = sixSidedFaceToLedLookup,
-        //     },
-        //     .name = "PD6v1",
-        // },
-        // //D12BoardV1
-        // {
-        //     .boardResistorValueInKOhms = 180, // 180.0k Resistor, at VCC = 3.1V, this means 3.1V * 180k / 280k = 1.99V
-        //     .ledDataPin = 6,
-        //     .ledClockPin = 0xFF,
-        //     .ledPowerPin = 0,
-        //     .ledReturnPin = 0xFF,
-        //     .i2cDataPin = 15,
-        //     .i2cClockPin = 14,
-        //     .accInterruptPin = 12,
-        //     .chargingStatePin = 1,
-        //     .coilSensePin = NRF_SAADC_INPUT_AIN2,
-        //     .vbatSensePin = NRF_SAADC_INPUT_AIN3,
-        //     .vledSensePin = NRF_SAADC_INPUT_AIN6,
-        //     .magnetPin = 0xFF,
-        //     .accModel = AccelerometerModel::KXTJ3_1057,
-        //     .ledModel = LEDModel::NEOPIXEL_GRB,
-        //     .ledCount = 12,
-        //     .model = BoardModel::D12BoardV1,
-        //     .layout = {
-        //         .baseNormals = twelveSidedNormals,
-        //         .faceRemap = twelveSidedRemap,
-        //         .faceToLedLookup = twelveSidedFaceToLedLookup,
-        //     },
-        //     .name = "D12v1",
-        // },
-        // // D10BoardV1
-        // {
-        //     .boardResistorValueInKOhms = 270, // 270.0k Resistor, at VCC = 3.1V, this means 3.1V * 270k / 370k = 2.26V
-        //     .ledDataPin = 0,
-        //     .ledClockPin = 0xFF,
-        //     .ledPowerPin = 10,
-        //     .ledReturnPin = 1,
-        //     .i2cDataPin = 14,
-        //     .i2cClockPin = 15,
-        //     .accInterruptPin = 12,
-        //     .chargingStatePin = 6,
-        //     .coilSensePin = NRF_SAADC_INPUT_AIN2,
-        //     .vbatSensePin = NRF_SAADC_INPUT_AIN3,
-        //     .vledSensePin = NRF_SAADC_INPUT_AIN6,
-        //     .magnetPin = 0xFF,
-        //     .accModel = AccelerometerModel::KXTJ3_1057,
-        //     .ledModel = LEDModel::NEOPIXEL_GRB,
-        //     .ledCount = 10,
-        //     .model = BoardModel::D10BoardV1,
-        //     .layout = {
-        //         .baseNormals = tenSidedNormals,
-        //         .faceRemap = tenSidedRemap,
-        //         .faceToLedLookup = tenSidedFaceToLedLookup,
-        //     },
-        //     .name = "D10v1",
-        // },
-        // //D8BoardV1
-        // {
-        //     .boardResistorValueInKOhms = 390, // 390.0k Resistor, at VCC = 3.1V, this means 3.1V * 390k / 390k = 2.47V
-        //     .ledDataPin = 9,
-        //     .ledClockPin = 0xFF,
-        //     .ledPowerPin = 6,
-        //     .ledReturnPin = 10,
-        //     .i2cDataPin = 14,
-        //     .i2cClockPin = 15,
-        //     .accInterruptPin = 12,
-        //     .chargingStatePin = 0,
-        //     .coilSensePin = NRF_SAADC_INPUT_AIN2,
-        //     .vbatSensePin = NRF_SAADC_INPUT_AIN3,
-        //     .vledSensePin = NRF_SAADC_INPUT_AIN6,
-        //     .magnetPin = 0xFF,
-        //     .accModel = AccelerometerModel::KXTJ3_1057,
-        //     .ledModel = LEDModel::NEOPIXEL_GRB,
-        //     .ledCount = 8,
-        //     .model = BoardModel::D8BoardV1,
-        //     .layout = {
-        //         .baseNormals = eightSidedNormals,
-        //         .faceRemap = eightSidedRemap,
-        //         .faceToLedLookup = eightSidedFaceToLedLookup,
-        //     },
-        //     .name = "D8v1",
-        // },
+        //PD6BoardV1
+        {
+            .boardResistorValueInKOhms = 150, // 150.0k Resistor, at VCC = 3.1V, this means 3.1V * 150k / 250k = 1.86V
+            .ledDataPin = 1,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 0,
+            .ledReturnPin = 0xFF,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 21,
+            .model = BoardModel::PD6BoardV1,
+            .layout = {
+                .baseNormals = sixSidedNormals,
+                .faceRemap = sixSidedRemap,
+                .faceToLedLookup = sixSidedFaceToLedLookup,
+            },
+            .name = "PD6v1",
+        },
+        //D12BoardV1
+        {
+            .boardResistorValueInKOhms = 180, // 180.0k Resistor, at VCC = 3.1V, this means 3.1V * 180k / 280k = 1.99V
+            .ledDataPin = 6,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 0,
+            .ledReturnPin = 0xFF,
+            .i2cDataPin = 15,
+            .i2cClockPin = 14,
+            .accInterruptPin = 12,
+            .chargingStatePin = 1,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 12,
+            .model = BoardModel::D12BoardV1,
+            .layout = {
+                .baseNormals = twelveSidedNormals,
+                .faceRemap = twelveSidedRemap,
+                .faceToLedLookup = twelveSidedFaceToLedLookup,
+            },
+            .name = "D12v1",
+        },
+        // D10BoardV1
+        {
+            .boardResistorValueInKOhms = 270, // 270.0k Resistor, at VCC = 3.1V, this means 3.1V * 270k / 370k = 2.26V
+            .ledDataPin = 0,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 10,
+            .ledReturnPin = 1,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 10,
+            .model = BoardModel::D10BoardV1,
+            .layout = {
+                .baseNormals = tenSidedNormals,
+                .faceRemap = tenSidedRemap,
+                .faceToLedLookup = tenSidedFaceToLedLookup,
+            },
+            .name = "D10v1",
+        },
+        //D8BoardV1
+        {
+            .boardResistorValueInKOhms = 390, // 390.0k Resistor, at VCC = 3.1V, this means 3.1V * 390k / 390k = 2.47V
+            .ledDataPin = 9,
+            .ledClockPin = 0xFF,
+            .ledPowerPin = 6,
+            .ledReturnPin = 10,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 0,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .magnetPin = 0xFF,
+            .accModel = AccelerometerModel::KXTJ3_1057,
+            .ledModel = LEDModel::NEOPIXEL_GRB,
+            .ledCount = 8,
+            .model = BoardModel::D8BoardV1,
+            .layout = {
+                .baseNormals = eightSidedNormals,
+                .faceRemap = eightSidedRemap,
+                .faceToLedLookup = eightSidedFaceToLedLookup,
+            },
+            .name = "D8v1",
+        },
     };
 
     // 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20   <-- prev
