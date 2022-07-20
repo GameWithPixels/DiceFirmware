@@ -30,6 +30,7 @@ using namespace Bluetooth;
 
 // This defines how frequently we try to read the accelerometer
 #define JERK_SCALE (1000) // To make the jerk in the same range as the acceleration
+#define MAX_FRAMEDATA_CLIENTS 1
 #define MAX_ACC_CLIENTS 8
 
 namespace Modules
@@ -38,27 +39,22 @@ namespace Modules
     {
         APP_TIMER_DEF(accelControllerTimer);
 
-        static int face;
-        static float confidence;
-        static float sigma;
-        static float3 smoothAcc;
-        static RollState rollState = RollState_Unknown;
         static float3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
         static bool paused;
         static Config::AccelerometerModel accelerometerModel;
 
-        // This small buffer stores about 1 second of Acceleration data
-        static Core::RingBuffer<AccelFrame, ACCEL_BUFFER_SIZE> buffer;
+        // This stores our current Acceleration Data
+        AccelFrame currentFrame;
 
-        static DelegateArray<FrameDataClientMethod, MAX_ACC_CLIENTS> frameDataClients;
+        static DelegateArray<FrameDataClientMethod, MAX_FRAMEDATA_CLIENTS> frameDataClients;
         static DelegateArray<RollStateClientMethod, MAX_ACC_CLIENTS> rollStateClients;
 
         void updateState();
         void pauseNotifications();
         void resumeNotifications();
 
-        void CalibrateHandler(void *context, const Message *msg);
-        void CalibrateFaceHandler(void *context, const Message *msg);
+        void CalibrateHandler(const Message *msg);
+        void CalibrateFaceHandler(const Message *msg);
         void onSettingsProgrammingEvent(void *context, Flash::ProgrammingEventType evt);
         void onPowerEvent(void *context, nrf_pwr_mgmt_evt_t event);
         void readAccelerometer(float3 *acc);
@@ -72,29 +68,22 @@ namespace Modules
         {
             AccelChip::init();
 
-            MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, nullptr, CalibrateHandler);
-            MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, nullptr, CalibrateFaceHandler);
+            MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, CalibrateHandler);
+            MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, CalibrateFaceHandler);
 
             Flash::hookProgrammingEvent(onSettingsProgrammingEvent, nullptr);
 
-            face = 0;
-            confidence = 0.0f;
-            smoothAcc = float3::zero();
-
-            AccelFrame newFrame;
-            readAccelerometer(&newFrame.acc);
-            newFrame.time = DriversNRF::Timers::millis();
-            newFrame.jerk = float3::zero();
-            newFrame.sigma = 0.0f;
-            newFrame.smoothAcc = newFrame.acc;
-            buffer.push(newFrame);
+            // Initialize the acceleration data
+            readAccelerometer(&currentFrame.acc);
+            currentFrame.face = 0;
+            currentFrame.faceConfidence = 0.0f;
+            currentFrame.time = DriversNRF::Timers::millis();
+            currentFrame.jerk = float3::zero();
+            currentFrame.sigma = 0.0f;
+            currentFrame.smoothAcc = currentFrame.acc;
 
             // Attach to the power manager, so we can wake the device up
             PowerManager::hook(onPowerEvent, nullptr);
-
-            // // Create the accelerometer timer
-            // ret_code_t ret_code = app_timer_create(&accelControllerTimer, APP_TIMER_MODE_REPEATED, update);
-            // APP_ERROR_CHECK(ret_code);
 
             start();
             NRF_LOG_INFO("Accelerometer initialized with accelerometerModel=%d", (int)accelerometerModel);
@@ -110,42 +99,27 @@ namespace Modules
         void AccHandler(void *param, const Core::float3 &acc)
         {
             auto settings = SettingsManager::getSettings();
-            auto &lastFrame = buffer.last();
 
-            AccelFrame newFrame;
-            newFrame.acc = acc;
-
-            newFrame.time = DriversNRF::Timers::millis();
-            newFrame.jerk = ((newFrame.acc - lastFrame.acc) * 1000.0f) / (float)(newFrame.time - lastFrame.time);
-
-            float jerkMag = newFrame.jerk.sqrMagnitude();
+            uint32_t newTime = DriversNRF::Timers::millis();
+            Core::float3 newJerk = ((acc - currentFrame.acc) * 1000.0f) / (float)(newTime - currentFrame.time);
+            float jerkMag = newJerk.sqrMagnitude();
             if (jerkMag > 10.f)
             {
                 jerkMag = 10.f;
             }
-            sigma = sigma * settings->sigmaDecay + jerkMag * (1.0f - settings->sigmaDecay);
-            newFrame.sigma = sigma;
+            float newSigma = currentFrame.sigma * settings->sigmaDecay + jerkMag * (1.0f - settings->sigmaDecay);
+            Core::float3 newSmoothAcc = currentFrame.smoothAcc * settings->accDecay + acc * (1.0f - settings->accDecay);
+            float newFaceConfidence = 0.0f;
+            uint8_t newFace = determineFace(acc, &newFaceConfidence);
 
-            smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
-            newFrame.smoothAcc = smoothAcc;
-            newFrame.face = determineFace(newFrame.acc, &newFrame.faceConfidence);
+            bool startMoving = newSigma > settings->startMovingThreshold;
+            bool stopMoving = newSigma < settings->stopMovingThreshold;
+            bool onFace = newFaceConfidence > settings->faceThreshold;
+            bool zeroG = acc.sqrMagnitude() < (settings->fallingThreshold * settings->fallingThreshold);
+            bool shock = acc.sqrMagnitude() > (settings->shockThreshold * settings->shockThreshold);
 
-            buffer.push(newFrame);
-
-            // Notify clients
-            for (int i = 0; i < frameDataClients.Count(); ++i)
-            {
-                frameDataClients[i].handler(frameDataClients[i].token, newFrame);
-            }
-
-            bool startMoving = sigma > settings->startMovingThreshold;
-            bool stopMoving = sigma < settings->stopMovingThreshold;
-            bool onFace = newFrame.faceConfidence > settings->faceThreshold;
-            bool zeroG = newFrame.acc.sqrMagnitude() < (settings->fallingThreshold * settings->fallingThreshold);
-            bool shock = newFrame.acc.sqrMagnitude() > (settings->shockThreshold * settings->shockThreshold);
-
-            RollState newRollState = rollState;
-            switch (rollState)
+            RollState newRollState = currentFrame.rollState;
+            switch (newRollState)
             {
             case RollState_Unknown:
             case RollState_OnFace:
@@ -155,13 +129,13 @@ namespace Modules
                 {
                     // We're at least being handled
                     newRollState = RollState_Handling;
-                    handleStateNormal = newFrame.acc.normalized();
+                    handleStateNormal = acc.normalized();
                 }
                 break;
             case RollState_Handling:
                 // Did we move enough?
                 {
-                    bool rotatedEnough = float3::dot(newFrame.acc.normalized(), handleStateNormal) < 0.5f;
+                    bool rotatedEnough = float3::dot(acc.normalized(), handleStateNormal) < 0.5f;
                     if (shock || zeroG || rotatedEnough)
                     {
                         // Stuff is happening that we are most likely rolling now
@@ -220,31 +194,34 @@ namespace Modules
                 break;
             }
 
-            if (newFrame.face != face)
+            if (newRollState != currentFrame.rollState)
             {
-                face = newFrame.face;
-                confidence = newFrame.faceConfidence;
-
-                // NRF_LOG_INFO("Face %d, confidence " NRF_LOG_FLOAT_MARKER, face, NRF_LOG_FLOAT(confidence));
-            }
-
-            if (newRollState != rollState)
-            {
-
-                if (newRollState != rollState)
-                {
-                    NRF_LOG_INFO("State: %s", getRollStateString(newRollState));
-                    rollState = newRollState;
-                }
+                NRF_LOG_INFO("State: %s", getRollStateString(newRollState));
 
                 // Notify clients
                 if (!paused)
                 {
                     for (int i = 0; i < rollStateClients.Count(); ++i)
                     {
-                        rollStateClients[i].handler(rollStateClients[i].token, rollState, face);
+                        rollStateClients[i].handler(rollStateClients[i].token, newRollState, newFace);
                     }
                 }
+            }
+
+            // Update last frame data
+            currentFrame.acc = acc;
+            currentFrame.time = newTime;
+            currentFrame.jerk = newJerk;
+            currentFrame.sigma = newSigma;
+            currentFrame.smoothAcc = newSmoothAcc;
+            currentFrame.rollState = newRollState;
+            currentFrame.face = newFace;
+            currentFrame.faceConfidence = newFaceConfidence;
+
+            // Notify frame data clients
+            for (int i = 0; i < frameDataClients.Count(); ++i)
+            {
+                frameDataClients[i].handler(frameDataClients[i].token, currentFrame);
             }
         }
 
@@ -256,20 +233,23 @@ namespace Modules
             NRF_LOG_INFO("Starting accelerometer");
 
             // Set initial value
-            float3 acc;
-            readAccelerometer(&acc);
-            face = determineFace(acc, &confidence);
+            readAccelerometer(&currentFrame.acc);
+            currentFrame.smoothAcc = currentFrame.acc;
+            currentFrame.time = Timers::millis();
+            currentFrame.jerk = Core::float3::zero();
+            currentFrame.sigma = 0.0f;
+            currentFrame.face = determineFace(currentFrame.acc, &currentFrame.faceConfidence);
 
             // Determine what state we're in to begin with
             auto settings = SettingsManager::getSettings();
-            bool onFace = confidence > settings->faceThreshold;
+            bool onFace = currentFrame.faceConfidence > settings->faceThreshold;
             if (onFace)
             {
-                rollState = RollState_OnFace;
+                currentFrame.rollState = RollState_OnFace;
             }
             else
             {
-                rollState = RollState_Crooked;
+                currentFrame.rollState = RollState_Crooked;
             }
 
             AccelChip::hook(AccHandler, nullptr);
@@ -289,17 +269,17 @@ namespace Modules
         /// </summary>
         int currentFace()
         {
-            return face;
+            return currentFrame.face;
         }
 
         float currentFaceConfidence()
         {
-            return confidence;
+            return currentFrame.faceConfidence;
         }
 
         RollState currentRollState()
         {
-            return rollState;
+            return currentFrame.rollState;
         }
 
         const char *getRollStateString(RollState state)
@@ -341,7 +321,7 @@ namespace Modules
                 {
                     *outConfidence = 0.0f;
                 }
-                return face;
+                return currentFrame.face;
             }
             else
             {
@@ -433,7 +413,7 @@ namespace Modules
                 measuredNormals->calibrationInterrupted = true;
         }
 
-        void CalibrateHandler(void *context, const Message *msg)
+        void CalibrateHandler(const Message *msg)
         {
             // Turn off state change notifications
             stop();
@@ -517,7 +497,7 @@ namespace Modules
 			} });
         }
 
-        void CalibrateFaceHandler(void *context, const Message *msg)
+        void CalibrateFaceHandler(const Message *msg)
         {
             const MessageCalibrateFace *faceMsg = (const MessageCalibrateFace *)msg;
             uint8_t face = faceMsg->face;

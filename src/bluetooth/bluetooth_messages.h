@@ -100,6 +100,7 @@ struct Message
 
 	// Returns empty string in release builds so to save space
 	static const char *GetMessageTypeString(MessageType msgType);
+    static uint16_t GetMessageSize(MessageType msgType);
 
 protected:
 	inline Message() : type(MessageType_None) {}

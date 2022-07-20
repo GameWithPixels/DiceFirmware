@@ -1,5 +1,6 @@
 #include "bluetooth_message_service.h"
 #include "bluetooth_stack.h"
+#include "bluetooth_message_queue.h"
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "nrf_log.h"
@@ -16,8 +17,7 @@
 
 #include "core/queue.h"
 
-#define MAX_MESSAGE_SIZE 132
-#define MESSAGE_QUEUE_SIZE 4
+#define MESSAGE_QUEUE_SIZE 160
 
 using namespace DriversNRF;
 using namespace Core;
@@ -30,25 +30,14 @@ namespace MessageService
 
     NRF_SDH_BLE_OBSERVER(GenericServiceObserver, 3, BLEObserver, nullptr);
 
-    typedef uint8_t MessageBufferT[MAX_MESSAGE_SIZE];
-    struct MessageAndSize
-    {
-        uint16_t size;
-        MessageBufferT msg;
-    };
-    Queue<MessageAndSize, MESSAGE_QUEUE_SIZE> SendQueue;
-    Queue<MessageAndSize, MESSAGE_QUEUE_SIZE> ReceiveQueue;
+    MessageQueue<MESSAGE_QUEUE_SIZE> SendQueue;
+    MessageQueue<MESSAGE_QUEUE_SIZE> ReceiveQueue;
 
     uint16_t service_handle;
     ble_gatts_char_handles_t rx_handles;
     ble_gatts_char_handles_t tx_handles;
 
-	struct HandlerAndToken
-	{
-		MessageHandler handler;
-		void* token;
-	};
-	HandlerAndToken messageHandlers[Message::MessageType_Count];
+	MessageHandler messageHandlers[Message::MessageType_Count];
 
     Stack::SendResult send(const uint8_t* data, uint16_t size);
     bool SendMessage(Message::MessageType msgType);
@@ -58,7 +47,7 @@ namespace MessageService
 
     void init() {
         // Clear message handle array
-    	memset(messageHandlers, 0, sizeof(HandlerAndToken) * Message::MessageType_Count);
+    	memset(messageHandlers, 0, sizeof(MessageHandler) * Message::MessageType_Count);
 
         ret_code_t            err_code;
         ble_uuid_t            ble_uuid;
@@ -120,22 +109,27 @@ namespace MessageService
 
     void update() {
         // Send queued messages if possible
-        if (SendQueue.count() > 0 && isConnected() && Stack::canSend()) {
-            while (SendQueue.tryDequeue([] (MessageAndSize& msg) { return send(msg.msg, msg.size) != Stack::SendResult_Busy; }))
-                ;
+        if (isConnected() && Stack::canSend()) {
+            while (SendQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
+                // The result of send will be passed back to tryDequue which in turn will
+                // force us to exit the loop as soon as we can't send messages anymore.
+                return send((const uint8_t*)msg, msgSize) != Stack::SendResult_Busy;
+            }))
+                ; // Nothing inside the loop, it all happens inside the try dequeue call
         }
 
         // Process received messages if possible
-        MessageAndSize queueMsg;
-        while (ReceiveQueue.tryDequeue(queueMsg)) {
-            // Cast the data
-            auto msg = reinterpret_cast<const Message*>(queueMsg.msg);
+        while (ReceiveQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
             auto handler = messageHandlers[(int)msg->type];
-            if (handler.handler != nullptr) {
-                NRF_LOG_DEBUG("Calling message handler %08x", handler.handler);
-                handler.handler(handler.token, msg);
+            if (handler != nullptr) {
+                NRF_LOG_DEBUG("Calling message handler %08x", handler);
+                handler(msg);
             }
-        }
+            // For the receive queue, we don't want to hold onto to unprocessed messages
+            // So we always return true
+            return true;
+        }))
+            ; // Nothing inside the loop, it all happens inside the try dequeue call
     }
 
     void BLEObserver(ble_evt_t const * p_ble_evt, void * p_context) {
@@ -188,11 +182,7 @@ namespace MessageService
             case Stack::SendResult_Busy:
                 {
                     // Couldn't send right away, try to schedule it for later
-                    MessageAndSize queueMsg;
-                    memcpy(queueMsg.msg, msg, msgSize);
-                    queueMsg.size = msgSize;
-                    ret = SendQueue.enqueue(queueMsg);
-                    if (ret) {
+                    if (SendQueue.tryEnqueue(msg, msgSize)) {
                         NRF_LOG_DEBUG("Queued Message type %d of size %d", msg->type, msgSize);
                         Scheduler::push(nullptr, 0, scheduled_update);
                     } else {
@@ -211,32 +201,27 @@ namespace MessageService
         return ret;
     }
 
-    void RegisterMessageHandler(Message::MessageType msgType, void* token, MessageHandler handler) {
-        if (messageHandlers[msgType].handler != nullptr)
+    void RegisterMessageHandler(Message::MessageType msgType, MessageHandler handler) {
+        if (messageHandlers[msgType] != nullptr)
         {
             NRF_LOG_WARNING("Handler for message %d already set.", msgType);
         }
         else
         {
-            messageHandlers[msgType].handler = handler;
-            messageHandlers[msgType].token = token;
+            messageHandlers[msgType] = handler;
             NRF_LOG_DEBUG("Setting message handler for %d to %08x", msgType, handler);
         }
     }
 
     void UnregisterMessageHandler(Message::MessageType msgType) {
-        messageHandlers[msgType].handler = nullptr;
-        messageHandlers[msgType].token = nullptr;
+        messageHandlers[msgType] = nullptr;
     }
 
     void onMessageReceived(const uint8_t* data, uint16_t len) {
         if (len >= sizeof(Message)) {
             auto msg = reinterpret_cast<const Message*>(data);
             if (msg->type >= Message::MessageType_WhoAreYou && msg->type < Message::MessageType_Count) {
-                MessageAndSize queueMsg;
-                memcpy(queueMsg.msg, data, len);
-                queueMsg.size = len;
-                if (!ReceiveQueue.enqueue(queueMsg)) {
+                if (!ReceiveQueue.tryEnqueue(msg, len)) {
                     NRF_LOG_ERROR("Message of type %d NOT HANDLED (Scheduler full)", msg->type);
                 } else {
                     Scheduler::push(nullptr, 0, scheduled_update);
@@ -249,6 +234,7 @@ namespace MessageService
         }
     }
 
+    static NotifyUserCallback currentCallback = nullptr;
     void NotifyUser(const char* text, bool ok, bool cancel, uint8_t timeout_s, NotifyUserCallback callback) {
 		MessageNotifyUser notifyMsg;
         notifyMsg.ok = ok ? 1 : 0;
@@ -266,14 +252,17 @@ namespace MessageService
 
 			Timers::startTimer(notifyTimeout, (uint32_t)timeout_s * 1000, (void*)callback);
 
-            MessageService::RegisterMessageHandler(Message::MessageType_NotifyUserAck, (void*)callback, [] (void* ctx, const Message* msg) {
+            currentCallback = callback;
+            MessageService::RegisterMessageHandler(Message::MessageType_NotifyUserAck, [] (const Message* msg) {
 
                 MessageService::UnregisterMessageHandler(Message::MessageType_NotifyUserAck);
 
                 // Stop the timer since we got a message back!
                 Timers::stopTimer(notifyTimeout);
                 MessageNotifyUserAck* ackMsg = (MessageNotifyUserAck*)msg;
-                ((NotifyUserCallback)ctx)(ackMsg->okCancel != 0);
+                auto ccb = currentCallback;
+                currentCallback = nullptr;
+                ccb(ackMsg->okCancel != 0);
             });
         }
 

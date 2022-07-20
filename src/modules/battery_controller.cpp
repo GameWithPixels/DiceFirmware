@@ -29,11 +29,11 @@ using namespace Utils;
 #define CHARGE_VCOIL_THRESHOLD (4.0) //0.4V
 #define CHARGE_FULL (4.0f) // 4.0V
 #define INVALID_CHARGE_TIMEOUT 5000
-#define VBAT_READINGS_SIZE 10
+#define VBAT_READINGS_SIZE 5
 
 namespace Modules::BatteryController
 {
-    void getBatteryLevel(void* context, const Message* msg);
+    void getBatteryLevel(const Message* msg);
     void update(void* context);
     void onBatteryEventHandler(void* context);
     void onLEDPowerEventHandler(void* context, bool powerOn);
@@ -118,7 +118,7 @@ namespace Modules::BatteryController
     static const int ChargeLookupCount = 14;
 
     void init() {
-        MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, nullptr, getBatteryLevel);
+        MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, getBatteryLevel);
 
         vcoil = Battery::checkVCoil();
         vBat = readVBat();
@@ -281,7 +281,7 @@ namespace Modules::BatteryController
         return ret;
     }
 
-    void getBatteryLevel(void* context, const Message* msg) {
+    void getBatteryLevel(const Message* msg) {
         // Fetch battery level
         float level = LookupChargeLevel(vBat);
         MessageBatteryLevel lvl;

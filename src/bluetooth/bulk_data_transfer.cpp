@@ -93,7 +93,7 @@ namespace Bluetooth
 				});
 
 			// We register for a response first to be sure and not miss the ack
-			MessageService::RegisterMessageHandler(Message::MessageType_BulkSetupAck, nullptr, [](void* context, const Message* message) {
+			MessageService::RegisterMessageHandler(Message::MessageType_BulkSetupAck, [](const Message* message) {
 				NRF_LOG_DEBUG("Received Ack for Setup");
 				if (currentState == State_WaitingForSetupAck) {
 					// Cancel the timer first
@@ -119,7 +119,7 @@ namespace Bluetooth
 					});
 
 					// We register for a response first to be sure and not miss the ack
-					MessageService::RegisterMessageHandler(Message::MessageType_BulkDataAck, nullptr, [](void* context, const Message* message) {
+					MessageService::RegisterMessageHandler(Message::MessageType_BulkDataAck, [](const Message* message) {
 						auto ack = (MessageBulkDataAck*)message;
 						NRF_LOG_DEBUG("Received Ack for Chunk (offset: %d)", ack->offset);
 
@@ -165,7 +165,7 @@ namespace Bluetooth
 			MessageService::UnregisterMessageHandler(Message::MessageType_TestBulkSend);
 		}
 
-		void testBulkSend(void* token, const Message* msg) {
+		void testBulkSend(const Message* msg) {
 			NRF_LOG_INFO("Received Message to send Bulk Data");
 			uint8_t* testData = (uint8_t*)malloc(256);
 			for (int i = 0; i < 256; ++i) {
@@ -177,7 +177,7 @@ namespace Bluetooth
 		}
 
 		void selfTest() {
-			MessageService::RegisterMessageHandler(Message::MessageType_TestBulkSend, nullptr, testBulkSend);
+			MessageService::RegisterMessageHandler(Message::MessageType_TestBulkSend, testBulkSend);
 		}
 		#endif
 
@@ -258,7 +258,7 @@ namespace Bluetooth
 			});
 
 			// We register for the setup message
-			MessageService::RegisterMessageHandler(Message::MessageType_BulkSetup, nullptr, [](void* context, const Message* message) {
+			MessageService::RegisterMessageHandler(Message::MessageType_BulkSetup, [](const Message* message) {
 				NRF_LOG_INFO("Received Bulk Setup");
 				if (currentState == State_WaitingForSetup || currentState == State_WaitingForData) {
 
@@ -298,7 +298,7 @@ namespace Bluetooth
 						// Else ignore
 					});
 
-					MessageService::RegisterMessageHandler(Message::MessageType_BulkData, nullptr, [](void* context, const Message* message) {
+					MessageService::RegisterMessageHandler(Message::MessageType_BulkData, [](const Message* message) {
 
 						// Cancel the timer first
 						Timers::stopTimer(timeoutTimer);
@@ -326,7 +326,7 @@ namespace Bluetooth
 			currentState = State_WaitingForSetup;
 		}
 
-		void receiveChunk(void* c, const Message* message) {
+		void receiveChunk(const Message* message) {
 			auto msg = (const MessageBulkData*)message;
 			// Cancel the timer first
 			Timers::stopTimer(timeoutTimer);
@@ -353,7 +353,7 @@ namespace Bluetooth
 					uint16_t offset = (uint16_t)(address - flashAddress);
 					if (offset + s < size) {
 						// Be ready to receive the next message
-						MessageService::RegisterMessageHandler(Message::MessageType_BulkData, nullptr, receiveChunk);
+						MessageService::RegisterMessageHandler(Message::MessageType_BulkData, receiveChunk);
 					}
 
 					// And send an ack!
@@ -399,8 +399,8 @@ namespace Bluetooth
 			);
 
 			// We register for the setup message
-			MessageService::RegisterMessageHandler(Message::MessageType_BulkSetup, nullptr,
-				[](void* c, const Message* message) {
+			MessageService::RegisterMessageHandler(Message::MessageType_BulkSetup, 
+				[](const Message* message) {
 					NRF_LOG_INFO("Received Bulk Setup");
 					if (currentState == State_WaitingForSetup || currentState == State_WaitingForData) {
 
@@ -435,7 +435,7 @@ namespace Bluetooth
 							}
 						);
 
-						MessageService::RegisterMessageHandler(Message::MessageType_BulkData, nullptr, receiveChunk);
+						MessageService::RegisterMessageHandler(Message::MessageType_BulkData, receiveChunk);
 
 						// Send Setup ack
 						sendSetupAckMessage();

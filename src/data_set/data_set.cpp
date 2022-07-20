@@ -30,6 +30,7 @@ using namespace Behaviors;
 
 namespace DataSet
 {
+	void ReceiveDataSetHandler(const Bluetooth::Message* msg);
 	uint32_t computeDataSetSize();
 	uint32_t computeDataSetHash();
 
@@ -77,7 +78,7 @@ namespace DataSet
 				size = computeDataSetSize();
 				hash = computeDataSetHash();
 
-				MessageService::RegisterMessageHandler(Message::MessageType_TransferAnimSet, nullptr, ReceiveDataSetHandler);
+				MessageService::RegisterMessageHandler(Message::MessageType_TransferAnimSet, ReceiveDataSetHandler);
 				NRF_LOG_INFO("DataSet initialized, size=0x%x, hash=0x%08x", size, hash);
 				auto callBackCopy = _callback;
 				_callback = nullptr;
@@ -172,7 +173,7 @@ namespace DataSet
 
 	int offset = 0;
 
-	void ReceiveDataSetHandler(void* context, const Message* msg) {
+	void ReceiveDataSetHandler(const Message* msg) {
 		NRF_LOG_INFO("Received request to download new animation set");
 		const MessageTransferAnimSet* message = (const MessageTransferAnimSet*)msg;
 

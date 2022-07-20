@@ -28,9 +28,9 @@ namespace Bluetooth
         }
 
         // Our bluetooth message handlers
-        typedef void (*MessageHandler)(void* token, const Message* message);
+        typedef void (*MessageHandler)(const Message* message);
 
-        void RegisterMessageHandler(Message::MessageType msgType, void* token, MessageHandler handler);
+        void RegisterMessageHandler(Message::MessageType msgType, MessageHandler handler);
         void UnregisterMessageHandler(Message::MessageType msgType);
 
         typedef void (*NotifyUserCallback)(bool result);

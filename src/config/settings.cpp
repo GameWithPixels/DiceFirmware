@@ -28,13 +28,13 @@ namespace Config::SettingsManager
 {
 	static Settings const * settings = nullptr;
 
-	void ProgramDefaultParametersHandler(void* context, const Message* msg);
-	void SetDesignTypeAndColorHandler(void* context, const Message* msg);
-	void SetNameHandler(void* context, const Message* msg);
-	void SetDebugFlagsHandler(void* context, const Message* msg);
+	void ProgramDefaultParametersHandler(const Message* msg);
+	void SetDesignTypeAndColorHandler(const Message* msg);
+	void SetNameHandler(const Message* msg);
+	void SetDebugFlagsHandler(const Message* msg);
 	
 	#if BLE_LOG_ENABLED
-	void PrintNormals(void* context, const Message* msg) {
+	void PrintNormals(const Message* msg) {
 		auto m = static_cast<const MessagePrintNormals*>(msg);
 		int i = m->face;
 		auto settings = getSettings();
@@ -50,12 +50,12 @@ namespace Config::SettingsManager
 
 		auto finishInit = [](bool success) {
 			// Register as a handler to program settings
-			MessageService::RegisterMessageHandler(Message::MessageType_ProgramDefaultParameters, nullptr, ProgramDefaultParametersHandler);
-			MessageService::RegisterMessageHandler(Message::MessageType_SetDesignAndColor, nullptr, SetDesignTypeAndColorHandler);
-			MessageService::RegisterMessageHandler(Message::MessageType_SetName, nullptr, SetNameHandler);
+			MessageService::RegisterMessageHandler(Message::MessageType_ProgramDefaultParameters, ProgramDefaultParametersHandler);
+			MessageService::RegisterMessageHandler(Message::MessageType_SetDesignAndColor, SetDesignTypeAndColorHandler);
+			MessageService::RegisterMessageHandler(Message::MessageType_SetName, SetNameHandler);
 			
 			#if BLE_LOG_ENABLED
-			MessageService::RegisterMessageHandler(Message::MessageType_PrintNormals, nullptr, PrintNormals);
+			MessageService::RegisterMessageHandler(Message::MessageType_PrintNormals, PrintNormals);
 			#endif
 
 			NRF_LOG_INFO("Settings initialized, size=%d bytes", sizeof(Settings));
@@ -89,14 +89,14 @@ namespace Config::SettingsManager
 		}
 	}
 
-	void ProgramDefaultParametersHandler(void* context, const Message* msg) {
+	void ProgramDefaultParametersHandler(const Message* msg) {
 		programDefaultParameters([] (bool result) {
 			// Ignore result for now
 			Bluetooth::MessageService::SendMessage(Message::MessageType_ProgramDefaultParametersFinished);
 		});
 	}
 
-	void SetDesignTypeAndColorHandler(void* context, const Message* msg) {
+	void SetDesignTypeAndColorHandler(const Message* msg) {
 		auto designMsg = (const MessageSetDesignAndColor*)msg;
 		NRF_LOG_INFO("Received request to set design to %d", designMsg->designAndColor);
 		programDesignAndColor(designMsg->designAndColor, [](bool result) {
@@ -104,7 +104,7 @@ namespace Config::SettingsManager
 		});
 	}
 
-	void SetNameHandler(void* context, const Message* msg) {
+	void SetNameHandler(const Message* msg) {
 		auto nameMsg = (const MessageSetName*)msg;
 		NRF_LOG_INFO("Received request to rename die to %s", nameMsg->name);
 		programName(nameMsg->name, [](bool result) {

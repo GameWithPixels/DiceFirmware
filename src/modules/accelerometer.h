@@ -4,9 +4,6 @@
 #include "core/float3.h"
 #include "core/delegate_array.h"
 
-#define ACCEL_BUFFER_SIZE 10 // 10ms * 10 = 100ms seconds of buffer
-							  // 16 bytes * 128 = 2k of RAM
-
 namespace Modules
 {
 	/// <summary>
@@ -15,22 +12,6 @@ namespace Modules
 	/// </summary>
 	namespace Accelerometer
 	{
-		/// <summary>
-		/// Small struct holding a single frame of accelerometer data
-		/// used for both face detection (not that kind) and telemetry
-		// size is 36
-		/// </summary>
-		struct AccelFrame
-		{
-			Core::float3 acc;
-			Core::float3 jerk;
-			Core::float3 smoothAcc;
-			float sigma;
-			float faceConfidence;
-			int face;
-			uint32_t time;
-		};
-
 	    enum RollState : uint8_t
 		{
 			RollState_Unknown = 0,
@@ -39,6 +20,23 @@ namespace Modules
 			RollState_Rolling,
 			RollState_Crooked,
 			RollState_Count
+		};
+
+		/// <summary>
+		/// Small struct holding a single frame of accelerometer data
+		/// used for both face detection (not that kind) and telemetry
+        /// Size is 50-bytes
+		/// </summary>
+		struct AccelFrame
+		{
+			Core::float3 acc;
+			Core::float3 jerk;
+			Core::float3 smoothAcc;
+			float sigma;
+			float faceConfidence;
+			uint32_t time;
+            RollState rollState;
+			uint8_t face;
 		};
 
 		int determineFace(Core::float3 acc, float* outConfidence = nullptr);

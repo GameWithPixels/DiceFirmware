@@ -58,7 +58,6 @@ namespace DataSet
 	uint32_t computeDataSetDataSize(const Data* newData);
 
 	void ProgramDefaultDataSet(const Config::Settings& settingsPackAlong, DataSetWrittenCallback callback);
-	void ReceiveDataSetHandler(void* context, const Bluetooth::Message* msg);
 
 	void printAnimationInfo();
 }

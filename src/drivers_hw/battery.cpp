@@ -29,7 +29,7 @@ namespace Battery
 	DelegateArray<ClientMethod, MAX_BATTERY_CLIENTS> clients;
 
     void batteryInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action);
-    void printA2DReadingsBLE(void* token, const Bluetooth::Message* message);
+    void printA2DReadingsBLE(const Bluetooth::Message* message);
 
     void init() {
         // Set charger and fault pins as input
@@ -59,7 +59,7 @@ namespace Battery
 		// 	NRF_GPIOTE_POLARITY_TOGGLE,
 		// 	batteryInterruptHandler);
 
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_PrintA2DReadings, nullptr, printA2DReadingsBLE);
+        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_PrintA2DReadings, printA2DReadingsBLE);
 
         float vCoil = checkVCoil();
         float vBat = checkVBat();
@@ -172,7 +172,7 @@ namespace Battery
         }
     }
 
-    void printA2DReadingsBLE(void* token, const Bluetooth::Message* message) {
+    void printA2DReadingsBLE(const Bluetooth::Message* message) {
         BLE_LOG_INFO("vBat=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVBat()));
         if (canCheckVCoil()) {
             BLE_LOG_INFO("vCoil=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVCoil()));

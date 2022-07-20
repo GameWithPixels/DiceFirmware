@@ -206,11 +206,8 @@ namespace Flash
 		ProgramFlashFunc programFlashFunc,
 		ProgramFlashNotification onProgramFinished) {
 
-		static Data _newData __attribute__ ((aligned (4)));
-
-        // Hack so we don't try to construct a new Settings in static initialization block
-        static char _newSettingsBuffer[sizeof(Settings)]  __attribute__ ((aligned (4)));
-		static Settings& _newSettings = *((Settings*)_newSettingsBuffer);
+		static Data* _newData = nullptr;
+		static Settings* _newSettings = nullptr;
 		static ProgramFlashFunc _programDataFunc;
 		static ProgramFlashNotification _onProgramFinished;
 
@@ -223,6 +220,11 @@ namespace Flash
 		};
 
 		static auto finishProgramming = []() {
+            free(_newSettings);
+                _newSettings = nullptr;
+            free(_newData);
+                _newData = nullptr;
+
 			// Notify clients
 			for (int i = 0; i < programmingClients.Count(); ++i)
 			{
@@ -230,12 +232,24 @@ namespace Flash
 			}
 		};
 
-        _newData = newData;
-        _newSettings = newSettings;
+        _newData = (Data*)malloc(sizeof(Data));
+        if (_newData == nullptr) {
+            NRF_LOG_ERROR("Not enough ram to allocate copy of new data");
+            return false;
+        }
+        _newSettings = (Settings*)malloc(sizeof(Settings));
+        if (_newSettings == nullptr) {
+            NRF_LOG_ERROR("Not enough ram to allocate copy of new settings");
+            free(_newData);
+            _newData = nullptr;
+            return false;
+        }
+        memcpy(_newData, &newData, sizeof(Data));
+        memcpy(_newSettings, &newSettings, sizeof(Settings));
         _programDataFunc = programFlashFunc;
         _onProgramFinished = onProgramFinished;
 
-		uint32_t bufferSize = DataSet::computeDataSetDataSize(&_newData);
+		uint32_t bufferSize = DataSet::computeDataSetDataSize(_newData);
 		if (availableDataSize() > bufferSize) {
 			beginProgramming();
 
@@ -249,7 +263,7 @@ namespace Flash
 				NRF_LOG_INFO("done Erasing %d page", data_size);
 				if (result) {
 					// Program settings
-					Flash::write(nullptr, getSettingsStartAddress(), &_newSettings, sizeof(Settings), [](void* context, bool result, uint32_t address, uint16_t data_size) {
+					Flash::write(nullptr, getSettingsStartAddress(), _newSettings, sizeof(Settings), [](void* context, bool result, uint32_t address, uint16_t data_size) {
 						if (result) {
 							NRF_LOG_INFO("Finished flashing settings, flashing dataset data");
 							// Receive all the buffers directly to flash
@@ -257,7 +271,7 @@ namespace Flash
 								if (result) {
 									// Program the animation set itself
     								NRF_LOG_INFO("Finished flashing dataset data, flashing dataset itself");
-									Flash::write(nullptr, getDataSetAddress(), &_newData, sizeof(Data),
+									Flash::write(nullptr, getDataSetAddress(), _newData, sizeof(Data),
 										[](void* context, bool result, uint32_t address, uint16_t data_size) {
 											if (result) {
 												NRF_LOG_INFO("Data Set written to flash!");

@@ -21,20 +21,19 @@ namespace Modules
 {
 namespace LEDColorTester
 {
-    void SetLEDToColorHandler(void* context, const Message* msg);
-    void SetAllLEDsToColorHandler(void* context, const Message* msg);
-    void PlayLEDAnim(void* context, const Message* msg);
-
-    void LightUpFaceHandler(void* context, const Message* msg);
+    void SetLEDToColorHandler(const Message* msg);
+    void SetAllLEDsToColorHandler(const Message* msg);
+    void PlayLEDAnim(const Message* msg);
+    void LightUpFaceHandler(const Message* msg);
 
     void init() {
-        MessageService::RegisterMessageHandler(Message::MessageType_SetLEDToColor, nullptr, SetLEDToColorHandler);
-        MessageService::RegisterMessageHandler(Message::MessageType_SetAllLEDsToColor, nullptr, SetAllLEDsToColorHandler);
-        MessageService::RegisterMessageHandler(Message::MessageType_LightUpFace, nullptr, LightUpFaceHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_SetLEDToColor, SetLEDToColorHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_SetAllLEDsToColor, SetAllLEDsToColorHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_LightUpFace, LightUpFaceHandler);
         NRF_LOG_INFO("LED Color tester initialized");
     }
 
-    void SetLEDToColorHandler(void* context, const Message* msg) {
+    void SetLEDToColorHandler(const Message* msg) {
         auto colorMsg = (const MessageSetLEDToColor*)msg;
         uint8_t led = colorMsg->ledIndex;
         uint8_t r = Utils::getRed(colorMsg->color);
@@ -45,7 +44,7 @@ namespace LEDColorTester
         LEDs::setPixelColor(led, color);
     }
 
-    void SetAllLEDsToColorHandler(void* context, const Message* msg) {
+    void SetAllLEDsToColorHandler(const Message* msg) {
         auto colorMsg = (const MessageSetAllLEDsToColor*)msg;
         uint8_t r = Utils::getRed(colorMsg->color);
         uint8_t g = Utils::getGreen(colorMsg->color);
@@ -55,7 +54,7 @@ namespace LEDColorTester
         LEDs::setAll(color);
     }
 
-    void LightUpFaceHandler(void* context, const Message* msg) {
+    void LightUpFaceHandler(const Message* msg) {
 		// The transformation is:
 		// animFaceIndex
 		//	-> rotatedOutsideAnimFaceIndex (based on remapFace and remapping table, i.e. what actual face should light up to "retarget" the animation around the current up face)

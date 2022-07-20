@@ -199,7 +199,7 @@ namespace BoardManager
     // Array of possible circuit boards configs
     // Note that the boards MUST be sorted in order of INCREASING resistor value
     // for the init method to properly find the correct board config.
-    static const Board boards[] = {
+    const Board boards[] = {
         // Dev Board
         // {
         //     .boardResistorValueInKOhms = 0,

@@ -21,13 +21,13 @@ namespace Modules::AnimationPreview
     static void* animationData;
     static uint32_t animationDataHash;
 
-    void ReceiveTestAnimSet(void *context, const Message *msg);
-    void BlinkLEDs(void *context, const Message *msg);
+    void ReceiveTestAnimSet(const Message *msg);
+    void BlinkLEDs(const Message *msg);
 
     void init()
     {
-        MessageService::RegisterMessageHandler(Message::MessageType_TransferTestAnimSet, nullptr, ReceiveTestAnimSet);
-        MessageService::RegisterMessageHandler(Message::MessageType_Blink, nullptr, BlinkLEDs);
+        MessageService::RegisterMessageHandler(Message::MessageType_TransferTestAnimSet, ReceiveTestAnimSet);
+        MessageService::RegisterMessageHandler(Message::MessageType_Blink, BlinkLEDs);
         animationData = nullptr;
         animation = nullptr;
         animationDataHash = 0;
@@ -35,7 +35,7 @@ namespace Modules::AnimationPreview
 		NRF_LOG_INFO("Animation Preview Initialized");
     }
 
-    void ReceiveTestAnimSet(void* context, const Message* msg)
+    void ReceiveTestAnimSet(const Message* msg)
     {
 		NRF_LOG_INFO("Received request to play test animation");
 		const MessageTransferTestAnimSet* message = (const MessageTransferTestAnimSet*)msg;
@@ -142,7 +142,7 @@ namespace Modules::AnimationPreview
         }
     }
 
-    void BlinkLEDs(void* context, const Message* msg)
+    void BlinkLEDs(const Message* msg)
     {
         const MessageBlink *message = (const MessageBlink *)msg;
         NRF_LOG_INFO("Received request to blink the LEDs %d times with duration of %d ms", message->flashCount, message->duration);
