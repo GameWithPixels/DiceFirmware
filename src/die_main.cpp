@@ -77,6 +77,7 @@ namespace Die
     void SendRollState(Accelerometer::RollState rollState, int face);
     void PlayLEDAnim(void* context, const Message* msg);
     void StopLEDAnim(void* context, const Message* msg);
+    void StopAllLEDAnims(void* context, const Message* msg);
 	void EnterStandardState(void* context, const Message* msg);
 	void EnterLEDAnimState(void* context, const Message* msg);
 	void EnterBattleState(void* context, const Message* msg);
@@ -88,6 +89,7 @@ namespace Die
         Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_WhoAreYou, nullptr, WhoAreYouHandler);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, nullptr, PlayLEDAnim);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, nullptr, StopLEDAnim);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, nullptr, StopAllLEDAnims);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_Sleep, nullptr, EnterSleepMode);
         Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRollState, nullptr, RequestStateHandler);
 
@@ -179,6 +181,11 @@ namespace Die
         auto stopAnimMessage = (const MessageStopAnim*)msg;
         NRF_LOG_INFO("Stopping animation %d", stopAnimMessage->animation);
         AnimController::stop((int)stopAnimMessage->animation, stopAnimMessage->remapFace);
+    }
+
+    void StopAllLEDAnims(void* context, const Message* msg) {
+        NRF_LOG_INFO("Stopping all animations");
+        AnimController::stopAll();
     }
 
 	void EnterStandardState(void* context, const Message* msg) {

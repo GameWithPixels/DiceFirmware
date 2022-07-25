@@ -78,6 +78,7 @@ struct Message
 		MessageType_TransferInstantAnimSetAck,
 		MessageType_TransferInstantAnimSetFinished,
 		MessageType_PlayInstantAnim,
+		MessageType_StopAllAnims,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -292,8 +293,8 @@ struct MessageBlink
 	: public Message
 {
 	uint8_t flashCount;
-	uint32_t color;
 	uint16_t duration;
+	uint32_t color;
 	uint8_t fade;
 
 	inline MessageBlink() : Message(Message::MessageType_Blink) {}
@@ -454,6 +455,13 @@ struct MessagePlayInstantAnim
 
 	inline MessagePlayInstantAnim() : Message(Message::MessageType_PlayInstantAnim) {}
 };
+
+struct MessageStopAllAnims
+	: public Message
+{
+	inline MessageStopAllAnims() : Message(Message::MessageType_StopAllAnims) {}
+};
+
 }
 
 #pragma pack(pop)
