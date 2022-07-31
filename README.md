@@ -56,9 +56,10 @@ You may use Nordic's [nRF Toolbox](https://www.nordicsemi.com/Products/Developme
 app to push a firmware update to a Pixel. Once the app is started, scroll down and tap on
 "Device Firmware Upgrade (DFU)" and then "Connect".
 
-*Note*: the Bootloader DFU inactivity timeout is set to 1 second, which currently prevents the Android
-app to connect to the die for pushing an update. This is caused by delays introduced in the Android app
-code to support old phones. This [issue](https://github.com/NordicSemiconductor/Android-DFU-Library/issues/329)
+*Note*: the Bootloader DFU inactivity timeout is set to 1 second (as opposed to 3 seconds in older builds),
+which currently prevents the Android app to connect to the die for pushing an update.
+This is caused by delays introduced in the Android app code to support old phones.
+This [issue](https://github.com/NordicSemiconductor/Android-DFU-Library/issues/329)
 will be eventually fixed, please use an iOS device to do a DFU via Bluetooth until then.
 
 ![Connect screen listing nearby Bluetooth devices](images/connect_screen.jpg)
@@ -66,7 +67,7 @@ will be eventually fixed, please use an iOS device to do a DFU via Bluetooth unt
 This page shows the scanned Bluetooth Low Energy devices. The name of any nearby Pixel should appear.
 This name is advertised by the die firmware.
 But in order to proceed with a DFU update, we need to connect to the *bootloader*.
-The latter is run when the die is turned on and stay active for just 3 seconds.
+The latter is run when the die is turned on and stay active for just 1 second.
 Then, if no DFU request was made during that time, the die transition to running the firmware.
 
 Turn the dice off and back on and immediately tap on the circling arrow located on the top right corner
@@ -97,6 +98,10 @@ at the end of the process and runs the updated firmware.
 The requirements are the same than for building the dice *bootloader*.
 Check out the instructions on the *bootloader*'s GitHub
 [page](https://github.com/GameWithPixels/DiceBootloader#readme).
+
+Be sure to first build the *bootloader*.
+The *Makefile* expects the *DiceBootloader* project to located in the same parent directory
+than this project.
 
 ### Building
 
