@@ -111,7 +111,10 @@ Open a command line and go the folder where this repository is cloned and run `m
 
 The output files are placed in the `_builds` folder, by default those are debug files (not release).
 The one that we want to program to the flash memory is the `.hex` file
-(more about this format [here](https://en.wikipedia.org/wiki/Intel_HEX)) .
+(more about this format [here](https://en.wikipedia.org/wiki/Intel_HEX)).
+
+*Note:* you may need to update the SoftDevice to the version specified in the *Makefile*
+as Nordic doesn't always publish a new SDK when they release a SoftDevice update.
 
 ## Programming a Pixel electronic board with *make*
 
@@ -182,7 +185,7 @@ from Microsoft.
 It enables access to the serial port to the die's electronic board (through USB).
 
 To connect to the die electronic board, run the following commands in VS Code:
-* `Arduino: Select Port` and select SEGGER
+* `Arduino: Select Serial Port` and select the COM port for the JLink
 * `Arduino: Open Serial Monitor`
 
 Because logs are actual string, they need to be stored in firmware.
@@ -191,11 +194,13 @@ As a consequence only a debug build will output logs through the serial monitor.
 
 ## Memory Optimizations
 
-One of the targets of the Firmware makefile is aimed to help track code size and ram utilization. For this we take advantage of [Govind Mukudan's MapViewer tool](https://github.com/govind-mukundan/MapViewer) which parses gcc's output files (.map and .elf) to compute function and variable sizes.
+One of the targets of the Firmware *Makefile* is aimed to help track code size and ram utilization.
+For this we take advantage of [Govind Mukudan's MapViewer tool](https://github.com/govind-mukundan/MapViewer)
+which parses GCC's output files (.map and .elf) to compute function and variable sizes.
 
 ### Setting up MapViewer
-- Download Mapviewer from their [Releases](https://github.com/govind-mukundan/MapViewer/releases) page.
-- Open Mapviewer and click on the Settings button.
+- Download *Mapviewer* from their [Releases](https://github.com/govind-mukundan/MapViewer/releases) page.
+- Open *Mapviewer* and click on the Settings button.
 - Set the paths to NM and ReadElf according to your current SDK setup (see image below)
 ![image](https://user-images.githubusercontent.com/8626854/179559718-a0000a2b-2f0c-4f3a-b765-52c790245e8a.png)
 
