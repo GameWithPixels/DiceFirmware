@@ -21,7 +21,7 @@ Then insert the flexible dice board with the electric lines facing down, and clo
 ## Programming
 
 [Download](https://www.nordicsemi.com/Products/Development-tools/nRF-Command-Line-Tools/Download#infotabs)
-and install nRF Command Line Tools for Win32 (version 10.12.2 at the time of writing).
+and install nRF Command Line Tools for Win32 (version 10.17.0 at the time of writing).
 During the installation process, you should be prompted to also install the J-Link drivers.
 
 Flashing a die is done in 3 steps: erase, program and reset:
@@ -184,6 +184,10 @@ It enables access to the serial port to the die's electronic board (through USB)
 To connect to the die electronic board, run the following commands in VS Code:
 * `Arduino: Select Port` and select SEGGER
 * `Arduino: Open Serial Monitor`
+
+Because logs are actual string, they need to be stored in firmware.
+This takes a lot of space which is one the reason why we remove logs from release builds.
+As a consequence only a debug build will output logs through the serial monitor.
 
 ## Memory Optimizations
 
