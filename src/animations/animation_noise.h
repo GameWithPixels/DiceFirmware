@@ -13,7 +13,6 @@ namespace Animations
 		: public Animation
 	{
 		uint32_t faceMask;
-		uint16_t gradientTrackOffset;
         uint16_t intensity;
 	};
 
@@ -35,6 +34,8 @@ namespace Animations
 	private:
 		const AnimationNoise* getPreset() const;
 		uint16_t curRand;
+		uint16_t cycle = 0;
+		int past_time = 0;
 	};
 }
 

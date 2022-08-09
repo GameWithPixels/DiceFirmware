@@ -26,6 +26,7 @@
 #include "bluetooth/telemetry.h"
 
 #include "animations/animation_cycle.h"
+#include "animations/animation_noise.h"
 #include "data_set/data_set.h"
 
 #include "modules/led_color_tester.h"
@@ -345,6 +346,17 @@ namespace Die
                 } else {
                     BehaviorController::onDiceInitialized();
                 }
+            
+                static AnimationNoise noiseAnim;
+
+                noiseAnim.type = Animation_Noise;
+                noiseAnim.duration = 10000;
+                noiseAnim.faceMask = ANIM_FACEMASK_ALL_LEDS;
+                noiseAnim.intensity = 0;
+
+                AnimController::play(&noiseAnim, nullptr, 0, false);
+                
+
 
                 NRF_LOG_INFO("----- Device initialized! -----");
             });

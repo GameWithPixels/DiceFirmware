@@ -8,7 +8,7 @@
                 "${workspaceFolder}/src/config",
                 "C:/Program Files (x86)/GNU Tools Arm Embedded/9 2019-q4-major/arm-none-eabi/include",
                 "C:/Program Files (x86)/GNU Tools Arm Embedded/9 2019-q4-major/lib/gcc/arm-none-eabi/9.2.1/include",
-                "C:/nRF5_SDK/**",
+                "C:/nRF5_SDK/**"
             ],
             "defines": [
                 "NRF52_SERIES",
@@ -39,7 +39,8 @@
             },
             "cStandard": "c11",
             "cppStandard": "c++11",
-            "forcedInclude": []
+            "forcedInclude": [],
+            "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],
     "version": 4

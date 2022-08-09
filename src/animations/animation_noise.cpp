@@ -1,8 +1,8 @@
 #include "animation_noise.h"
 #include "data_set/data_set.h"
 #include "data_set/data_animation_bits.h"
+#include "nrf_log.h"
 
-#define MAX
 
 namespace Animations
 {
@@ -32,7 +32,7 @@ namespace Animations
 	/// </summary>
 	void AnimationInstanceNoise::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
-        curRand = (uint16_t)(_startTime % (1 << 16));
+        //curRand = (uint16_t)(_startTime % (1 << 16));
 	}
 
 	/// <summary>
@@ -44,16 +44,37 @@ namespace Animations
 	/// <returns>The number of leds/intensities added to the return array</returns>
 	int AnimationInstanceNoise::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
         int time = ms - startTime;
-        auto preset = getPreset();
+		srand(time);
+        //auto preset = getPreset();
+		
+		int delay = 70;				// delay in between LED updates
+		int numFaces = rand()%2+1; 	// noticed that 1-3 or 1-4 faces is more or less how many faces we need to light up to mimic the noise pattern on the app
 
-        // Figure out the color from the gradient
-        auto& gradient = animationBits->getRGBTrack(preset->gradientTrackOffset);
+		uint32_t color = 0x110000;//gradient.evaluateColor(animationBits, gradientTime);
+		
+		int retcount = 0;
+		
+		if(time < past_time){
+			past_time = 0;
+			
+		}
+		if(time - past_time <= delay){
+			for(int i = 0; i < numFaces; i++){
+				retColors[i] = color;//rand()%0xFFFFFF;
+				retIndices[i] = rand()%20;
+			}
+			retcount = numFaces;
+		} else {
+			past_time = time;
+		}
 
-        int gradientTime = time * 1000 / preset->duration;
-        uint32_t color = gradient.evaluateColor(animationBits, gradientTime);
+		// Figure out the color from the gradient
+        //auto& gradient = animationBits->getRGBTrack(preset->gradientTrackOffset);
 
+        //int gradientTime = time * 1000 / preset->duration;
         // Fill the indices and colors for the anim controller to know how to update leds
-		return setColor(color, preset->faceMask, retIndices, retColors);
+
+		return retcount;
 	}
 
 	/// <summary>
