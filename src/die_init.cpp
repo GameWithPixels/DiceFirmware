@@ -346,14 +346,15 @@ namespace Die
                 } else {
                     BehaviorController::onDiceInitialized();
                 }
-            
+
                 static AnimationNoise noiseAnim;
 
                 noiseAnim.type = Animation_Noise;
-                noiseAnim.duration = 10000;
+                noiseAnim.duration = 40000;
                 noiseAnim.faceMask = ANIM_FACEMASK_ALL_LEDS;
-                noiseAnim.intensity = 0;
-
+                noiseAnim.gradientTrackOffset = 0;
+                noiseAnim.flashDelay = 80;
+                noiseAnim.flashSpeed = 15;
                 AnimController::play(&noiseAnim, nullptr, 0, false);
                 
 
