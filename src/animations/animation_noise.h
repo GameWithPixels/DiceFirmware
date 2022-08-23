@@ -15,7 +15,8 @@ namespace Animations
 	{
 		uint8_t flashSpeed;	
 		uint32_t faceMask;				
-		uint16_t gradientTrackOffset;	
+		uint16_t overallGradientTrackOffset;	
+		uint16_t individualGradientTrackOffset;
 		uint16_t flashDelay;			// constant that decides the time between new flashes, aka the time at which we light up a new set of 1-2 faces on the dice
 
 	};
@@ -43,8 +44,8 @@ namespace Animations
 		Animations::RGBKeyframe rgbKeyframes[10];
 		Animations::RGBTrack rgbTracks[2];
 		int past_time = 0;
-		uint8_t intensityTrackTimes[20];
-		Animations::Keyframe keyframes[4];
+		uint8_t individualFlashTimes[20];
+		Animations::Keyframe keyframes[9];
 		Animations::Track intensityTracks;
 		//uint8_t gradientTimes[20];
 	};

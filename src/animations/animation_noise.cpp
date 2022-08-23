@@ -57,13 +57,18 @@ namespace Animations
 		animationBits.rgbTrackCount = 2;
 
 		keyframes[0].setTimeAndIntensity(0, 0);
-		keyframes[1].setTimeAndIntensity(250, 255);
-		keyframes[2].setTimeAndIntensity(500, 0);
-		keyframes[3].setTimeAndIntensity(750, 255);
+		keyframes[1].setTimeAndIntensity(125, 64);
+		keyframes[2].setTimeAndIntensity(250, 128);
+		keyframes[3].setTimeAndIntensity(375, 196);
+		keyframes[4].setTimeAndIntensity(500, 255);
+		keyframes[5].setTimeAndIntensity(625, 196);
+		keyframes[6].setTimeAndIntensity(750, 128);
+		keyframes[7].setTimeAndIntensity(875, 64);
+		keyframes[8].setTimeAndIntensity(1000, 0);
 		
-		intensityTracks = {.keyframesOffset = 0, .keyFrameCount = 2, .padding = 0, .ledMask = 0x000FFFFF};
+		intensityTracks = {.keyframesOffset = 0, .keyFrameCount = 9, .padding = 0, .ledMask = 0x000FFFFF};
 		animationBits.keyframes = keyframes;
-		animationBits.keyFrameCount = 4;
+		animationBits.keyFrameCount = 9;
 		animationBits.tracks = &intensityTracks;
 		animationBits.trackCount = 1;
 	}
@@ -85,9 +90,8 @@ namespace Animations
 		int numFaces = rand()%2+1;//(*buffer)%2+1; 	// noticed that 1-2/3 faces is more or less how many faces we need to light up per cycle to mimic the noise pattern on the app
 
 		// overall gradient color management
-		auto& gradientOverall = animationBits.getRGBTrack(preset->gradientTrackOffset); 
-		auto& gradientPersonal = animationBits.getRGBTrack(preset->gradientTrackOffset+1);
-		auto& gradientIntensity = animationBits.getTrack(preset->gradientTrackOffset);
+		auto& gradientOverall = animationBits.getRGBTrack(preset->overallGradientTrackOffset); 
+		auto& gradientPersonal = animationBits.getRGBTrack(preset->individualGradientTrackOffset);
 		// gradient time initialization
         int gradientTime = time*1000/preset->duration;
 		uint32_t firstColor = gradientOverall.evaluateColor(&animationBits, gradientTime);
@@ -102,8 +106,11 @@ namespace Animations
 				if ( (preset->faceMask & (1 << i)) != 0 ){
 					int retIndex = rand()%20;
 					retIndices[i] = retIndex;
-					retColors[i] = firstColor;
-					intensityTrackTimes[retIndex] = 255;
+					individualFlashTimes[retIndex] = 255;
+					uint32_t secondColor = gradientPersonal.evaluateColor(&animationBits, individualFlashTimes[i]*1000/255 );
+					uint32_t mixedColor = Utils::toColor((Utils::getRed(firstColor) * Utils::getRed(secondColor))/0xFF, (Utils::getGreen(firstColor) * Utils::getGreen(secondColor))/0xFF, (Utils::getBlue(firstColor) * Utils::getBlue(secondColor))/0xFF);
+					//NRF_LOG_INFO("firstColor: %d,  mixedColor: %d, secondColor: %d,", firstColor, mixedColor, secondColor);
+					retColors[i] = Utils::modulateColor(mixedColor, individualFlashTimes[i]);
 					retCount++;
 				}
 			}
@@ -111,21 +118,21 @@ namespace Animations
 		}
 
 		for(int i = 0; i < 20; i++){
-			if(intensityTrackTimes[i] != 0 && intensityTrackTimes[i] != 255){
-				uint32_t secondColor = gradientPersonal.evaluateColor(&animationBits, intensityTrackTimes[i]*1000/255 );
+			if(individualFlashTimes[i] != 0 && individualFlashTimes[i] != 255){
+				uint32_t secondColor = gradientPersonal.evaluateColor(&animationBits, individualFlashTimes[i]*1000/255 );
 				uint32_t mixedColor = Utils::toColor((Utils::getRed(firstColor) * Utils::getRed(secondColor))/0xFF, (Utils::getGreen(firstColor) * Utils::getGreen(secondColor))/0xFF, (Utils::getBlue(firstColor) * Utils::getBlue(secondColor))/0xFF);
 				//NRF_LOG_INFO("firstColor: %d,  mixedColor: %d, secondColor: %d,", firstColor, mixedColor, secondColor);
-				retColors[retCount] = gradientIntensity.modulateColor(&animationBits, mixedColor, intensityTrackTimes[i]*1000/255);
+				retColors[retCount] = Utils::modulateColor(mixedColor, individualFlashTimes[i]);// Utils::modulateColor()
 				retIndices[retCount] = i;
 				retCount++;
 			}
 		}
 
 		for(int i = 0; i < 20; i++){
-			if(intensityTrackTimes[i] <= preset->flashSpeed){
-				intensityTrackTimes[i] = 0;
+			if(individualFlashTimes[i] <= preset->flashSpeed){
+				individualFlashTimes[i] = 0;
 			} else {
-				intensityTrackTimes[i] -= preset->flashSpeed;
+				individualFlashTimes[i] -= preset->flashSpeed;
 			}
 		}
 		return retCount;
