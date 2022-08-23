@@ -37,7 +37,10 @@ namespace Animations
         //curRand = (uint16_t)(_startTime % (1 << 16));
 		// nrf_crypto_init();
 		// nrf_crypto_rng_init(nullptr, nullptr);
-
+		for(int i = 0; i < 20; i++){
+			individualFlashTimes[i] = 0;
+			flashDurations[i] = 0;
+		}
 
 		animationBits.palette = animPalette; // point to animpalette
 		animationBits.paletteSize = 21;
@@ -95,44 +98,34 @@ namespace Animations
 		// gradient time initialization
         int gradientTime = time*1000/preset->duration;
 		uint32_t firstColor = gradientOverall.evaluateColor(&animationBits, gradientTime);
-
-		if(time < past_time){
-			past_time = 0;
-		}
 		
 		int retCount = 0;
-		if(time - past_time >= preset->flashDelay){
+		if(time - past_time >= 1000/preset->flashPerSecond){
 			for(int i = 0; i < numFaces; i++){
-				if ( (preset->faceMask & (1 << i)) != 0 ){
-					int retIndex = rand()%20;
-					retIndices[i] = retIndex;
-					individualFlashTimes[retIndex] = 255;
-					uint32_t secondColor = gradientPersonal.evaluateColor(&animationBits, individualFlashTimes[i]*1000/255 );
-					uint32_t mixedColor = Utils::toColor((Utils::getRed(firstColor) * Utils::getRed(secondColor))/0xFF, (Utils::getGreen(firstColor) * Utils::getGreen(secondColor))/0xFF, (Utils::getBlue(firstColor) * Utils::getBlue(secondColor))/0xFF);
-					//NRF_LOG_INFO("firstColor: %d,  mixedColor: %d, secondColor: %d,", firstColor, mixedColor, secondColor);
-					retColors[i] = Utils::modulateColor(mixedColor, individualFlashTimes[i]);
-					retCount++;
-				}
+				int faceIndex = rand()%20;
+				individualFlashTimes[faceIndex] = time;
+				flashDurations[faceIndex] = preset->flashDuration + rand()%20;
 			}
 			past_time = time;
 		}
 
 		for(int i = 0; i < 20; i++){
-			if(individualFlashTimes[i] != 0 && individualFlashTimes[i] != 255){
-				uint32_t secondColor = gradientPersonal.evaluateColor(&animationBits, individualFlashTimes[i]*1000/255 );
-				uint32_t mixedColor = Utils::toColor((Utils::getRed(firstColor) * Utils::getRed(secondColor))/0xFF, (Utils::getGreen(firstColor) * Utils::getGreen(secondColor))/0xFF, (Utils::getBlue(firstColor) * Utils::getBlue(secondColor))/0xFF);
-				//NRF_LOG_INFO("firstColor: %d,  mixedColor: %d, secondColor: %d,", firstColor, mixedColor, secondColor);
-				retColors[retCount] = Utils::modulateColor(mixedColor, individualFlashTimes[i]);// Utils::modulateColor()
-				retIndices[retCount] = i;
-				retCount++;
-			}
-		}
+			int timeFlash = time - individualFlashTimes[i];
+			if(timeFlash < flashDurations[i]){
+				int fadeTime = (flashDurations[i] * preset->flashSharpness) / (255 * 2);
 
-		for(int i = 0; i < 20; i++){
-			if(individualFlashTimes[i] <= preset->flashSpeed){
-				individualFlashTimes[i] = 0;
-			} else {
-				individualFlashTimes[i] -= preset->flashSpeed;
+				uint32_t secondColor = gradientPersonal.evaluateColor(&animationBits, timeFlash*1000/flashDurations[i] );
+				uint32_t mixedColor = Utils::toColor((Utils::getRed(firstColor) * Utils::getRed(secondColor))/0xFF, (Utils::getGreen(firstColor) * Utils::getGreen(secondColor))/0xFF, (Utils::getBlue(firstColor) * Utils::getBlue(secondColor))/0xFF);
+
+				if(timeFlash <= fadeTime){
+					retColors[retCount] = Utils::modulateColor(mixedColor, timeFlash * 255 / fadeTime );
+				} else if(timeFlash >= flashDurations[i] - fadeTime){
+					retColors[retCount] = Utils::modulateColor(mixedColor, (uint8_t)((flashDurations[i] - timeFlash) * 255 / fadeTime));
+				} else {
+					retColors[retCount] = mixedColor;
+				}
+				retIndices[retCount] = i;
+				retCount++;					
 			}
 		}
 		return retCount;
