@@ -72,7 +72,7 @@ namespace LEDColorTester
             remapFace = Accelerometer::currentFace();
         }
 
-		uint16_t ledIndex = b->layout.faceToLedLookup[remapFace];
+		uint16_t ledIndex = b->layout.canonicalIndexToElectricalIndexLookup[remapFace];
 
         NRF_LOG_INFO(" -> LED Index: %d, color: %08x", ledIndex, lufmsg->color);
         BLE_LOG_INFO("ledIndex: %d", ledIndex);

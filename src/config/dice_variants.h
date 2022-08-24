@@ -28,10 +28,14 @@ namespace Config
         struct Layout
         {
             const Core::float3* baseNormals;
-            const uint8_t* faceRemap;
-            const uint8_t* faceToLedLookup;
-            uint8_t faceCount;
-            uint8_t ledCount;
+            const uint8_t* canonicalIndexFaceToFaceRemapLookup;     // This remaps led indices to remap faces when retargetting the "up" face
+                                                                    // So if an animation pattern was authored with the 20 face up, we can
+                                                                    // remap the leds to play the animation with any face being up.
+            const uint8_t* canonicalIndexToElectricalIndexLookup;   // Because leds are organized in a daisy chain, but that daisy chain
+                                                                    // doesn't necessarily follow the order of the faces, we need to be able
+                                                                    // to remap from canonical (i.e. face) index to electrical (i.e. led) index.
+            const uint8_t* electricalIndexToCanonicalIndexLookup;   // Reverse Lookup Table from previous, this is useful for 'traveling' animations
+            uint8_t faceCount; // Face count isn't always equal to led count (i.e. PD6, D4)
 
             uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
         };

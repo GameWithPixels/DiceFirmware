@@ -1,5 +1,8 @@
 #include "animation_rainbow.h"
 #include "utils/rainbow.h"
+#include "config/board_config.h"
+
+using namespace Config;
 
 namespace Animations
 {
@@ -39,9 +42,10 @@ namespace Animations
 	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
 	/// <returns>The number of leds/intensities added to the return array</returns>
 	int AnimationInstanceRainbow::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
-		auto preset = getPreset();
+		auto b = BoardManager::getBoard();
+		int c = b->ledCount;
 
-		static int faceIndices[] {  17, 1, 19, 13, 3, 10, 8, 5, 15, 7, 9, 11, 14, 4, 12, 0, 18, 2, 16, 6 };
+		auto preset = getPreset();
 
 		// Compute color
 		uint32_t color = 0;
@@ -62,11 +66,11 @@ namespace Animations
 		// Fill the indices and colors for the anim controller to know how to update leds
 		int retCount = 0;
         if (preset->traveling != 0) {
-			for (int i = 0; i < 20; ++i) {
+			for (int i = 0; i < c; ++i) {
 				if ((preset->faceMask & (1 << i)) != 0)
 				{
-					retIndices[retCount] = faceIndices[i];
-					retColors[retCount] = Rainbow::wheel((uint8_t)((wheelPos + i * 256 / 20) % 256), intensity);
+					retIndices[retCount] = b->layout.electricalIndexToCanonicalIndexLookup[i];
+					retColors[retCount] = Rainbow::wheel((uint8_t)((wheelPos + i * 256 / c) % 256), intensity);
 					retCount++;
 				}
 			}

@@ -32,7 +32,15 @@ namespace BoardManager
         };
 
         const uint8_t sixSidedFaceToLedLookup[] = {
-            1, 4, 0, 3, 2, 5,
+        //  1, 2, 3, 4, 5, 6    // Face Number
+        //  0, 1, 2, 3, 4, 5    // Face Index
+            0, 4, 2, 1, 5, 3,   // Led Index
+        };
+
+
+        const uint8_t sixSidedLedToFaceLookup[] = {
+            // Smooth LED order is 0, 5, 1, 4, 2, 3
+            0, 4, 3, 1, 2, 5
         };
 
         // const uint8_t twentySidedRemap[] = {
@@ -66,6 +74,11 @@ namespace BoardManager
         // Old Molds:
         //   9, 13,  7, 19, 11, 16,  1,  5, 17,  4, 18,  3, 10, 15,  2,  6,  0, 12,  8, 14
         };
+
+        const uint8_t twentySidedLedToFaceLookup[] = {
+             4, 12, 10,  3, 17,  1, 11, 14,  6,  0, 18,  8,  5, 13, 19,  7,  9, 16,  2, 15,
+        };
+
 
         // LED number
         //  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
@@ -127,8 +140,15 @@ namespace BoardManager
         };
 
         const uint8_t twelveSidedFaceToLedLookup[] = {
-            // FIXME!!!
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+        //   1,  2,  3,  4,  5,  6,  7.  8,  9, 10, 11, 12  // Face Number
+        //   0,  1,  2,  3,  4,  5,  6,  7.  8,  9, 10, 11  // Face Index
+             3,  0, 10,  4,  8,  9,  1,  5,  7,  2, 11,  6 // Led Index
+        };
+
+        const uint8_t twelveSidedLedToFaceLookup[] = {
+        //   0,  1,  2,  3,  4,  5,  6,  7.  8,  9, 10, 11  // Led Index
+        //   2,  7, 10,  1,  4,  8, 12,  9,  5,  6,  3, 11  // Face Number
+             1,  6,  9,  0,  3,  7, 11,  8,  4,  5,  2, 10, // Face Index
         };
 
 
@@ -161,8 +181,15 @@ namespace BoardManager
         };
 
         const uint8_t tenSidedFaceToLedLookup[] = {
-            // FIXME!!!
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        //   1,  2,  3,  4,  5,  6,  7,  8,  9,  0  // Face Number
+        //   0,  1,  2,  3,  4,  5,  6,  7,  8,  9  // Face Index
+             5, 0, 7, 3, 8, 4, 6, 1, 9, 2
+        };
+
+        const uint8_t tenSidedLedToFaceLookup[] = {
+        //   0,  1,  2,  3,  4,  5,  6,  7,  8,  9  // Led Index
+        //   2,  8,  0,  4,  6,  1,  7,  3,  5,  9  // Face Number
+             1,  7,  9,  3,  5,  0,  6,  2,  4,  8  // Face Index (Face Number 0 is in fact 10)
         };
 
 
@@ -191,10 +218,49 @@ namespace BoardManager
         };
 
         const uint8_t eightSidedFaceToLedLookup[] = {
-            // FIXME!!!
-            0, 1, 2, 3, 4, 5, 6, 7
+        //  1, 2, 3, 4, 5, 6, 7, 8  // Face Number
+        //  0, 1, 2, 3, 4, 5, 6, 7  // Face Index
+            1, 3, 0, 2, 6, 5, 7, 4  // Led Index
         };
 
+        const uint8_t eightSidedLedToFaceLookup[] = {
+        //  0, 1, 2, 3, 4, 5, 6, 7  // Led Index
+        //  3, 1, 4, 2, 8, 6, 5, 7  // Face Number
+            2, 0, 3, 1, 7, 5, 4, 6  // Face Index
+        };
+
+        const uint8_t pippedD6Remap[] = {
+            // FIXME!!!
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+            0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+        };
+
+        const uint8_t pippedD6FaceToLedLookup[] = {
+            0,	5,	6,	7,	8,	9,	1,	2,	3,	4,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+        };
+
+        const uint8_t pippedD6LedToFaceLookup[] = {
+            0,	6,	7,	8,	9,	1,	2,	3,	4,	5,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+        };
 
     // Array of possible circuit boards configs
     // Note that the boards MUST be sorted in order of INCREASING resistor value
@@ -411,8 +477,9 @@ namespace BoardManager
             .model = BoardModel::D20BoardV10,
             .layout = {
                 .baseNormals = twentySidedNormals,
-                .faceRemap = twentySidedRemap,
-                .faceToLedLookup = twentySidedFaceToLedLookup,
+                .canonicalIndexFaceToFaceRemapLookup = twentySidedRemap,
+                .canonicalIndexToElectricalIndexLookup = twentySidedFaceToLedLookup,
+                .electricalIndexToCanonicalIndexLookup = twentySidedLedToFaceLookup,
             },
             .name = "D20v10",
         },
@@ -437,8 +504,9 @@ namespace BoardManager
             .model = BoardModel::D20BoardV11,
             .layout = {
                 .baseNormals = twentySidedNormals,
-                .faceRemap = twentySidedRemap,
-                .faceToLedLookup = twentySidedFaceToLedLookup,
+                .canonicalIndexFaceToFaceRemapLookup = twentySidedRemap,
+                .canonicalIndexToElectricalIndexLookup = twentySidedFaceToLedLookup,
+                .electricalIndexToCanonicalIndexLookup = twentySidedLedToFaceLookup,
             },
             .name = "D20v11",
         },
@@ -463,8 +531,9 @@ namespace BoardManager
             .model = BoardModel::D6BoardV2,
             .layout = {
                 .baseNormals = sixSidedNormals,
-                .faceRemap = sixSidedRemap,
-                .faceToLedLookup = sixSidedFaceToLedLookup,
+                .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
+                .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
+                .electricalIndexToCanonicalIndexLookup = sixSidedLedToFaceLookup,
             },
             .name = "D6v2",
         },
@@ -489,8 +558,9 @@ namespace BoardManager
             .model = BoardModel::PD6BoardV1,
             .layout = {
                 .baseNormals = sixSidedNormals,
-                .faceRemap = sixSidedRemap,
-                .faceToLedLookup = sixSidedFaceToLedLookup,
+                .canonicalIndexFaceToFaceRemapLookup = pippedD6Remap,
+                .canonicalIndexToElectricalIndexLookup = pippedD6FaceToLedLookup,
+                .electricalIndexToCanonicalIndexLookup = pippedD6LedToFaceLookup,
             },
             .name = "PD6v1",
         },
@@ -515,8 +585,9 @@ namespace BoardManager
             .model = BoardModel::D12BoardV1,
             .layout = {
                 .baseNormals = twelveSidedNormals,
-                .faceRemap = twelveSidedRemap,
-                .faceToLedLookup = twelveSidedFaceToLedLookup,
+                .canonicalIndexFaceToFaceRemapLookup = twelveSidedRemap,
+                .canonicalIndexToElectricalIndexLookup = twelveSidedFaceToLedLookup,
+                .electricalIndexToCanonicalIndexLookup = twelveSidedLedToFaceLookup,
             },
             .name = "D12v1",
         },
@@ -541,8 +612,9 @@ namespace BoardManager
             .model = BoardModel::D10BoardV1,
             .layout = {
                 .baseNormals = tenSidedNormals,
-                .faceRemap = tenSidedRemap,
-                .faceToLedLookup = tenSidedFaceToLedLookup,
+                .canonicalIndexFaceToFaceRemapLookup = tenSidedRemap,
+                .canonicalIndexToElectricalIndexLookup = tenSidedFaceToLedLookup,
+                .electricalIndexToCanonicalIndexLookup = tenSidedLedToFaceLookup,
             },
             .name = "D10v1",
         },
@@ -567,8 +639,9 @@ namespace BoardManager
             .model = BoardModel::D8BoardV1,
             .layout = {
                 .baseNormals = eightSidedNormals,
-                .faceRemap = eightSidedRemap,
-                .faceToLedLookup = eightSidedFaceToLedLookup,
+                .canonicalIndexFaceToFaceRemapLookup = eightSidedRemap,
+                .canonicalIndexToElectricalIndexLookup = eightSidedFaceToLedLookup,
+                .electricalIndexToCanonicalIndexLookup = eightSidedLedToFaceLookup,
             },
             .name = "D8v1",
         },
