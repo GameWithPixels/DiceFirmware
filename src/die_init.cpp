@@ -360,6 +360,7 @@ namespace Die
                 noiseAnim.flashCountPerSec = 1;
                 noiseAnim.speedMultiplier256 = 1;
                 noiseAnim.blinkSpeedMultiplier256 = 1;
+                
                 AnimController::play(&noiseAnim, nullptr, 0, false);
 
                 NRF_LOG_INFO("----- Device initialized! -----");
