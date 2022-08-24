@@ -42,38 +42,38 @@ namespace Animations
 			flashDurations[i] = 0;
 		}
 
-		// animationBits.palette = animPalette; // point to animpalette
-		// animationBits.paletteSize = 21;
+		animationBits.palette = animPalette; // point to animpalette
+		animationBits.paletteSize = 21;
 
-		// rgbKeyframes[0].setTimeAndColorIndex(0, 0);
-		// rgbKeyframes[1].setTimeAndColorIndex(1000, 1);
-		// rgbKeyframes[2].setTimeAndColorIndex(0, 3);
-		// rgbKeyframes[3].setTimeAndColorIndex(500, 2);
-		// rgbKeyframes[4].setTimeAndColorIndex(1000, 4);
+		rgbKeyframes[0].setTimeAndColorIndex(0, 0);
+		rgbKeyframes[1].setTimeAndColorIndex(1000, 1);
+		rgbKeyframes[2].setTimeAndColorIndex(0, 3);
+		rgbKeyframes[3].setTimeAndColorIndex(500, 2);
+		rgbKeyframes[4].setTimeAndColorIndex(1000, 4);
 
-		// animationBits.rgbKeyframes = rgbKeyframes;
-		// animationBits.rgbKeyFrameCount = 5;
+		animationBits.rgbKeyframes = rgbKeyframes;
+		animationBits.rgbKeyFrameCount = 5;
 
-		// rgbTracks[0] = {.keyframesOffset = 0, .keyFrameCount = 2,  .padding = 0, .ledMask = 0x000FFFFF};
-		// rgbTracks[1] = {.keyframesOffset = 2, .keyFrameCount = 3,  .padding = 0, .ledMask = 0x000FFFFF};
-		// animationBits.rgbTracks = rgbTracks;
-		// animationBits.rgbTrackCount = 2;
+		rgbTracks[0] = {.keyframesOffset = 0, .keyFrameCount = 2,  .padding = 0, .ledMask = 0x000FFFFF};
+		rgbTracks[1] = {.keyframesOffset = 2, .keyFrameCount = 3,  .padding = 0, .ledMask = 0x000FFFFF};
+		animationBits.rgbTracks = rgbTracks;
+		animationBits.rgbTrackCount = 2;
 
-		// keyframes[0].setTimeAndIntensity(0, 0);
-		// keyframes[1].setTimeAndIntensity(125, 64);
-		// keyframes[2].setTimeAndIntensity(250, 128);
-		// keyframes[3].setTimeAndIntensity(375, 196);
-		// keyframes[4].setTimeAndIntensity(500, 255);
-		// keyframes[5].setTimeAndIntensity(625, 196);
-		// keyframes[6].setTimeAndIntensity(750, 128);
-		// keyframes[7].setTimeAndIntensity(875, 64);
-		// keyframes[8].setTimeAndIntensity(1000, 0);
+		keyframes[0].setTimeAndIntensity(0, 0);
+		keyframes[1].setTimeAndIntensity(125, 64);
+		keyframes[2].setTimeAndIntensity(250, 128);
+		keyframes[3].setTimeAndIntensity(375, 196);
+		keyframes[4].setTimeAndIntensity(500, 255);
+		keyframes[5].setTimeAndIntensity(625, 196);
+		keyframes[6].setTimeAndIntensity(750, 128);
+		keyframes[7].setTimeAndIntensity(875, 64);
+		keyframes[8].setTimeAndIntensity(1000, 0);
 		
-		// intensityTracks = {.keyframesOffset = 0, .keyFrameCount = 9, .padding = 0, .ledMask = 0x000FFFFF};
-		// animationBits.keyframes = keyframes;
-		// animationBits.keyFrameCount = 9;
-		// animationBits.tracks = &intensityTracks;
-		// animationBits.trackCount = 1;
+		intensityTracks = {.keyframesOffset = 0, .keyFrameCount = 9, .padding = 0, .ledMask = 0x000FFFFF};
+		animationBits.keyframes = keyframes;
+		animationBits.keyFrameCount = 9;
+		animationBits.tracks = &intensityTracks;
+		animationBits.trackCount = 1;
 	}
 
 	/// <summary>
