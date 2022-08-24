@@ -347,17 +347,17 @@ namespace Die
                     BehaviorController::onDiceInitialized();
                 }
 
-                static AnimationNoise noiseAnim;
+                // static AnimationNoise noiseAnim;
 
-                noiseAnim.type = Animation_Noise;
-                noiseAnim.duration = 40000;
-                noiseAnim.faceMask = ANIM_FACEMASK_ALL_LEDS;
-                noiseAnim.overallGradientTrackOffset = 0;
-                noiseAnim.individualGradientTrackOffset = 1;
-                noiseAnim.flashSharpness = 250;
-                noiseAnim.flashDuration = 2000;
-                noiseAnim.flashPerSecond = 1;
-                AnimController::play(&noiseAnim, nullptr, 0, false);
+                // noiseAnim.type = Animation_Noise;
+                // noiseAnim.duration = 40000;
+                // noiseAnim.faceMask = ANIM_FACEMASK_ALL_LEDS;
+                // noiseAnim.overallGradientTrackOffset = 0;
+                // noiseAnim.individualGradientTrackOffset = 1;
+                // noiseAnim.flashSharpness = 250;
+                // noiseAnim.flashDuration = 2000;
+                // noiseAnim.flashPerSecond = 1;
+                // AnimController::play(&noiseAnim, nullptr, 0, false);
 
                 NRF_LOG_INFO("----- Device initialized! -----");
             });
