@@ -34,9 +34,7 @@ namespace Animations
 	/// </summary>
 	void AnimationInstanceNoise::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
-        //curRand = (uint16_t)(_startTime % (1 << 16));
-		// nrf_crypto_init();
-		// nrf_crypto_rng_init(nullptr, nullptr);
+        curRand = (uint16_t)(_startTime % (1 << 16));
 		for(int i = 0; i < 20; i++){
 			individualFlashTimes[i] = 0;
 			flashDurations[i] = 0;
@@ -88,25 +86,27 @@ namespace Animations
 		int time = ms - startTime;
 		// uint8_t* buffer = new uint8_t;
 		// nrf_crypto_rng_vector_generate(buffer, 1);
-		srand(time);
+		//srand(time);
 		
-		int numFaces = rand()%2+1;//(*buffer)%2+1; 	// noticed that 1-2/3 faces is more or less how many faces we need to light up per cycle to mimic the noise pattern on the app
+		int numFaces = curRand%2+1;//rand()%2+1; 	// noticed that 1-2/3 faces is more or less how many faces we need to light up per cycle to mimic the noise pattern on the app
+		
 
 		// overall gradient color management
 		auto& gradientOverall = animationBits.getRGBTrack(preset->overallGradientTrackOffset); 
 		auto& gradientPersonal = animationBits.getRGBTrack(preset->individualGradientTrackOffset);
 		// gradient time initialization
-        int gradientTime = time*1000/preset->duration;
+        int gradientTime = (256/preset->blinkSpeedMultiplier256)*time*1000/preset->duration;
 		uint32_t firstColor = gradientOverall.evaluateColor(&animationBits, gradientTime);
 		
 		int retCount = 0;
 		if(time - past_time >= 1000/preset->flashCount){
 			for(int i = 0; i < numFaces; i++){
-				int faceIndex = rand()%20;
-
+				int faceIndex = curRand%20;//rand()%20;
+				curRand = Utils::nextRand(curRand);
 				individualFlashTimes[faceIndex] = time;
-				flashDurations[faceIndex] = preset->flashDuration + rand()%20;
+				flashDurations[faceIndex] = preset->flashDuration + curRand%20;//rand()%20;
 			}
+			
 			past_time = time;
 		}
 
@@ -115,7 +115,7 @@ namespace Animations
 			if(timeFlash < flashDurations[i]){
 				int fadeTime = (flashDurations[i] * preset->fade) / (255 * 2);
 
-				uint32_t secondColor = gradientPersonal.evaluateColor(&animationBits, timeFlash*1000/flashDurations[i] );
+				uint32_t secondColor = gradientPersonal.evaluateColor(&animationBits, (256/preset->blinkSpeedMultiplier256)* timeFlash*1000/flashDurations[i] );
 				uint32_t mixedColor = Utils::toColor((Utils::getRed(firstColor) * Utils::getRed(secondColor))/0xFF, (Utils::getGreen(firstColor) * Utils::getGreen(secondColor))/0xFF, (Utils::getBlue(firstColor) * Utils::getBlue(secondColor))/0xFF);
 
 				if(timeFlash <= fadeTime){
