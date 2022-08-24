@@ -55,6 +55,7 @@ namespace MessageService
     bool SendMessage(const Message* msg, int msgSize);
 
     void onMessageReceived(const uint8_t* data, uint16_t len);
+    void update();
 
     void init() {
         // Clear message handle array
@@ -118,6 +119,10 @@ namespace MessageService
         return Stack::isConnected();
     }
 
+    void scheduled_update(void * p_event_data, uint16_t event_size) {
+        update();
+    }
+
     void update() {
         // Send queued messages if possible
         if (SendQueue.count() > 0 && isConnected() && Stack::canSend()) {
@@ -135,6 +140,11 @@ namespace MessageService
                 NRF_LOG_DEBUG("Calling message handler %08x", handler.handler);
                 handler.handler(handler.token, msg);
             }
+        }
+
+        // If either queues aren't empty, reschedule update() call.
+        if (SendQueue.count() > 0 || ReceiveQueue.count() > 0) {
+            Scheduler::push(nullptr, 0, scheduled_update);
         }
     }
 
@@ -163,13 +173,7 @@ namespace MessageService
         }
     }
 
-    void scheduled_update(void * p_event_data, uint16_t event_size) {
-        update();
-    }
-
     Stack::SendResult send(const uint8_t* data, uint16_t size) {
-        NRF_LOG_DEBUG("Generic Service Message Sending: %d bytes", size);
-        NRF_LOG_HEXDUMP_DEBUG(data, size);
         return Stack::send(tx_handles.value_handle, data, size);
     }
 
@@ -178,11 +182,15 @@ namespace MessageService
         return SendMessage(&msg, sizeof(Message));
     }
 
+
+
     bool SendMessage(const Message* msg, int msgSize) {
         bool ret = false;
         auto res = send((const uint8_t*)msg, msgSize);
         switch (res) {
             case Stack::SendResult_Ok:
+                NRF_LOG_DEBUG("Sent Message type %d of size %d", msg->type, msgSize);
+                NRF_LOG_HEXDUMP_DEBUG((const void*)msg, msgSize);
                 ret = true;
                 break;
             case Stack::SendResult_Busy:
@@ -202,8 +210,10 @@ namespace MessageService
                 break;
             case Stack::SendResult_Error:
                 // Any other error, don't know what to do, forget the message
+                NRF_LOG_ERROR("Message of type %d of size %d NOT SENT (Unknown Error)", msg->type, msgSize);
             case Stack::SendResult_NotConnected:
                 // Not connected, forget the message
+                NRF_LOG_ERROR("Message of type %d of size %d NOT SENT (Not Connected)", msg->type, msgSize);
             default:
                 ret = false;
                 break;
