@@ -19,7 +19,7 @@ namespace Animations
 		uint16_t blinkSpeedMultiplier256;
 		uint16_t individualGradientTrackOffset;
 
-		uint16_t flashCountPerSec;	
+		uint16_t flashCount;	
 
 		uint8_t flashDuration;	
 

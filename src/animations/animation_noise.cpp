@@ -100,7 +100,7 @@ namespace Animations
 		uint32_t firstColor = gradientOverall.evaluateColor(&animationBits, gradientTime);
 		
 		int retCount = 0;
-		if(time - past_time >= 1000/preset->flashCountPerSec){
+		if(time - past_time >= 1000/preset->flashCount){
 			for(int i = 0; i < numFaces; i++){
 				int faceIndex = rand()%20;
 
