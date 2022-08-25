@@ -18,10 +18,10 @@ using namespace DataSet;
 namespace Modules::InstantAnimationController
 {
     static AnimationBits animationBits;
-    static void* animationsData;
+    static void *animationsData;
     static uint32_t animationsDataHash;
     static const uint16_t *animationOffsets;
-    static const Animation *animations;
+    static const uint8_t *animations;
     static uint32_t animationsCount;
 
     void ReceiveInstantAnimSet(void *context, const Message *msg);
@@ -52,6 +52,12 @@ namespace Modules::InstantAnimationController
         const MessageTransferInstantAnimSet *message = (const MessageTransferInstantAnimSet *)msg;
 
         if (animationsData == nullptr || animationsDataHash != message->hash) {
+            // Stop playing animations as we are about to delete their data
+            for (uint32_t i = 0; i < animationsCount; ++i) {
+                auto animationPtr = animations + animationOffsets[i];
+                AnimController::stop((const Animation *)animationPtr, 255);
+            }
+
             // We should download the data
             clearData();
 
@@ -106,8 +112,7 @@ namespace Modules::InstantAnimationController
                 animationOffsets = (const uint16_t*)address;
                 address += animationOffsetsBufferSize;
 
-                animations = (const Animation*)address;
-
+                animations = (const uint8_t*)address;
                 animationsCount = message->animationCount;
 
                 // Send Ack and receive data
@@ -126,19 +131,20 @@ namespace Modules::InstantAnimationController
 		                animationsDataHash = Utils::computeHash((uint8_t*)animationsData, size);
                         MessageService::SendMessage(Message::MessageType_TransferInstantAnimSetFinished);
                     }
-                    else
-                    {
+                    else {
                         NRF_LOG_ERROR("Failed to download instant animation");
                         clearData();
                     }
                 });
-            } else {
+            }
+            else {
                 // No memory
                 MessageTransferInstantAnimSetAck ackMsg;
                 ackMsg.ackType = TransferInstantAnimSetAck_NoMemory;
                 MessageService::SendMessage(&ackMsg);
             }
-        } else {
+        }
+        else {
             // The animation data is valid and matches the app data
             MessageTransferInstantAnimSetAck ackMsg;
             ackMsg.ackType = TransferInstantAnimSetAck_UpToDate;
@@ -153,7 +159,7 @@ namespace Modules::InstantAnimationController
 
         if (animationsData != nullptr && message->animation < animationsCount) {
             // TODO may crash if we are still downloading an animation
-            auto animationPtr = (uint8_t *)animations + animationOffsets[message->animation];
+            auto animationPtr = animations + animationOffsets[message->animation];
             uint8_t faceIndex = message->faceIndex == FACE_INDEX_CURRENT_FACE
                 ? Accelerometer::currentFace() : message->faceIndex;
             AnimController::play((const Animation *)animationPtr, &animationBits, faceIndex, message->loop > 0);

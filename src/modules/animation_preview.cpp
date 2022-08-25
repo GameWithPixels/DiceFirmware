@@ -43,6 +43,9 @@ namespace Modules::AnimationPreview
         if (animationData == nullptr || animationDataHash != message->hash) {
             // We should download the data
             if (animationData != nullptr) {
+                // Stop playing the current animation as we are about to delete its data
+                AnimController::stop(animation, 255);
+
                 free(animationData);
                 animationData = nullptr;
                 animationDataHash = 0;
@@ -113,7 +116,7 @@ namespace Modules::AnimationPreview
                 		MessageService::SendMessage(Message::MessageType_TransferTestAnimSetFinished);
 
                         // Play the ANIMATION NOW!!!
-                        AnimController::play(animation, &animationBits, 19, false);
+                        AnimController::play(animation, &animationBits, Accelerometer::currentFace());
                     } else {
                         NRF_LOG_ERROR("Failed to download temp animation");
                         free(animationData);
@@ -137,8 +140,11 @@ namespace Modules::AnimationPreview
             ackMsg.ackType = TransferInstantAnimSetAck_UpToDate;
             MessageService::SendMessage(&ackMsg);
 
+            // Stop animation in case it's still playing
+            AnimController::stop(animation, 255);
+
             // Play the ANIMATION NOW!!!
-            AnimController::play(animation, &animationBits, 19, false);
+            AnimController::play(animation, &animationBits, Accelerometer::currentFace());
         }
     }
 
