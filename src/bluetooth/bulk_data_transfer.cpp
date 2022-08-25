@@ -223,7 +223,7 @@ namespace Bluetooth
 		}
 
 		void sendBulkAckMessage(uint16_t offset) {
-			NRF_LOG_DEBUG("Sending Bulk Ack Message");
+			NRF_LOG_DEBUG("Sending Bulk Ack Message, offset=%04x", offset);
 
 			// Then send the message
 			MessageBulkDataAck ackMsg;

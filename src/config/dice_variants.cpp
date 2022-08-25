@@ -14,8 +14,8 @@ namespace DiceVariants
 		//	   face should light up to "retarget" the animation around the current up face)
 		//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
 		//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
-		int rotatedAnimFaceIndex = faceRemap[remapFace * faceCount + animFaceIndex];
-		return faceToLedLookup[rotatedAnimFaceIndex];
+		int rotatedAnimFaceIndex = canonicalIndexFaceToFaceRemapLookup[remapFace * faceCount + animFaceIndex];
+		return canonicalIndexToElectricalIndexLookup[rotatedAnimFaceIndex];
 	}
 }
 }
