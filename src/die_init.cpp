@@ -358,8 +358,6 @@ namespace Die
                 noiseAnim.fade = 250;
                 noiseAnim.flashDuration = 255;
                 noiseAnim.flashCount = 20*(noiseAnim.duration/1000);
-                noiseAnim.speedMultiplier256 = 256;
-                noiseAnim.blinkSpeedMultiplier256 = 256;
 
                 AnimController::play(&noiseAnim, nullptr, 0, false);
 
