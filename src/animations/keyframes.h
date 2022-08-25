@@ -22,7 +22,7 @@ namespace Animations
 		uint16_t time() const; // unpack the time in ms
 		uint32_t color(const DataSet::AnimationBits* bits) const;// unpack the color using the lookup table from the animation set
 
-		void setTimeAndColorIndex(uint16_t timeInMS, uint16_t colorIndex);
+		void setTimeAndColorIndex(uint16_t timeMs, uint16_t colorIndex);
 	};
 
 	/// <summary>
@@ -59,8 +59,8 @@ namespace Animations
         uint16_t time() const;
         uint8_t intensity() const;
 
-        void setTimeAndIntensity(uint16_t timeInMS, uint8_t intensity);
-    };
+		void setTimeAndIntensity(uint16_t timeMs, uint8_t intensity);
+	};
 
 	/// <summary>
 	/// An animation track is essentially an animation curve and a set of leds.
