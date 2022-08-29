@@ -81,7 +81,6 @@ namespace Modules::AnimController
 	void update(int ms)
 	{
 		auto b = BoardManager::getBoard();
-		auto l = b->layout;
 		int c = b->ledCount;
 
 		if (animationCount > 0) {
@@ -139,7 +138,7 @@ namespace Modules::AnimController
 					//NRF_LOG_INFO("track_count = %d", animTrackCount);
 					for (int j = 0; j < animTrackCount; ++j) {
 						//colors[j] = Utils::gamma(colors[j]);
-                        ledIndices[j] = l.animIndexToLEDIndex(canonIndices[j], anim->remapFace);
+                        ledIndices[j] = b->animIndexToLEDIndex(canonIndices[j], anim->remapFace);
 					}
 
 					// Update color array
@@ -290,7 +289,6 @@ namespace Modules::AnimController
 	void stopAtIndex(int animIndex)
 	{
 		auto b = BoardManager::getBoard();
-		auto l = b->layout;
 
 		// Found the animation, start by killing the leds it controls
 		int canonIndices[MAX_LED_COUNT];
@@ -300,7 +298,7 @@ namespace Modules::AnimController
 		auto anim = animations[animIndex];
 		int ledCount = anim->stop(canonIndices);
 		for (int i = 0; i < ledCount; ++i) {
-            ledIndices[i] = l.animIndexToLEDIndex(canonIndices[i], anim->remapFace);
+            ledIndices[i] = b->animIndexToLEDIndex(canonIndices[i], anim->remapFace);
 		}
 		LEDs::setPixelColors(ledIndices, zeros, ledCount);
 	}

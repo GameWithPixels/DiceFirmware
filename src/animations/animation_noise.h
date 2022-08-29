@@ -22,7 +22,6 @@ namespace Animations
 		uint8_t flashDuration;	
 
 		uint8_t fade;
-		uint32_t faceMask;
 
 	};
 
@@ -48,14 +47,6 @@ namespace Animations
 		int individualFlashTimes[20];			// state that keeps track of the start of every individual flash so as to know how to fade it based on the time
 		uint16_t flashDurations[20];			// keeps track of the duration of each individual flash, so as to add a bit of variation 
 		uint16_t curRand;						// rand variable for generating new random variables using nextRand from Utils.h
-		
-		const uint8_t maxI = 0xFF;				
-		DataSet::AnimationBits animationBits;	
-		uint8_t animPalette[21] = {0x00, 0x00, 0x00, maxI, maxI, maxI, 0x00, maxI, 0x00, maxI, 0x00, 0x00, 0x00, 0x00, maxI, maxI, 0x00, maxI, 0x00, maxI, maxI};
-		Animations::RGBKeyframe rgbKeyframes[10];
-		Animations::RGBTrack rgbTracks[2];
-		Animations::Keyframe keyframes[9];
-		Animations::Track intensityTracks;
 	};
 }
 

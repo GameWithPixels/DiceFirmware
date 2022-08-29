@@ -347,20 +347,6 @@ namespace Die
                     BehaviorController::onDiceInitialized();
                 }
 
-                static AnimationNoise noiseAnim;
-
-                noiseAnim.type = Animation_Noise;
-                noiseAnim.duration = 40000;
-
-                noiseAnim.faceMask = ANIM_FACEMASK_ALL_LEDS;
-                noiseAnim.overallGradientTrackOffset = 0;
-                noiseAnim.individualGradientTrackOffset = 1;
-                noiseAnim.fade = 250;
-                noiseAnim.flashDuration = 255;
-                noiseAnim.flashCount = 20*(noiseAnim.duration/1000);
-
-                AnimController::play(&noiseAnim, nullptr, 0, false);
-
                 NRF_LOG_INFO("----- Device initialized! -----");
             });
         });

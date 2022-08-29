@@ -36,7 +36,7 @@ namespace Animations
 	struct Animation
 	{
 		AnimationType type;
-		uint8_t padding_type; // to keep duration 16-bit aligned
+		uint8_t paddingType; // to keep duration 16-bit aligned
 		uint16_t duration; // in ms
 	};
 

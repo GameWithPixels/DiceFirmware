@@ -97,6 +97,8 @@ namespace Config
 
             // Name of the board
             const char* name;
+
+            uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace) const;
         };
 
         void init();

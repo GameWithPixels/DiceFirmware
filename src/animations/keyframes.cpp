@@ -10,21 +10,20 @@ namespace Animations
 {
 
 	uint16_t RGBKeyframe::time() const {
-		// Unpack
-		uint16_t time50th = (timeAndColor & 0b1111111110000000) >> 7;
-		return time50th * 20;
+		// Take the upper 9 bits and multiply by 2 (scale it to 0 -> 1024)
+		return (timeAndColor >> 7) * 2;
 	}
 	
 	uint32_t RGBKeyframe::color(const DataSet::AnimationBits* bits) const {
-		// Unpack
-		uint16_t index = timeAndColor & 0b01111111;
+		// Take the lower 7 bits for the index
+		uint16_t index = timeAndColor & 0b1111111;
 		return bits->getPaletteColor(index);
 	}
 
-	void RGBKeyframe::setTimeAndColorIndex(uint16_t timeInMS, uint16_t colorIndex) {
-		timeAndColor = (((timeInMS / 20) & 0b111111111) << 7) | (colorIndex & 0b1111111);
+	void RGBKeyframe::setTimeAndColorIndex(uint16_t timeMs, uint16_t colorIndex) {
+		const uint16_t scaledTime = (timeMs / 2) & 0b111111111;
+		timeAndColor = (scaledTime << 7) | (colorIndex & 0b1111111);
 	}
-
 
 	/// <summary>
 	/// Returns the length of the track, based on the keyframes it is storing
@@ -117,19 +116,20 @@ namespace Animations
 
 
 	uint16_t Keyframe::time() const {
-		// Unpack
-		uint16_t time50th = (timeAndIntensity & 0b1111111110000000) >> 7;
-		return time50th * 20;
-	}
-	
-	uint8_t Keyframe::intensity() const {
-		// Unpack
-		return (uint8_t)((timeAndIntensity & 0b01111111) * 2); // Scale it to 0 -> 255
+		// Take the upper 9 bits and multiply by 2 (scale it to 0 -> 1024)
+		return (timeAndIntensity >> 7) * 2;
 	}
 
-    void Keyframe::setTimeAndIntensity(uint16_t timeInMS, uint8_t intensity) {
-        timeAndIntensity = (uint16_t)(((((uint32_t)timeInMS / 20) & 0b111111111) << 7) | ((uint32_t)(intensity / 2) & 0b1111111));
-    }
+	uint8_t Keyframe::intensity() const {
+		// Take the lower 7 bits and multiply by 2 (scale it to 0 -> 255)
+		return (uint8_t)((timeAndIntensity & 0b1111111) * 2);
+	}
+
+    void Keyframe::setTimeAndIntensity(uint16_t timeMs, uint8_t intensity) {
+		const uint16_t scaledTime = (timeMs / 2) & 0b111111111;
+		const uint16_t scaledIntensity = (intensity / 2) & 0b1111111;
+		timeAndIntensity = (scaledTime << 7) | scaledIntensity;
+	}
 
 	/// <summary>
 	/// Returns the length of the track, based on the keyframes it is storing

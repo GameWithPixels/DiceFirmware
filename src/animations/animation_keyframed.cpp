@@ -55,8 +55,7 @@ namespace Animations
 		int time = ms - startTime;
 		auto preset = getPreset();
 
-        int trackTime = time * 256 / preset->speedMultiplier256;
-
+		const int trackTime = time * 1000 / preset->duration;
 		const RGBTrack * tracks = animationBits->getRGBTracks(preset->tracksOffset);
 
 		// Each track will append its led indices and colors into the return array

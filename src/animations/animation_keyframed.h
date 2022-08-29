@@ -16,11 +16,10 @@ namespace Animations
 	struct AnimationKeyframed
 		: public Animation
 	{
-		uint16_t speedMultiplier256;
 		uint16_t tracksOffset; // offset into a global buffer of tracks
 		uint16_t trackCount;
 		uint8_t flowOrder;
-		uint8_t padding_flowOrder;
+		uint8_t paddingFlowOrder;
 	};
 
 	/// <summary>

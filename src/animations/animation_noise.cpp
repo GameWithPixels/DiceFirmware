@@ -1,8 +1,6 @@
 #include "animation_noise.h"
-#include "data_set/data_set.h"
 #include "data_set/data_animation_bits.h"
 #include "utils/Utils.h"
-#include "nrf_log.h"
 // #include "nrf_crypto.h"
 
 
@@ -34,44 +32,15 @@ namespace Animations
 	/// </summary>
 	void AnimationInstanceNoise::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
-        curRand = (uint16_t)(_startTime % (1 << 16));
+        
+		// initializing random number generator
+		curRand = (uint16_t)(_startTime % (1 << 16));
+
+		// initializing the durations and times of each blink
 		for(int i = 0; i < 20; i++){
 			individualFlashTimes[i] = 0;
 			flashDurations[i] = 0;
 		}
-
-		animationBits.palette = animPalette; // point to animpalette
-		animationBits.paletteSize = 21;
-
-		rgbKeyframes[0].setTimeAndColorIndex(0, 0);
-		rgbKeyframes[1].setTimeAndColorIndex(1000, 1);
-		rgbKeyframes[2].setTimeAndColorIndex(0, 3);
-		rgbKeyframes[3].setTimeAndColorIndex(500, 2);
-		rgbKeyframes[4].setTimeAndColorIndex(1000, 4);
-
-		animationBits.rgbKeyframes = rgbKeyframes;
-		animationBits.rgbKeyFrameCount = 5;
-
-		rgbTracks[0] = {.keyframesOffset = 0, .keyFrameCount = 2,  .padding = 0, .ledMask = 0x000FFFFF};
-		rgbTracks[1] = {.keyframesOffset = 2, .keyFrameCount = 3,  .padding = 0, .ledMask = 0x000FFFFF};
-		animationBits.rgbTracks = rgbTracks;
-		animationBits.rgbTrackCount = 2;
-
-		keyframes[0].setTimeAndIntensity(0, 0);
-		keyframes[1].setTimeAndIntensity(125, 64);
-		keyframes[2].setTimeAndIntensity(250, 128);
-		keyframes[3].setTimeAndIntensity(375, 196);
-		keyframes[4].setTimeAndIntensity(500, 255);
-		keyframes[5].setTimeAndIntensity(625, 196);
-		keyframes[6].setTimeAndIntensity(750, 128);
-		keyframes[7].setTimeAndIntensity(875, 64);
-		keyframes[8].setTimeAndIntensity(1000, 0);
-		
-		intensityTracks = {.keyframesOffset = 0, .keyFrameCount = 9, .padding = 0, .ledMask = 0x000FFFFF};
-		animationBits.keyframes = keyframes;
-		animationBits.keyFrameCount = 9;
-		animationBits.tracks = &intensityTracks;
-		animationBits.trackCount = 1;
 	}
 
 	/// <summary>
@@ -82,21 +51,21 @@ namespace Animations
 	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
 	/// <returns>The number of leds/intensities added to the return array</returns>
 	int AnimationInstanceNoise::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+		
         auto preset = getPreset();
 		int time = ms - startTime;
 		 
 		int numFaces = curRand%2+1;
 
 		// LEDs will pick an initial color from the overall gradient (generally black to white)
-		auto& gradientOverall = animationBits.getRGBTrack(preset->overallGradientTrackOffset); 			
+		auto& gradientOverall = animationBits->getRGBTrack(preset->overallGradientTrackOffset); 			
 		// they will then fade according to the individual gradient
-		auto& gradientIndividual = animationBits.getRGBTrack(preset->individualGradientTrackOffset);	
+		auto& gradientIndividual = animationBits->getRGBTrack(preset->individualGradientTrackOffset);	
 
 		// gradient time is an x-axis variable used to progress along a gradient and is normalized to range from 0-1000
 		// eg: if we have a gradient that goes r->g->b 
         int gradientTime = time*1000/preset->duration;
-		uint32_t firstColor = gradientOverall.evaluateColor(&animationBits, gradientTime);
-		
+		uint32_t firstColor = gradientOverall.evaluateColor(animationBits, gradientTime);
 
 		int retCount = 0; // number that indicates how many LEDS to light up in ther current cycle
 
@@ -106,7 +75,8 @@ namespace Animations
 				int faceIndex = curRand%20;
 				curRand = Utils::nextRand(curRand);
 				individualFlashTimes[faceIndex] = time;
-				flashDurations[faceIndex] = preset->flashDuration + curRand%20;
+				// causes stretching of the duration of the flash based onthe duration of the actual animation
+				flashDurations[faceIndex] = preset->duration * preset->flashDuration / 255 + curRand % 20;
 			}
 			
 			previousFlashTime = time; 
@@ -119,7 +89,7 @@ namespace Animations
 				int fadeTime = (flashDurations[i] * preset->fade) / (255 * 2);
 
 				// the flash will fade according to the individual gradient
-				uint32_t secondColor = gradientIndividual.evaluateColor(&animationBits, timeFlash*1000/flashDurations[i] );
+				uint32_t secondColor = gradientIndividual.evaluateColor(animationBits, timeFlash*1000/flashDurations[i] );
 
 				// mixing the color acquired from the general gradient with the individual gradient
 				uint32_t mixedColor = Utils::toColor((Utils::getRed(firstColor) * Utils::getRed(secondColor))/0xFF, // component-wise mixing of colors
@@ -130,7 +100,7 @@ namespace Animations
 				if(timeFlash <= fadeTime){
 					retColors[retCount] = Utils::modulateColor(mixedColor, timeFlash * 255 / fadeTime );
 				} else if(timeFlash >= flashDurations[i] - fadeTime){
-					retColors[retCount] = Utils::modulateColor(mixedColor, (uint8_t)((flashDurations[i] - timeFlash) * 255 / fadeTime));
+					retColors[retCount] = Utils::modulateColor(mixedColor, ((flashDurations[i] - timeFlash) * 255 / fadeTime));
 				} else {
 					retColors[retCount] = mixedColor;
 				}
@@ -146,7 +116,7 @@ namespace Animations
 	/// </summary>
 	int AnimationInstanceNoise::stop(int retIndices[]) {
 		auto preset = getPreset();
-		return setIndices(preset->faceMask, retIndices);
+		return setIndices(ANIM_FACEMASK_ALL_LEDS, retIndices);
 	}
 
 	const AnimationNoise* AnimationInstanceNoise::getPreset() const {

@@ -94,7 +94,7 @@ namespace Modules::ValidationManager
         }
     }
 
-    // Clear bits to signal exit of valdidation mode, go to sleep
+    // Clear bits to signal exit of validation mode, go to sleep
     void exitValidationMode(void *token, const Message *msg)
     {
         leaveValidation();

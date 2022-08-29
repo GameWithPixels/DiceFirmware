@@ -29,6 +29,7 @@ namespace Animations
         blinkAnim.fade = fade;
         blinkAnim.colorIndex = 0;
 
+        Modules::AnimController::stop(&blinkAnim);
         Modules::AnimController::play(&blinkAnim, &animBits);
     }
 }

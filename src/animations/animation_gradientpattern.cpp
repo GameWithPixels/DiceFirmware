@@ -4,7 +4,6 @@
 #include "data_set/data_animation_bits.h"
 #include "assert.h"
 #include "../utils/utils.h"
-#include "nrf_log.h"
 
 // FIXME!!!
 #include "modules/anim_controller.h"
@@ -40,7 +39,6 @@ namespace Animations
 	void AnimationInstanceGradientPattern::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
         auto preset = getPreset();
-		NRF_LOG_INFO("override: %d", preset->overrideWithFace);
 		if (preset->overrideWithFace) {
 			// Compute color based on face is 127
 	        rgb = animationBits->getPaletteColor(PALETTE_COLOR_FROM_FACE);
@@ -60,18 +58,17 @@ namespace Animations
         int time = ms - startTime;
         auto preset = getPreset();
 
-        // Figure out the color from the gradient
-        auto& gradient = animationBits->getRGBTrack(preset->gradientTrackOffset);
+		const int trackTime = time * 1000 / preset->duration;
+
+		// Figure out the color from the gradient
+		auto& gradient = animationBits->getRGBTrack(preset->gradientTrackOffset);
 
 		uint32_t gradientColor = 0;
 		if (preset->overrideWithFace) {
         	gradientColor = rgb;
 		} else {
-			int gradientTime = time * 1000 / preset->duration;
-			gradientColor = gradient.evaluateColor(animationBits, gradientTime);
+			gradientColor = gradient.evaluateColor(animationBits, trackTime);
 		}
-
-        int trackTime = time * 256 / preset->speedMultiplier256;
 
         // Each track will append its led indices and colors into the return array
         // The assumption is that led indices don't overlap between tracks of a single animation,
