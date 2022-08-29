@@ -17,9 +17,9 @@ namespace Animations
 			
 		uint16_t individualGradientTrackOffset;
 
-		uint16_t flashCount;	
+		uint16_t blinkCount;	
 
-		uint8_t flashDuration;	
+		uint8_t blinkDuration;	
 
 		uint8_t fade;
 
@@ -43,9 +43,9 @@ namespace Animations
 	private:
 		
 		const AnimationNoise* getPreset() const;
-		int previousFlashTime = 0;				// state keeping track of the last time we turned on a set of faces
-		int individualFlashTimes[20];			// state that keeps track of the start of every individual flash so as to know how to fade it based on the time
-		uint16_t flashDurations[20];			// keeps track of the duration of each individual flash, so as to add a bit of variation 
+		int previousBlinkTime = 0;				// state keeping track of the last time we turned on a set of faces
+		int individualBlinkTimes[20];			// state that keeps track of the start of every individual blink so as to know how to fade it based on the time
+		uint16_t blinkDurations[20];			// keeps track of the duration of each individual blink, so as to add a bit of variation 
 		uint16_t curRand;						// rand variable for generating new random variables using nextRand from Utils.h
 	};
 }

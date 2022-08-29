@@ -38,8 +38,8 @@ namespace Animations
 
 		// initializing the durations and times of each blink
 		for(int i = 0; i < 20; i++){
-			individualFlashTimes[i] = 0;
-			flashDurations[i] = 0;
+			individualBlinkTimes[i] = 0;
+			blinkDurations[i] = 0;
 		}
 	}
 
@@ -69,38 +69,38 @@ namespace Animations
 
 		int retCount = 0; // number that indicates how many LEDS to light up in ther current cycle
 
-		// setting which faces to turn on setting the start of the individualFlashtimes of the faces that need to be turned on to the current time
-		if(time - previousFlashTime >= preset->duration/preset->flashCount){
+		// setting which faces to turn on setting the start of the individualBlinktimes of the faces that need to be turned on to the current time
+		if(time - previousBlinkTime >= preset->duration/preset->blinkCount){
 			for(int i = 0; i < numFaces; i++){
 				int faceIndex = curRand%20;
 				curRand = Utils::nextRand(curRand);
-				individualFlashTimes[faceIndex] = time;
-				// causes stretching of the duration of the flash based onthe duration of the actual animation
-				flashDurations[faceIndex] = preset->duration * preset->flashDuration / 255 + curRand % 20;
+				individualBlinkTimes[faceIndex] = time;
+				// causes stretching of the duration of the blink based onthe duration of the actual animation
+				blinkDurations[faceIndex] = preset->duration * preset->blinkDuration / 255 + curRand % 20;
 			}
 			
-			previousFlashTime = time; 
+			previousBlinkTime = time; 
 		}
 		
 		// Setting the colors for each of the faces that we randomly selected in the previous loop according to the mix between the overall and individual gradient
 		for(int i = 0; i < 20; i++){
-			int timeFlash = time - individualFlashTimes[i];
-			if(timeFlash < flashDurations[i]){
-				int fadeTime = (flashDurations[i] * preset->fade) / (255 * 2);
+			int timeBlink = time - individualBlinkTimes[i];
+			if(timeBlink < blinkDurations[i]){
+				int fadeTime = (blinkDurations[i] * preset->fade) / (255 * 2);
 
-				// the flash will fade according to the individual gradient
-				uint32_t secondColor = gradientIndividual.evaluateColor(animationBits, timeFlash*1000/flashDurations[i] );
+				// the blink will fade according to the individual gradient
+				uint32_t secondColor = gradientIndividual.evaluateColor(animationBits, timeBlink*1000/blinkDurations[i] );
 
 				// mixing the color acquired from the general gradient with the individual gradient
 				uint32_t mixedColor = Utils::toColor((Utils::getRed(firstColor) * Utils::getRed(secondColor))/0xFF, // component-wise mixing of colors
 									(Utils::getGreen(firstColor) * Utils::getGreen(secondColor))/0xFF, 				
 									(Utils::getBlue(firstColor) * Utils::getBlue(secondColor))/0xFF);				
 
-				// determining whether we should increase/decrease the intensity based on how far each individual flash has progressed (timeFlash) so as to mimic a fade
-				if(timeFlash <= fadeTime){
-					retColors[retCount] = Utils::modulateColor(mixedColor, timeFlash * 255 / fadeTime );
-				} else if(timeFlash >= flashDurations[i] - fadeTime){
-					retColors[retCount] = Utils::modulateColor(mixedColor, ((flashDurations[i] - timeFlash) * 255 / fadeTime));
+				// determining whether we should increase/decrease the intensity based on how far each individual blink has progressed (timeBlink) so as to mimic a fade
+				if(timeBlink <= fadeTime){
+					retColors[retCount] = Utils::modulateColor(mixedColor, timeBlink * 255 / fadeTime );
+				} else if(timeBlink >= blinkDurations[i] - fadeTime){
+					retColors[retCount] = Utils::modulateColor(mixedColor, ((blinkDurations[i] - timeBlink) * 255 / fadeTime));
 				} else {
 					retColors[retCount] = mixedColor;
 				}
