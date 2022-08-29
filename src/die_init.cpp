@@ -26,7 +26,6 @@
 #include "bluetooth/telemetry.h"
 
 #include "animations/animation_cycle.h"
-#include "animations/animation_noise.h"
 #include "data_set/data_set.h"
 
 #include "modules/led_color_tester.h"
