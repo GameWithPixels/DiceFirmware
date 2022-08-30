@@ -1,0 +1,50 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/config",
+                "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/arm-none-eabi/include",
+                "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/lib/gcc/arm-none-eabi/9.3.1/include",
+                "C:/nRF5_SDK/**"
+            ],
+            "defines": [
+                "NRF52_SERIES",
+                "BOARD_CUSTOM",
+                "CONFIG_GPIO_AS_PINRESET",
+                "FLOAT_ABI_SOFT",
+                "NRF52810_XXAA",
+                "NRF_SD_BLE_API_VERSION",
+                "S112",
+                "SOFTDEVICE_PRESENT",
+                "SWI_DISABLE0",
+                "NRF52_PAN_74",
+                "NRF_DFU_SVCI_ENABLED",
+                "FSTORAGE_START=0",
+                "USBCON",
+                "SDK_VER=17",
+                "BUILD_TIMESTAMP=0"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/bin/arm-none-eabi-gcc",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "${workspaceFolder}/src",
+                    "${workspaceFolder}/src/config",
+                    "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/arm-none-eabi/include",
+                    "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/lib/gcc/arm-none-eabi/9.3.1/include",
+                    "C:/nRF5_SDK/**"
+                ],
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": ""
+            },
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "forcedInclude": []
+        }
+    ],
+    "version": 4
+}
