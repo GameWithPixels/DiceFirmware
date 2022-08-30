@@ -1,6 +1,7 @@
 #include "animation_noise.h"
 #include "data_set/data_animation_bits.h"
 #include "utils/Utils.h"
+
 // #include "nrf_crypto.h"
 
 
@@ -32,12 +33,12 @@ namespace Animations
 	/// </summary>
 	void AnimationInstanceNoise::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
-        
+        ledCount = Config::BoardManager::getBoard()->ledCount;
 		// initializing random number generator
 		curRand = (uint16_t)(_startTime % (1 << 16));
 
 		// initializing the durations and times of each blink
-		for(int i = 0; i < 20; i++){
+		for(int i = 0; i < MAX_LED_COUNT; i++){
 			individualBlinkTimes[i] = 0;
 			blinkDurations[i] = 0;
 		}
@@ -69,21 +70,23 @@ namespace Animations
 
 		int retCount = 0; // number that indicates how many LEDS to light up in ther current cycle
 
-		// setting which faces to turn on setting the start of the individualBlinktimes of the faces that need to be turned on to the current time
+		// setting which faces to blink as well as the start time of each of their blinks in individualBlinkTimes, also adding some variation to each of their durations
 		if(time - previousBlinkTime >= preset->duration/preset->blinkCount){
 			for(int i = 0; i < numFaces; i++){
-				int faceIndex = curRand%20;
 				curRand = Utils::nextRand(curRand);
+				int faceIndex = curRand%ledCount;
+				
 				individualBlinkTimes[faceIndex] = time;
 				// causes stretching of the duration of the blink based onthe duration of the actual animation
+				curRand = Utils::nextRand(curRand);
 				blinkDurations[faceIndex] = preset->duration * preset->blinkDuration / 255 + curRand % 20;
 			}
 			
 			previousBlinkTime = time; 
 		}
 		
-		// Setting the colors for each of the faces that we randomly selected in the previous loop according to the mix between the overall and individual gradient
-		for(int i = 0; i < 20; i++){
+		// then setting the colors for each of the faces that we randomly selected in the previous loop according to the mix of color/intensity between the overall and individual gradient
+		for(int i = 0; i < ledCount; i++){
 			int timeBlink = time - individualBlinkTimes[i];
 			if(timeBlink < blinkDurations[i]){
 				int fadeTime = (blinkDurations[i] * preset->fade) / (255 * 2);
@@ -115,7 +118,6 @@ namespace Animations
 	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
 	/// </summary>
 	int AnimationInstanceNoise::stop(int retIndices[]) {
-		auto preset = getPreset();
 		return setIndices(ANIM_FACEMASK_ALL_LEDS, retIndices);
 	}
 
