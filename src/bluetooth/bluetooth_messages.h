@@ -240,7 +240,7 @@ struct MessagePlayAnim
 	: public Message
 {
 	uint8_t animation;
-	uint8_t remapFace;  // Assumes that an animation was made for face 0
+	uint8_t remapFace;  // Assumes that an animation was made for face 20
 	uint8_t loop; 		// 1 == loop, 0 == once
 
 	inline MessagePlayAnim() : Message(Message::MessageType_PlayAnim) {}
@@ -268,7 +268,7 @@ struct MessageStopAnim
 	: public Message
 {
 	uint8_t animation;
-	uint8_t remapFace;  // Assumes that an animation was made for face 0
+	uint8_t remapFace;  // Assumes that an animation was made for face 20
 
 	inline MessageStopAnim() : Message(Message::MessageType_StopAnim) {}
 };
@@ -450,7 +450,7 @@ struct MessagePlayInstantAnim
 	: public Message
 {
 	uint8_t animation;
-	uint8_t faceIndex;	// Assumes that an animation was made for face 0
+	uint8_t faceIndex;	// Assumes that an animation was made for face 20
 	uint8_t loop; 		// 1 == loop, 0 == once
 
 	inline MessagePlayInstantAnim() : Message(Message::MessageType_PlayInstantAnim) {}
