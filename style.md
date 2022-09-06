@@ -14,7 +14,7 @@
 - Use 4 spaces for each indentation
 
 ## Style:
-- Open curly braces always go on line below whatever necessitates them
+- Open curly braces always go on the same line as whatever necessitates them
 - Always surround loop and conditional bodies with curly braces unless on same line
 - Single space should follow commas, colons, and semicolons in those constructs
     - `for (int i = 0; i < 10; i++)`
