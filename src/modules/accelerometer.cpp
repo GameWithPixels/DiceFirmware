@@ -230,12 +230,8 @@ namespace Modules
 
             if (newRollState != rollState)
             {
-
-                if (newRollState != rollState)
-                {
-                    NRF_LOG_INFO("State: %s", getRollStateString(newRollState));
-                    rollState = newRollState;
-                }
+                rollState = newRollState;
+                NRF_LOG_INFO("State: %s", getRollStateString(rollState));
 
                 // Notify clients
                 if (!paused)
@@ -272,6 +268,8 @@ namespace Modules
                 rollState = RollState_Crooked;
             }
 
+            // Unhook first to avoid being hooked more than once if start() is called multiple times
+            AccelChip::unHook(AccHandler);
             AccelChip::hook(AccHandler, nullptr);
         }
 
@@ -451,70 +449,70 @@ namespace Modules
 
             // Ask user to place die on face 1
             MessageService::NotifyUser("Place face 1 up", true, true, 30, [](bool okCancel)
-                                       {
-			if (okCancel) {
-				// Die is on face 1
-				// Read the normals
-				readAccelerometer(&measuredNormals->face1);
+            {
+                if (okCancel) {
+                    // Die is on face 1
+                    // Read the normals
+                    readAccelerometer(&measuredNormals->face1);
 
-				// Debugging
-				//BLE_LOG_INFO("Face 1 Normal: %d, %d, %d", (int)(measuredNormals->face1.x * 100), (int)(measuredNormals->face1.y * 100), (int)(measuredNormals->face1.z * 100));
+                    // Debugging
+                    //BLE_LOG_INFO("Face 1 Normal: %d, %d, %d", (int)(measuredNormals->face1.x * 100), (int)(measuredNormals->face1.y * 100), (int)(measuredNormals->face1.z * 100));
 
-				// Place on face 5
-				MessageService::NotifyUser("5 up", true, true, 30, [] (bool okCancel)
-				{
-					if (okCancel) {
-						// Die is on face 5
-						// Read the normals
-						readAccelerometer(&measuredNormals->face5);
+                    // Place on face 5
+                    MessageService::NotifyUser("5 up", true, true, 30, [] (bool okCancel)
+                    {
+                        if (okCancel) {
+                            // Die is on face 5
+                            // Read the normals
+                            readAccelerometer(&measuredNormals->face5);
 
-						// Debugging
-						//BLE_LOG_INFO("Face 5 Normal: %d, %d, %d", (int)(measuredNormals->face5.x * 100), (int)(measuredNormals->face5.y * 100), (int)(measuredNormals->face5.z * 100));
+                            // Debugging
+                            //BLE_LOG_INFO("Face 5 Normal: %d, %d, %d", (int)(measuredNormals->face5.x * 100), (int)(measuredNormals->face5.y * 100), (int)(measuredNormals->face5.z * 100));
 
-						// Place on face 10
-						MessageService::NotifyUser("10 up", true, true, 30, [] (bool okCancel)
-						{
-							if (okCancel) {
-								// Die is on face 10
-								// Read the normals
-								readAccelerometer(&measuredNormals->face10);
+                            // Place on face 10
+                            MessageService::NotifyUser("10 up", true, true, 30, [] (bool okCancel)
+                            {
+                                if (okCancel) {
+                                    // Die is on face 10
+                                    // Read the normals
+                                    readAccelerometer(&measuredNormals->face10);
 
-                                // From the 3 measured normals we can calibrate the accelerometer
-                                auto b = BoardManager::getBoard();
+                                    // From the 3 measured normals we can calibrate the accelerometer
+                                    auto b = BoardManager::getBoard();
 
-                                float3 newNormals[b->ledCount];
-                                measuredNormals->confidence = Utils::CalibrateNormals(
-                                    0, measuredNormals->face1,
-                                    4, measuredNormals->face5,
-                                    9, measuredNormals->face10,
-                                    newNormals, b->ledCount);
+                                    float3 newNormals[b->ledCount];
+                                    measuredNormals->confidence = Utils::CalibrateNormals(
+                                        0, measuredNormals->face1,
+                                        4, measuredNormals->face5,
+                                        9, measuredNormals->face10,
+                                        newNormals, b->ledCount);
 
-                                // And flash the new normals
-                                SettingsManager::programCalibrationData(newNormals, b->ledCount, [] (bool result) {
+                                    // And flash the new normals
+                                    SettingsManager::programCalibrationData(newNormals, b->ledCount, [] (bool result) {
 
-                                    // Notify user that we're done, yay!!!
-                                    // char text[256] = "";
-                                    // snprintf(text, 256, "Calibrated, confidence = %d", (int)(measuredNormals->confidence * 100));
-                                    MessageService::NotifyUser("Calibrated", true, false, 30, [] (bool okCancel) {
-                                        // Restart notifications
-                                        restart();
+                                        // Notify user that we're done, yay!!!
+                                        // char text[256] = "";
+                                        // snprintf(text, 256, "Calibrated, confidence = %d", (int)(measuredNormals->confidence * 100));
+                                        MessageService::NotifyUser("Calibrated", true, false, 30, [] (bool okCancel) {
+                                            // Restart notifications
+                                            restart();
+                                        });
                                     });
-                                });
-							} else {
-								// Process cancelled, restart notifications
-								restart();
-							}
-						});
-					} else {
-						// Process cancelled, restart notifications
-						restart();
-					}
-				});
-
-			} else {
-				// Process cancelled, restart notifications
-				restart();
-			} });
+                                } else {
+                                    // Process cancelled, restart notifications
+                                    restart();
+                                }
+                            });
+                        } else {
+                            // Process cancelled, restart notifications
+                            restart();
+                        }
+                    });
+                } else {
+                    // Process cancelled, restart notifications
+                    restart();
+                }
+            });
         }
 
         void CalibrateFaceHandler(void *context, const Message *msg)
@@ -539,7 +537,7 @@ namespace Modules
         {
             if (evt == Flash::ProgrammingEventType_Begin)
             {
-                NRF_LOG_INFO("Stoping axel from programming event");
+                NRF_LOG_INFO("Stopping axel from programming event");
                 stop();
             }
             else
