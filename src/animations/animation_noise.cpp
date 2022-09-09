@@ -1,9 +1,7 @@
 #include "animation_noise.h"
 #include "data_set/data_animation_bits.h"
 #include "utils/Utils.h"
-
-// #include "nrf_crypto.h"
-
+#include "config/board_config.h"
 
 namespace Animations
 {
