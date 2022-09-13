@@ -31,7 +31,6 @@ using namespace Bluetooth;
 // This defines how frequently we try to read the accelerometer
 #define JERK_SCALE (1000) // To make the jerk in the same range as the acceleration
 #define MAX_ACC_CLIENTS 8
-#define CURRENT_FACE 255
 
 namespace Modules
 {
@@ -129,8 +128,10 @@ namespace Modules
 
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
-            newFrame.face = determineFace(newFrame.acc, &newFrame.faceConfidence);
-            newFrame.face = newFrame.face == CURRENT_FACE ? 0 : newFrame.face;  // if the face is set to 255, then ignore it (set to 0), otherwise keep the value
+            int retFace = determineFace(newFrame.acc, &newFrame.faceConfidence);
+
+            // If the face is set to INVALID_FACE, then ignore it (keep previous value), otherwise use the new value
+            newFrame.face = retFace == INVALID_FACE ? newFrame.face : retFace;  
 
             buffer.push(newFrame);
 
@@ -326,6 +327,7 @@ namespace Modules
 
         /// <summary>
         /// Crudely compares accelerometer readings passed in to determine the current face up
+        /// will return INVALID_FACE if it cannot determine the current face up
         /// </summary>
         /// <returns>The face number, starting at 0</returns>
         int determineFace(float3 acc, float *outConfidence)
@@ -347,7 +349,7 @@ namespace Modules
             {
                 float3 nacc = acc / accMag; // normalize
                 float bestDot = -1000.0f;
-                int bestFace = -1;
+                int bestFace = INVALID_FACE;
                 for (int i = 0; i < faceCount; ++i)
                 {
                     float dot = float3::dot(nacc, normals[i]);
