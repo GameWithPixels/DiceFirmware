@@ -130,7 +130,7 @@ namespace Modules
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
             newFrame.face = determineFace(newFrame.acc, &newFrame.faceConfidence);
-            newFrame.face == CURRENT_FACE ? 0 : newFrame.face;  // if the face is set to 255, then ignore it (set to 0), otherwise keep the value
+            newFrame.face = newFrame.face == CURRENT_FACE ? 0 : newFrame.face;  // if the face is set to 255, then ignore it (set to 0), otherwise keep the value
 
             buffer.push(newFrame);
 
