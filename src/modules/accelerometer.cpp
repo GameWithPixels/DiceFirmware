@@ -31,6 +31,7 @@ using namespace Bluetooth;
 // This defines how frequently we try to read the accelerometer
 #define JERK_SCALE (1000) // To make the jerk in the same range as the acceleration
 #define MAX_ACC_CLIENTS 8
+#define CURRENT_FACE 255
 
 namespace Modules
 {
@@ -129,6 +130,7 @@ namespace Modules
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
             newFrame.face = determineFace(newFrame.acc, &newFrame.faceConfidence);
+            newFrame.face == CURRENT_FACE ? 0 : newFrame.face;  // if the face is set to 255, then ignore it (set to 0), otherwise keep the value
 
             buffer.push(newFrame);
 
