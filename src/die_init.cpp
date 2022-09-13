@@ -96,39 +96,39 @@ namespace Die
     ///         * if timer driver init fails
     ///
     ///     - GPIOTE::init():
-    ///         * if gpiote driver init fails
+    ///         * if GPIOTE driver init fails
     ///
     ///     - A2D::init():
-    ///         * if saadc driver init fails
+    ///         * if SAADC driver init fails
     ///
     ///     - Stack::init():
-    ///         * if softdevice enable fails
+    ///         * if SoftDevice enable fails
     ///         * if BLE stack config fails
     ///         * if BLE enable fails
     ///         * if setting GAP connection parameters fails
     ///         * if GATT init fails
     ///
-    ///     - MessageSevice::init():
+    ///     - MessageService::init():
     ///         * if adding custom base UUID fails
-    ///         * if adding GATT service fails   
+    ///         * if adding GATT service fails
     ///         * if adding RX characteristic fails
     ///         * if adding TX characteristic fails
     ///
     ///     - DFU::init():
-    ///         * if aysnc SVCI init fails
-    ///         * if DFU driver init failse
+    ///         * if async SVCI init fails
+    ///         * if DFU driver init fails
     ///
     ///     - Stack::initAdvertising():
     ///         * if advertising init fails
     ///         * if queued writes module init fails
-    ///         * if connection parameters module init fails       
+    ///         * if connection parameters module init fails
     ///
     ///     - Flash::init():
-    ///         * if fstorage init fails
+    ///         * if f-storage init fails
     ///
     ///     - BoardManager::init():
     ///         * no validation checks
-    ///         * may want to fail-safe for unexpectedly 
+    ///         * may want to fail-safe for unexpectedly
     ///             high voltage measurement?
     ///
     ///     - A2D::initBoardPins():
@@ -136,7 +136,7 @@ namespace Die
     ///
     ///     - SettingsManager::init():
     ///         * if Flash::write() fails to write dataset
-    ///     
+    ///
     ///     - Stack::initAdvertisingName():
     ///         * if setting GAP device name fails
     ///
@@ -148,11 +148,11 @@ namespace Die
     ///         * if twi driver init fails
     ///
     ///     - LEDs::init():
-    ///         * if pwm_init fails (neopixel)
+    ///         * if pwm_init fails (NeoPixel)
     ///         * maybe check getSettings() return value?
     ///
     ///     - Accelerometer::init():
-    ///         * maybe throw error for invalid accel model 
+    ///         * maybe throw error for invalid accel model
     ///             in init() and start()?
     ///
     ///     - Battery::init():
@@ -165,7 +165,7 @@ namespace Die
     ///         * nothing is checked?
     ///
     ///     - AnimController::init():
-    ///         * if create animControllerTimer fails 
+    ///         * if create animControllerTimer fails
     ///         * if start animControllerTimer fails
     ///
     ///     - BatteryController::init():
@@ -193,7 +193,7 @@ namespace Die
     ///         * nothing is checked?
     ///
     ///     - BehaviorController::onDiceInitialized():
-    ///         * will probably use alternative function 
+    ///         * will probably use alternative function
     ///             for validation blinks
     ///
     /// ***********************************************************************
@@ -227,7 +227,7 @@ namespace Die
         // Analog to digital converter next, so we can identify the board we're dealing with
         A2D::init();
         
-        // Initializte bluetooth
+        // Initialize bluetooth
         Stack::init();
 
         //// Watchdog may setup a timer to verify app stability
@@ -239,7 +239,7 @@ namespace Die
         // Initialize the DFU service so we can upgrade the firmware without needing to reset the die
         DFU::init();
 
-        // Now that the message service added its uuid to the softdevice, initialize the advertising
+        // Now that the message service added its uuid to the SoftDevice, initialize the advertising
         Stack::initAdvertising();
 
         // Flash is needed to update settings/animations
@@ -258,8 +258,6 @@ namespace Die
 
         // Then we read user settings from flash, or set some defaults if none are found
         SettingsManager::init([] (bool result) {
-            
-
 
             // I2C is needed for the accelerometer, but depends on the board info to know which pins to use
             I2C::init();
