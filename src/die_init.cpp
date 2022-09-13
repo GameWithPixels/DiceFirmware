@@ -258,12 +258,8 @@ namespace Die
 
         // Then we read user settings from flash, or set some defaults if none are found
         SettingsManager::init([] (bool result) {
+            
 
-            // The advertising name depends on settings
-            Stack::initAdvertisingName();
-
-            // Now that the settings are set, update custom advertising data such as die type and battery level
-            Stack::initCustomAdvertisingData();
 
             // I2C is needed for the accelerometer, but depends on the board info to know which pins to use
             I2C::init();
@@ -301,6 +297,16 @@ namespace Die
 
                 // Battery controller relies on the battery driver
                 BatteryController::init();
+
+                //--------------------
+                // Initialize Bluetooth Advertising Data + Name
+                //--------------------
+
+                // The advertising name depends on settings
+                Stack::initAdvertisingName();
+
+                // Now that the settings are set, update custom advertising data such as die type and battery level
+                Stack::initCustomAdvertisingData();
 
                 const bool inValidation = ValidationManager::inValidation();
                 if (!inValidation)
