@@ -80,7 +80,6 @@ namespace Die
     void StopAllLEDAnims(void* context, const Message* msg);
 	void EnterStandardState(void* context, const Message* msg);
 	void EnterLEDAnimState(void* context, const Message* msg);
-	void EnterBattleState(void* context, const Message* msg);
     void EnterSleepMode(void* token, const Message* message);
     void onConnection(void* token, bool connected);
 
@@ -100,7 +99,6 @@ namespace Die
     {
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetStandardState, nullptr, EnterStandardState);
 		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetLEDAnimState, nullptr, EnterLEDAnimState);
-		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetBattleState, nullptr, EnterBattleState);
         
         Bluetooth::Stack::hook(onConnection, nullptr);
 
@@ -191,7 +189,6 @@ namespace Die
 	void EnterStandardState(void* context, const Message* msg) {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
-            case TopLevel_BattlePlay:
             case TopLevel_Animator:
             default:
                 // Reactivate playing animations based on face
@@ -207,7 +204,6 @@ namespace Die
 	void EnterLEDAnimState(void* context, const Message* msg) {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
-            case TopLevel_BattlePlay:
             case TopLevel_SoloPlay:
             default:
                 // Reactivate playing animations based on face
@@ -220,22 +216,6 @@ namespace Die
        }
     }
     
-	void EnterBattleState(void* context, const Message* msg) {
-        switch (currentTopLevelState) {
-            case TopLevel_Animator:
-            case TopLevel_Unknown:
-            case TopLevel_SoloPlay:
-            default:
-                // Reactivate playing animations based on face
-                currentTopLevelState = TopLevel_BattlePlay;
-                break;
-            case TopLevel_BattlePlay:
-            case TopLevel_LowPower:
-                // Nothing to do
-                break;
-       }
-    }
-
     void EnterSleepMode(void* token, const Message* msg) {
         PowerManager::goToSystemOff();
     }

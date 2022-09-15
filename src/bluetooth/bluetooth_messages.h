@@ -63,7 +63,7 @@ struct Message
 		MessageType_TestHardware,
 		MessageType_SetStandardState,
 		MessageType_SetLEDAnimState,
-		MessageType_SetBattleState,
+		MessageType_SetBattleState, // Unused
 		MessageType_ProgramDefaultParameters,
 		MessageType_ProgramDefaultParametersFinished,
 		MessageType_SetDesignAndColor,
