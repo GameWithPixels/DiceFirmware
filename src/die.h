@@ -10,7 +10,6 @@ namespace Die
         TopLevel_SoloPlay,      // Playing animations as a result of landing on faces
         TopLevel_Animator,      // LED Animator
         TopLevel_LowPower,      // Die is low on power
-        TopLevel_Attract,
     };
 
     void init();

@@ -10,11 +10,13 @@
 namespace Modules
 {
 	/// <summary>
-	/// The component in charge of maintaining the acceleraion readings,
+	/// The component in charge of maintaining the acceleration readings,
 	/// and determining die motion state.
 	/// </summary>
 	namespace Accelerometer
 	{
+		using Core::float3;
+
 		/// <summary>
 		/// Small struct holding a single frame of accelerometer data
 		/// used for both face detection (not that kind) and telemetry
@@ -22,9 +24,9 @@ namespace Modules
 		/// </summary>
 		struct AccelFrame
 		{
-			Core::float3 acc;
-			Core::float3 jerk;
-			Core::float3 smoothAcc;
+			float3 acc;
+			float3 jerk;
+			float3 smoothAcc;
 			float sigma;
 			float faceConfidence;
 			int face;
@@ -41,7 +43,7 @@ namespace Modules
 			RollState_Count
 		};
 
-		int determineFace(Core::float3 acc, float* outConfidence = nullptr);
+		int determineFace(float3 acc, float* outConfidence = nullptr);
 
 		void init();
 		void start();
@@ -54,7 +56,7 @@ namespace Modules
 		// Returns empty string in release builds so to save space
 		const char *getRollStateString(RollState state);
 
-        void readAccelerometer(Core::float3* acc);
+        void readAccelerometer(float3* acc);
         void enableInterrupt();
         void disableInterrupt();
         void clearInterrupt();

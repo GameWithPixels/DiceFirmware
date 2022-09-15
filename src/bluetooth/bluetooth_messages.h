@@ -61,9 +61,9 @@ struct Message
 		MessageType_NotifyUser,
 		MessageType_NotifyUserAck,
 		MessageType_TestHardware,
-		MessageType_SetStandardState,
-		MessageType_SetLEDAnimState,
-		MessageType_SetBattleState, // Unused
+		MessageType_SetTopLevelState,
+		MessageType_Unused1,
+		MessageType_Unused2,
 		MessageType_ProgramDefaultParameters,
 		MessageType_ProgramDefaultParametersFinished,
 		MessageType_SetDesignAndColor,
@@ -137,12 +137,12 @@ struct MessageRollState
 /// <summary>
 /// Describes an acceleration readings message (for telemetry)
 /// </summary>
-struct MessageAcc
+struct MessageTelemetry
 	: public Message
 {
-	Modules::Accelerometer::AccelFrame data;
+	Modules::Accelerometer::AccelFrame accelFrame;
 
-	inline MessageAcc() : Message(Message::MessageType_Telemetry) {}
+	inline MessageTelemetry() : Message(Message::MessageType_Telemetry) {}
 };
 
 struct MessageBulkSetup
@@ -276,7 +276,7 @@ struct MessageStopAnim
 struct MessageRequestTelemetry
 	: public Message
 {
-	uint8_t telemetry;
+	uint8_t activate; // Boolean
 
 	inline MessageRequestTelemetry() : Message(Message::MessageType_RequestTelemetry) {}
 };
@@ -326,7 +326,8 @@ struct MessageBatteryLevel
 struct MessageRssi
 	: public Message
 {
-	int16_t rssi;
+	int8_t rssi;
+	uint8_t channelIndex;
 	inline MessageRssi() : Message(Message::MessageType_Rssi) {}
 };
 
@@ -371,6 +372,13 @@ struct MessageNotifyUserAck
 {
 	uint8_t okCancel; // Boolean
 	inline MessageNotifyUserAck() : Message(Message::MessageType_NotifyUserAck) {}
+};
+
+struct MessageSetTopLevelState
+	: public Message
+{
+	uint8_t state; // See TopLevelState enum
+	inline MessageSetTopLevelState() : Message(MessageType_SetTopLevelState) {}
 };
 
 struct MessageCalibrateFace

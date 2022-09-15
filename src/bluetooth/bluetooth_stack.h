@@ -36,7 +36,7 @@ namespace Bluetooth
 		void unHook(ConnectionEventMethod client);
 		void unHookWithParam(void* param);
  
-		typedef void(*RssiEventMethod)(void* param, int rssi);
+		typedef void(*RssiEventMethod)(void* param, int8_t rssi, uint8_t channelIndex);
 		void hookRssi(RssiEventMethod method, void* param);
 		void unHookRssi(RssiEventMethod client);
      }

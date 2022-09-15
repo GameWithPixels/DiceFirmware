@@ -78,8 +78,9 @@ namespace Die
     void PlayLEDAnim(void* context, const Message* msg);
     void StopLEDAnim(void* context, const Message* msg);
     void StopAllLEDAnims(void* context, const Message* msg);
-	void EnterStandardState(void* context, const Message* msg);
-	void EnterLEDAnimState(void* context, const Message* msg);
+    void SetTopLevelState(void* context, const Message* msg);
+	void EnterStandardState();
+	void EnterLEDAnimState();
     void EnterSleepMode(void* token, const Message* message);
     void onConnection(void* token, bool connected);
 
@@ -97,8 +98,7 @@ namespace Die
 
     void initDieLogic() 
     {
-		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetStandardState, nullptr, EnterStandardState);
-		Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetLEDAnimState, nullptr, EnterLEDAnimState);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, nullptr, SetTopLevelState);
         
         Bluetooth::Stack::hook(onConnection, nullptr);
 
@@ -165,7 +165,7 @@ namespace Die
             // Nothing
         } else {
             // Return to solo play
-            EnterStandardState(nullptr, nullptr);
+            EnterStandardState();
         }
     }
 
@@ -186,7 +186,19 @@ namespace Die
         AnimController::stopAll();
     }
 
-	void EnterStandardState(void* context, const Message* msg) {
+    void SetTopLevelState(void *context, const Message *msg) {
+        auto setTopLevelStateMessage = (const MessageSetTopLevelState *)msg;
+        switch (setTopLevelStateMessage->state) {
+        case TopLevel_SoloPlay:
+            EnterStandardState();
+            break;
+        case TopLevel_Animator:
+            EnterLEDAnimState();
+            break;
+        }
+    }
+
+    void EnterStandardState() {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
             case TopLevel_Animator:
@@ -201,7 +213,7 @@ namespace Die
        }
     }
 
-	void EnterLEDAnimState(void* context, const Message* msg) {
+	void EnterLEDAnimState() {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
             case TopLevel_SoloPlay:

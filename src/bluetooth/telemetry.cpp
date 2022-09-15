@@ -21,7 +21,7 @@ namespace Bluetooth
 namespace Telemetry
 {
     #define TELEMETRY_RATE_MS 100
-    MessageAcc teleMessage;
+    MessageTelemetry teleMessage;
     bool telemetryActive;
     uint32_t lastMessageMS;
 
@@ -41,7 +41,7 @@ namespace Telemetry
         uint32_t time = DriversNRF::Timers::millis();
         if (time - lastMessageMS >= TELEMETRY_RATE_MS) {
             if (Stack::canSend()) {
-                teleMessage.data = frame;
+                teleMessage.accelFrame = frame;
                 // Send the message
                 if (!MessageService::SendMessage(&teleMessage)) {
                     NRF_LOG_DEBUG("Couldn't send message yet");
@@ -54,7 +54,7 @@ namespace Telemetry
 
     void onRequestTelemetryMessage(void* token, const Message* message) {
         auto reqTelem = static_cast<const MessageRequestTelemetry*>(message);
-        if (reqTelem->telemetry != 0) {
+        if (reqTelem->activate != 0) {
             if (!telemetryActive) {
                 NRF_LOG_INFO("Starting Telemetry");
                 start();
