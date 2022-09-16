@@ -325,9 +325,9 @@ namespace Die
                 // Rssi controller requires the bluetooth stack
                 RssiController::init();
 
-            // #if defined(DEBUG)
-            //     HardwareTest::init();
-            // #endif
+                // Get ready for handling hardware test messages
+                HardwareTest::init();
+
                 // Start advertising!
                 Stack::startAdvertising();
 

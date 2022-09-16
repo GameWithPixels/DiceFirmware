@@ -1,48 +1,31 @@
 #include "hardware_test.h"
-
-#include "utils/utils.h"
-#include "core/ring_buffer.h"
-#include "config/board_config.h"
-#include "config/settings.h"
-#include "app_timer.h"
-#include "app_error.h"
-#include "app_error_weak.h"
 #include "nrf_log.h"
-#include "config/settings.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_messages.h"
-#include "nrf_gpio.h"
-#include "../drivers_nrf/gpiote.h"
-#include "drivers_nrf/gpiote.h"
-#include "drivers_nrf/scheduler.h"
-#include "drivers_nrf/timers.h"
-#include "drivers_hw/battery.h"
-#include "modules/anim_controller.h"
-#include "modules/battery_controller.h"
-#include "modules/accelerometer.h"
-#include "data_set/data_set.h"
 
-using namespace Modules;
-using namespace Core;
-using namespace DriversHW;
-using namespace DriversNRF;
-using namespace Config;
 using namespace Bluetooth;
-using namespace Animations;
 
-
-namespace Modules
+namespace Modules::HardwareTest
 {
-namespace HardwareTest
-{
-    // void HardwareTestHandler(void* context, const Message* msg);
+    void HardwareTestHandler(void* context, const Message* msg);
+    void LedLoopbackHandler(void *context, const Message *msg);
 
-    // void init() {
-    //     MessageService::RegisterMessageHandler(Message::MessageType_TestHardware, nullptr, HardwareTestHandler);
-	// 	NRF_LOG_INFO("Hardware Test initialized");
-	// }
+    static MessageLedLoopback messageLedLoopback;
 
+    void init() {
+        MessageService::RegisterMessageHandler(Message::MessageType_TestLedLoopback, nullptr, LedLoopbackHandler);
+#if defined(DEBUG)
+        //MessageService::RegisterMessageHandler(Message::MessageType_TestHardware, nullptr, HardwareTestHandler);
+        #endif
+        NRF_LOG_INFO("Hardware Test initialized");
+	}
 
+    void LedLoopbackHandler(void *context, const Message *msg) {
+        messageLedLoopback.value = 1;
+        MessageService::SendMessage(&messageLedLoopback);
+    }
+
+#if defined(DEBUG)
     // APP_TIMER_DEF(ledsTimer);
     // APP_TIMER_DEF(chargingTimer);
 
@@ -135,6 +118,5 @@ namespace HardwareTest
     //         });
     //     });
     // }
-
-}
+#endif
 }

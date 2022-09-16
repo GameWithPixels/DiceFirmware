@@ -61,9 +61,9 @@ struct Message
 		MessageType_NotifyUser,
 		MessageType_NotifyUserAck,
 		MessageType_TestHardware,
+		MessageType_TestLedLoopback,
+		MessageType_LedLoopback,
 		MessageType_SetTopLevelState,
-		MessageType_Unused1,
-		MessageType_Unused2,
 		MessageType_ProgramDefaultParameters,
 		MessageType_ProgramDefaultParametersFinished,
 		MessageType_SetDesignAndColor,
@@ -329,6 +329,13 @@ struct MessageRssi
 	int8_t rssi;
 	uint8_t channelIndex;
 	inline MessageRssi() : Message(Message::MessageType_Rssi) {}
+};
+
+struct MessageLedLoopback
+	: public Message
+{
+	uint8_t value;
+	inline MessageLedLoopback() : Message(Message::MessageType_LedLoopback) {}
 };
 
 struct MessageSetDesignAndColor
