@@ -1,41 +1,35 @@
-#ifndef BATTERY_CONTROLLER
-#define BATTERY_CONTROLLER
+#pragma once
 
-namespace Modules
+/// <summary>
+/// Manages a set of running animations, talking to the LED controller
+/// to tell it what LEDs must have what intensity at what time.
+/// </summary>
+namespace Modules::BatteryController
 {
-	/// <summary>
-	/// Manages a set of running animations, talking to the LED controller
-	/// to tell it what LEDs must have what intensity at what time.
-	/// </summary>
-	namespace BatteryController
+	void init();
+
+	enum BatteryState
 	{
-        void init();
+		BatteryState_Unknown,
+		BatteryState_Ok,
+		BatteryState_Low,
+		BatteryState_Charging,
+		BatteryState_Done
+	};
 
-		enum BatteryState
-		{
-			BatteryState_Unknown,
-			BatteryState_Ok,
-			BatteryState_Low,
-			BatteryState_Charging,
-			BatteryState_Done
-		};
+	BatteryState getCurrentChargeState();
+	float getCurrentLevel();
 
-		BatteryState getCurrentChargeState();
-		float getCurrentLevel();
+	// Returns empty string in release builds so to save space
+	const char *getChargeStateString(BatteryState state);
 
-		// Returns empty string in release builds so to save space
-		const char *getChargeStateString(BatteryState state);
+	typedef void(*BatteryStateChangeHandler)(void* param, BatteryState newState);
+	void hook(BatteryStateChangeHandler method, void* param);
+	void unHook(BatteryStateChangeHandler client);
+	void unHookWithParam(void* param);
 
-		typedef void(*BatteryStateChangeHandler)(void* param, BatteryState newState);
-		void hook(BatteryStateChangeHandler method, void* param);
-		void unHook(BatteryStateChangeHandler client);
-		void unHookWithParam(void* param);
-
-		typedef void(*BatteryLevelChangeHandler)(void* param, float level);
-		void hookLevel(BatteryLevelChangeHandler method, void* param);
-		void unHookLevel(BatteryLevelChangeHandler method);
-		void unHookLevelWithParam(void* param);
-    }
+	typedef void(*BatteryLevelChangeHandler)(void* param, float level);
+	void hookLevel(BatteryLevelChangeHandler method, void* param);
+	void unHookLevel(BatteryLevelChangeHandler method);
+	void unHookLevelWithParam(void* param);
 }
-
-#endif //BATTERY_CONTROLLER
