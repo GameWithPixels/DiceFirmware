@@ -477,7 +477,7 @@ zip: firmware_release
 
 .PHONY: zipbl
 zipbl: zip
-	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req 0x103 $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
+	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
 
 # Be sure to use a backslash in the pathname, otherwise the copy command will fail (in CMD environment) 
 .PHONY: publish
