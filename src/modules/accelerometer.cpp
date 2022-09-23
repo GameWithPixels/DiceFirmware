@@ -117,10 +117,6 @@ namespace Modules
 
             newFrame.time = DriversNRF::Timers::millis();
             newFrame.jerk = ((newFrame.acc - lastFrame.acc) * 1000.0f) / (float)(newFrame.time - lastFrame.time);
-            //if the time between last and current time is close to zero, log it
-            if(newFrame.time - lastFrame.time < 1){
-                NRF_LOG_INFO("time difference between newFrame and lastFrame is 0, newFrame.time: %d, lastFrame.time: %d", newFrame.time, lastFrame.time);
-            }      
 
             float jerkMag = newFrame.jerk.sqrMagnitude();
             if (jerkMag > 10.f)
@@ -133,8 +129,10 @@ namespace Modules
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
             int retFace = determineFace(newFrame.acc, &newFrame.faceConfidence);
+
             // If the face is set to INVALID_FACE, then ignore it (keep previous value), otherwise use the new value
             newFrame.face = retFace == INVALID_FACE ? newFrame.face : retFace;  
+
             buffer.push(newFrame);
 
             // Notify clients
@@ -338,9 +336,8 @@ namespace Modules
             int faceCount = BoardManager::getBoard()->ledCount;
             auto settings = SettingsManager::getSettings();
             auto &normals = settings->faceNormals;
-
             float accMag = acc.magnitude();
-            if (accMag < settings->fallingThreshold && accMag > 0)
+            if (accMag < settings->fallingThreshold)
             {
                 if (outConfidence != nullptr)
                 {
@@ -352,7 +349,7 @@ namespace Modules
             {
                 float3 nacc = acc / accMag; // normalize
                 float bestDot = -1000.0f;
-                int bestFace = face;
+                int bestFace = INVALID_FACE;
                 for (int i = 0; i < faceCount; ++i)
                 {
                     float dot = float3::dot(nacc, normals[i]);
