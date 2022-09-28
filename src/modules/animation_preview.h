@@ -1,9 +1,6 @@
 #pragma once
 
-namespace Modules
+namespace Modules::AnimationPreview
 {
-    namespace AnimationPreview
-    {
-    	void init();
-    }
+    void init();
 }

@@ -62,9 +62,9 @@ namespace Modules
         void onSettingsProgrammingEvent(void *context, Flash::ProgrammingEventType evt);
         void onPowerEvent(void *context, nrf_pwr_mgmt_evt_t event);
         void readAccelerometer(float3 *acc);
-        void LIS2DE12Handler(void *param, const Core::float3 &acc);
-        void MXC4005XCHandler(void *param, const Core::float3 &acc, float temp);
-        void AccHandler(const Core::float3 &acc);
+        void LIS2DE12Handler(void *param, const float3 &acc);
+        void MXC4005XCHandler(void *param, const float3 &acc, float temp);
+        void AccHandler(const float3 &acc);
 
         void update(void *context);
 
@@ -102,12 +102,12 @@ namespace Modules
 
         void update(void *context)
         {
-            Core::float3 acc;
+            float3 acc;
             readAccelerometer(&acc);
             AccHandler(acc);
         }
 
-        void AccHandler(void *param, const Core::float3 &acc)
+        void AccHandler(void *param, const float3 &acc)
         {
             auto settings = SettingsManager::getSettings();
             auto &lastFrame = buffer.last();
@@ -133,8 +133,10 @@ namespace Modules
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
             int retFace = determineFace(newFrame.acc, &newFrame.faceConfidence);
+
             // If the face is set to INVALID_FACE, then ignore it (keep previous value), otherwise use the new value
             newFrame.face = retFace == INVALID_FACE ? newFrame.face : retFace;  
+
             buffer.push(newFrame);
 
             // Notify clients

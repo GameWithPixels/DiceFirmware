@@ -73,7 +73,6 @@ namespace Stack
     static bool connected = false;
     static bool currentlyAdvertising = false;
     static bool resetOnDisconnectPending = false;
-    static int8_t rssi;
 
     /**< Universally unique service identifiers. */
     static ble_uuid_t advertisedUuids[] = 
@@ -183,7 +182,6 @@ namespace Stack
                 if (resetOnDisconnectPending) {
                     PowerManager::reset();
                 }
-
                 break;
 
             case BLE_GAP_EVT_CONNECTED:
@@ -215,14 +213,18 @@ namespace Stack
                 };
                 err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
                 APP_ERROR_CHECK(err_code);
-            } break;
+                break;
+            }
 
             case BLE_GAP_EVT_RSSI_CHANGED:
-                rssi = p_ble_evt->evt.gap_evt.params.rssi_changed.rssi;
+            {
+                auto rssi = p_ble_evt->evt.gap_evt.params.rssi_changed.rssi;
+                auto chIndex = p_ble_evt->evt.gap_evt.params.rssi_changed.ch_index;
                 for (int i = 0; i < rssiClients.Count(); ++i) {
-                    rssiClients[i].handler(rssiClients[i].token, rssi);
+                    rssiClients[i].handler(rssiClients[i].token, rssi, chIndex);
                 }
                 break;
+            }
 
             case BLE_GATTC_EVT_TIMEOUT:
                 // Disconnect on GATT Client timeout event.

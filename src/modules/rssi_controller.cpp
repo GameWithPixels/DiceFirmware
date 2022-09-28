@@ -10,8 +10,8 @@ namespace Modules
 namespace RssiController
 {
     void GetRssi(void* context, const Message* msg);
-    void OnRssi(void* token, int rssi);
- 
+    void OnRssi(void *token, int8_t rssi, uint8_t channelIndex);
+
     void init() {
         Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRssi, nullptr, GetRssi);
         NRF_LOG_INFO("Rssi controller initialized");
@@ -22,11 +22,12 @@ namespace RssiController
         Stack::hookRssi(OnRssi, nullptr);
     }
 
-    void OnRssi(void* token, int rssi) {
+    void OnRssi(void* token, int8_t rssi, uint8_t channelIndex) {
         NRF_LOG_INFO("Returning Rssi: %d", rssi);
         Stack::unHookRssi(OnRssi);
         MessageRssi retMsg;
         retMsg.rssi = rssi;
+        retMsg.channelIndex = channelIndex;
         MessageService::SendMessage(&retMsg);
     }
 }

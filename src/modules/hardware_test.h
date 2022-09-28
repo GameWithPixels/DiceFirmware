@@ -1,9 +1,6 @@
 #pragma once
 
-namespace Modules
+namespace Modules::HardwareTest
 {
-    namespace HardwareTest
-    {
-        void init();
-    }
+    void init();
 }

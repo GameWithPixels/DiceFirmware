@@ -1,9 +1,6 @@
 #pragma once
 
-namespace Modules
+namespace Modules::InstantAnimationController
 {
-    namespace InstantAnimationController
-    {
-    	void init();
-    }
+    void init();
 }
