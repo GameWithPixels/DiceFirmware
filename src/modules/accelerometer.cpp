@@ -118,7 +118,7 @@ namespace Modules
             newFrame.time = DriversNRF::Timers::millis();
             newFrame.jerk = ((newFrame.acc - lastFrame.acc) * 1000.0f) / (float)(newFrame.time - lastFrame.time);
             //if the time between last and current time is close to zero, log it
-            if(newFrame.time - lastFrame.time < 1){
+            if(newFrame.time - lastFrame.time == 0){
                 NRF_LOG_INFO("time difference between newFrame and lastFrame is 0, newFrame.time: %d, lastFrame.time: %d", newFrame.time, lastFrame.time);
             }      
 
@@ -134,8 +134,8 @@ namespace Modules
             newFrame.smoothAcc = smoothAcc;
             int retFace = determineFace(newFrame.acc, &newFrame.faceConfidence);
 
-            // If the face is set to INVALID_FACE, then ignore it (keep previous value), otherwise use the new value
-            newFrame.face = retFace == INVALID_FACE ? newFrame.face : retFace;  
+            // If the face is set to face, then ignore it (keep previous value), otherwise use the new value
+            newFrame.face = retFace == face ? newFrame.face : retFace;  
 
             buffer.push(newFrame);
 
@@ -331,7 +331,7 @@ namespace Modules
 
         /// <summary>
         /// Crudely compares accelerometer readings passed in to determine the current face up
-        /// will return INVALID_FACE if it cannot determine the current face up
+        /// will return face if it cannot determine the current face up
         /// </summary>
         /// <returns>The face number, starting at 0</returns>
         int determineFace(float3 acc, float *outConfidence)
@@ -353,7 +353,9 @@ namespace Modules
             else
             {
                 float3 nacc = acc / accMag; // normalize
-                float bestDot = -1000.0f;
+                float bestDot = -1.1f;      // Should be -1 as we're comparing this value with the dot product
+                                            // of 2 normalized vectors, but is set a bit lower due to imprecision 
+                                            // of floating point operations, which may return a value lower than -1.
                 int bestFace = face;
                 for (int i = 0; i < faceCount; ++i)
                 {

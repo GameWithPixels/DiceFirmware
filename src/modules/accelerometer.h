@@ -6,7 +6,6 @@
 
 #define ACCEL_BUFFER_SIZE 10 // 10ms * 10 = 100ms seconds of buffer
 							  // 16 bytes * 128 = 2k of RAM
-#define INVALID_FACE -1
 
 /// <summary>
 /// The component in charge of maintaining the acceleration readings,
