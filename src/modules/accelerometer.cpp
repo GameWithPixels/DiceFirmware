@@ -117,9 +117,10 @@ namespace Modules
 
             newFrame.time = DriversNRF::Timers::millis();
             newFrame.jerk = ((newFrame.acc - lastFrame.acc) * 1000.0f) / (float)(newFrame.time - lastFrame.time);
-            //if the time between last and current time is close to zero, log it
+            
+            //if the time between the last and current time is zero, log it
             if(newFrame.time - lastFrame.time == 0){
-                NRF_LOG_INFO("time difference between newFrame and lastFrame is 0, newFrame.time: %d, lastFrame.time: %d", newFrame.time, lastFrame.time);
+                NRF_LOG_INFO("time difference between newFrame and lastFrame is 0, time: %d", newFrame.time);
             }      
 
             float jerkMag = newFrame.jerk.sqrMagnitude();
@@ -133,6 +134,7 @@ namespace Modules
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
             newFrame.face = determineFace(newFrame.acc, &newFrame.faceConfidence);
+            
             buffer.push(newFrame);
 
             // Notify clients
