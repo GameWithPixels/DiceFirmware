@@ -107,6 +107,50 @@ namespace Modules
             AccHandler(acc);
         }
 
+        /// <summary>
+        /// Crudely compares accelerometer readings passed in to determine the current face up
+        /// Will return the last value if it cannot determine the current face up
+        /// </summary>
+        /// <returns>The face number, starting at 0</returns>
+        int determineFace(float3 acc, int lastValue, float *outConfidence)
+        {
+            // Compare against face normals stored in board manager
+            int faceCount = BoardManager::getBoard()->ledCount;
+            auto settings = SettingsManager::getSettings();
+            auto &normals = settings->faceNormals;
+            float accMag = acc.magnitude();
+            if (accMag < settings->fallingThreshold && accMag > 0)
+            {
+                if (outConfidence != nullptr)
+                {
+                    *outConfidence = 0.0f;
+                }
+                return lastValue;
+            }
+            else
+            {
+                float3 nacc = acc / accMag; // normalize
+                float bestDot = -1.1f;      // Should be -1 as we're comparing this value with the dot product
+                                            // of 2 normalized vectors, but is set a bit lower due to imprecision 
+                                            // of floating point operations, which may return a value lower than -1.
+                int bestFace = lastValue;
+                for (int i = 0; i < faceCount; ++i)
+                {
+                    float dot = float3::dot(nacc, normals[i]);
+                    if (dot > bestDot)
+                    {
+                        bestDot = dot;
+                        bestFace = i;
+                    }
+                }
+                if (outConfidence != nullptr)
+                {
+                    *outConfidence = bestDot;
+                }
+                return bestFace;
+            }
+        }
+
         void AccHandler(void *param, const float3 &acc)
         {
             auto settings = SettingsManager::getSettings();
@@ -133,8 +177,7 @@ namespace Modules
 
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
-            newFrame.face = determineFace(newFrame.acc, &newFrame.faceConfidence);
-            
+            newFrame.face = determineFace(newFrame.acc, face, &newFrame.faceConfidence);
             buffer.push(newFrame);
 
             // Notify clients
@@ -259,7 +302,7 @@ namespace Modules
             // Set initial value
             float3 acc;
             readAccelerometer(&acc);
-            face = determineFace(acc, &confidence);
+            face = determineFace(acc, face, &confidence);
 
             // Determine what state we're in to begin with
             auto settings = SettingsManager::getSettings();
@@ -325,51 +368,6 @@ namespace Modules
 #else
             return "";
 #endif
-        }
-
-        /// <summary>
-        /// Crudely compares accelerometer readings passed in to determine the current face up
-        /// will return face if it cannot determine the current face up
-        /// </summary>
-        /// <returns>The face number, starting at 0</returns>
-        int determineFace(float3 acc, float *outConfidence)
-        {
-            // Compare against face normals stored in board manager
-            int faceCount = BoardManager::getBoard()->ledCount;
-            auto settings = SettingsManager::getSettings();
-            auto &normals = settings->faceNormals;
-
-            float accMag = acc.magnitude();
-            if (accMag < settings->fallingThreshold && accMag > 0)
-            {
-                if (outConfidence != nullptr)
-                {
-                    *outConfidence = 0.0f;
-                }
-                return face;
-            }
-            else
-            {
-                float3 nacc = acc / accMag; // normalize
-                float bestDot = -1.1f;      // Should be -1 as we're comparing this value with the dot product
-                                            // of 2 normalized vectors, but is set a bit lower due to imprecision 
-                                            // of floating point operations, which may return a value lower than -1.
-                int bestFace = face;
-                for (int i = 0; i < faceCount; ++i)
-                {
-                    float dot = float3::dot(nacc, normals[i]);
-                    if (dot > bestDot)
-                    {
-                        bestDot = dot;
-                        bestFace = i;
-                    }
-                }
-                if (outConfidence != nullptr)
-                {
-                    *outConfidence = bestDot;
-                }
-                return bestFace;
-            }
         }
 
         /// <summary>

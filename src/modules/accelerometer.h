@@ -41,8 +41,6 @@ namespace Modules::Accelerometer
 		RollState_Count
 	};
 
-	int determineFace(float3 acc, float* outConfidence = nullptr);
-
 	void init();
 	void start();
 	void stop();
