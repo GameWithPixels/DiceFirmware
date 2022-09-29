@@ -117,6 +117,11 @@ namespace Modules
 
             newFrame.time = DriversNRF::Timers::millis();
             newFrame.jerk = ((newFrame.acc - lastFrame.acc) * 1000.0f) / (float)(newFrame.time - lastFrame.time);
+            
+            //if the time between the last and current time is zero, log it
+            if(newFrame.time - lastFrame.time == 0){
+                NRF_LOG_INFO("time difference between newFrame and lastFrame is 0, time: %d", newFrame.time);
+            }      
 
             float jerkMag = newFrame.jerk.sqrMagnitude();
             if (jerkMag > 10.f)
@@ -129,7 +134,7 @@ namespace Modules
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
             newFrame.face = determineFace(newFrame.acc, &newFrame.faceConfidence);
-
+            
             buffer.push(newFrame);
 
             // Notify clients
@@ -324,6 +329,7 @@ namespace Modules
 
         /// <summary>
         /// Crudely compares accelerometer readings passed in to determine the current face up
+        /// will return face if it cannot determine the current face up
         /// </summary>
         /// <returns>The face number, starting at 0</returns>
         int determineFace(float3 acc, float *outConfidence)
@@ -332,8 +338,9 @@ namespace Modules
             int faceCount = BoardManager::getBoard()->ledCount;
             auto settings = SettingsManager::getSettings();
             auto &normals = settings->faceNormals;
+
             float accMag = acc.magnitude();
-            if (accMag < settings->fallingThreshold)
+            if (accMag < settings->fallingThreshold && accMag > 0)
             {
                 if (outConfidence != nullptr)
                 {
@@ -344,8 +351,10 @@ namespace Modules
             else
             {
                 float3 nacc = acc / accMag; // normalize
-                float bestDot = -1000.0f;
-                int bestFace = -1;
+                float bestDot = -1.1f;      // Should be -1 as we're comparing this value with the dot product
+                                            // of 2 normalized vectors, but is set a bit lower due to imprecision 
+                                            // of floating point operations, which may return a value lower than -1.
+                int bestFace = face;
                 for (int i = 0; i < faceCount; ++i)
                 {
                     float dot = float3::dot(nacc, normals[i]);
