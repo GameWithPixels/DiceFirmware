@@ -132,10 +132,7 @@ namespace Modules
 
             smoothAcc = smoothAcc * settings->accDecay + newFrame.acc * (1.0f - settings->accDecay);
             newFrame.smoothAcc = smoothAcc;
-            int retFace = determineFace(newFrame.acc, &newFrame.faceConfidence);
-
-            // If the face is set to face, then ignore it (keep previous value), otherwise use the new value
-            newFrame.face = retFace == face ? newFrame.face : retFace;  
+            newFrame.face = determineFace(newFrame.acc, &newFrame.faceConfidence);
 
             buffer.push(newFrame);
 
