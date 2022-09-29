@@ -94,7 +94,7 @@ namespace Modules::AnimController
 			// clear the global color array
 			uint32_t allColors[MAX_LED_COUNT];
 			for (int j = 0; j < c; ++j) {
-				allColors[j] = 0;
+				allColors[j] = 0xFFFFFF;
 			}
 
 			for (int i = 0; i < animationCount; ++i)
