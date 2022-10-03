@@ -341,6 +341,7 @@ namespace Modules::BatteryController
 
     void onLEDPowerEventHandler(void* context, bool powerOn) {
         if (powerOn) {
+            // Stop reading battery voltage as it may significantly drop when LEDs are turned on
             app_timer_stop(batteryControllerTimer);
         } else {
             app_timer_stop(batteryControllerTimer);
