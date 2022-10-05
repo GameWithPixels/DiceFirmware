@@ -295,6 +295,7 @@ struct MessageBlink
 	uint8_t flashCount;
 	uint16_t duration;
 	uint32_t color;
+	uint32_t faceMask;
 	uint8_t fade;
 
 	inline MessageBlink() : Message(Message::MessageType_Blink) {}

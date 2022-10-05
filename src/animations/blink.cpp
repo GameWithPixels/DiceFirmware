@@ -12,7 +12,7 @@ namespace Animations
         animBits.paletteSize = 3;
     }
 
-    void Blink::play(uint32_t color, uint16_t durationMs, uint8_t flashCount /*= 1*/, uint8_t fade /*= 0*/)
+    void Blink::play(uint32_t color, uint16_t durationMs, uint8_t flashCount /*= 1*/, uint8_t fade /*= 0*/, uint32_t faceMask /*=ANIM_FACEMASK_ALL_LEDS*/)
     {
         // Store color in palette
         // Note: the color is stored at the same memory location on each call, the most recent call
@@ -24,7 +24,7 @@ namespace Animations
         // Create a small anim on the spot
         blinkAnim.type = Animation_Simple;
         blinkAnim.duration = durationMs;
-        blinkAnim.faceMask = ANIM_FACEMASK_ALL_LEDS;
+        blinkAnim.faceMask = faceMask;
         blinkAnim.count = flashCount;
         blinkAnim.fade = fade;
         blinkAnim.colorIndex = 0;
