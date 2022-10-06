@@ -96,13 +96,13 @@ struct Message
 
 	MessageType type;
 
-	inline Message(MessageType msgType) : type(msgType) {}
+	Message(MessageType msgType) : type(msgType) {}
 
 	// Returns empty string in release builds so to save space
 	static const char *GetMessageTypeString(MessageType msgType);
 
 protected:
-	inline Message() : type(MessageType_None) {}
+	Message() : type(MessageType_None) {}
 };
 
 
@@ -119,7 +119,7 @@ struct MessageIAmADie
 	uint32_t pixelId; // A unique identifier
 	uint16_t availableFlash; // How much room available for data
 	uint32_t buildTimestamp;
-	inline MessageIAmADie() : Message(Message::MessageType_IAmADie) {}
+	MessageIAmADie() : Message(Message::MessageType_IAmADie) {}
 };
 
 /// <summary>
@@ -131,7 +131,7 @@ struct MessageRollState
 	uint8_t state;
 	uint8_t face;
 
-	inline MessageRollState() : Message(Message::MessageType_RollState) {}
+	MessageRollState() : Message(Message::MessageType_RollState) {}
 };
 
 /// <summary>
@@ -142,7 +142,7 @@ struct MessageTelemetry
 {
 	Modules::Accelerometer::AccelFrame accelFrame;
 
-	inline MessageTelemetry() : Message(Message::MessageType_Telemetry) {}
+	MessageTelemetry() : Message(Message::MessageType_Telemetry) {}
 };
 
 struct MessageBulkSetup
@@ -150,7 +150,7 @@ struct MessageBulkSetup
 {
 	uint16_t size;
 
-	inline MessageBulkSetup() : Message(Message::MessageType_BulkSetup) {}
+	MessageBulkSetup() : Message(Message::MessageType_BulkSetup) {}
 };
 
 struct MessageBulkData
@@ -160,14 +160,15 @@ struct MessageBulkData
 	uint16_t offset;
 	uint8_t data[MAX_DATA_SIZE];
 
-	inline MessageBulkData() : Message(Message::MessageType_BulkData) {}
+	MessageBulkData() : Message(Message::MessageType_BulkData) {}
 };
 
 struct MessageBulkDataAck
 	: Message
 {
 	uint16_t offset;
-	inline MessageBulkDataAck() : Message(Message::MessageType_BulkDataAck) {}
+
+	MessageBulkDataAck() : Message(Message::MessageType_BulkDataAck) {}
 };
 
 struct MessageTransferAnimSet
@@ -188,14 +189,15 @@ struct MessageTransferAnimSet
 	uint16_t actionSize;
 	uint16_t ruleCount;
 
-	inline MessageTransferAnimSet() : Message(Message::MessageType_TransferAnimSet) {}
+	MessageTransferAnimSet() : Message(Message::MessageType_TransferAnimSet) {}
 };
 
 struct MessageTransferAnimSetAck
 	: Message
 {
 	uint8_t result;
-	inline MessageTransferAnimSetAck() : Message(Message::MessageType_TransferAnimSetAck) {}
+
+	MessageTransferAnimSetAck() : Message(Message::MessageType_TransferAnimSetAck) {}
 };
 
 struct MessageTransferTestAnimSet
@@ -211,7 +213,7 @@ struct MessageTransferTestAnimSet
 
 	uint32_t hash;
 
-	inline MessageTransferTestAnimSet() : Message(Message::MessageType_TransferTestAnimSet) {}
+	MessageTransferTestAnimSet() : Message(Message::MessageType_TransferTestAnimSet) {}
 };
 
 enum TransferInstantAnimSetAckType : uint8_t
@@ -225,7 +227,8 @@ struct MessageTransferTestAnimSetAck
 	: Message
 {
 	TransferInstantAnimSetAckType ackType;
-	inline MessageTransferTestAnimSetAck() : Message(Message::MessageType_TransferTestAnimSetAck) {}
+
+	MessageTransferTestAnimSetAck() : Message(Message::MessageType_TransferTestAnimSetAck) {}
 };
 
 struct MessageDebugLog
@@ -233,7 +236,7 @@ struct MessageDebugLog
 {
 	char text[MAX_DATA_SIZE];
 
-	inline MessageDebugLog() : Message(Message::MessageType_DebugLog) {}
+	MessageDebugLog() : Message(Message::MessageType_DebugLog) {}
 };
 
 struct MessagePlayAnim
@@ -243,7 +246,7 @@ struct MessagePlayAnim
 	uint8_t remapFace;  // Assumes that an animation was made for face 20
 	uint8_t loop; 		// 1 == loop, 0 == once
 
-	inline MessagePlayAnim() : Message(Message::MessageType_PlayAnim) {}
+	MessagePlayAnim() : Message(Message::MessageType_PlayAnim) {}
 };
 
 struct MessagePlaySound
@@ -251,7 +254,7 @@ struct MessagePlaySound
 {
 	uint16_t clipId;
 
-	inline MessagePlaySound() : Message(Message::MessageType_PlaySound) {}
+	MessagePlaySound() : Message(Message::MessageType_PlaySound) {}
 };
 
 struct MessagePlayAnimEvent
@@ -261,7 +264,7 @@ struct MessagePlayAnimEvent
 	uint8_t remapFace;
 	uint8_t loop;
 
-	inline MessagePlayAnimEvent() : Message(Message::MessageType_PlayAnimEvent) {}
+	MessagePlayAnimEvent() : Message(Message::MessageType_PlayAnimEvent) {}
 };
 
 struct MessageStopAnim
@@ -270,7 +273,7 @@ struct MessageStopAnim
 	uint8_t animation;
 	uint8_t remapFace;  // Assumes that an animation was made for face 20
 
-	inline MessageStopAnim() : Message(Message::MessageType_StopAnim) {}
+	MessageStopAnim() : Message(Message::MessageType_StopAnim) {}
 };
 
 struct MessageRequestTelemetry
@@ -278,7 +281,7 @@ struct MessageRequestTelemetry
 {
 	uint8_t activate; // Boolean
 
-	inline MessageRequestTelemetry() : Message(Message::MessageType_RequestTelemetry) {}
+	MessageRequestTelemetry() : Message(Message::MessageType_RequestTelemetry) {}
 };
 
 struct MessageProgramDefaultAnimSet
@@ -286,7 +289,7 @@ struct MessageProgramDefaultAnimSet
 {
 	uint32_t color;
 
-	inline MessageProgramDefaultAnimSet() : Message(Message::MessageType_ProgramDefaultAnimSet) {}
+	MessageProgramDefaultAnimSet() : Message(Message::MessageType_ProgramDefaultAnimSet) {}
 };
 
 struct MessageBlink
@@ -298,21 +301,23 @@ struct MessageBlink
 	uint32_t faceMask;
 	uint8_t fade;
 
-	inline MessageBlink() : Message(Message::MessageType_Blink) {}
+	MessageBlink() : Message(Message::MessageType_Blink) {}
 };
 
 struct MessageDefaultAnimSetColor
 	: public Message
 {
 	uint32_t color;
-	inline MessageDefaultAnimSetColor() : Message(Message::MessageType_DefaultAnimSetColor) {}
+
+	MessageDefaultAnimSetColor() : Message(Message::MessageType_DefaultAnimSetColor) {}
 };
 
 struct MessageSetAllLEDsToColor
 	: public Message
 {
 	uint32_t color;
-	inline MessageSetAllLEDsToColor() : Message(Message::MessageType_SetAllLEDsToColor) {}
+
+	MessageSetAllLEDsToColor() : Message(Message::MessageType_SetAllLEDsToColor) {}
 };
 
 struct MessageBatteryLevel
@@ -321,7 +326,8 @@ struct MessageBatteryLevel
 	float level;
 	float voltage;
 	uint8_t charging;
-	inline MessageBatteryLevel() : Message(Message::MessageType_BatteryLevel) {}
+
+	MessageBatteryLevel() : Message(Message::MessageType_BatteryLevel) {}
 };
 
 struct MessageRssi
@@ -329,35 +335,40 @@ struct MessageRssi
 {
 	int8_t rssi;
 	uint8_t channelIndex;
-	inline MessageRssi() : Message(Message::MessageType_Rssi) {}
+
+	MessageRssi() : Message(Message::MessageType_Rssi) {}
 };
 
 struct MessageLedLoopback
 	: public Message
 {
 	uint8_t value;
-	inline MessageLedLoopback() : Message(Message::MessageType_LedLoopback) {}
+
+	MessageLedLoopback() : Message(Message::MessageType_LedLoopback) {}
 };
 
 struct MessageSetDesignAndColor
 	: public Message
 {
 	Config::DiceVariants::DesignAndColor designAndColor;
-	inline MessageSetDesignAndColor() : Message(Message::MessageType_SetDesignAndColor) {}
+
+	MessageSetDesignAndColor() : Message(Message::MessageType_SetDesignAndColor) {}
 };
 
 struct MessageSetCurrentBehavior
 	: public Message
 {
 	uint8_t currentBehavior;
-	inline MessageSetCurrentBehavior() : Message(Message::MessageType_SetCurrentBehavior) {}
+
+	MessageSetCurrentBehavior() : Message(Message::MessageType_SetCurrentBehavior) {}
 };
 
 struct MessageSetName
 	: public Message
 {
 	char name[MAX_NAME_LENGTH + 1];
-	inline MessageSetName() : Message(Message::MessageType_SetName) {}
+
+	MessageSetName() : Message(Message::MessageType_SetName) {}
 };
 
 struct MessageNotifyUser
@@ -367,7 +378,7 @@ struct MessageNotifyUser
 	uint8_t ok; // Boolean
 	uint8_t cancel; // Boolean
 	char text[MAX_DATA_SIZE - 4];
-	inline MessageNotifyUser() : Message(Message::MessageType_NotifyUser) {
+	MessageNotifyUser() : Message(Message::MessageType_NotifyUser) {
 		timeout_s = 30;
 		ok = 1;
 		cancel = 0;
@@ -379,28 +390,32 @@ struct MessageNotifyUserAck
 	: public Message
 {
 	uint8_t okCancel; // Boolean
-	inline MessageNotifyUserAck() : Message(Message::MessageType_NotifyUserAck) {}
+
+	MessageNotifyUserAck() : Message(Message::MessageType_NotifyUserAck) {}
 };
 
 struct MessageSetTopLevelState
 	: public Message
 {
 	uint8_t state; // See TopLevelState enum
-	inline MessageSetTopLevelState() : Message(MessageType_SetTopLevelState) {}
+
+	MessageSetTopLevelState() : Message(MessageType_SetTopLevelState) {}
 };
 
 struct MessageCalibrateFace
 	: public Message
 {
 	uint8_t face;
-	inline MessageCalibrateFace() : Message(MessageType_CalibrateFace) {}
+
+	MessageCalibrateFace() : Message(MessageType_CalibrateFace) {}
 };
 
 struct MessagePrintNormals
 	: public Message
 {
 	uint8_t face;
-	inline MessagePrintNormals() : Message(MessageType_PrintNormals) {}
+
+	MessagePrintNormals() : Message(MessageType_PrintNormals) {}
 };
 
 struct MessageLightUpFace
@@ -415,7 +430,7 @@ struct MessageLightUpFace
 	//	-> rotatedOutsideAnimFaceIndex (based on remapFace and remapping table, i.e. what actual face should light up to "retarget" the animation around the current up face)
 	//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the fact that the LEDs are not accessed in the same order as the number of the faces)
 
-	inline MessageLightUpFace() : Message(MessageType_LightUpFace) {}
+	MessageLightUpFace() : Message(MessageType_LightUpFace) {}
 };
 
 struct MessageSetLEDToColor
@@ -423,19 +438,7 @@ struct MessageSetLEDToColor
 {
 	uint8_t ledIndex; // Starts at 0
 	uint32_t color;
-	inline MessageSetLEDToColor() : Message(Message::MessageType_SetLEDToColor) {}
-};
-
-struct MessageSleep
-	: public Message
-{
-	inline MessageSleep() : Message(Message::MessageType_Sleep) {}
-};
-
-struct MessageExitValidation
-	: public Message
-{
-	inline MessageExitValidation() : Message(Message::MessageType_ExitValidation) {}
+	MessageSetLEDToColor() : Message(Message::MessageType_SetLEDToColor) {}
 };
 
 struct MessageTransferInstantAnimSet
@@ -452,14 +455,15 @@ struct MessageTransferInstantAnimSet
 
 	uint32_t hash;
 
-	inline MessageTransferInstantAnimSet() : Message(Message::MessageType_TransferInstantAnimSet) {}
+	MessageTransferInstantAnimSet() : Message(Message::MessageType_TransferInstantAnimSet) {}
 };
 
 struct MessageTransferInstantAnimSetAck
 	: Message
 {
 	TransferInstantAnimSetAckType ackType;
-	inline MessageTransferInstantAnimSetAck() : Message(Message::MessageType_TransferInstantAnimSetAck) {}
+
+	MessageTransferInstantAnimSetAck() : Message(Message::MessageType_TransferInstantAnimSetAck) {}
 };
 
 struct MessagePlayInstantAnim
@@ -469,13 +473,7 @@ struct MessagePlayInstantAnim
 	uint8_t faceIndex;	// Assumes that an animation was made for face 20
 	uint8_t loop; 		// 1 == loop, 0 == once
 
-	inline MessagePlayInstantAnim() : Message(Message::MessageType_PlayInstantAnim) {}
-};
-
-struct MessageStopAllAnims
-	: public Message
-{
-	inline MessageStopAllAnims() : Message(Message::MessageType_StopAllAnims) {}
+	MessagePlayInstantAnim() : Message(Message::MessageType_PlayInstantAnim) {}
 };
 
 }
