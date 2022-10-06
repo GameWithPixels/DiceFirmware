@@ -475,8 +475,12 @@ hex_release: firmware_release settings_release
 zip: firmware_release
 	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
-.PHONY: zipbl
-zipbl: zip
+.PHONY: zip_bl
+zip_bl:
+	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
+
+.PHONY: zip_all
+zip_all: zip zip_bl zip_validation
 	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
 
 # Be sure to use a backslash in the pathname, otherwise the copy command will fail (in CMD environment) 
