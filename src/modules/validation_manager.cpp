@@ -98,7 +98,7 @@ namespace Modules::ValidationManager
     void exitValidationMode(void *token, const Message *msg)
     {
         leaveValidation();
-        PowerManager::goToSystemOff();
+        PowerManager::reset();
     }
 
     void leaveValidation()
