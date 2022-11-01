@@ -28,9 +28,6 @@ namespace Animations
 	class AnimationInstanceKeyframed
 		: public AnimationInstance
 	{
-	private:
-		uint32_t specialColorPayload; // meaning varies
-
 	public:
 		AnimationInstanceKeyframed(const AnimationKeyframed* preset, const DataSet::AnimationBits* bits);
 		virtual ~AnimationInstanceKeyframed();
