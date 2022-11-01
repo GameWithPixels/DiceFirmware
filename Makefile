@@ -48,7 +48,6 @@ BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX
 # Filename for the zip file used for DFU over Bluetooth
 ZIP_FILE := firmware_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
 ZIPBL_FILE := bootloader_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
-VALIDATION_ZIP := firmware_validation_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
 
 LINKER_SCRIPT := Firmware.ld
 
@@ -459,10 +458,6 @@ hex_validation: hex_release
 flash_validation: erase hex_validation
 	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --chiperase --verify --reset
 
-.PHONY: zip_validation
-zip_validation: hex_validation
-	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(VALIDATION_ZIP)
-
 #
 # Publishing commands
 #
@@ -480,7 +475,7 @@ zip_bl:
 	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
 
 .PHONY: zip_all
-zip_all: zip zip_bl zip_validation
+zip_all: zip zip_bl
 	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
 
 # Be sure to use a backslash in the pathname, otherwise the copy command will fail (in CMD environment) 
