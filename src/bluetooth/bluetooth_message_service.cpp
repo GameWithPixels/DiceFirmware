@@ -124,12 +124,6 @@ namespace MessageService
     }
 
     void update() {
-        // Send queued messages if possible
-        if (SendQueue.count() > 0 && isConnected() && Stack::canSend()) {
-            while (SendQueue.tryDequeue([] (MessageAndSize& msg) { return send(msg.msg, msg.size) != Stack::SendResult_Busy; }))
-                ;
-        }
-
         // Process received messages if possible
         MessageAndSize queueMsg;
         while (ReceiveQueue.tryDequeue(queueMsg)) {
@@ -140,6 +134,20 @@ namespace MessageService
                 NRF_LOG_DEBUG("Calling message handler %08x", handler.handler);
                 handler.handler(handler.token, msg);
             }
+        }
+
+        // Send queued messages if possible
+        if (SendQueue.count() > 0 && isConnected() && Stack::canSend()) {
+            SendQueue.tryDequeue([] (MessageAndSize& msg) {
+                auto ret = send(msg.msg, msg.size) != Stack::SendResult_Busy;
+                const Message* theMsg = (const Message*)(msg.msg);
+                if (ret) {
+                    NRF_LOG_DEBUG("Queued Message of type %d of size %d SENT (Queue=%d)", theMsg->type, msg.size, SendQueue.count());
+                } else {
+                    NRF_LOG_DEBUG("Queued Message of type %d of size %d NOT SENT (Stack Busy) (Queue=%d)", theMsg->type, msg.size, SendQueue.count());
+                }
+                return ret;
+            });
         }
 
         // If either queues aren't empty, reschedule update() call.
@@ -189,31 +197,36 @@ namespace MessageService
         auto res = send((const uint8_t*)msg, msgSize);
         switch (res) {
             case Stack::SendResult_Ok:
-                NRF_LOG_DEBUG("Sent Message type %d of size %d", msg->type, msgSize);
                 NRF_LOG_HEXDUMP_DEBUG((const void*)msg, msgSize);
+                NRF_LOG_DEBUG("Message of type %d of size %d SENT IMMEDIATELY (Queue=%d)", msg->type, msgSize, SendQueue.count());
                 ret = true;
                 break;
             case Stack::SendResult_Busy:
                 {
                     // Couldn't send right away, try to schedule it for later
+                    bool schedule = SendQueue.count() == 0 && ReceiveQueue.count() == 0;
                     MessageAndSize queueMsg;
                     memcpy(queueMsg.msg, msg, msgSize);
                     queueMsg.size = msgSize;
                     ret = SendQueue.enqueue(queueMsg);
                     if (ret) {
-                        NRF_LOG_DEBUG("Queued Message type %d of size %d", msg->type, msgSize);
-                        Scheduler::push(nullptr, 0, scheduled_update);
+                        NRF_LOG_DEBUG("Message of type %d of size %d QUEUED (Queue=%d)", msg->type, msgSize, SendQueue.count());
+                        if (schedule) {
+                            Scheduler::push(nullptr, 0, scheduled_update);
+                            NRF_LOG_DEBUG("Update Scheduled");
+                        }
+                        // Otherwise update() is already scheduled
                     } else {
-                        NRF_LOG_ERROR("Message of type %d of size %d NOT SENT (Queue full)", msg->type, msgSize);
+                        NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (Queue full)", msg->type, msgSize);
                     }
                 }
                 break;
             case Stack::SendResult_Error:
                 // Any other error, don't know what to do, forget the message
-                NRF_LOG_ERROR("Message of type %d of size %d NOT SENT (Unknown Error)", msg->type, msgSize);
+                NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (Unknown Error)", msg->type, msgSize);
             case Stack::SendResult_NotConnected:
                 // Not connected, forget the message
-                NRF_LOG_ERROR("Message of type %d of size %d NOT SENT (Not Connected)", msg->type, msgSize);
+                NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (Not Connected)", msg->type, msgSize);
             default:
                 ret = false;
                 break;
@@ -243,13 +256,17 @@ namespace MessageService
         if (len >= sizeof(Message)) {
             auto msg = reinterpret_cast<const Message*>(data);
             if (msg->type >= Message::MessageType_WhoAreYou && msg->type < Message::MessageType_Count) {
+                bool schedule = SendQueue.count() == 0 && ReceiveQueue.count() == 0;
                 MessageAndSize queueMsg;
                 memcpy(queueMsg.msg, data, len);
                 queueMsg.size = len;
                 if (!ReceiveQueue.enqueue(queueMsg)) {
                     NRF_LOG_ERROR("Message of type %d NOT HANDLED (Scheduler full)", msg->type);
                 } else {
-                    Scheduler::push(nullptr, 0, scheduled_update);
+                    if (schedule) {
+                        Scheduler::push(nullptr, 0, scheduled_update);
+                    }
+                    // Otherwise update() is already scheduled
                 }
             } else {
                 NRF_LOG_ERROR("Bad message type %d", msg->type);

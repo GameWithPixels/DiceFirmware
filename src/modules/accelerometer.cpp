@@ -268,7 +268,9 @@ namespace Modules
                 break;
             }
 
-            if (newFrame.face != face)
+            bool faceChanged = newFrame.face != face;
+            bool stateChanged = newRollState != rollState;
+            if (faceChanged)
             {
                 face = newFrame.face;
                 confidence = newFrame.faceConfidence;
@@ -276,18 +278,17 @@ namespace Modules
                 // NRF_LOG_INFO("Face %d, confidence " NRF_LOG_FLOAT_MARKER, face, NRF_LOG_FLOAT(confidence));
             }
 
-            if (newRollState != rollState)
+            if (stateChanged)
             {
                 rollState = newRollState;
                 NRF_LOG_INFO("State: %s", getRollStateString(rollState));
+            }
 
-                // Notify clients
-                if (!paused)
+            if ((faceChanged || stateChanged) && !paused)
+            {
+                for (int i = 0; i < rollStateClients.Count(); ++i)
                 {
-                    for (int i = 0; i < rollStateClients.Count(); ++i)
-                    {
-                        rollStateClients[i].handler(rollStateClients[i].token, rollState, face);
-                    }
+                    rollStateClients[i].handler(rollStateClients[i].token, rollState, face);
                 }
             }
         }
