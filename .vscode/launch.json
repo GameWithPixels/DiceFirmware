@@ -19,8 +19,9 @@
             "device": "nRF52810_xxAA",
             "interface": "swd",
             "ipAddress": null,
-            "serialNumber": "801001366",
-            "armToolchainPath": "C:/Program Files (x86)/GNU Tools Arm Embedded/9 2019-q4-major/bin",
+            "armToolchainPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/bin",
+            "serverpath": "C:/Program Files/SEGGER/JLink/JLinkGDBServerCL.exe",
+            //"showDevDebugOutput": "raw"
         },
         {
             "name": "Cortex Attach",
@@ -32,8 +33,9 @@
             "device": "nRF52810_xxAA",
             "interface": "swd",
             "ipAddress": null,
-            "serialNumber": "801001366",
-            "armToolchainPath": "C:/Program Files (x86)/GNU Tools Arm Embedded/9 2019-q4-major/bin",
+            "armToolchainPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/bin",
+            "serverpath": "C:/Program Files/SEGGER/JLink/JLinkGDBServerCL.exe",
+            //"showDevDebugOutput": "raw"
         },
     ],
     "compounds" : [
