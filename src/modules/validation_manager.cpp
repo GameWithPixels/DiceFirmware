@@ -19,7 +19,7 @@ using namespace Config;
 using namespace DriversNRF;
 using namespace Bluetooth;
 
-#define VALIDATION_MODE_SLEEP_DELAY_MS 20000 // milliseconds
+#define VALIDATION_MODE_SLEEP_DELAY_MS 25000 // milliseconds
 
 namespace Modules::ValidationManager
 {
