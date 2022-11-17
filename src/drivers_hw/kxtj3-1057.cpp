@@ -138,6 +138,14 @@ namespace AccelChip
         I2C::writeRegister(devAddress, CTRL_REG1, c | 0b10000000); //Set the active bit to begin detection
     }
 
+    void lowPower()
+    {
+        disableDataInterrupt();
+		disableInterrupt();
+		clearInterrupt();
+        standby();
+    }
+
     void ApplySettings() {
 		standby();
 
@@ -188,7 +196,7 @@ namespace AccelChip
 		active();
 	}
 
-    	void disableInterrupt()
+    void disableInterrupt()
 	{
 		standby();
 

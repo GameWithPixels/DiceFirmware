@@ -571,6 +571,8 @@ namespace Modules
                 else
 				{
 					NRF_LOG_INFO("Skipping setting interrupt to wake the device up due to validation mode");
+                    AccelChip::disableDataInterrupt();
+                    AccelChip::lowPower();
 				}
 			}
 		}
