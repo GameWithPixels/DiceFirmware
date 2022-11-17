@@ -104,6 +104,7 @@ SRC_FILES += \
 	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
 	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_twi.c \
 	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
+	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_ppi.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
@@ -111,8 +112,10 @@ SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_saadc.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_wdt.c \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_ppi.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_timer.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \
@@ -150,6 +153,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/drivers_nrf/gpiote.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/i2c.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/log.cpp \
+	$(PROJ_DIR)/src/drivers_nrf/ppi.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/power_manager.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/scheduler.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/timers.cpp \
