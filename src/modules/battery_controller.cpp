@@ -24,107 +24,65 @@ using namespace Utils;
 #define BATTERY_TIMER_MS_QUICK (100) //ms
 #define MAX_BATTERY_CLIENTS 2
 #define MAX_LEVEL_CLIENTS 2
-#define LAZY_CHARGE_DETECT
-#define CHARGE_START_DETECTION_THRESHOLD (0.3f) // 0.3V
-#define CHARGE_VCOIL_THRESHOLD (4.0) //0.4V
-#define CHARGE_FULL (4.0f) // 4.0V
-#define INVALID_CHARGE_TIMEOUT 5000
-#define VBAT_READINGS_SIZE 10
+#define OFF_VCOIL_THRESHOLD (0.2f) //0.2V
+#define CHARGE_VCOIL_THRESHOLD (4.6f) //4.6V
+#define VBAT_LOOKUP_SIZE 11
+#define BATTERY_ALMOST_EMPTY_PCT 0.1f // 10%
+#define BATTERY_ALMOST_FULL_PCT 0.9f // 90%
 
 namespace Modules::BatteryController
 {
     void getBatteryLevel(void* context, const Message* msg);
     void update(void* context);
-    void onBatteryEventHandler(void* context);
+    void onBatteryEventHandler(void* context, Battery::ChargingEvent evt);
     void onLEDPowerEventHandler(void* context, bool powerOn);
-    BatteryState computeCurrentState();
-    float LookupChargeLevel(float voltage);
+    float lookupCapacity(float voltage, bool isCharging);
+    BatteryState computeState(float batt_capacity, float vcoil, bool is_charging);
 
-    static float vcoil = 0.0f;
-    static bool charging = false;
-    static float lowestVBat = 0.0f;
-    static bool lazyChargeDetect = false;
     static BatteryState currentBatteryState = BatteryState_Unknown;
     static uint32_t lastUpdateTime = 0;
-
-    static float vBatWhenChargingStart = 0.0f;
-    static uint32_t chargingStartedTime = 0;
 
 	static DelegateArray<BatteryStateChangeHandler, MAX_BATTERY_CLIENTS> clients;
     static DelegateArray<BatteryLevelChangeHandler, MAX_LEVEL_CLIENTS> levelClients;
 
-    static float vBat = 0.0f;               // Average reading
-    static float vBatReadings[VBAT_READINGS_SIZE]; // Last readings
-    static int vBatReadingsCount = 0;
-    float readVBat() {
-        if (vBatReadingsCount == VBAT_READINGS_SIZE) {
-            // Shift readings down
-            for (int i = 0; i < VBAT_READINGS_SIZE - 1; ++i) {
-                vBatReadings[i] = vBatReadings[i+1];
-            }
-            vBatReadingsCount--;
-        }
-        float reading = Battery::checkVBat();
-        vBatReadings[vBatReadingsCount] = reading;
-        vBatReadingsCount++;
-
-        float avg = 0.0f;
-        for (int i = 0; i < vBatReadingsCount; ++i) {
-            avg += vBatReadings[i];
-        }
-        avg /= vBatReadingsCount;
-
-        //NRF_LOG_INFO("Measured Batt: " NRF_LOG_FLOAT_MARKER ", Avg: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(reading), NRF_LOG_FLOAT(avg));
-        return avg;
-    }
+    static float vBat = 0.0f;
+    static float vCoil = 0.0f;
+    static float capacity = 0.0f;
+    static bool charging = false;
 
 	APP_TIMER_DEF(batteryControllerTimer);
 
-    static const float voltages[] =
+    struct VoltageAndLevels
     {
-        4.149f,
-        4.120f,
-        4.085f,
-        3.982f,
-        3.824f,
-        3.760f,
-        3.716f,
-        3.632f,
-        3.578f,
-        3.401f,
-        3.303f,
-        3.209f,
-        3.012f,
-        2.451f,
+        uint16_t voltageTimes1000;
+        uint8_t levelTimes100[2]; // index 0 is when discharging, index 1 is when charging
     };
 
-    static const float levels[] =
+    // This lookup table defines our voltage to capacity curves, both when charging (values are higher)
+    // and discharging (values are lower).
+    static const VoltageAndLevels lookup[VBAT_LOOKUP_SIZE] =
     {
-        1.000f,
-        0.993f,
-        0.970f,
-        0.869f,
-        0.643f,
-        0.491f,
-        0.317f,
-        0.142f,
-        0.082f,
-        0.039f,
-        0.026f,
-        0.018f,
-        0.008f,
-        0.000f,
+        {4100, {100, 100}},
+        {4000, {100,  97}},
+        {3900, { 93,  88}},
+        {3800, { 80,  70}},
+        {3700, { 60,  48}},
+        {3600, { 33,  14}},
+        {3500, { 16,   6}},
+        {3400, {  9,   3}},
+        {3300, {  5,   2}},
+        {3200, {  3,   1}},
+        {3000, {  0,   0}},
     };
-    static const int ChargeLookupCount = 14;
 
     void init() {
         MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, nullptr, getBatteryLevel);
 
-        vcoil = Battery::checkVCoil();
-        vBat = readVBat();
+        // Grab initial values from the battery driver
+        vBat = Battery::checkVBat();
+        vCoil = Battery::checkVCoil();
         charging = Battery::checkCharging();
-        lowestVBat = vBat;
-        lazyChargeDetect = !Battery::canCheckCharging();
+        capacity = lookupCapacity(vBat, charging);
 
         // Register for battery events
         Battery::hook(onBatteryEventHandler, nullptr);
@@ -133,7 +91,7 @@ namespace Modules::BatteryController
         LEDs::hookPowerState(onLEDPowerEventHandler, nullptr);
 
         // Set initial battery state
-        currentBatteryState = computeCurrentState();
+        currentBatteryState = computeState(capacity, vCoil, charging);
 
 		ret_code_t ret_code = app_timer_create(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
 		APP_ERROR_CHECK(ret_code);
@@ -143,13 +101,9 @@ namespace Modules::BatteryController
 
         lastUpdateTime = DriversNRF::Timers::millis();
 
-        if (lazyChargeDetect) {
-            NRF_LOG_INFO("Battery controller initialized - Lazy Charge Detect - Battery %s", getChargeStateString(currentBatteryState));
-        } else {
-            NRF_LOG_INFO("Battery controller initialized - Battery %s", getChargeStateString(currentBatteryState));
-        }
-        float level = LookupChargeLevel(vBat);
-        NRF_LOG_INFO("    Battery level %d%%", (int)(level * 100));
+        NRF_LOG_INFO("Battery controller initialized");
+        NRF_LOG_INFO("    Battery capacity " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(capacity * 100));
+        // Other values (voltage, vcoil) already displayed by Battery::init()
     }
 
 	BatteryState getCurrentChargeState() {
@@ -157,138 +111,98 @@ namespace Modules::BatteryController
     }
 
     float getCurrentLevel() {
-        return LookupChargeLevel(vBat);
+        return lookupCapacity(vBat, charging);
     }
 
-    const char* getChargeStateString(BatteryState state) {
-    #if defined(DEBUG)
-        switch (currentBatteryState) {
-            case BatteryState_Ok:
-                return "Ok";
-            case BatteryState_Low:
-                return "Low";
-            case BatteryState_Charging:
-                return "Charging";
-            case BatteryState_Unknown:
-            default:
-                return "Unknown";
-        }
-    #else
-        return "";
-    #endif
-    }
-
-    BatteryState computeCurrentState() {
+    BatteryState computeState(float batt_capacity, float vcoil, bool is_charging) {
         BatteryState ret = BatteryState_Unknown;
 
-        // Measure new vBat
-        vBat = readVBat();
-        ret = currentBatteryState;
-        switch (currentBatteryState)
+        // Figure out a battery charge level
+        enum CapacityState
         {
-            case BatteryState_Done:
-                if (!lazyChargeDetect) {
-                    if (Battery::checkCharging()) {
-                        // Started charging again
-                        ret = BatteryState_Charging;
-                    } else if (Battery::checkVCoil() < CHARGE_VCOIL_THRESHOLD) {
-                        // No longer on charger
-                        ret = BatteryState_Ok;
-                    }
-                }
-                // In lazy charge detect mode, we're not sure if the die is still on the charger
-                break;
-            case BatteryState_Ok:
-                if (vBat < SettingsManager::getSettings()->batteryLow) {
-                    ret = BatteryState_Low;
-                } else {
-                    if ((lazyChargeDetect && (vBat > lowestVBat + CHARGE_START_DETECTION_THRESHOLD)) || Battery::checkCharging()) {
-                        // Battery level going up, we must be charging
-                        ret = BatteryState_Charging;
-                        vBatWhenChargingStart = lowestVBat;
-                        chargingStartedTime = DriversNRF::Timers::millis();
-                    } else {
-                        // Update stored lowest level
-                        if (vBat < lowestVBat) {
-                            lowestVBat = vBat;
-                        }
-                    }
-                }
-                // Else still BatteryState_Ok
-                break;
-            case BatteryState_Charging:
-                if (lazyChargeDetect) {
-                    if (vBat > SettingsManager::getSettings()->batteryHigh) {
-                        // Reset lowest level
-                        ret = BatteryState_Ok;
-                    } else
-                    // Make sure we've waited enough to check state again
-                    if (DriversNRF::Timers::millis() - chargingStartedTime > INVALID_CHARGE_TIMEOUT) {
-                        if (vBat < vBatWhenChargingStart + CHARGE_START_DETECTION_THRESHOLD) {
-                            // It looks like we stopped charging
-                            if (vBat > SettingsManager::getSettings()->batteryLow) {
-                                ret = BatteryState_Ok;
-                            } else {
-                                ret = BatteryState_Low;
-                            }
-                        }
-                        // Else still charging...
-                    }
-                } else {
-                    if (Battery::checkVCoil() > CHARGE_VCOIL_THRESHOLD) {
-                        if (!Battery::checkCharging()) {
-                            // Still on charger, but done charging
-                            ret = BatteryState_Done;
-                        }
-                        // Else still charging
-                    } else {
-                        // No longer on charger, but we hadn't finished charging, check vBat
-                        if (vBat > SettingsManager::getSettings()->batteryLow) {
-                            ret = BatteryState_Ok;
-                        } else {
-                            ret = BatteryState_Low;
-                        }
-                    }
-                }
-                // Else still not charged enough
-                lowestVBat = vBat;
-                break;
-            case BatteryState_Low:
-                if ((lazyChargeDetect && (vBat > lowestVBat + CHARGE_START_DETECTION_THRESHOLD)) || Battery::checkCharging()) {
-                    // Battery level going up, we must be charging
-                    ret = BatteryState_Charging;
-                    vBatWhenChargingStart = lowestVBat;
-                    chargingStartedTime = DriversNRF::Timers::millis();
-                } else {
-                    // Update stored lowest level
-                    if (vBat < lowestVBat) {
-                        lowestVBat = vBat;
-                    }
-                }
-                break;
+            AlmostEmpty,    // Battery is low
+            Average,
+            AlmostFull
+        };
+        CapacityState capacityState = CapacityState::Average;
+        if (batt_capacity < BATTERY_ALMOST_EMPTY_PCT) {
+            capacityState = CapacityState::AlmostEmpty;
+        } else if (batt_capacity > BATTERY_ALMOST_FULL_PCT) {
+            capacityState = CapacityState::AlmostFull;
+        }
+
+        enum CoilState
+        {
+            NotOnCoil,
+            OnCoil_Error,
+            OnCoil
+        };
+        CoilState coilState = CoilState::OnCoil_Error;
+        if (vcoil < OFF_VCOIL_THRESHOLD) {
+            coilState = CoilState::NotOnCoil;
+        } else if (vcoil > CHARGE_VCOIL_THRESHOLD) {
+            coilState = CoilState::OnCoil;
+        }
+
+        switch (coilState) {
+            case CoilState::NotOnCoil:
             default:
-                if (!lazyChargeDetect && Battery::checkCharging()) {
-                    ret = BatteryState_Charging;
-                } else if (vBat > SettingsManager::getSettings()->batteryLow) {
-                    ret = BatteryState_Ok;
+                if (is_charging) {
+                    // Battery is charging but we're not detecting any coil voltage? How is that possible?
+                    NRF_LOG_ERROR("Battery Controller: Not on Coil yet still charging?");
+                    ret = BatteryState::BatteryState_Error;
                 } else {
-                    ret = BatteryState_Low;
+                    // Not on charger, not charging, that's perfectly normal, just check the battery level
+                    switch (capacityState) {
+                        case CapacityState::AlmostEmpty:
+                            ret = BatteryState::BatteryState_Low;
+                            break;
+                        case CapacityState::AlmostFull:
+                        case CapacityState::Average:
+                        default:
+                            ret = BatteryState::BatteryState_Ok;
+                            break;
+                    }
                 }
+                break;
+            case CoilState::OnCoil:
+                if (is_charging) {
+                    // On charger and charging, good!
+                    ret = BatteryState::BatteryState_Charging;
+                } else {
+                    // On coil but not charging. It's not necessarily an error if charging hasn't started yet or is complete
+                    // So check battery level now.
+                    switch (capacityState) {
+                        case CapacityState::AlmostEmpty:
+                            ret = BatteryState::BatteryState_Low;
+                            break;
+                        case CapacityState::Average:
+                        default:
+                            ret = BatteryState::BatteryState_Ok;
+                            break;
+                        case CapacityState::AlmostFull:
+                            // On coil, full and not charging? Probably finished charging
+                            ret = BatteryState::BatteryState_Done;
+                            break;
+                    }
+                }
+                break;
+            case CoilState::OnCoil_Error:
+                // Incorrectly placed on coil it seems
+                ret = BatteryState::BatteryState_BadCharging;
                 break;
         }
 
-        // Always update the stored battery voltage
         return ret;
     }
 
     void getBatteryLevel(void* context, const Message* msg) {
         // Fetch battery level
-        float level = LookupChargeLevel(vBat);
         MessageBatteryLevel lvl;
         lvl.voltage = vBat;
-        lvl.level = level;
+        lvl.level = capacity;
         lvl.charging = currentBatteryState == BatteryState_Charging ? 1 : 0;
-        NRF_LOG_INFO("Received Battery Level Request, returning " NRF_LOG_FLOAT_MARKER " (" NRF_LOG_FLOAT_MARKER "v)", NRF_LOG_FLOAT(level), NRF_LOG_FLOAT(vBat));
+        NRF_LOG_INFO("Received Battery Level Request, returning " NRF_LOG_FLOAT_MARKER " (" NRF_LOG_FLOAT_MARKER "v)", NRF_LOG_FLOAT(capacity), NRF_LOG_FLOAT(vBat));
         MessageService::SendMessage(&lvl);
     }
 
@@ -297,45 +211,57 @@ namespace Modules::BatteryController
         // Battery::printA2DReadings();
         // // DEBUG
 
-        auto newState = computeCurrentState();
-        if (newState != currentBatteryState) {
+        // Measure new values
+        vBat = Battery::checkVBat();
+        vCoil = Battery::checkVCoil();
+        charging = Battery::checkCharging();
+        capacity = lookupCapacity(vBat, charging);
+
+        auto newState = computeState(capacity, vCoil, charging);
+        //if (newState != currentBatteryState)
+        {
             switch (newState) {
                 case BatteryState_Done:
                     NRF_LOG_INFO("Battery finished charging");
                     break;
                 case BatteryState_Ok:
-                    NRF_LOG_INFO("Battery is now Ok, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+                    NRF_LOG_INFO("Battery is now Ok");
                     break;
                 case BatteryState_Charging:
-                    NRF_LOG_INFO("Battery is now Charging, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+                    NRF_LOG_INFO("Battery is now Charging");
+                    break;
+                case BatteryState_BadCharging:
+                    NRF_LOG_ERROR("Battery is now Charging Transition");
                     break;
                 case BatteryState_Low:
-                    NRF_LOG_INFO("Battery is Low, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+                    NRF_LOG_INFO("Battery is Low");
+                    break;
+                case BatteryState_Error:
+                    NRF_LOG_INFO("Battery is in an error state");
                     break;
                 default:
-                    NRF_LOG_INFO("Battery state is Unknown, vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+                    NRF_LOG_INFO("Battery state is Unknown");
                     break;
             }
-            float level = LookupChargeLevel(vBat);
-            NRF_LOG_INFO("    Bat = " NRF_LOG_FLOAT_MARKER " %% ", NRF_LOG_FLOAT(level*100));
             NRF_LOG_INFO("    vBat = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
-            vcoil = Battery::checkVCoil();
-            NRF_LOG_INFO("    vCoil = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vcoil));
+            NRF_LOG_INFO("    vCoil = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoil));
+            NRF_LOG_INFO("    charging = %d", charging);
+            NRF_LOG_INFO("    Battery capacity " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(capacity * 100));
+
             currentBatteryState = newState;
             for (int i = 0; i < clients.Count(); ++i) {
     			clients[i].handler(clients[i].token, newState);
             }
         }
 
-        float level = LookupChargeLevel(vBat);
         for (int i = 0; i < levelClients.Count(); ++i) {
-            levelClients[i].handler(levelClients[i].token, level);
+            levelClients[i].handler(levelClients[i].token, capacity);
         }
 
 	    app_timer_start(batteryControllerTimer, APP_TIMER_TICKS(BATTERY_TIMER_MS), NULL);
     }
 
-    void onBatteryEventHandler(void* context) {
+    void onBatteryEventHandler(void* context, Battery::ChargingEvent evt) {
         update(nullptr);
     }
 
@@ -405,60 +331,37 @@ namespace Modules::BatteryController
 		levelClients.UnregisterWithToken(param);
 	}
 
-    float LookupChargeLevel(float voltage)
+    float lookupCapacity(float voltage, bool isCharging)
     {
-		// Find the first keyframe
-		int nextIndex = 0;
-		while (nextIndex < ChargeLookupCount && voltages[nextIndex] >= voltage) {
-		 	nextIndex++;
-		}
+        // Convert voltage to integer so we can quickly compare it with the lookup table
+        int voltageTimes1000 = (int)(voltage * 1000.0f);
+        int chargingOffset = isCharging ? 1 : 0;
 
-		float level = 0.0f;
+		// Find the first voltage that is greater than the measured voltage
+        // Because voltages are sprted, we know that we can then linearly interpolate the charge level
+        // using the previous and next entries in the lookup table.
+		int nextIndex = 0;
+        while (nextIndex < VBAT_LOOKUP_SIZE && lookup[nextIndex].voltageTimes1000 >= voltageTimes1000) {
+            nextIndex++;
+        }
+
+		int levelTimes100 = 0;
 		if (nextIndex == 0) {
-			level = 1.0f;
-		} else if (nextIndex == ChargeLookupCount) {
-			level = 0.0f;
+			levelTimes100 = 100;
+		} else if (nextIndex == VBAT_LOOKUP_SIZE) {
+			levelTimes100 = 0;
 		} else {
 			// Grab the prev and next keyframes
-			float nextVoltage = voltages[nextIndex];
-			float prevVoltage = voltages[nextIndex - 1];
-			float nextLevel = levels[nextIndex];
-			float prevLevel = levels[nextIndex - 1];
+            auto next = lookup[nextIndex];
+            auto prev = lookup[nextIndex - 1];
+
 
 			// Compute the interpolation parameter
-    		int percent = (prevVoltage - voltage) / (prevVoltage - nextVoltage);
-            level = prevLevel * (1.0f - percent) + nextLevel * percent;
+    		int percentTimes1000 = ((int)prev.voltageTimes1000 - (int)voltageTimes1000) * 1000 / ((int)prev.voltageTimes1000 - (int)next.voltageTimes1000);
+            levelTimes100 = ((int)prev.levelTimes100[chargingOffset] * (1000 - percentTimes1000) + (int)next.levelTimes100[chargingOffset] * percentTimes1000) / 1000;
 		}
 
-		return level;
+		return (float)(levelTimes100) / 100.0f;
     }
-
-    // int16_t LookupChargeLevel(int16_t scaledVoltage)
-    // {
-	// 	// Find the first keyframe
-    //     int keyFrameCount = sizeof(ChargeLookup) / sizeof(ChargeEntry);
-	// 	int nextIndex = 0;
-	// 	while (nextIndex < keyFrameCount && ChargeLookup[nextIndex].scaledVoltage >= scaledVoltage) {
-	// 		nextIndex++;
-	// 	}
-
-	// 	int16_t scaledLevel = 0.0f;
-	// 	if (nextIndex == 0) {
-	// 		scaledLevel = SCALER;
-	// 	} else if (nextIndex == keyFrameCount) {
-	// 		scaledLevel = 0;
-	// 	} else {
-	// 		// Grab the prev and next keyframes
-	// 		auto nextKeyframe = ChargeLookup[nextIndex];
-	// 		auto prevKeyframe = ChargeLookup[nextIndex - 1];
-
-	// 		// Compute the interpolation parameter
-    // 		int32_t scaledPercent = (prevKeyframe.scaledVoltage - scaledVoltage) * SCALER / (prevKeyframe.scaledVoltage - nextKeyframe.scaledVoltage);
-    //         int32_t doubleScaledLevel = (int32_t)prevKeyframe.scaledCharge * (SCALER - scaledPercent) + (int32_t)nextKeyframe.scaledCharge * scaledPercent;
-    //         scaledLevel = (int16_t)(doubleScaledLevel / SCALER);
-	// 	}
-
-	// 	return scaledLevel;
-    // }
 
 }

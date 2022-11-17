@@ -11,17 +11,17 @@ namespace Modules::BatteryController
 	enum BatteryState
 	{
 		BatteryState_Unknown,
-		BatteryState_Ok,
-		BatteryState_Low,
-		BatteryState_Charging,
-		BatteryState_Done
+		BatteryState_Ok,			// Battery looks fine, nothing is happening
+		BatteryState_Low,			// Battery level is low, notify user they should recharge
+		BatteryState_Charging,		// Battery is currently recharging
+		BatteryState_BadCharging,	// Coil voltage is bad, die is probably positionned incorrectly
+									// Note that currently this state is triggered during transition between charging and not charging...
+		BatteryState_Error,			// Charge state doesn't make sense (charging but no coil voltage detected for instance)
+		BatteryState_Done			// Battery finished charging
 	};
 
 	BatteryState getCurrentChargeState();
 	float getCurrentLevel();
-
-	// Returns empty string in release builds so to save space
-	const char *getChargeStateString(BatteryState state);
 
 	typedef void(*BatteryStateChangeHandler)(void* param, BatteryState newState);
 	void hook(BatteryStateChangeHandler method, void* param);

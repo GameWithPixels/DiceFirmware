@@ -1,9 +1,14 @@
 #include "battery.h"
+#include "nrf_assert.h"
 #include "nrf_log.h"
 #include "board_config.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 #include "nrf_saadc.h"
+
+#include "nrf_drv_ppi.h"
+#include "nrf_drv_timer.h"
+
 #include "../drivers_nrf/gpiote.h"
 #include "../drivers_nrf/a2d.h"
 #include "../drivers_nrf/log.h"
@@ -20,55 +25,190 @@ using namespace DriversNRF;
 using namespace Config;
 
 #define MAX_BATTERY_CLIENTS 2
+#define BATTERY_CHARGE_PIN_TIMER 1000 // milliseconds
 
 namespace DriversHW
 {
 namespace Battery
 {
     const float vBatMult = 1.4f; // Voltage divider 10M over 4M
+    const float vLEDMult = 1.4f; // Voltage divider 10M over 4M
+    const float vCoilMult = 2.0f; // Voltage divider 4M over 4M
+
 	DelegateArray<ClientMethod, MAX_BATTERY_CLIENTS> clients;
 
-    void batteryInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action);
-    void printA2DReadingsBLE(void* token, const Bluetooth::Message* message);
+    static const nrf_drv_timer_t battTimer = NRF_DRV_TIMER_INSTANCE(1);
+    static nrf_ppi_channel_t m_ppi_channel1;
+    static nrf_drv_gpiote_in_config_t in_config;
+    static uint8_t statePin = 0xFF; // Cached from board manager in init
+    bool charging = false;
+
+    void battTimerHandler(nrf_timer_event_t event_type, void* p_context);
+    void pinHiToLoHandler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
+    void pinLoToHiHandler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
+    void handleChargeEvent(void * p_event_data, uint16_t event_size);
+
+    bool checkChargingInternal() {
+        nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
+        return nrf_gpio_pin_read(statePin) == 0;
+    }
+
+    void battTimerHandler(nrf_timer_event_t event_type, void* p_context) {
+
+        // We're going to change the event associated with the charge pin, so disable the event first
+        nrf_drv_gpiote_in_event_disable(statePin);
+
+        // Only way to change the handler called is to uninit and then reinit the pin unfortunately
+        // Maybe in the future we'll go fiddle with the registers directly to make it a bit more efficient
+        nrf_drv_gpiote_in_uninit(statePin);
+
+        // We don't need the timer anymore
+        nrf_drv_timer_disable(&battTimer);
+
+        // Or the PPI channel to auto-reset it if the state pin keeps toggling
+        ret_code_t err_code = nrf_drv_ppi_channel_disable(m_ppi_channel1);
+        APP_ERROR_CHECK(err_code);
+
+        // Read the charging pin, we know it hasn't toggled in a while, but we don't know if it is
+        // high or low. What we do depends on that! Note: this updates our internal charging state variable as well.
+        charging = checkChargingInternal();
+        if (charging) {
+            // Setup sense polarity for when the signal goes back high and attach our Lo to Hi handler
+            in_config.sense = NRF_GPIOTE_POLARITY_LOTOHI;
+            err_code = nrf_drv_gpiote_in_init(statePin, &in_config, pinLoToHiHandler);
+            APP_ERROR_CHECK(err_code);
+        } else {
+            // Setup sense polarity for when the signal goes low and set an event handler
+            in_config.sense = NRF_GPIOTE_POLARITY_HITOLO;
+            err_code = nrf_drv_gpiote_in_init(statePin, &in_config, pinHiToLoHandler);
+            APP_ERROR_CHECK(err_code);
+
+            // Notify clients
+            ChargingEvent evt = ChargingEvent_ChargeStop;
+            Scheduler::push(&evt, sizeof(ChargingEvent), handleChargeEvent);
+        }
+
+        // Enable pin event, making sure to allow the handler to be called
+        nrf_drv_gpiote_in_event_enable(statePin, true);
+    }
+
+    void pinHiToLoHandler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
+
+        // We're going to change the event associated with the charge pin, so disable the event first
+        nrf_drv_gpiote_in_event_disable(statePin);
+
+        // Only way to change the handler called is to uninit and then reinit the pin unfortunately
+        // Maybe in the future we'll go fiddle with the registers directly to make it a bit more efficient
+        nrf_drv_gpiote_in_uninit(statePin);
+
+        // Update internal state
+        charging = true;
+
+        // Setup sense polarity for when the signal goes back high and attach our Lo to Hi handler
+        in_config.sense = NRF_GPIOTE_POLARITY_LOTOHI;
+        ret_code_t err_code = nrf_drv_gpiote_in_init(statePin, &in_config, pinLoToHiHandler);
+        APP_ERROR_CHECK(err_code);
+
+        // Enable pin event, making sure to allow the handler to be called
+        nrf_drv_gpiote_in_event_enable(statePin, true);
+
+        // Notify clients
+        ChargingEvent evt = ChargingEvent_ChargeStart;
+        Scheduler::push(&evt, sizeof(ChargingEvent), handleChargeEvent);
+    }
+
+    void pinLoToHiHandler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
+
+        // We're going to change the event associated with the charge pin, so disable the event first
+        nrf_drv_gpiote_in_event_disable(statePin);
+
+        // Only way to change the handler called is to uninit and then reinit the pin unfortunately
+        // Maybe in the future we'll go fiddle with the registers directly to make it a bit more efficient
+        nrf_drv_gpiote_in_uninit(statePin);
+
+        // Setup sense polarity for when the signal goes back high,
+        // but instead of triggering a code handler, use it to reset timer2
+        // Only when timer2 expires will we fire off an event handler.
+        // This is our way of filtering the input to ignore frequent toggles.
+        in_config.sense = NRF_GPIOTE_POLARITY_LOTOHI;
+        ret_code_t err_code = nrf_drv_gpiote_in_init(statePin, &in_config, nullptr);
+        APP_ERROR_CHECK(err_code);
+
+        // Enable PPI channel to the timer
+        err_code = nrf_drv_ppi_channel_enable(m_ppi_channel1);
+        APP_ERROR_CHECK(err_code);
+
+        // Enable pin event
+        nrf_drv_gpiote_in_event_enable(statePin, false);
+
+        // Start the timer
+        nrf_drv_timer_enable(&battTimer);
+    }
+
 
     void init() {
         // Set charger and fault pins as input
 
         // Drive the status pin down for a moment
-        uint8_t statePin = BoardManager::getBoard()->chargingStatePin;
-
-        // Status pin needs a pull-up, and is pulled low when charging
-        if (statePin != 0xFF) {
-            nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
-            //nrf_gpio_cfg_default(statePin);
-        }
+        statePin = BoardManager::getBoard()->chargingStatePin;
 
         // Read battery level and convert
-        int charging = checkCharging() ? 1 : 0;
+        nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
+        charging = checkChargingInternal();
 
-		// // Set interrupt pin
-		// GPIOTE::enableInterrupt(
-		// 	statePin,
-		// 	NRF_GPIO_PIN_PULLUP,
-		// 	NRF_GPIOTE_POLARITY_TOGGLE,
-		// 	batteryInterruptHandler);
+        // We'll re-use this config struct over and over, set up the starting parameters now
+        in_config.sense = NRF_GPIOTE_POLARITY_HITOLO;
+        in_config.pull = NRF_GPIO_PIN_PULLUP;
+        in_config.is_watcher = false;
+        in_config.hi_accuracy = true;
+        in_config.skip_gpio_setup = false;
 
-		// GPIOTE::enableInterrupt(
-		// 	coilPin,
-		// 	NRF_GPIO_PIN_NOPULL,
-		// 	NRF_GPIOTE_POLARITY_TOGGLE,
-		// 	batteryInterruptHandler);
+        ret_code_t err_code = NRF_SUCCESS;
+        if (charging) {
+            // Setup sense polarity for when the signal goes back high and attach our Lo to Hi handler
+            in_config.sense = NRF_GPIOTE_POLARITY_LOTOHI;
+            err_code = nrf_drv_gpiote_in_init(statePin, &in_config, pinLoToHiHandler);
+            APP_ERROR_CHECK(err_code);
+        } else {
+            // Setup sense polarity for when the signal goes low and set an event handler
+            in_config.sense = NRF_GPIOTE_POLARITY_HITOLO;
+            err_code = nrf_drv_gpiote_in_init(statePin, &in_config, pinHiToLoHandler);
+            APP_ERROR_CHECK(err_code);
+        }
 
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_PrintA2DReadings, nullptr, printA2DReadingsBLE);
+        // Configure PPI channel to reset timer on pin hi to lo transition
+
+        // Find an unused channel
+        err_code = nrf_drv_ppi_channel_alloc(&m_ppi_channel1);
+        APP_ERROR_CHECK(err_code);
+
+        // Configure it to connect gpio to timer
+        auto charge_state_pin_event = nrf_drv_gpiote_in_event_addr_get(statePin);
+        auto timer_clear_counter_task = nrf_drv_timer_task_address_get(&battTimer, NRF_TIMER_TASK_CLEAR);
+        err_code = nrf_drv_ppi_channel_assign(m_ppi_channel1, charge_state_pin_event, timer_clear_counter_task);
+        APP_ERROR_CHECK(err_code);
+
+        // Setup our timer now, we'll reset and start / stop as needed
+        nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG;
+        timer_cfg.frequency = NRF_TIMER_FREQ_31250Hz; // Lowest available frequency because our filtering time is large
+        timer_cfg.bit_width = NRF_TIMER_BIT_WIDTH_16; // We need enough bits to count to 1 second, at 31250Hz, that is 31250 :)
+        err_code = nrf_drv_timer_init(&battTimer, &timer_cfg, battTimerHandler);
+        APP_ERROR_CHECK(err_code);
+
+        // Setup the timer to use the hardware timer channel 1 (0 is used byt the softdevice),
+        // make the compare time 1 second and stop the timer when reached.
+        nrf_drv_timer_extended_compare(&battTimer, NRF_TIMER_CC_CHANNEL1, nrf_drv_timer_ms_to_ticks(&battTimer, BATTERY_CHARGE_PIN_TIMER), NRF_TIMER_SHORT_COMPARE0_STOP_MASK, true);
+
+        // Enable gpio event so we get an interrupt when the state pin toggles
+        nrf_drv_gpiote_in_event_enable(statePin, true);
 
         float vCoil = checkVCoil();
         float vBat = checkVBat();
 
         NRF_LOG_INFO("Battery initialized");
-        NRF_LOG_INFO(" Battery Voltage= " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
-        NRF_LOG_INFO(" Charging= %d", charging);
-        NRF_LOG_INFO(" VCoil= " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoil));
-        //printA2DReadings();
+        NRF_LOG_INFO("   Battery Voltage= " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+        NRF_LOG_INFO("   Charging= %d", (charging ? 1 : 0));
+        NRF_LOG_INFO("   VCoil= " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoil));
 
         #if DICE_SELFTEST && BATTERY_SELFTEST
         selfTest();
@@ -81,51 +221,40 @@ namespace Battery
     }
 
     float checkVCoil() {
-        float ret = A2D::read5V() * vBatMult;
+        float ret = A2D::read5V() * vCoilMult;
         return ret;
-    }
-
-    bool canCheckVCoil() {
-        return Config::BoardManager::getBoard()->coilSensePin != NRF_SAADC_INPUT_DISABLED;
     }
 
     float checkVLED() {
-        float ret = A2D::readVLED() * vBatMult;
+        float ret = A2D::readVLED() * vLEDMult;
         return ret;
-    }
-
-    bool canCheckVLED() {
-        return Config::BoardManager::getBoard()->vledSensePin != NRF_SAADC_INPUT_DISABLED;
     }
 
     bool checkCharging() {
-        bool ret = false;
-        // Status pin needs a pull-up, and is pulled low when charging
-        // High by default, should go low when charging
-        uint8_t statePin = BoardManager::getBoard()->chargingStatePin;
-        if (statePin != 0xFF) {
-            //nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
-            ret = nrf_gpio_pin_read(statePin) == 0;
-            //nrf_gpio_cfg_default(statePin);
+        return charging;
+    }
+
+    void handleChargeEvent(void * p_event_data, uint16_t event_size) {
+        ASSERT(event_size == sizeof(ChargingEvent));
+        ChargingEvent* evt = (ChargingEvent*)p_event_data;
+
+        switch (*evt)
+        {
+            case ChargingEvent_ChargeStart:
+                NRF_LOG_DEBUG("Battery started charging");
+                break;
+            case ChargingEvent_ChargeStop:
+            default:
+                NRF_LOG_DEBUG("Battery stopped charging");
+                break;
         }
-        return ret;
-    }
 
-    bool canCheckCharging() {
-        return Config::BoardManager::getBoard()->chargingStatePin != 0xFF;
-    }
-
-    void handleBatteryEvent(void * p_event_data, uint16_t event_size) {
 		// Notify clients
 		for (int i = 0; i < clients.Count(); ++i)
 		{
-			clients[i].handler(clients[i].token);
+			clients[i].handler(clients[i].token, *evt);
 		}
     }
-
-	void batteryInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
-        Scheduler::push(nullptr, 0, handleBatteryEvent);
-	}
 
 	/// <summary>
 	/// Method used by clients to request callbacks when battery changes state
@@ -153,59 +282,5 @@ namespace Battery
 	{
 		clients.UnregisterWithToken(param);
 	}
-
-    void printA2DReadings() {
-        if (canCheckCharging()) {
-            if (checkCharging()) {
-                NRF_LOG_INFO("    vBat=" NRF_LOG_FLOAT_MARKER ", charging.", NRF_LOG_FLOAT(checkVBat()));
-            } else {
-                NRF_LOG_INFO("    vBat=" NRF_LOG_FLOAT_MARKER ", not charging.", NRF_LOG_FLOAT(checkVBat()));
-            }
-        } else {
-            NRF_LOG_INFO("    vBat=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVBat()));
-        }
-        if (canCheckVCoil()) {
-            NRF_LOG_INFO("    vCoil=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVCoil()));
-        }
-        if (canCheckVLED()) {
-            NRF_LOG_INFO("    vLED=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVLED()));
-        }
-    }
-
-    void printA2DReadingsBLE(void* token, const Bluetooth::Message* message) {
-        BLE_LOG_INFO("vBat=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVBat()));
-        if (canCheckVCoil()) {
-            BLE_LOG_INFO("vCoil=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVCoil()));
-        }
-        if (canCheckVLED()) {
-            BLE_LOG_INFO("vLED=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(checkVLED()));
-        }
-    }
-
-    #if DICE_SELFTEST && BATTERY_SELFTEST
-    APP_TIMER_DEF(readBatTimer);
-    void printBatStats(void* context) {
-        float vbattery = checkVBat();
-        int charging = checkCharging() ? 1 : 0;
-        int coil = checkCoil() ? 1 : 0;
-        NRF_LOG_INFO("Charging=%d, Coil=%d, Voltage=" NRF_LOG_FLOAT_MARKER, charging, coil, NRF_LOG_FLOAT(vbattery));
-    }
-
-    void selfTest() {
-        Timers::createTimer(&readBatTimer, APP_TIMER_MODE_REPEATED, printBatStats);
-        NRF_LOG_INFO("Reading battery status repeatedly, press any key to abort");
-        Log::process();
-
-        Timers::startTimer(readBatTimer, 200, nullptr);
-        while (!Log::hasKey()) {
-            Log::process();
-            PowerManager::feed();
-            PowerManager::update();
-        }
-		Log::getKey();
-        NRF_LOG_INFO("Finished reading battery status!");
-        Timers::stopTimer(readBatTimer);
-    }
-    #endif
 }
 }
