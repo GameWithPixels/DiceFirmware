@@ -56,6 +56,9 @@ namespace Modules::LEDs
 		nrf_gpio_pin_clear(powerPin);
         powerOn = false;
 
+        // Initialize out LED return pin
+        nrf_gpio_cfg_default(board->ledReturnPin);
+
         // Initialize our color array
         memset(pixels, 0, MAX_LED_COUNT * sizeof(uint32_t));
         numLed = board->ledCount;

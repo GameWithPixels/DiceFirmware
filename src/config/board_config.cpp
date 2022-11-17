@@ -470,7 +470,7 @@ namespace BoardManager
             .ledDataPin = 6,
             .ledClockPin = 0xFF,
             .ledPowerPin = 0,
-            .ledReturnPin = 0xFF,
+            .ledReturnPin = 10,
             .i2cDataPin = 15,
             .i2cClockPin = 14,
             .accInterruptPin = 12,
