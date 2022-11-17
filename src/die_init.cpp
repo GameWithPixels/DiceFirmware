@@ -13,6 +13,7 @@
 #include "drivers_nrf/i2c.h"
 #include "drivers_nrf/flash.h"
 #include "drivers_nrf/gpiote.h"
+#include "drivers_nrf/ppi.h"
 #include "drivers_nrf/dfu.h"
 
 #include "config/board_config.h"
@@ -226,6 +227,9 @@ namespace Die
 
         // Analog to digital converter next, so we can identify the board we're dealing with
         A2D::init();
+
+        // Peripheral to peripheral Interconnect, used by the battery charge detection
+        PPI::init();
         
         // Initialize bluetooth
         Stack::init();
