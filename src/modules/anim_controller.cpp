@@ -38,7 +38,7 @@ namespace Modules::AnimController
 	void update(int ms);
 	uint32_t getColorForAnim(void* token, uint32_t colorIndex);
 	void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
-	void printAnimControllerState(void *context, const Message *msg);
+	void printAnimControllerStateHandler(const Message *msg);
 
 	// Update timer
 	APP_TIMER_DEF(animControllerTimer);
@@ -65,7 +65,7 @@ namespace Modules::AnimController
 	void init()
 	{
 		Flash::hookProgrammingEvent(onProgrammingEvent, nullptr);
-		MessageService::RegisterMessageHandler(Message::MessageType_PrintAnimControllerState, nullptr, printAnimControllerState);
+		MessageService::RegisterMessageHandler(Message::MessageType_PrintAnimControllerState, printAnimControllerStateHandler);
 		Timers::createTimer(&animControllerTimer, APP_TIMER_MODE_REPEATED, animationControllerUpdate);
 		PowerManager::hook(onPowerEvent, nullptr);
 
@@ -328,7 +328,7 @@ namespace Modules::AnimController
 		}
 	}
 
-	void printAnimControllerState(void* context, const Message* msg) {
+	void printAnimControllerStateHandler(const Message* msg) {
 		NRF_LOG_INFO("Anim Controller has %d animations", animationCount);
 		for (int i = 0; i < animationCount; ++i) {
 			AnimationInstance* anim = animations[i];

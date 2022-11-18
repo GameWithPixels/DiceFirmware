@@ -29,7 +29,7 @@ namespace Modules::ValidationManager
     void stopNameAnim();
     void startNameAnim();
     void onConnection(void *token, bool connected);
-    void exitValidationMode(void *token, const Message *msg);
+    void exitValidationModeHandler(const Message *msg);
 
     void GoToSleepCallback(void* ignore);
 
@@ -44,7 +44,7 @@ namespace Modules::ValidationManager
         nameAnim.setDuration(1000);
         nameAnim.brightness = 0x10;
 
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, nullptr, exitValidationMode);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, exitValidationModeHandler);
 
         // Hook local connection function to BLE connection events
         Bluetooth::Stack::hook(onConnection, nullptr);
@@ -95,7 +95,7 @@ namespace Modules::ValidationManager
     }
 
     // Clear bits to signal exit of validation mode, go to sleep
-    void exitValidationMode(void *token, const Message *msg)
+    void exitValidationModeHandler(const Message *msg)
     {
         leaveValidation();
         PowerManager::reset();

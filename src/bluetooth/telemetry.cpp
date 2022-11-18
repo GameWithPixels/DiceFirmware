@@ -26,11 +26,11 @@ namespace Telemetry
     uint32_t lastMessageMS;
 
     void onAccDataReceived(void* param, const Accelerometer::AccelFrame& accelFrame);
-    void onRequestTelemetryMessage(void* token, const Message* message);
+    void onRequestTelemetryHandler(const Message* message);
 
     void init() {
         // Register for messages to send telemetry data over!
-        MessageService::RegisterMessageHandler(Message::MessageType_RequestTelemetry, nullptr, onRequestTelemetryMessage);
+        MessageService::RegisterMessageHandler(Message::MessageType_RequestTelemetry, onRequestTelemetryHandler);
         lastMessageMS = 0;
         telemetryActive = false;
 
@@ -52,7 +52,7 @@ namespace Telemetry
         }
     }
 
-    void onRequestTelemetryMessage(void* token, const Message* message) {
+    void onRequestTelemetryHandler(const Message* message) {
         auto reqTelem = static_cast<const MessageRequestTelemetry*>(message);
         if (reqTelem->activate != 0) {
             if (!telemetryActive) {

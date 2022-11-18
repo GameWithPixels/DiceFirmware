@@ -32,7 +32,7 @@ using namespace Utils;
 
 namespace Modules::BatteryController
 {
-    void getBatteryLevel(void* context, const Message* msg);
+    void getBatteryLevelHandler(const Message* msg);
     void update(void* context);
     void onBatteryEventHandler(void* context, Battery::ChargingEvent evt);
     void onLEDPowerEventHandler(void* context, bool powerOn);
@@ -76,7 +76,7 @@ namespace Modules::BatteryController
     };
 
     void init() {
-        MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, nullptr, getBatteryLevel);
+        MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, getBatteryLevelHandler);
 
         // Grab initial values from the battery driver
         vBat = Battery::checkVBat();
@@ -196,7 +196,7 @@ namespace Modules::BatteryController
         return ret;
     }
 
-    void getBatteryLevel(void* context, const Message* msg) {
+    void getBatteryLevelHandler(const Message* msg) {
         // Fetch battery level
         MessageBatteryLevel lvl;
         lvl.voltage = vBat;
@@ -218,7 +218,7 @@ namespace Modules::BatteryController
         capacity = lookupCapacity(vBat, charging);
 
         auto newState = computeState(capacity, vCoil, charging);
-        //if (newState != currentBatteryState)
+        if (newState != currentBatteryState)
         {
             switch (newState) {
                 case BatteryState_Done:

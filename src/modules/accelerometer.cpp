@@ -57,8 +57,8 @@ namespace Modules
         void pauseNotifications();
         void resumeNotifications();
 
-        void CalibrateHandler(void *context, const Message *msg);
-        void CalibrateFaceHandler(void *context, const Message *msg);
+        void CalibrateHandler(const Message *msg);
+        void CalibrateFaceHandler(const Message *msg);
         void onSettingsProgrammingEvent(void *context, Flash::ProgrammingEventType evt);
         void onPowerEvent(void *context, nrf_pwr_mgmt_evt_t event);
         void readAccelerometer(float3 *acc);
@@ -72,8 +72,8 @@ namespace Modules
         {
             AccelChip::init();
 
-            MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, nullptr, CalibrateHandler);
-            MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, nullptr, CalibrateFaceHandler);
+            MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, CalibrateHandler);
+            MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, CalibrateFaceHandler);
 
             Flash::hookProgrammingEvent(onSettingsProgrammingEvent, nullptr);
 
@@ -439,7 +439,7 @@ namespace Modules
                 measuredNormals->calibrationInterrupted = true;
         }
 
-        void CalibrateHandler(void *context, const Message *msg)
+        void CalibrateHandler(const Message *msg)
         {
             // Turn off state change notifications
             stop();
@@ -523,7 +523,7 @@ namespace Modules
             });
         }
 
-        void CalibrateFaceHandler(void *context, const Message *msg)
+        void CalibrateFaceHandler(const Message *msg)
         {
             const MessageCalibrateFace *faceMsg = (const MessageCalibrateFace *)msg;
             uint8_t face = faceMsg->face;

@@ -24,8 +24,8 @@ namespace Modules::InstantAnimationController
     static const uint8_t *animations;
     static uint32_t animationsCount;
 
-    void ReceiveInstantAnimSet(void *context, const Message *msg);
-    void PlayInstantAnim(void *context, const Message *msg);
+    void ReceiveInstantAnimSetHandler(const Message *msg);
+    void PlayInstantAnimHandler(const Message *msg);
 
     void clearData() {
         free(animationsData);
@@ -38,15 +38,15 @@ namespace Modules::InstantAnimationController
 
     void init()
     {
-        MessageService::RegisterMessageHandler(Message::MessageType_TransferInstantAnimSet, nullptr, ReceiveInstantAnimSet);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayInstantAnim, nullptr, PlayInstantAnim);
+        MessageService::RegisterMessageHandler(Message::MessageType_TransferInstantAnimSet, ReceiveInstantAnimSetHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayInstantAnim, PlayInstantAnimHandler);
         animationsData = nullptr;
         clearData();
 
         NRF_LOG_INFO("Instant Animation Controller Initialized");
     }
 
-    void ReceiveInstantAnimSet(void *context, const Message *msg)
+    void ReceiveInstantAnimSetHandler(const Message *msg)
     {
 		NRF_LOG_INFO("Received request to download instant animation");
         const MessageTransferInstantAnimSet *message = (const MessageTransferInstantAnimSet *)msg;
@@ -152,7 +152,7 @@ namespace Modules::InstantAnimationController
         }
     }
 
-    void PlayInstantAnim(void *context, const Message *msg) 
+    void PlayInstantAnimHandler(const Message *msg) 
     {
         NRF_LOG_INFO("Received request to play instant animation");
         const MessagePlayInstantAnim *message = (const MessagePlayInstantAnim *)msg;
