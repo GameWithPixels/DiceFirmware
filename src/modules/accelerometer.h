@@ -4,9 +4,6 @@
 #include "core/float3.h"
 #include "core/delegate_array.h"
 
-#define ACCEL_BUFFER_SIZE 10 // 10ms * 10 = 100ms seconds of buffer
-							  // 16 bytes * 128 = 2k of RAM
-
 /// <summary>
 /// The component in charge of maintaining the acceleration readings,
 /// and determining die motion state.
@@ -14,23 +11,6 @@
 namespace Modules::Accelerometer
 {
 	using Core::float3;
-
-	/// <summary>
-	/// Small struct holding a single frame of accelerometer data
-	/// used for both face detection (not that kind) and telemetry
-	// size is 36
-	/// </summary>
-	struct AccelFrame
-	{
-		float3 acc;
-		float3 jerk;
-		float3 smoothAcc;
-		float sigma;
-		float faceConfidence;
-		int face;
-		uint32_t time;
-	};
-
 	enum RollState : uint8_t
 	{
 		RollState_Unknown = 0,
@@ -40,6 +20,24 @@ namespace Modules::Accelerometer
 		RollState_Crooked,
 		RollState_Count
 	};
+
+	/// <summary>
+	/// Small struct holding a single frame of accelerometer data
+	/// used for both face detection (not that kind) and telemetry
+	/// Size is 50-bytes
+	/// </summary>
+	struct AccelFrame
+	{
+		float3 acc;
+		float3 jerk;
+		float3 smoothAcc;
+		float sigma;
+		float faceConfidence;
+		uint32_t time;
+		RollState rollState;
+		uint8_t face;
+	};
+
 
 	void init();
 	void start();
