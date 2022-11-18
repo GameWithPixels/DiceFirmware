@@ -11,7 +11,7 @@ namespace Core
 		float z;
 
 		float3() {}
-		float3(float ax, float ay, float az) : x(ax), y(ay), z(az) {}
+		constexpr float3(float ax, float ay, float az) : x(ax), y(ay), z(az) {}
 		float3(const float3& model) : x(model.x), y(model.y), z(model.z) {}
 		float3& operator=(const float3& model)
 		{
