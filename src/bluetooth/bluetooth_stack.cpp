@@ -64,7 +64,7 @@ namespace Stack
     #define RSSI_THRESHOLD_DBM 1
 
     static uint16_t connectionHandle = BLE_CONN_HANDLE_INVALID;                     /**< Handle of the current connection. */
-    NRF_BLE_QWR_DEF(nrfQwr);                                                        /**< Context for the Queued Write module.*/
+    //NRF_BLE_QWR_DEF(nrfQwr);                                                        /**< Context for the Queued Write module.*/
     NRF_BLE_GATT_DEF(nrfGatt);                                                      /**< GATT module instance. */
 
     BLE_ADVERTISING_DEF(advertisingModule);                                         /**< Advertising module instance. */
@@ -182,13 +182,14 @@ namespace Stack
                 if (resetOnDisconnectPending) {
                     PowerManager::reset();
                 }
+
                 break;
 
             case BLE_GAP_EVT_CONNECTED:
                 NRF_LOG_INFO("Connected.");
                 connectionHandle = p_ble_evt->evt.gap_evt.conn_handle;
-                err_code = nrf_ble_qwr_conn_handle_assign(&nrfQwr, connectionHandle);
-                APP_ERROR_CHECK(err_code);
+                // err_code = nrf_ble_qwr_conn_handle_assign(&nrfQwr, connectionHandle);
+                // APP_ERROR_CHECK(err_code);
                 currentlyAdvertising = false;
                 connected = true;
                 for (int i = 0; i < clients.Count(); ++i) {
@@ -408,13 +409,13 @@ namespace Stack
 
         ble_advertising_conn_cfg_tag_set(&advertisingModule, APP_BLE_CONN_CFG_TAG);
 
-        nrf_ble_qwr_init_t qwr_init = {0};
+        // nrf_ble_qwr_init_t qwr_init = {0};
 
-        // Initialize Queued Write Module.
-        qwr_init.error_handler = nrf_qwr_error_handler;
+        // // Initialize Queued Write Module.
+        // qwr_init.error_handler = nrf_qwr_error_handler;
 
-        err_code = nrf_ble_qwr_init(&nrfQwr, &qwr_init);
-        APP_ERROR_CHECK(err_code);
+        // err_code = nrf_ble_qwr_init(&nrfQwr, &qwr_init);
+        // APP_ERROR_CHECK(err_code);
 
         ble_conn_params_init_t cp_init;
 
