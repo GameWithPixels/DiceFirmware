@@ -102,6 +102,18 @@ namespace Behaviors
         if (flags & ConditionBatteryState_Done) {
             ret = ret || (newState == Modules::BatteryController::BatteryState_Done);
         }
+        if (flags & ConditionBatteryState_Transition) {
+            ret = ret || (newState == Modules::BatteryController::BatteryState_Transition);
+        }
+        if (flags & ConditionBatteryState_BadCharging) {
+            ret = ret || (newState == Modules::BatteryController::BatteryState_BadCharging);
+        }
+        if (flags & ConditionBatteryState_Error) {
+            ret = ret || (newState == Modules::BatteryController::BatteryState_Error);
+        }
+        if (flags & ConditionBatteryState_TrickleCharge) {
+            ret = ret || (newState == Modules::BatteryController::BatteryState_TrickleCharge);
+        }
         return ret;
     }
 

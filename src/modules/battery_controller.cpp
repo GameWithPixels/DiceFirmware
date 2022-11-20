@@ -24,11 +24,12 @@ using namespace Utils;
 #define BATTERY_TIMER_MS_QUICK (100) //ms
 #define MAX_BATTERY_CLIENTS 2
 #define MAX_LEVEL_CLIENTS 2
-#define OFF_VCOIL_THRESHOLD (0.2f) //0.2V
+#define OFF_VCOIL_THRESHOLD (0.5f) //0.5V
 #define CHARGE_VCOIL_THRESHOLD (4.6f) //4.6V
 #define VBAT_LOOKUP_SIZE 11
 #define BATTERY_ALMOST_EMPTY_PCT 0.1f // 10%
-#define BATTERY_ALMOST_FULL_PCT 0.9f // 90%
+#define BATTERY_ALMOST_FULL_PCT 0.95f // 95%
+#define TRANSITION_TOO_LONG_DURATION_MS (10000) // 10s
 
 namespace Modules::BatteryController
 {
@@ -37,10 +38,10 @@ namespace Modules::BatteryController
     void onBatteryEventHandler(void* context, Battery::ChargingEvent evt);
     void onLEDPowerEventHandler(void* context, bool powerOn);
     float lookupCapacity(float voltage, bool isCharging);
-    BatteryState computeState(float batt_capacity, float vcoil, bool is_charging);
+    BatteryState ComputeNewBatteryState();
 
     static BatteryState currentBatteryState = BatteryState_Unknown;
-    static uint32_t lastUpdateTime = 0;
+    static uint32_t currentBatteryStateStartTime = 0; // Time when we switched to the current battery state
 
 	static DelegateArray<BatteryStateChangeHandler, MAX_BATTERY_CLIENTS> clients;
     static DelegateArray<BatteryLevelChangeHandler, MAX_LEVEL_CLIENTS> levelClients;
@@ -91,15 +92,14 @@ namespace Modules::BatteryController
         LEDs::hookPowerState(onLEDPowerEventHandler, nullptr);
 
         // Set initial battery state
-        currentBatteryState = computeState(capacity, vCoil, charging);
+        currentBatteryState = ComputeNewBatteryState();
+        currentBatteryStateStartTime = DriversNRF::Timers::millis();
 
 		ret_code_t ret_code = app_timer_create(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
 		APP_ERROR_CHECK(ret_code);
 
 		ret_code = app_timer_start(batteryControllerTimer, APP_TIMER_TICKS(BATTERY_TIMER_MS), NULL);
 		APP_ERROR_CHECK(ret_code);
-
-        lastUpdateTime = DriversNRF::Timers::millis();
 
         NRF_LOG_INFO("Battery controller initialized");
         NRF_LOG_INFO("    Battery capacity " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(capacity * 100));
@@ -114,7 +114,7 @@ namespace Modules::BatteryController
         return lookupCapacity(vBat, charging);
     }
 
-    BatteryState computeState(float batt_capacity, float vcoil, bool is_charging) {
+    BatteryState ComputeNewBatteryState() {
         BatteryState ret = BatteryState_Unknown;
 
         // Figure out a battery charge level
@@ -125,9 +125,9 @@ namespace Modules::BatteryController
             AlmostFull
         };
         CapacityState capacityState = CapacityState::Average;
-        if (batt_capacity < BATTERY_ALMOST_EMPTY_PCT) {
+        if (capacity < BATTERY_ALMOST_EMPTY_PCT) {
             capacityState = CapacityState::AlmostEmpty;
-        } else if (batt_capacity > BATTERY_ALMOST_FULL_PCT) {
+        } else if (capacity> BATTERY_ALMOST_FULL_PCT) {
             capacityState = CapacityState::AlmostFull;
         }
 
@@ -138,16 +138,16 @@ namespace Modules::BatteryController
             OnCoil
         };
         CoilState coilState = CoilState::OnCoil_Error;
-        if (vcoil < OFF_VCOIL_THRESHOLD) {
+        if (vCoil< OFF_VCOIL_THRESHOLD) {
             coilState = CoilState::NotOnCoil;
-        } else if (vcoil > CHARGE_VCOIL_THRESHOLD) {
+        } else if (vCoil> CHARGE_VCOIL_THRESHOLD) {
             coilState = CoilState::OnCoil;
         }
 
         switch (coilState) {
             case CoilState::NotOnCoil:
             default:
-                if (is_charging) {
+                if (charging) {
                     // Battery is charging but we're not detecting any coil voltage? How is that possible?
                     NRF_LOG_ERROR("Battery Controller: Not on Coil yet still charging?");
                     ret = BatteryState::BatteryState_Error;
@@ -166,9 +166,19 @@ namespace Modules::BatteryController
                 }
                 break;
             case CoilState::OnCoil:
-                if (is_charging) {
-                    // On charger and charging, good!
-                    ret = BatteryState::BatteryState_Charging;
+                if (charging) {
+                    switch (capacityState) {
+                        case CapacityState::AlmostEmpty:
+                        case CapacityState::Average:
+                        default:
+                            // On charger and charging, good!
+                            ret = BatteryState::BatteryState_Charging;
+                            break;
+                        case CapacityState::AlmostFull:
+                            // On charger and almost full, trickle charging
+                            ret = BatteryState::BatteryState_TrickleCharge;
+                            break;
+                    }
                 } else {
                     // On coil but not charging. It's not necessarily an error if charging hasn't started yet or is complete
                     // So check battery level now.
@@ -189,7 +199,22 @@ namespace Modules::BatteryController
                 break;
             case CoilState::OnCoil_Error:
                 // Incorrectly placed on coil it seems
-                ret = BatteryState::BatteryState_BadCharging;
+                if (currentBatteryState == BatteryState_Transition) {
+                    if (Timers::millis() - currentBatteryStateStartTime > TRANSITION_TOO_LONG_DURATION_MS) {
+                        // "She's dead Jim!"
+                        ret = BatteryState::BatteryState_BadCharging;
+                    } else {
+                        // It hasn't been long enough to know for sure
+                        ret = BatteryState::BatteryState_Transition;
+                    }
+                } else if (currentBatteryState == BatteryState::BatteryState_BadCharging) {
+                    // We've already determined the die was incorrectly positionned
+                    ret = BatteryState::BatteryState_BadCharging;
+                } else {
+                    // Coil voltage is bad, but we don't know yet if that's because we removed the die and
+                    // the coil cap is still discharging, or if indeed the die is incorrectly positionned
+                    ret = BatteryState::BatteryState_Transition;
+                }
                 break;
         }
 
@@ -217,12 +242,17 @@ namespace Modules::BatteryController
         charging = Battery::checkCharging();
         capacity = lookupCapacity(vBat, charging);
 
-        auto newState = computeState(capacity, vCoil, charging);
+        auto newState = ComputeNewBatteryState();
         if (newState != currentBatteryState)
         {
+            // Update current state time
+            currentBatteryStateStartTime = DriversNRF::Timers::millis();
             switch (newState) {
                 case BatteryState_Done:
                     NRF_LOG_INFO("Battery finished charging");
+                    break;
+                case BatteryState_TrickleCharge:
+                    NRF_LOG_INFO("Battery is trickle charging");
                     break;
                 case BatteryState_Ok:
                     NRF_LOG_INFO("Battery is now Ok");
@@ -230,8 +260,11 @@ namespace Modules::BatteryController
                 case BatteryState_Charging:
                     NRF_LOG_INFO("Battery is now Charging");
                     break;
+                case BatteryState_Transition:
+                    NRF_LOG_INFO("Die is being moved on/off charger");
+                    break;
                 case BatteryState_BadCharging:
-                    NRF_LOG_ERROR("Battery is now Charging Transition");
+                    NRF_LOG_ERROR("Die is likely poorly positionned on charger");
                     break;
                 case BatteryState_Low:
                     NRF_LOG_INFO("Battery is Low");
@@ -274,7 +307,7 @@ namespace Modules::BatteryController
 
             // If it's been too long since we checked, check right away
             uint32_t delay = BATTERY_TIMER_MS;
-            if (DriversNRF::Timers::millis() - lastUpdateTime > BATTERY_TIMER_MS) {
+            if (DriversNRF::Timers::millis() - currentBatteryStateStartTime > BATTERY_TIMER_MS) {
                 delay = BATTERY_TIMER_MS_QUICK;
             }
             // Restart the timer

@@ -154,10 +154,14 @@ namespace Behaviors
     /// </summary>
     enum ConditionBatteryState_Flags : uint8_t
     {
-        ConditionBatteryState_Ok        = 1 << 0,
-        ConditionBatteryState_Low       = 1 << 1,
-		ConditionBatteryState_Charging  = 1 << 2,
-		ConditionBatteryState_Done      = 1 << 3
+        ConditionBatteryState_Ok            = 1 << 0,
+        ConditionBatteryState_Low           = 1 << 1,
+		ConditionBatteryState_Charging      = 1 << 2,
+		ConditionBatteryState_Done          = 1 << 3,
+		ConditionBatteryState_Transition    = 1 << 4,
+		ConditionBatteryState_BadCharging   = 1 << 5,
+		ConditionBatteryState_Error         = 1 << 6,
+		ConditionBatteryState_TrickleCharge = 1 << 7,
     };
 
     /// <summary>

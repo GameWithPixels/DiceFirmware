@@ -14,10 +14,13 @@ namespace Modules::BatteryController
 		BatteryState_Ok,			// Battery looks fine, nothing is happening
 		BatteryState_Low,			// Battery level is low, notify user they should recharge
 		BatteryState_Charging,		// Battery is currently recharging
+		BatteryState_Transition,	// Coil voltage is bad, but we don't know yet if that's because we removed the die and
+									// the coil cap is still discharging, or if indeed the die is incorrectly positionned
 		BatteryState_BadCharging,	// Coil voltage is bad, die is probably positionned incorrectly
 									// Note that currently this state is triggered during transition between charging and not charging...
 		BatteryState_Error,			// Charge state doesn't make sense (charging but no coil voltage detected for instance)
-		BatteryState_Done			// Battery finished charging
+		BatteryState_TrickleCharge, // Battery is almost full
+		BatteryState_Done			// Battery is full and finished charging
 	};
 
 	BatteryState getCurrentChargeState();
