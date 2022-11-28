@@ -175,6 +175,18 @@
 // 0 (highest) -> 7 (Lowest)
 #define NRFX_TIMER_DEFAULT_CONFIG_IRQ_PRIORITY 6
 
+
+//==========================================================
+// Temperature driver
+//==========================================================
+
+// <e> NRFX_TEMP_ENABLED - temperature sensor
+#define NRFX_TEMP_ENABLED 1
+
+// <o> NRFX_TEMP_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority for temperature sensor
+// 0 (highest) -> 7 (Lowest)
+#define NRFX_TEMP_DEFAULT_CONFIG_IRQ_PRIORITY 6
+
 //==========================================================
 // UARTE peripheral driver
 //==========================================================

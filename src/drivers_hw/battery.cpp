@@ -156,6 +156,9 @@ namespace Battery
         nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
         charging = checkChargingInternal();
 
+        // By default we don't want to touch anything wrt charge programming
+        setDisableChargingOverride(false);
+
         // We'll re-use this config struct over and over, set up the starting parameters now
         in_config.sense = NRF_GPIOTE_POLARITY_HITOLO;
         in_config.pull = NRF_GPIO_PIN_PULLUP;
@@ -256,11 +259,23 @@ namespace Battery
 		}
     }
 
+    void setDisableChargingOverride(bool disable) {
+        auto progPin = BoardManager::getBoard()->progPin;
+        if (progPin != 0xFF) {
+            if (disable) {
+                nrf_gpio_cfg_output(progPin);
+                nrf_gpio_pin_set(progPin);
+            } else {
+                nrf_gpio_cfg_default(progPin);
+            }
+        }
+    }
+
+
 	/// <summary>
 	/// Method used by clients to request callbacks when battery changes state
 	/// </summary>
-	void hook(ClientMethod callback, void* parameter)
-	{
+	void hook(ClientMethod callback, void* parameter) {
 		if (!clients.Register(parameter, callback))
 		{
 			NRF_LOG_ERROR("Too many battery hooks registered.");
@@ -270,16 +285,14 @@ namespace Battery
 	/// <summary>
 	/// Method used by clients to stop getting battery callbacks
 	/// </summary>
-	void unHook(ClientMethod callback)
-	{
+	void unHook(ClientMethod callback) {
 		clients.UnregisterWithHandler(callback);
 	}
 
 	/// <summary>
 	/// Method used by clients to stop getting battery callbacks
 	/// </summary>
-	void unHookWithParam(void* param)
-	{
+	void unHookWithParam(void* param) {
 		clients.UnregisterWithToken(param);
 	}
 }

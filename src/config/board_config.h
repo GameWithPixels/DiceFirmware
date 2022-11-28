@@ -75,6 +75,7 @@ namespace Config
             uint8_t coilSensePin;
             uint8_t vbatSensePin;
             uint8_t vledSensePin;
+            uint8_t progPin;
 
             // Magnet pin
             uint8_t magnetPin;

@@ -15,6 +15,7 @@
 #include "drivers_nrf/gpiote.h"
 #include "drivers_nrf/ppi.h"
 #include "drivers_nrf/dfu.h"
+#include "drivers_nrf/temperature.h"
 
 #include "config/board_config.h"
 #include "config/settings.h"
@@ -279,83 +280,88 @@ namespace Die
             // Battery sense pin depends on board info
             Battery::init();
 
-            //--------------------
-            // Initialize Modules
-            //--------------------
-
-            // Animation set needs flash and board info
-            DataSet::init([] (bool result) {
-
-            #if defined(DEBUG)
-                // Useful for development
-                LEDColorTester::init();
-            #endif
-
-                // Telemetry depends on accelerometer
-                Telemetry::init();
-
-                // Animation controller relies on animation set
-                AnimController::init();
-
-                // Battery controller relies on the battery driver
-                BatteryController::init();
-
+            // Temperature sensor
+            Temperature::init([] (bool result) {
                 //--------------------
-                // Initialize Bluetooth Advertising Data + Name
+                // Initialize Modules
                 //--------------------
 
-                // The advertising name depends on settings
-                Stack::initAdvertisingName();
+                // Animation set needs flash and board info
+                DataSet::init([] (bool result) {
 
-                // Now that the settings are set, update custom advertising data such as die type and battery level
-                Stack::initCustomAdvertisingData();
+                #if defined(DEBUG)
+                    // Useful for development
+                    LEDColorTester::init();
+                #endif
 
-                const bool inValidation = ValidationManager::inValidation();
-                if (!inValidation)
-                {
-                    // Want to prevent sleep mode due to animations while not in validation
-                    AnimController::hook(feed, nullptr);
-                }
+                    // Telemetry depends on accelerometer
+                    Telemetry::init();
 
-                // Behavior Controller relies on all the modules
-                BehaviorController::init();
+                    // Animation controller relies on animation set
+                    AnimController::init();
 
-                // Animation Preview depends on bluetooth
-                AnimationPreview::init();
+                    // Battery controller relies on the battery driver
+                    BatteryController::init();
 
-                // Instant Animation Controller preview depends on bluetooth
-                InstantAnimationController::init();
+                    //--------------------
+                    // Initialize Bluetooth Advertising Data + Name
+                    //--------------------
 
-                // Rssi controller requires the bluetooth stack
-                RssiController::init();
+                    // The advertising name depends on settings
+                    Stack::initAdvertisingName();
 
-                // Get ready for handling hardware test messages
-                HardwareTest::init();
+                    // Now that the settings are set, update custom advertising data such as die type and battery level
+                    Stack::initCustomAdvertisingData();
 
-                // Start advertising!
-                Stack::startAdvertising();
+                    const bool inValidation = ValidationManager::inValidation();
+                    if (!inValidation)
+                    {
+                        // Want to prevent sleep mode due to animations while not in validation
+                        AnimController::hook(feed, nullptr);
+                    }
 
-                // Initialize common logic
-                initMainLogic();
+                    // Behavior Controller relies on all the modules
+                    BehaviorController::init();
 
-                // Skip registering unecessary BLE messages in validation mode
-                if (!inValidation)
-                {
-                    // Initialize main die logic
-                    initDieLogic();
-                }
+                    // Animation Preview depends on bluetooth
+                    AnimationPreview::init();
 
-                // Entering the main loop! Play Hello! anim
-                // if in validation mode
-                if (inValidation) {
-                    ValidationManager::init();
-                    ValidationManager::onDiceInitialized();
-                } else {
-                    BehaviorController::onDiceInitialized();
-                }
+                    // Instant Animation Controller preview depends on bluetooth
+                    InstantAnimationController::init();
 
-                NRF_LOG_INFO("----- Device initialized! -----");
+                    // Rssi controller requires the bluetooth stack
+                    RssiController::init();
+
+                    // Get ready for handling hardware test messages
+                    HardwareTest::init();
+
+                    // Start advertising!
+                    Stack::startAdvertising();
+
+                    // Initialize common logic
+                    initMainLogic();
+
+                    // Skip registering unecessary BLE messages in validation mode
+                    if (!inValidation)
+                    {
+                        // Initialize main die logic
+                        initDieLogic();
+                    }
+
+                    // Entering the main loop! Play Hello! anim
+                    // if in validation mode
+                    if (inValidation) {
+                        ValidationManager::init();
+                        ValidationManager::onDiceInitialized();
+                    } else {
+                        BehaviorController::onDiceInitialized();
+                    }
+
+                    NRF_LOG_INFO("----- Device initialized! -----");
+                });
+
             });
+
         });
     }
 }

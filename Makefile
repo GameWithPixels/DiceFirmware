@@ -114,6 +114,7 @@ SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_wdt.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_ppi.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_temp.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_timer.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
@@ -156,6 +157,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/drivers_nrf/ppi.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/power_manager.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/scheduler.cpp \
+	$(PROJ_DIR)/src/drivers_nrf/temperature.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/timers.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/watchdog.cpp \
 	$(PROJ_DIR)/src/modules/accelerometer.cpp \
