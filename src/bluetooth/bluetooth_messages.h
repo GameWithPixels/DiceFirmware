@@ -79,6 +79,8 @@ struct Message
 		MessageType_TransferInstantAnimSetFinished,
 		MessageType_PlayInstantAnim,
 		MessageType_StopAllAnims,
+		MessageType_RequestTemperature,
+		MessageType_Temperature,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -475,6 +477,16 @@ struct MessagePlayInstantAnim
 
 	MessagePlayInstantAnim() : Message(Message::MessageType_PlayInstantAnim) {}
 };
+
+struct MessageTemperature
+	: public Message
+{
+	int16_t tempTimes100;
+
+	MessageTemperature() : Message(Message::MessageType_Temperature) {}
+};
+
+
 
 }
 

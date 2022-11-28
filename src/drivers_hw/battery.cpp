@@ -17,10 +17,6 @@
 #include "../drivers_nrf/scheduler.h"
 #include "../core/delegate_array.h"
 
-#include "bluetooth/bluetooth_messages.h"
-#include "bluetooth/bluetooth_message_service.h"
-#include "bluetooth/bluetooth_stack.h"
-
 using namespace DriversNRF;
 using namespace Config;
 

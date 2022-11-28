@@ -45,6 +45,7 @@ namespace Bluetooth
                 // Yes, go ahead and allocate
                 auto sizeptr = (uint16_t*)(void*)(buffer + _end);
                 *sizeptr = size;
+
                 auto queueMsg = (Message*)(void*)(buffer + _end + sizeof(uint16_t));
                 memcpy(queueMsg, msg, size);
                 _end += size + sizeof(uint16_t);
@@ -69,17 +70,18 @@ namespace Bluetooth
 			if (ret)
 			{
                 auto sizeptr = (uint16_t*)(void*)(buffer);
-                uint16_t s = *sizeptr;
+                uint16_t msgSize = *sizeptr;
+				uint16_t bufferSize = msgSize + sizeof(uint16_t);
                 auto msg = (const Message*)(void*)(buffer + sizeof(uint16_t));
-				ret = functor(msg, s);
+				ret = functor(msg, msgSize);
 				if (ret)
 				{
                     // Shift everything down
-                    auto nextItemPtr = (uint8_t*)(void*)(buffer + s);
-                    memcpy(buffer, nextItemPtr, _end - s);
+                    auto nextItemPtr = (uint8_t*)(void*)(buffer + bufferSize);
+                    memcpy(buffer, nextItemPtr, _end - bufferSize);
 
                     // Update counts
-                    _end -= s + sizeof(uint16_t);
+                    _end -= bufferSize;
                     _count--;
                 }
 			}
