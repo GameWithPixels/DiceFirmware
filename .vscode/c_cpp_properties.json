@@ -43,7 +43,8 @@
             },
             "cStandard": "c11",
             "cppStandard": "c++11",
-            "forcedInclude": []
+            "forcedInclude": [],
+            "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],
     "version": 4
