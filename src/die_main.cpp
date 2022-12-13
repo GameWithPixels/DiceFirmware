@@ -165,9 +165,10 @@ namespace Die
     }
 
     void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace) {
-        if (Bluetooth::MessageService::isConnected()) {
-            sendRollState(newRollState, newFace);
-        }
+        if (MessageService::canSend)
+            {
+                sendRollState(newRollState, newFace);
+            }
 
         currentRollState = newRollState;
         currentFace = newFace;

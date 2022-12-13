@@ -31,7 +31,7 @@ namespace Behaviors
                 case Action_PlaySound:
                     {
                         auto playSoundAction = static_cast<const ActionPlaySound*>(action);
-                        if (Stack::isConnected())
+                        if (MessageService::canSend())
                         {
                             NRF_LOG_INFO("Playing sound %08x", playSoundAction->clipId);
                             MessagePlaySound playSound;

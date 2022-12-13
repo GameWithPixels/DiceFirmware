@@ -38,14 +38,15 @@ namespace Bluetooth::Telemetry
 	void onAccDataReceived(void* param, const Accelerometer::AccelFrame& frame) {
         uint32_t time = DriversNRF::Timers::millis();
         if (time - lastMessageMS >= TELEMETRY_RATE_MS) {
-            if (Stack::canSend()) {
+            if (MessageService::canSend()) {
                 teleMessage.accelFrame = frame;
                 // Send the message
-                if (!MessageService::SendMessage(&teleMessage)) {
-                    NRF_LOG_DEBUG("Couldn't send message yet");
-                } else {
+                if (MessageService::SendMessage(&teleMessage)) {
                     lastMessageMS = time;
                 }
+            }
+            else {
+                NRF_LOG_DEBUG("Couldn't send telemetry message");
             }
         }
     }
