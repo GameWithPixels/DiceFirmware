@@ -123,19 +123,25 @@ namespace Bluetooth::MessageService
         })) {
             // No body to the loop, everything happens in the condition
         }
-            
 
         // Send queued messages if possible
-        if (SendQueue.count() > 0 && canSend()) {
-            SendQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
-                auto ret = send((const uint8_t*)msg, msgSize) != Stack::SendResult_Busy;
-                if (ret) {
-                    NRF_LOG_DEBUG("Queued Message of type %d of size %d SENT (Queue=%d)", msg->type, msgSize, SendQueue.count());
-                } else {
-                    NRF_LOG_DEBUG("Queued Message of type %d of size %d NOT SENT (Stack Busy) (Queue=%d)", msg->type, msgSize, SendQueue.count());
-                }
-                return ret;
-            });
+        if (SendQueue.count() > 0) {
+            if (!Stack::isConnected()) {
+                NRF_LOG_INFO("Disconnected, clearing messages send queue!");
+                SendQueue.clear();
+            }
+            else if (canSend()) {
+                NRF_LOG_INFO("%d", SendQueue.count());
+                SendQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
+                    auto ret = send((const uint8_t*)msg, msgSize) != Stack::SendResult_Busy;
+                    if (ret) {
+                        NRF_LOG_DEBUG("Queued Message of type %d of size %d SENT (Queue=%d)", msg->type, msgSize, SendQueue.count());
+                    } else {
+                        NRF_LOG_DEBUG("Queued Message of type %d of size %d NOT SENT (Stack Busy) (Queue=%d)", msg->type, msgSize, SendQueue.count());
+                    }
+                    return ret;
+                });
+            }
         }
 
         // If either queues aren't empty, reschedule update() call.
@@ -179,8 +185,6 @@ namespace Bluetooth::MessageService
         Message msg(msgType);
         return SendMessage(&msg, sizeof(Message));
     }
-
-
 
     bool SendMessage(const Message* msg, int msgSize) {
         bool ret = false;
