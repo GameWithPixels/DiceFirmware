@@ -95,7 +95,7 @@ namespace Bluetooth::Stack
         uint8_t designAndColor;
         Accelerometer::RollState rollState; // Indicates whether the dice is being shaken, 8 bits
         uint8_t currentFace; // Which face is currently up
-        uint8_t batteryLevel; // 8 bits, charge level 0 -> 255
+        uint8_t batteryLevelAndCharging; // Charge level in percent, MSB is charging
     };
 
     struct CustomServiceData
@@ -155,9 +155,10 @@ namespace Bluetooth::Stack
 #endif
 
     void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace);
-    void onBatteryLevelChange(void *param, uint8_t newLevel);
+    void onBatteryStateChange(void *param, BatteryController::BatteryState state);
+    void onBatteryLevelChange(void *param, uint8_t levelPercent);
     void updateCustomAdvertisingDataState(Accelerometer::RollState newState, int newFace);
-    void updateCustomAdvertisingDataBattery(uint8_t newLevel);
+    void updateCustomAdvertisingDataBattery(uint8_t batteryValue, uint8_t mask);
 
     /**@brief Function for handling BLE events.
      *
@@ -198,7 +199,8 @@ namespace Bluetooth::Stack
                 // Unhook from accelerometer events, we don't need them
                 Accelerometer::unHookRollState(onRollStateChange);
 
-                // Unhook battery levels too
+                // Unhook battery events too
+                BatteryController::unHook(onBatteryStateChange);
                 BatteryController::unHookLevel(onBatteryLevelChange);
 
                 break;
@@ -294,6 +296,9 @@ namespace Bluetooth::Stack
 
                 // Register to be notified of accelerometer changes
                 Accelerometer::hookRollState(onRollStateChange, nullptr);
+
+                // And battery events too
+                BatteryController::hook(onBatteryStateChange, nullptr);
                 BatteryController::hookLevel(onBatteryLevelChange, nullptr);
 
                 currentlyAdvertising = true;
@@ -455,13 +460,19 @@ namespace Bluetooth::Stack
         APP_ERROR_CHECK(err_code);
     }
 
+	bool isProperlyOnCharger(BatteryController::BatteryState state) {
+        return state >= BatteryController::BatteryState_Charging;
+    }
+
     void initCustomAdvertisingData() {
         // Initialize the custom advertising data
         customManufacturerData.ledCount = Config::BoardManager::getBoard()->ledCount;
         customManufacturerData.designAndColor = Config::SettingsManager::getSettings()->designAndColor;
         customManufacturerData.rollState = Accelerometer::RollState_Unknown;
         customManufacturerData.currentFace = 0;
-        customManufacturerData.batteryLevel = (uint8_t)(BatteryController::getLevelPercent());
+        customManufacturerData.batteryLevelAndCharging =
+            (BatteryController::getLevelPercent() & 0x7F) |
+            (isProperlyOnCharger(BatteryController::getChargeState()) ? 0x80 : 0);
         customServiceData.deviceId = Die::getDeviceID();
         customServiceData.buildTimestamp = BUILD_TIMESTAMP;
 
@@ -479,16 +490,21 @@ namespace Bluetooth::Stack
         NRF_LOG_DEBUG("Advertisement payload size: %d, and scan response payload size: %d", advertisingModule.adv_data.adv_data.len, advertisingModule.adv_data.scan_rsp_data.len);
     }
 
-    void onBatteryLevelChange(void* param, uint8_t newLevel) {
-        updateCustomAdvertisingDataBattery(newLevel);
+    void onBatteryStateChange(void *param, BatteryController::BatteryState state) {
+        updateCustomAdvertisingDataBattery((isProperlyOnCharger(state) ? 1 : 0) << 7, 0x7F);
+    }
+
+    void onBatteryLevelChange(void *param, uint8_t levelPercent) {
+        updateCustomAdvertisingDataBattery(levelPercent & 0x7F, 0x80);
     }
 
     void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace) {
         updateCustomAdvertisingDataState(newState, newFace);
     }
 
-    void updateCustomAdvertisingDataBattery(uint8_t batteryLevel) {
-        customManufacturerData.batteryLevel = batteryLevel;
+    void updateCustomAdvertisingDataBattery(uint8_t batteryValue, uint8_t mask) {
+        customManufacturerData.batteryLevelAndCharging &= mask;
+        customManufacturerData.batteryLevelAndCharging |= batteryValue;
 
 #if SDK_VER >= 16
         ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
