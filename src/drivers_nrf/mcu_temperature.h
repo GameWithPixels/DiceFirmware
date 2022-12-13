@@ -2,9 +2,7 @@
 
 namespace DriversNRF::MCUTemperature
 {
-    typedef void (*TemperatureInitCallback)(bool success);
-
-    void init(TemperatureInitCallback callback);
+    void init();
 
     // Notification management
     typedef void(*TemperatureClientMethod)(void* param, int temperatureTimes100);

@@ -1,6 +1,7 @@
 #include "drivers_nrf/mcu_temperature.h"
 #include "drivers_nrf/scheduler.h"
 #include "core/delegate_array.h"
+#include "app_error.h"
 
 #include "nrfx_temp.h"
 #include "nrf_log.h"
@@ -25,24 +26,14 @@ namespace DriversNRF::MCUTemperature
     void temperatureReadyHandler(int32_t raw_measurement);
     void getTemperatureHandler(const Message* msg);
 
-    void init(TemperatureInitCallback callback) {
-        nrfx_temp_init(&temp_config, temperatureReadyHandler);
-        ret_code_t ret = nrfx_temp_measure();
-        if (ret == NRF_SUCCESS) {
-            // Since reading temperature takes times and uses our interrupt handler, register a lambda
-            // and we'll unregister it once we have a result.
-            clients.Register((void*)callback, [] (void* the_callback, int the_temp) {
-                NRF_LOG_INFO("MCU Temperature Initialized, Temp = %d.%d C", (the_temp / 100), (the_temp % 100));
-                clients.UnregisterWithToken(the_callback);
+    void init() {
+        ret_code_t err_code = nrfx_temp_init(&temp_config, temperatureReadyHandler);
+        APP_ERROR_CHECK(err_code);
 
-                // Register ourselves as handling temperature messages
-                MessageService::RegisterMessageHandler(Message::MessageType_RequestTemperature, getTemperatureHandler);
+        // Register ourselves as handling temperature messages
+        MessageService::RegisterMessageHandler(Message::MessageType_RequestTemperature, getTemperatureHandler);
 
-                ((TemperatureInitCallback)the_callback)(true);
-            });
-        } else {
-            callback(false);
-        }
+        NRF_LOG_INFO("Temperature Initialized");
     }
 
     void temperatureReadyHandler(int32_t raw_measurement) {
@@ -81,8 +72,7 @@ namespace DriversNRF::MCUTemperature
 	/// <summary>
 	/// Method used by clients to request timer callbacks when accelerometer readings are in
 	/// </summary>
-	void hook(TemperatureClientMethod method, void* parameter)
-	{
+	void hook(TemperatureClientMethod method, void* parameter) {
 		if (!clients.Register(parameter, method))
 		{
 			NRF_LOG_ERROR("Too many Temperature hooks registered.");
@@ -92,17 +82,14 @@ namespace DriversNRF::MCUTemperature
 	/// <summary>
 	/// Method used by clients to stop getting accelerometer reading callbacks
 	/// </summary>
-	void unHook(TemperatureClientMethod method)
-	{
+	void unHook(TemperatureClientMethod method) {
 		clients.UnregisterWithHandler(method);
 	}
 
 	/// <summary>
 	/// Method used by clients to stop getting accelerometer reading callbacks
 	/// </summary>
-	void unHookWithParam(void* param)
-	{
+	void unHookWithParam(void* param) {
 		clients.UnregisterWithToken(param);
 	}
-
 }

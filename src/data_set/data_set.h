@@ -20,9 +20,10 @@ namespace DataSet
 {
 	struct Data;
 
+	typedef void (*InitCallback)();
 	typedef void (*DataSetWrittenCallback)(bool success);
 
-	void init(DataSetWrittenCallback callback);
+	void init(InitCallback callback);
 	bool CheckValid();
 
 	uint32_t availableDataSize();

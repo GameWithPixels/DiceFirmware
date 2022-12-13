@@ -55,15 +55,15 @@ namespace Modules::AnimController
 	void onPowerEvent(void* context, PowerManager::PowerManagerEvent event) {
 		switch (event) {
 			case PowerManager::PowerManagerEvent_PrepareWakeUp:
-				NRF_LOG_INFO("Stopping animations for system off mode");
+				NRF_LOG_INFO("Stopping anims for system off mode");
 				stop();
 				break;
 			case PowerManager::PowerManagerEvent_PrepareSleep:
-				NRF_LOG_INFO("Stopping animations for sleep mode");
+				NRF_LOG_INFO("Stopping anims for sleep mode");
 				stop();
 				break;;
 			case PowerManager::PowerManagerEvent_WakingUpFromSleep:
-				NRF_LOG_INFO("Resuming animations after wake up");
+				NRF_LOG_INFO("Resuming anims after wake up");
 				start();
 				break;
 			default:
@@ -341,7 +341,7 @@ namespace Modules::AnimController
 	}
 
 	void printAnimControllerStateHandler(const Message* msg) {
-		NRF_LOG_INFO("Anim Controller has %d animations", animationCount);
+		NRF_LOG_INFO("Anim Controller has %d anims", animationCount);
 		for (int i = 0; i < animationCount; ++i) {
 			AnimationInstance* anim = animations[i];
 			NRF_LOG_INFO("Anim %d is of type %d, duration %d", i, anim->animationPreset->type, anim->animationPreset->duration);
@@ -352,10 +352,8 @@ namespace Modules::AnimController
 	/// <summary>
 	/// Method used by clients to request timer callbacks
 	/// </summary>
-	void hook(AnimControllerClientMethod method, void* parameter)
-	{
-		if (!clients.Register(parameter, method))
-		{
+	void hook(AnimControllerClientMethod method, void* parameter) {
+		if (!clients.Register(parameter, method)) {
 			NRF_LOG_ERROR("Failed to register AnimationController hook because client array is full");
 		}
 	}
@@ -363,8 +361,7 @@ namespace Modules::AnimController
 	/// <summary>
 	/// Method used by clients to stop getting callbacks
 	/// </summary>
-	void unHook(AnimControllerClientMethod method)
-	{
+	void unHook(AnimControllerClientMethod method) {
 		clients.UnregisterWithHandler(method);
 	}
 }

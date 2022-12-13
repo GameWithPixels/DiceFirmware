@@ -263,7 +263,7 @@ namespace Die
         A2D::initBoardPins();
 
         // Then we read user settings from flash, or set some defaults if none are found
-        SettingsManager::init([] (bool result) {
+        SettingsManager::init([] () {
 
             // I2C is needed for the accelerometer, but depends on the board info to know which pins to use
             I2C::init();
@@ -285,83 +285,82 @@ namespace Die
             NTC::init();
 
             // Temperature sensor
-            MCUTemperature::init([] (bool result) {
-                
+            MCUTemperature::init();
+            
+            //--------------------
+            // Initialize Modules
+            //--------------------
+
+            // Animation set needs flash and board info
+            DataSet::init([] () {
+
+            #if defined(DEBUG)
+                // Useful for development
+                LEDColorTester::init();
+            #endif
+
+                // Telemetry depends on accelerometer
+                Telemetry::init();
+
+                // Animation controller relies on animation set
+                AnimController::init();
+
+                // Battery controller relies on the battery driver
+                BatteryController::init();
+
                 //--------------------
-                // Initialize Modules
+                // Initialize Bluetooth Advertising Data + Name
                 //--------------------
 
-                // Animation set needs flash and board info
-                DataSet::init([] (bool result) {
+                // The advertising name depends on settings
+                Stack::initAdvertisingName();
 
-                #if defined(DEBUG)
-                    // Useful for development
-                    LEDColorTester::init();
-                #endif
+                // Now that the settings are set, update custom advertising data such as die type and battery level
+                Stack::initCustomAdvertisingData();
 
-                    // Telemetry depends on accelerometer
-                    Telemetry::init();
+                const bool inValidation = ValidationManager::inValidation();
+                if (!inValidation)
+                {
+                    // Want to prevent sleep mode due to animations while not in validation
+                    AnimController::hook(feed, nullptr);
+                }
 
-                    // Animation controller relies on animation set
-                    AnimController::init();
+                // Behavior Controller relies on all the modules
+                BehaviorController::init();
 
-                    // Battery controller relies on the battery driver
-                    BatteryController::init();
+                // Animation Preview depends on bluetooth
+                AnimationPreview::init();
 
-                    //--------------------
-                    // Initialize Bluetooth Advertising Data + Name
-                    //--------------------
+                // Instant Animation Controller preview depends on bluetooth
+                InstantAnimationController::init();
 
-                    // The advertising name depends on settings
-                    Stack::initAdvertisingName();
+                // Rssi controller requires the bluetooth stack
+                RssiController::init();
 
-                    // Now that the settings are set, update custom advertising data such as die type and battery level
-                    Stack::initCustomAdvertisingData();
+                // Get ready for handling hardware test messages
+                HardwareTest::init();
 
-                    const bool inValidation = ValidationManager::inValidation();
-                    if (!inValidation)
-                    {
-                        // Want to prevent sleep mode due to animations while not in validation
-                        AnimController::hook(feed, nullptr);
-                    }
+                // Start advertising!
+                Stack::startAdvertising();
 
-                    // Behavior Controller relies on all the modules
-                    BehaviorController::init();
-
-                    // Animation Preview depends on bluetooth
-                    AnimationPreview::init();
-
-                    // Instant Animation Controller preview depends on bluetooth
-                    InstantAnimationController::init();
-
-                    // Rssi controller requires the bluetooth stack
-                    RssiController::init();
-
-                    // Get ready for handling hardware test messages
-                    HardwareTest::init();
-
-                    // Start advertising!
-                    Stack::startAdvertising();
-
-                    // Initialize common logic
-                    initMainLogic();
+                // Initialize common logic
+                initMainLogic();
 
 
-                    // Entering the main loop! Play Hello! anim if in validation mode
-                    if (inValidation) {
-                        initValidationLogic();
-                        ValidationManager::init();
-                        ValidationManager::onDiceInitialized();
-                    } else {
-                        initDieLogic();
-                        BehaviorController::onDiceInitialized();
-                    }
+                // Entering the main loop! Play Hello! anim if in validation mode
+                if (inValidation) {
+                    initValidationLogic();
+                    ValidationManager::init();
+                    ValidationManager::onDiceInitialized();
+                } else {
+                    initDieLogic();
+                    BehaviorController::onDiceInitialized();
+                }
 
-                    NRF_LOG_INFO("----- Device initialized! -----");
-                });
-
+                NRF_LOG_INFO("----- Device initialized! -----");
             });
 
         });
+
     }
 }

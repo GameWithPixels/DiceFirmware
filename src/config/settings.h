@@ -55,9 +55,10 @@ namespace Config
 
 	namespace SettingsManager
 	{
+		typedef void (*InitCallback)();
 		typedef void (*SettingsWrittenCallback)(bool success);
 
-		void init(SettingsWrittenCallback callback);
+		void init(InitCallback callback);
 		bool checkValid();
 		Config::Settings const * const getSettings();
 

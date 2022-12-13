@@ -75,7 +75,7 @@ namespace Modules::Accelerometer
         currentFrame.smoothAcc = currentFrame.acc;
 
         start();
-        NRF_LOG_INFO("Accelerometer initialized with accelerometerModel=%d", (int)accelerometerModel);
+        NRF_LOG_INFO("Acc initialized with model=%d", (int)accelerometerModel);
     }
 
     void update(void *context)
@@ -136,9 +136,9 @@ namespace Modules::Accelerometer
         uint32_t newTime = DriversNRF::Timers::millis();
         Core::float3 newJerk = ((acc - currentFrame.acc) * 1000.0f) / (float)(newTime - currentFrame.time);
         
-        //if the time between the last and current time is zero, log it
+        // If the time between the last and current time is zero, log it
         if(newTime - currentFrame.time == 0) {
-            NRF_LOG_INFO("time difference between newFrame and lastFrame is 0, time: %d", newTime);
+            NRF_LOG_INFO("Time diff between frames is 0, time: %d", newTime);
         }      
 
         float jerkMag = newJerk.sqrMagnitude();
@@ -265,7 +265,7 @@ namespace Modules::Accelerometer
     /// </summary>
     void start()
     {
-        NRF_LOG_INFO("Starting accelerometer");
+        NRF_LOG_INFO("Starting acc");
 
         // Set initial value
         readAccelerometer(&currentFrame.acc);
@@ -303,7 +303,7 @@ namespace Modules::Accelerometer
         AccelChip::unHook(accHandler);
         AccelChip::disableDataInterrupt();
 		AccelChip::clearInterrupt();
-        NRF_LOG_INFO("Stopped accelerometer");
+        NRF_LOG_INFO("Stopped acc");
     }
 
     void lowPower()

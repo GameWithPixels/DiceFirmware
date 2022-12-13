@@ -17,7 +17,7 @@
 #include "assert.h"
 #include "nrf_log.h"
 #include "nrf_delay.h"
-
+#include "app_error.h"
 
 using namespace Utils;
 using namespace DriversNRF;
@@ -53,9 +53,8 @@ namespace DataSet
 		return hash;
 	}
 
-	void init(DataSetWrittenCallback callback) {
-
-		static DataSetWrittenCallback _callback; // Don't initialize this static inline because it would only do it on first call!
+	void init(InitCallback callback) {
+		static InitCallback _callback; // Don't initialize this static inline because it would only do it on first call!
 		_callback = callback;
 		data = (Data const *)Flash::getDataSetAddress();
 
@@ -73,19 +72,20 @@ namespace DataSet
 		// NRF_LOG_INFO("0:%x, 1:%x, 2:%x, 3:%x", s0, s1, s2, s3);
 
 		// This gets called after the animation set has been initialized
-		auto finishInit = [] (bool result) {
+		auto finishInit = [] (bool success) {
+	        APP_ERROR_CHECK(success ? NRF_SUCCESS : NRF_ERROR_INTERNAL);
 
-				size = computeDataSetSize();
-				hash = computeDataSetHash();
+			size = computeDataSetSize();
+			hash = computeDataSetHash();
 
-				MessageService::RegisterMessageHandler(Message::MessageType_TransferAnimSet, ReceiveDataSetHandler);
-				NRF_LOG_INFO("DataSet initialized, size=0x%x, hash=0x%08x", size, hash);
-				auto callBackCopy = _callback;
-				_callback = nullptr;
-				if (callBackCopy != nullptr) {
-					callBackCopy(result);
-				}
-			};
+			MessageService::RegisterMessageHandler(Message::MessageType_TransferAnimSet, ReceiveDataSetHandler);
+			NRF_LOG_INFO("DataSet initialized, size=0x%x, hash=0x%08x", size, hash);
+			auto callBackCopy = _callback;
+			_callback = nullptr;
+			if (callBackCopy != nullptr) {
+				callBackCopy();
+			}
+		};
 
 		//ProgramDefaultDataSet();
         if (!CheckValid()) {

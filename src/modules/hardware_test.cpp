@@ -77,7 +77,7 @@ namespace Modules::HardwareTest
     //                                     // LEDs seem good, test charging
     //                                     if (okCancel) {
     //                                         char buffer[100]; buffer[0] = '\0';
-    //                                         const char* stateString = BatteryController::getChargeStateString(BatteryController::getCurrentChargeState());
+    //                                         const char* stateString = BatteryController::getBatteryStateString(BatteryController::getCurrentChargeState());
     //                                         float vbat = Battery::checkVBat();
     //                                         sprintf(buffer, "Battery %s, " SPRINTF_FLOAT_MARKER "V. place on charger!", stateString, SPRINTF_FLOAT(vbat));
     //                                         MessageService::NotifyUser(buffer, false, false, 30, nullptr);

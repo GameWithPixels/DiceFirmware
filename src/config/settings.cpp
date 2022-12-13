@@ -13,6 +13,7 @@
 #include "utils/utils.h"
 #include "data_set/data_set.h"
 #include "die.h"
+#include "app_error.h"
 
 #define SETTINGS_VALID_KEY (0x15E77165) // 1SETTINGS in leet speak ;)
 #define SETTINGS_VERSION 3
@@ -42,13 +43,15 @@ namespace Config::SettingsManager
 	}
 	#endif
 
-	void init(SettingsWrittenCallback callback) {
-		static SettingsWrittenCallback _callback; // Don't initialize this static inline because it would only do it on first call!
+	void init(InitCallback callback) {
+		static InitCallback _callback; // Don't initialize this static inline because it would only do it on first call!
 		_callback = callback;
 
 		settings = (Settings const * const)Flash::getSettingsStartAddress();
 
 		auto finishInit = [](bool success) {
+	        APP_ERROR_CHECK(success ? NRF_SUCCESS : NRF_ERROR_INTERNAL);
+
 			// Register as a handler to program settings
 			MessageService::RegisterMessageHandler(Message::MessageType_ProgramDefaultParameters, ProgramDefaultParametersHandler);
 			MessageService::RegisterMessageHandler(Message::MessageType_SetDesignAndColor, SetDesignTypeAndColorHandler);
@@ -63,7 +66,7 @@ namespace Config::SettingsManager
 			auto callBackCopy = _callback;
 			_callback = nullptr;
 			if (callBackCopy != nullptr) {
-				callBackCopy(success);
+				callBackCopy();
 			}
 		};
 

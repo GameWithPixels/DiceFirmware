@@ -48,7 +48,7 @@ namespace Modules::InstantAnimationController
 
     void ReceiveInstantAnimSetHandler(const Message *msg)
     {
-		NRF_LOG_INFO("Received request to download instant animation");
+        NRF_LOG_INFO("Received request to download instant animation");
         const MessageTransferInstantAnimSet *message = (const MessageTransferInstantAnimSet *)msg;
 
         if (animationsData == nullptr || animationsDataHash != message->hash) {
@@ -154,8 +154,8 @@ namespace Modules::InstantAnimationController
 
     void PlayInstantAnimHandler(const Message *msg) 
     {
-        NRF_LOG_INFO("Received request to play instant animation");
         const MessagePlayInstantAnim *message = (const MessagePlayInstantAnim *)msg;
+        NRF_LOG_INFO("Received request to play instant animation %d", message->animation);
 
         if (animationsData != nullptr && message->animation < animationsCount) {
             // TODO may crash if we are still downloading an animation
@@ -165,10 +165,10 @@ namespace Modules::InstantAnimationController
             AnimController::play((const Animation *)animationPtr, &animationBits, faceIndex, message->loop > 0);
         }
         else if (animationsData == nullptr) {
-            NRF_LOG_INFO("No instant animation in memory");
+            NRF_LOG_DEBUG("No instant animation in memory");
         }
         else {
-            NRF_LOG_INFO("Animation index out of bounds %d >= %d", message->animation, animationsCount);
+            NRF_LOG_DEBUG("Animation index out of bounds %d >= %d", message->animation, animationsCount);
         }
     }
 }

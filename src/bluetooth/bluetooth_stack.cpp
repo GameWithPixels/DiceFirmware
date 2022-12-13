@@ -472,7 +472,7 @@ namespace Bluetooth::Stack
         customManufacturerData.currentFace = 0;
         customManufacturerData.batteryLevelAndCharging =
             (BatteryController::getLevelPercent() & 0x7F) |
-            (isProperlyOnCharger(BatteryController::getChargeState()) ? 0x80 : 0);
+            (isProperlyOnCharger(BatteryController::getBatteryState()) ? 0x80 : 0);
         customServiceData.deviceId = Die::getDeviceID();
         customServiceData.buildTimestamp = BUILD_TIMESTAMP;
 
