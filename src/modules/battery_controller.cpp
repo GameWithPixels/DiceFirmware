@@ -33,7 +33,7 @@ using namespace Utils;
 #define TRANSITION_TOO_LONG_DURATION_MS 10000 // 10s
 #define TEMPERATURE_TOO_HOT_ENTER 45.0f // degrees C
 #define TEMPERATURE_TOO_HOT_LEAVE 40.0f // degrees C
-
+#define LEVEL_SMOOTHING_RATIO (60000 / BATTERY_TIMER_MS) // One minute of average smoothing latency
 
 namespace Modules::BatteryController
 {
@@ -60,6 +60,7 @@ namespace Modules::BatteryController
 
     static uint16_t vBatMilli = 0;
     static uint16_t vCoilMilli = 0;
+    static uint32_t smoothedLevel = 0;
     static uint8_t levelPercent = 0;
     static bool charging = false;
 
@@ -404,19 +405,32 @@ namespace Modules::BatteryController
             nextIndex++;
         }
 
-		levelPercent = 0;
+		uint8_t measuredLevel = 0;
 		if (nextIndex == 0) {
-			levelPercent = 100;
-		} else if (nextIndex == VBAT_LOOKUP_SIZE) {
-			levelPercent = 0;
-		} else {
+            measuredLevel = 100;
+        } else if (nextIndex == VBAT_LOOKUP_SIZE) {
+            measuredLevel = 0;
+        } else {
 			// Grab the prev and next keyframes
             auto next = lookup[nextIndex];
             auto prev = lookup[nextIndex - 1];
 
 			// Compute the interpolation parameter
             int percentMilli = ((int)prev.voltageMilli - (int)vBatMilli) * 1000 / ((int)prev.voltageMilli - (int)next.voltageMilli);
-            levelPercent = ((int)prev.levelPercent[chargingOffset] * (1000 - percentMilli) + (int)next.levelPercent[chargingOffset] * percentMilli) / 1000;
+            measuredLevel = ((int)prev.levelPercent[chargingOffset] * (1000 - percentMilli) + (int)next.levelPercent[chargingOffset] * percentMilli) / 1000;
         }
+
+        // Update the smooth level
+        auto newSmoothedLevel = measuredLevel << 24;
+        if (smoothedLevel == 0) {
+            smoothedLevel = newSmoothedLevel;
+        } else {
+            // Slowly change the smoothed level
+            int diff = (int)newSmoothedLevel - smoothedLevel;
+            smoothedLevel += diff / LEVEL_SMOOTHING_RATIO;
+        }
+
+        // Round smoothed level into a percentage value
+        levelPercent = (smoothedLevel + (1 << 23)) >> 24;
     }
 }
