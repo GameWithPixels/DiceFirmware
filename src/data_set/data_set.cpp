@@ -296,19 +296,19 @@ namespace DataSet
 
 	void printAnimationInfo() {
 		Timers::pause();
-		NRF_LOG_INFO("Palette: %d * %d", data->animationBits.paletteSize, sizeof(uint8_t));
-		NRF_LOG_INFO("RGB Keyframes: %d * %d", data->animationBits.rgbKeyFrameCount, sizeof(RGBKeyframe));
-		NRF_LOG_INFO("RGB Tracks: %d * %d", data->animationBits.rgbTrackCount, sizeof(RGBTrack));
-		NRF_LOG_INFO("Keyframes: %d * %d", data->animationBits.keyFrameCount, sizeof(Keyframe));
-		NRF_LOG_INFO("Tracks: %d * %d", data->animationBits.trackCount, sizeof(Track));
-		NRF_LOG_INFO("Animation Offsets: %d * %d", data->animationCount, sizeof(uint16_t));
-		NRF_LOG_INFO("Animations: %d", data->animationsSize);
-		NRF_LOG_INFO("Conditions Offsets: %d * %d", data->conditionCount, sizeof(uint16_t));
-		NRF_LOG_INFO("Conditions: %d", data->conditionsSize);
-		NRF_LOG_INFO("Actions Offsets: %d * %d", data->actionCount, sizeof(uint16_t));
-		NRF_LOG_INFO("Actions: %d", data->actionsSize);
-		NRF_LOG_INFO("Rules: %d * %d", data->ruleCount, sizeof(Rule));
-		NRF_LOG_INFO("Behaviors: %d", sizeof(Behavior));
+		NRF_LOG_DEBUG("Palette: %d * %d", data->animationBits.paletteSize, sizeof(uint8_t));
+		NRF_LOG_DEBUG("RGB Keyframes: %d * %d", data->animationBits.rgbKeyFrameCount, sizeof(RGBKeyframe));
+		NRF_LOG_DEBUG("RGB Tracks: %d * %d", data->animationBits.rgbTrackCount, sizeof(RGBTrack));
+		NRF_LOG_DEBUG("Keyframes: %d * %d", data->animationBits.keyFrameCount, sizeof(Keyframe));
+		NRF_LOG_DEBUG("Tracks: %d * %d", data->animationBits.trackCount, sizeof(Track));
+		NRF_LOG_DEBUG("Animation Offsets: %d * %d", data->animationCount, sizeof(uint16_t));
+		NRF_LOG_DEBUG("Animations: %d", data->animationsSize);
+		NRF_LOG_DEBUG("Conditions Offsets: %d * %d", data->conditionCount, sizeof(uint16_t));
+		NRF_LOG_DEBUG("Conditions: %d", data->conditionsSize);
+		NRF_LOG_DEBUG("Actions Offsets: %d * %d", data->actionCount, sizeof(uint16_t));
+		NRF_LOG_DEBUG("Actions: %d", data->actionsSize);
+		NRF_LOG_DEBUG("Rules: %d * %d", data->ruleCount, sizeof(Rule));
+		NRF_LOG_DEBUG("Behaviors: %d", sizeof(Behavior));
 		Timers::resume();
 	}
 

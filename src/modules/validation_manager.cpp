@@ -65,7 +65,7 @@ namespace Modules::ValidationManager
     // Stop playing name animation
     void stopNameAnim()
     {
-        NRF_LOG_INFO("Stopping name animation");
+        NRF_LOG_DEBUG("Stopping name animation");
         AnimController::stopAll();
         isPlaying = false;
     }
@@ -73,7 +73,7 @@ namespace Modules::ValidationManager
     // Start playing name animation
     void startNameAnim()
     {
-        NRF_LOG_INFO("Starting name animation");
+        NRF_LOG_DEBUG("Starting name animation");
         AnimController::play(&nameAnim, nullptr, 0, true); // Loop forever! (until timeout)
         isPlaying = true;
     }

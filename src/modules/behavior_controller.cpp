@@ -83,11 +83,11 @@ namespace BehaviorController
                         // Go on, do the thing!
                         if (PowerManager::checkFromSleep()) 
                         {
-                            NRF_LOG_INFO("Skipping HelloGoodbye Condition");
+                            NRF_LOG_DEBUG("Skipping HelloGoodbye Condition");
                         }
                         else
                         {
-                            NRF_LOG_INFO("Triggering a HelloGoodbye Condition");
+                            NRF_LOG_DEBUG("Triggering a HelloGoodbye Condition");
                             Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
                         }
                     // } else {

@@ -159,7 +159,7 @@ namespace Modules::LEDs
             }
 
             // Turn the power on
-            NRF_LOG_INFO("LED Power On");
+            NRF_LOG_DEBUG("LED Power On");
             nrf_gpio_pin_set(powerPin);
             powerOn = true;
 
@@ -174,7 +174,7 @@ namespace Modules::LEDs
             return;
 
         // Turn power off
-        NRF_LOG_INFO("LED Power Off");
+        NRF_LOG_DEBUG("LED Power Off");
         nrf_gpio_pin_clear(powerPin);
         powerOn = false;
 

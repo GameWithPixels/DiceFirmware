@@ -98,7 +98,7 @@ namespace Config::SettingsManager
 
 	void SetDesignTypeAndColorHandler(const Message* msg) {
 		auto designMsg = (const MessageSetDesignAndColor*)msg;
-		NRF_LOG_INFO("Received request to set design to %d", designMsg->designAndColor);
+		NRF_LOG_DEBUG("Received request to set design to %d", designMsg->designAndColor);
 		programDesignAndColor(designMsg->designAndColor, [](bool result) {
 			MessageService::SendMessage(Message::MessageType_SetDesignAndColorAck);
 		});
@@ -106,7 +106,7 @@ namespace Config::SettingsManager
 
 	void SetNameHandler(const Message* msg) {
 		auto nameMsg = (const MessageSetName*)msg;
-		NRF_LOG_INFO("Received request to rename die to %s", nameMsg->name);
+		NRF_LOG_DEBUG("Received request to rename die to %s", nameMsg->name);
 		programName(nameMsg->name, [](bool result) {
 			MessageService::SendMessage(Message::MessageType_SetNameAck);
 		});
@@ -212,7 +212,7 @@ namespace Config::SettingsManager
 			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 		}
 		else {
-			NRF_LOG_INFO("DesignAndColor already set to %s", design);
+			NRF_LOG_DEBUG("DesignAndColor already set to %s", design);
 			callback(true);
 		}
 	}

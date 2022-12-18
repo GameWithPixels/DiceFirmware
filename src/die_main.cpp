@@ -174,18 +174,18 @@ namespace Die
 
     void PlayLEDAnimHandler(const Message* msg) {
         auto playAnimMessage = (const MessagePlayAnim*)msg;
-        NRF_LOG_INFO("Playing animation %d", playAnimMessage->animation);
+        NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
         AnimController::play(playAnimMessage->animation, playAnimMessage->remapFace, playAnimMessage->loop);
     }
 
     void StopLEDAnimHandler(const Message* msg) {
         auto stopAnimMessage = (const MessageStopAnim*)msg;
-        NRF_LOG_INFO("Stopping animation %d", stopAnimMessage->animation);
+        NRF_LOG_DEBUG("Stopping animation %d", stopAnimMessage->animation);
         AnimController::stop((int)stopAnimMessage->animation, stopAnimMessage->remapFace);
     }
 
     void StopAllLEDAnimsHandler(const Message* msg) {
-        NRF_LOG_INFO("Stopping all animations");
+        NRF_LOG_DEBUG("Stopping all animations");
         AnimController::stopAll();
     }
 

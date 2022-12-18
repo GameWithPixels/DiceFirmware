@@ -265,7 +265,7 @@ namespace Stack
 
             case BLE_GATTS_EVT_HVC:
                 // Last notification was cleared!
-                NRF_LOG_INFO("Confirmation Received!");
+                NRF_LOG_DEBUG("Confirmation Received!");
                 notificationPending = false;
                 break;
 
@@ -474,7 +474,7 @@ namespace Stack
 #endif
         APP_ERROR_CHECK(err_code);
 
-        NRF_LOG_INFO("Advertisement payload size: %d, and scan response payload size: %d", advertisingModule.adv_data.adv_data.len, advertisingModule.adv_data.scan_rsp_data.len);
+        NRF_LOG_DEBUG("Advertisement payload size: %d, and scan response payload size: %d", advertisingModule.adv_data.adv_data.len, advertisingModule.adv_data.scan_rsp_data.len);
     }
 
     void onBatteryLevelChange(void* param, float newLevel) {
@@ -560,7 +560,7 @@ namespace Stack
 
         err_code = ble_advertising_start(&advertisingModule, BLE_ADV_MODE_FAST);
         APP_ERROR_CHECK(err_code);
-        NRF_LOG_INFO("Starting advertising with name=%s and deviceId=0x%x", SettingsManager::getSettings()->name, customServiceData.deviceId);
+        NRF_LOG_DEBUG("Starting advertising with name=%s and deviceId=0x%x", SettingsManager::getSettings()->name, customServiceData.deviceId);
     }
 
     void disableAdvertisingOnDisconnect() {
@@ -627,11 +627,13 @@ namespace Stack
     }
 
     void slowAdvertising() {
-        ble_advertising_start(&advertisingModule, BLE_ADV_MODE_SLOW);
+        ret_code_t err_code = ble_advertising_start(&advertisingModule, BLE_ADV_MODE_SLOW);
+        APP_ERROR_CHECK(err_code);
     }
 
     void stopAdvertising() {
-        ble_advertising_start(&advertisingModule, BLE_ADV_MODE_IDLE);
+        ret_code_t err_code = ble_advertising_start(&advertisingModule, BLE_ADV_MODE_IDLE);
+        APP_ERROR_CHECK(err_code);
     }
 
     bool isConnected() {

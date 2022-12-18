@@ -190,7 +190,7 @@ namespace Timers
         if (delayedCallbackPauseRequestCount == 0) {
             // Cancel current timer, if any
             if (delayedCallbacksCount > 0) {
-                NRF_LOG_INFO("Pausing delayed callbacks");
+                NRF_LOG_DEBUG("Pausing delayed callbacks");
                 stopTimer(delayedCallbacksTimer);
             }
         }
@@ -202,7 +202,7 @@ namespace Timers
         if (delayedCallbackPauseRequestCount == 0) {
             // Resume current timer, if any
             if (delayedCallbacksCount > 0 && delayedCallbacks[0].callbackTime < millis()) {
-                NRF_LOG_INFO("Resuming delayed callbacks");
+                NRF_LOG_DEBUG("Resuming delayed callbacks");
                 delayedCallbacksTimerCallback(nullptr); 
             }
         }
