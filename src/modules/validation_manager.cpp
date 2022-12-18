@@ -28,7 +28,7 @@ namespace Modules::ValidationManager
 
     void stopNameAnim();
     void startNameAnim();
-    void onConnection(void *token, bool connected);
+    void onConnectionEvent(void *token, bool connected);
     void exitValidationModeHandler(const Message *msg);
 
     void GoToSleepCallback(void* ignore);
@@ -47,7 +47,7 @@ namespace Modules::ValidationManager
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, exitValidationModeHandler);
 
         // Hook local connection function to BLE connection events
-        Bluetooth::Stack::hook(onConnection, nullptr);
+        Bluetooth::Stack::hook(onConnectionEvent, nullptr);
 
         NRF_LOG_INFO("Validation Manager Initialized");
     }
@@ -79,7 +79,7 @@ namespace Modules::ValidationManager
     }
 
     // Function for name animation behavior on BLE connection event
-    void onConnection(void *token, bool connected)
+    void onConnectionEvent(void *token, bool connected)
     {
         if (connected)
         {
