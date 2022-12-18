@@ -18,12 +18,14 @@ namespace DriversNRF
         int16_t readBatteryPin();
         int16_t read5VPin();
         int16_t readVLEDPin();
+        int16_t readNTCPin();
 
         float readVBat();
         float read5V();
         float readVLED();
         float readVBoard();
         float readVDD();
+        float readVNTC();
 
 		void selfTest();
 		void selfTestBatt();

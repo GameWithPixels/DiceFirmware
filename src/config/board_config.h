@@ -74,6 +74,7 @@ namespace Config
             uint8_t coilSensePin;
             uint8_t vbatSensePin;
             uint8_t vledSensePin;
+            uint8_t ntcSensePin;
             uint8_t progPin;
 
             // Magnet pin
@@ -90,7 +91,7 @@ namespace Config
             BoardModel model;
 
             // Padding
-            uint16_t padding;
+            uint8_t padding;
 
             // Die layout information
             DiceVariants::Layout layout;
@@ -102,6 +103,7 @@ namespace Config
         };
 
         void init();
+        void setNTC_ID_VDD(bool set);
         const Board* getBoard();
     }
 }

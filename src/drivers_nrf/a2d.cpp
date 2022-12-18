@@ -13,12 +13,14 @@ namespace A2D
 {
     bool supportsVCoil = false;
     bool supportsVLED = false;
+    bool supportsNTC = false;
 
     nrf_saadc_channel_config_t channel_config_conf;
     nrf_saadc_channel_config_t channel_config_batt;
     nrf_saadc_channel_config_t channel_config_5v;
     nrf_saadc_channel_config_t channel_config_vled;
     nrf_saadc_channel_config_t channel_config_vcc;
+    nrf_saadc_channel_config_t channel_config_ntc;
 
     void saadc_callback(nrfx_saadc_evt_t const * p_event) {
         // Do nothing!
@@ -149,6 +151,24 @@ namespace A2D
             supportsVLED = true;
         }
 
+        auto ntcPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->ntcSensePin);
+        if (ntcPin != NRF_SAADC_INPUT_DISABLED) {
+            channel_config_ntc =
+            {
+                .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
+                .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
+                .gain       = NRF_SAADC_GAIN1_6,
+                .reference  = NRF_SAADC_REFERENCE_INTERNAL,
+                .acq_time   = NRF_SAADC_ACQTIME_40US,
+                .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
+                .burst      = NRF_SAADC_BURST_DISABLED,
+                .pin_p      = ntcPin,
+                .pin_n      = NRF_SAADC_INPUT_DISABLED
+            };
+
+            supportsNTC = true;
+        }
+
         NRF_LOG_INFO("A2D Pins Initialized");
 
         #if DICE_SELFTEST && A2D_SELFTEST_BATT
@@ -194,6 +214,24 @@ namespace A2D
         int16_t ret;
         if (supportsVLED) {
             ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_vled);
+            APP_ERROR_CHECK(err_code);
+
+            err_code = nrf_drv_saadc_sample_convert(0, &ret);
+            if (err_code != NRF_SUCCESS) {
+                ret = -1;
+            }
+
+            nrf_drv_saadc_channel_uninit(0);
+        } else {
+            ret = -1;
+        }
+        return ret;
+    }
+
+    int16_t readNTCPin() {
+        int16_t ret;
+        if (supportsNTC) {
+            ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_ntc);
             APP_ERROR_CHECK(err_code);
 
             err_code = nrf_drv_saadc_sample_convert(0, &ret);
@@ -290,7 +328,28 @@ namespace A2D
             return 0.0f;
         }
     }
-    
+
+    float readVNTC() {
+
+        // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
+        // In our case:
+        // - V(n) = 0
+        // - Gain = 1/6
+        // - Reference = 0.6V
+        // - Resolution = 10
+        // - m = 0
+        // val = V(p) * 2^12 / (6 * 0.6)
+        // => V(p) = val * 3.6 / 2^10
+        // => V(p) = val * 0.003515625
+
+        int16_t val = readNTCPin();
+        if (val != -1) {
+            return (float)val * 0.003515625f;
+        } else {
+            return 0.0f;
+        }
+    }
+
     float readVBoard() {
         // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
         // In our case:

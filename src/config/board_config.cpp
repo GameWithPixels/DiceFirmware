@@ -451,6 +451,7 @@ namespace BoardManager
             .coilSensePin = NRF_SAADC_INPUT_AIN3,
             .vbatSensePin = NRF_SAADC_INPUT_AIN6,
             .vledSensePin = NRF_SAADC_INPUT_AIN2,
+            .ntcSensePin = NRF_SAADC_INPUT_DISABLED,
             .progPin = 0xFF,
             .magnetPin = 0xFF,
             .accModel = AccelerometerModel::MXC4005XC,
@@ -478,7 +479,8 @@ namespace BoardManager
             .chargingStatePin = 1,
             .coilSensePin = NRF_SAADC_INPUT_AIN2,
             .vbatSensePin = NRF_SAADC_INPUT_AIN3,
-            .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .vledSensePin = NRF_SAADC_INPUT_DISABLED,
+            .ntcSensePin = NRF_SAADC_INPUT_AIN6,
             .progPin = 9,
             .magnetPin = 0xFF,
             .accModel = AccelerometerModel::KXTJ3_1057,
@@ -507,6 +509,7 @@ namespace BoardManager
             .coilSensePin = NRF_SAADC_INPUT_AIN2,
             .vbatSensePin = NRF_SAADC_INPUT_AIN3,
             .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .ntcSensePin = NRF_SAADC_INPUT_DISABLED,
             .progPin = 0xFF,
             .magnetPin = 0xFF,
             .accModel = AccelerometerModel::KXTJ3_1057,
@@ -535,6 +538,7 @@ namespace BoardManager
             .coilSensePin = NRF_SAADC_INPUT_AIN2,
             .vbatSensePin = NRF_SAADC_INPUT_AIN3,
             .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .ntcSensePin = NRF_SAADC_INPUT_DISABLED,
             .progPin = 0xFF,
             .magnetPin = 0xFF,
             .accModel = AccelerometerModel::KXTJ3_1057,
@@ -563,6 +567,7 @@ namespace BoardManager
             .coilSensePin = NRF_SAADC_INPUT_AIN2,
             .vbatSensePin = NRF_SAADC_INPUT_AIN3,
             .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .ntcSensePin = NRF_SAADC_INPUT_DISABLED,
             .progPin = 0xFF,
             .magnetPin = 0xFF,
             .accModel = AccelerometerModel::KXTJ3_1057,
@@ -591,6 +596,7 @@ namespace BoardManager
             .coilSensePin = NRF_SAADC_INPUT_AIN2,
             .vbatSensePin = NRF_SAADC_INPUT_AIN3,
             .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .ntcSensePin = NRF_SAADC_INPUT_DISABLED,
             .progPin = 0xFF,
             .magnetPin = 0xFF,
             .accModel = AccelerometerModel::KXTJ3_1057,
@@ -619,6 +625,7 @@ namespace BoardManager
             .coilSensePin = NRF_SAADC_INPUT_AIN2,
             .vbatSensePin = NRF_SAADC_INPUT_AIN3,
             .vledSensePin = NRF_SAADC_INPUT_AIN6,
+            .ntcSensePin = NRF_SAADC_INPUT_DISABLED,
             .progPin = 0xFF,
             .magnetPin = 0xFF,
             .accModel = AccelerometerModel::KXTJ3_1057,
@@ -651,13 +658,12 @@ namespace BoardManager
 
     void init() {
         // Sample adc board pin
-        nrf_gpio_cfg_output(BOARD_DETECT_DRIVE_PIN);
-        nrf_gpio_pin_set(BOARD_DETECT_DRIVE_PIN);
+        setNTC_ID_VDD(true);
 
         float vboard = DriversNRF::A2D::readVBoard();
 
         // Now that we're done reading, we can turn off the drive pin
-        nrf_gpio_cfg_default(BOARD_DETECT_DRIVE_PIN);
+        setNTC_ID_VDD(false);
 
         // Do some computation to figure out which variant we're working with!
         // D20v3 board uses 20k over 100k voltage divider
@@ -694,6 +700,14 @@ namespace BoardManager
         return currentBoard;
     }
 
+    void setNTC_ID_VDD(bool set) {
+        if (set) {
+            nrf_gpio_cfg_output(BOARD_DETECT_DRIVE_PIN);
+            nrf_gpio_pin_set(BOARD_DETECT_DRIVE_PIN);
+        } else {
+            nrf_gpio_cfg_default(BOARD_DETECT_DRIVE_PIN);
+        }
+    }
 
 }
 }

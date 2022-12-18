@@ -146,6 +146,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
 	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
+	$(PROJ_DIR)/src/drivers_hw/ntc.cpp \
 	$(PROJ_DIR)/src/drivers_hw/$(ACCEL_HW).cpp \
 	$(PROJ_DIR)/src/drivers_nrf/a2d.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/dfu.cpp \
