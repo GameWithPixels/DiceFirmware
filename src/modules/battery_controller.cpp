@@ -94,12 +94,9 @@ namespace Modules::BatteryController
         // Set initial battery state
         currentBatteryState = ComputeNewBatteryState();
         currentBatteryStateStartTime = DriversNRF::Timers::millis();
-
-		ret_code_t ret_code = app_timer_create(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
-		APP_ERROR_CHECK(ret_code);
-
-		ret_code = app_timer_start(batteryControllerTimer, APP_TIMER_TICKS(BATTERY_TIMER_MS), NULL);
-		APP_ERROR_CHECK(ret_code);
+        
+		Timers::createTimer(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
+		Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(BATTERY_TIMER_MS), NULL);
 
         NRF_LOG_INFO("Battery controller initialized");
         NRF_LOG_INFO("    Battery capacity " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(capacity * 100));
@@ -291,7 +288,7 @@ namespace Modules::BatteryController
             levelClients[i].handler(levelClients[i].token, capacity);
         }
 
-	    app_timer_start(batteryControllerTimer, APP_TIMER_TICKS(BATTERY_TIMER_MS), NULL);
+        Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(BATTERY_TIMER_MS), NULL);
     }
 
     void onBatteryEventHandler(void* context, Battery::ChargingEvent evt) {
@@ -301,9 +298,9 @@ namespace Modules::BatteryController
     void onLEDPowerEventHandler(void* context, bool powerOn) {
         if (powerOn) {
             // Stop reading battery voltage as it may significantly drop when LEDs are turned on
-            app_timer_stop(batteryControllerTimer);
+            Timers::stopTimer(batteryControllerTimer);
         } else {
-            app_timer_stop(batteryControllerTimer);
+            Timers::stopTimer(batteryControllerTimer);
 
             // If it's been too long since we checked, check right away
             uint32_t delay = BATTERY_TIMER_MS;
@@ -311,7 +308,7 @@ namespace Modules::BatteryController
                 delay = BATTERY_TIMER_MS_QUICK;
             }
             // Restart the timer
-		    app_timer_start(batteryControllerTimer, APP_TIMER_TICKS(delay), NULL);
+		    Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(delay), NULL);
         }
     }
 
