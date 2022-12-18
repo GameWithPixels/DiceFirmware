@@ -524,12 +524,12 @@ namespace Modules
         {
             if (evt == Flash::ProgrammingEventType_Begin)
             {
-                NRF_LOG_INFO("Stopping axel from programming event");
+            NRF_LOG_DEBUG("Stopping axel from programming event");
                 stop();
             }
             else
             {
-                NRF_LOG_INFO("Starting axel from programming event");
+            NRF_LOG_DEBUG("Starting axel from programming event");
                 start();
             }
         }
