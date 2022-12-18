@@ -243,7 +243,7 @@ namespace Modules::BatteryController
         MessageBatteryLevel lvl;
         lvl.voltage = vBat;
         lvl.level = capacity;
-        lvl.charging = currentBatteryState == BatteryState_Charging ? 1 : 0;
+        lvl.charging = (currentBatteryState == BatteryState_Charging || currentBatteryState == BatteryState_TrickleCharge)? 1 : 0;
         NRF_LOG_INFO("Received Battery Level Request, returning " NRF_LOG_FLOAT_MARKER " (" NRF_LOG_FLOAT_MARKER "v)", NRF_LOG_FLOAT(capacity), NRF_LOG_FLOAT(vBat));
         MessageService::SendMessage(&lvl);
     }

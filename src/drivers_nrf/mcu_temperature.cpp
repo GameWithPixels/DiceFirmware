@@ -10,7 +10,10 @@
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
 
+#include "drivers_hw/ntc.h"
+
 using namespace Bluetooth;
+using namespace DriversHW;
 
 namespace DriversNRF
 {
@@ -64,13 +67,15 @@ namespace MCUTemperature
 
                 // Send message back
                 MessageTemperature tmp;
-                tmp.tempTimes100 = the_temp;
+                tmp.mcuTempTimes100 = the_temp;
+                tmp.batteryTempTimes100 = (uint16_t)(NTC::getNTCTemperature() * 100.0f);
                 MessageService::SendMessage(&tmp);
             });
         } else {
             // Send message back
             MessageTemperature tmp;
-            tmp.tempTimes100 = 0xFFFF;
+            tmp.mcuTempTimes100 = 0xFFFF;
+            tmp.batteryTempTimes100 = (uint16_t)(NTC::getNTCTemperature() * 100.0f);
             MessageService::SendMessage(&tmp);
         }
     }

@@ -481,7 +481,8 @@ struct MessagePlayInstantAnim
 struct MessageTemperature
 	: public Message
 {
-	int16_t tempTimes100;
+	int16_t mcuTempTimes100;
+	int16_t batteryTempTimes100;
 
 	MessageTemperature() : Message(Message::MessageType_Temperature) {}
 };

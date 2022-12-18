@@ -51,6 +51,10 @@ namespace DriversHW::NTC
         // Turn VDD on
         BoardManager::setNTC_ID_VDD(true);
 
+        // Workaround for early D20V15
+        // Wait for voltage to rise
+        nrf_delay_ms(10);
+
         // Read voltage divider
         float vntc = A2D::readVNTC();
 
