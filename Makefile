@@ -156,7 +156,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/drivers_nrf/ppi.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/power_manager.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/scheduler.cpp \
-	$(PROJ_DIR)/src/drivers_nrf/temperature.cpp \
+	$(PROJ_DIR)/src/drivers_nrf/mcu_temperature.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/timers.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/watchdog.cpp \
 	$(PROJ_DIR)/src/modules/accelerometer.cpp \

@@ -2,7 +2,7 @@
 
 namespace DriversNRF
 {
-    namespace Temperature
+    namespace MCUTemperature
     {
         typedef void (*TemperatureInitCallback)(bool success);
 

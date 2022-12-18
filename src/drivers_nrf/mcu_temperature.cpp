@@ -1,4 +1,4 @@
-#include "drivers_nrf/temperature.h"
+#include "drivers_nrf/mcu_temperature.h"
 #include "drivers_nrf/scheduler.h"
 #include "core/delegate_array.h"
 
@@ -14,7 +14,7 @@ using namespace Bluetooth;
 
 namespace DriversNRF
 {
-namespace Temperature
+namespace MCUTemperature
 {
     const nrfx_temp_config_t temp_config = NRFX_TEMP_DEFAULT_CONFIG;
 
@@ -32,7 +32,7 @@ namespace Temperature
             // Since reading temperature takes times and uses our interrupt handler, register a lambda
             // and we'll unregister it once we have a result.
             clients.Register((void*)callback, [] (void* the_callback, int the_temp) {
-                NRF_LOG_INFO("Temperature Initialized, Temp = %d.%d C", (the_temp / 100), (the_temp % 100));
+                NRF_LOG_INFO("MCU Temperature Initialized, Temp = %d.%d C", (the_temp / 100), (the_temp % 100));
                 clients.UnregisterWithToken(the_callback);
 
                 // Register ourselves as handling temperature messages
