@@ -163,14 +163,14 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/accelerometer.cpp \
 	$(PROJ_DIR)/src/modules/anim_controller.cpp \
 	$(PROJ_DIR)/src/modules/animation_preview.cpp \
+	$(PROJ_DIR)/src/modules/battery_controller.cpp \
 	$(PROJ_DIR)/src/modules/behavior_controller.cpp \
+	$(PROJ_DIR)/src/modules/hardware_test.cpp \
+	$(PROJ_DIR)/src/modules/instant_anim_controller.cpp \
 	$(PROJ_DIR)/src/modules/led_color_tester.cpp \
 	$(PROJ_DIR)/src/modules/leds.cpp \
-	$(PROJ_DIR)/src/modules/battery_controller.cpp \
-	$(PROJ_DIR)/src/modules/hardware_test.cpp \
 	$(PROJ_DIR)/src/modules/rssi_controller.cpp \
 	$(PROJ_DIR)/src/modules/validation_manager.cpp \
-	$(PROJ_DIR)/src/modules/instant_anim_controller.cpp \
 	$(PROJ_DIR)/src/utils/abi.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
 	$(PROJ_DIR)/src/utils/utils.cpp
