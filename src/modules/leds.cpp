@@ -4,7 +4,6 @@
 #include "config/board_config.h"
 #include "config/settings.h"
 #include "core/delegate_array.h"
-#include "drivers_hw/apa102.h"
 #include "drivers_hw/neopixel.h"
 #include "drivers_nrf/log.h"
 #include "drivers_nrf/timers.h"
@@ -39,9 +38,6 @@ namespace Modules::LEDs
 		auto board = BoardManager::getBoard();
 
         switch (board->ledModel) {
-            case LEDModel::APA102:
-                APA102::init();
-                break;
             case LEDModel::NEOPIXEL_RGB:
             case LEDModel::NEOPIXEL_GRB:
                 NeoPixel::init();
@@ -130,9 +126,6 @@ namespace Modules::LEDs
             // Turn power on so we display something!!!
             setPowerOn([](void* ignore) {
                 switch (Config::BoardManager::getBoard()->ledModel) {
-                    case Config::LEDModel::APA102:
-                        APA102::show(pixels);
-                        break;
                     case Config::LEDModel::NEOPIXEL_RGB:
                     case Config::LEDModel::NEOPIXEL_GRB:
                         NeoPixel::show(pixels);

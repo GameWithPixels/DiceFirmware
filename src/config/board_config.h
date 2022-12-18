@@ -26,7 +26,6 @@ namespace Config
 
     enum class LEDModel : uint8_t
     {
-        APA102,
         NEOPIXEL_RGB,
         NEOPIXEL_GRB
     };
