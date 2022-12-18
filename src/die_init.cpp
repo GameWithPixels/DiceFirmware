@@ -15,12 +15,13 @@
 #include "drivers_nrf/gpiote.h"
 #include "drivers_nrf/ppi.h"
 #include "drivers_nrf/dfu.h"
-#include "drivers_nrf/temperature.h"
+#include "drivers_nrf/mcu_temperature.h"
 
 #include "config/board_config.h"
 #include "config/settings.h"
 
 #include "drivers_hw/battery.h"
+#include "drivers_hw/ntc.h"
 
 #include "bluetooth/bluetooth_stack.h"
 #include "bluetooth/bluetooth_message_service.h"
@@ -280,8 +281,12 @@ namespace Die
             // Battery sense pin depends on board info
             Battery::init();
 
+            // Battery Temperature Module
+            NTC::init();
+
             // Temperature sensor
-            Temperature::init([] (bool result) {
+            MCUTemperature::init([] (bool result) {
+                
                 //--------------------
                 // Initialize Modules
                 //--------------------
@@ -348,8 +353,7 @@ namespace Die
                         initDieLogic();
                     }
 
-                    // Entering the main loop! Play Hello! anim
-                    // if in validation mode
+                    // Entering the main loop! Play Hello! anim if in validation mode
                     if (inValidation) {
                         ValidationManager::init();
                         ValidationManager::onDiceInitialized();
