@@ -304,7 +304,10 @@ namespace Stack
             case BLE_ADV_EVT_IDLE:
                 NRF_LOG_INFO("Advertising Idle");
                 currentlyAdvertising = false;
-                //sleep_mode_enter();
+
+                // Unhook from accelerometer events, we don't need them
+                Accelerometer::unHookRollState(onRollStateChange);
+                BatteryController::unHookLevel(onBatteryLevelChange);
                 break;
 
             default:
