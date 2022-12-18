@@ -42,6 +42,7 @@ namespace Modules::Accelerometer
 	void init();
 	void start();
 	void stop();
+	void lowPower();
 
 	int currentFace();
 	float currentFaceConfidence();
@@ -54,7 +55,6 @@ namespace Modules::Accelerometer
 	void enableInterrupt();
 	void disableInterrupt();
 	void clearInterrupt();
-	bool checkIntPin();
 
 
 	// Notification management

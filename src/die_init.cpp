@@ -346,18 +346,14 @@ namespace Die
                     // Initialize common logic
                     initMainLogic();
 
-                    // Skip registering unecessary BLE messages in validation mode
-                    if (!inValidation)
-                    {
-                        // Initialize main die logic
-                        initDieLogic();
-                    }
 
                     // Entering the main loop! Play Hello! anim if in validation mode
                     if (inValidation) {
+                        initValidationLogic();
                         ValidationManager::init();
                         ValidationManager::onDiceInitialized();
                     } else {
+                        initDieLogic();
                         BehaviorController::onDiceInitialized();
                     }
 

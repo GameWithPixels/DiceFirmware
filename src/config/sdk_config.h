@@ -395,7 +395,7 @@
 #define NRF_PWR_MGMT_CONFIG_CPU_USAGE_MONITOR_ENABLED 0
 
 // <e> NRF_PWR_MGMT_CONFIG_STANDBY_TIMEOUT_ENABLED - Enable standby timeout.
-#define NRF_PWR_MGMT_CONFIG_STANDBY_TIMEOUT_ENABLED 1
+#define NRF_PWR_MGMT_CONFIG_STANDBY_TIMEOUT_ENABLED 0
 
 // <o> NRF_PWR_MGMT_CONFIG_STANDBY_TIMEOUT_S - Standby timeout (in seconds). 
 // <i> Shutdown procedure will begin no earlier than after this number of seconds.

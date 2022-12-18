@@ -31,7 +31,8 @@ namespace GPIOTE
     }
 
     void disableInterrupt(uint32_t pin) {
-        nrfx_gpiote_in_uninit(pin);
+        if (nrfx_gpiote_in_is_set(pin))
+            nrfx_gpiote_in_uninit(pin);
     }
 }
 }

@@ -4,6 +4,7 @@
 #include "drivers_nrf/power_manager.h"
 #include "drivers_nrf/flash.h"
 #include "drivers_nrf/log.h"
+#include "drivers_nrf/gpiote.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
@@ -12,6 +13,7 @@
 #include "modules/accelerometer.h"
 #include "modules/anim_controller.h"
 #include "modules/battery_controller.h"
+#include "modules/validation_manager.h"
 #include "data_set/data_set.h"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -75,6 +77,7 @@ namespace Die
 
     void onBatteryStateChange(void* token, BatteryController::BatteryState newState);
     void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace);
+    void onPowerEvent(void* token, PowerManager::PowerManagerEvent event);
     void SendRollState(Accelerometer::RollState rollState, int face);
 
     void RequestStateHandler(const Message* message);
@@ -109,9 +112,16 @@ namespace Die
 
         Accelerometer::hookRollState(onRollStateChange, nullptr);
 
+        PowerManager::hook(onPowerEvent, nullptr);
+
         currentFace = Accelerometer::currentFace();
 
         NRF_LOG_INFO("Die Logic Initialized");
+    }
+
+    void initValidationLogic()
+    {
+        PowerManager::hook(onPowerEvent, nullptr);
     }
 
     void RequestStateHandler(const Message* message) {
@@ -161,6 +171,50 @@ namespace Die
 
         currentRollState = newRollState;
         currentFace = newFace;
+    }
+
+    void onPowerEvent(void* token, PowerManager::PowerManagerEvent event) {
+        switch (event) {
+            case PowerManager::PowerManagerEvent_PrepareWakeUp:
+                NRF_LOG_INFO("Going to low power mode");
+                Accelerometer::stop();
+                Accelerometer::lowPower();
+                //Bluetooth::Stack::stopAdvertising();
+                break;
+            case PowerManager::PowerManagerEvent_PrepareSleep:
+                NRF_LOG_INFO("Going to Sleep");
+                Accelerometer::stop();
+
+                if (ValidationManager::inValidation()) {
+                    // In validation mode we just go to system off mode and rely
+                    // on the magnet to power cycle the chip
+                    PowerManager::goToSystemOff();
+                } else {
+                    // Set interrupt pin to wake up power manager
+                    GPIOTE::enableInterrupt(
+                        BoardManager::getBoard()->accInterruptPin,
+                        NRF_GPIO_PIN_NOPULL,
+                        NRF_GPIOTE_POLARITY_HITOLO,
+                        [](uint32_t pin, nrf_gpiote_polarity_t action) {
+                            Accelerometer::clearInterrupt();
+                            Scheduler::push(nullptr, 0, [](void* ignoreData, uint16_t ignoreSize) {
+                                PowerManager::wakeFromSleep();
+                            });
+                        });
+                    Accelerometer::enableInterrupt();
+                    //Bluetooth::Stack::stopAdvertising();
+                }
+                break;
+            case PowerManager::PowerManagerEvent_WakingUpFromSleep:
+                NRF_LOG_INFO("Resuming from Sleep");
+                Accelerometer::disableInterrupt();
+                Accelerometer::start();
+                //Bluetooth::Stack::startAdvertising();
+                break;
+            default:
+                break;
+        }
+
     }
 
     void onConnection(void* token, bool connected) {

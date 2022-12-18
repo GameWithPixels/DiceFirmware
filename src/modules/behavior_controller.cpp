@@ -81,7 +81,7 @@ namespace BehaviorController
                     // // Check the battery level!
                     // if (BatteryController::getCurrentLevel() > BATT_TOO_LOW_LEVEL) {
                         // Go on, do the thing!
-                        if (PowerManager::checkFromSleep()) 
+                        if (PowerManager::checkFromSysOff()) 
                         {
                             NRF_LOG_DEBUG("Skipping HelloGoodbye Condition");
                         }

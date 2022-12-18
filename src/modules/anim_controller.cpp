@@ -52,10 +52,22 @@ namespace Modules::AnimController
 	}
 
 	// Stop all currently running animations when going to sleep
-	void onPowerEvent(void* context, nrf_pwr_mgmt_evt_t event) {
-		if (event == NRF_PWR_MGMT_EVT_PREPARE_WAKEUP) {
-			NRF_LOG_INFO("Stopping animations for sleep mode");
-			stopAll();
+	void onPowerEvent(void* context, PowerManager::PowerManagerEvent event) {
+		switch (event) {
+			case PowerManager::PowerManagerEvent_PrepareWakeUp:
+				NRF_LOG_INFO("Stopping animations for system off mode");
+				stop();
+				break;
+			case PowerManager::PowerManagerEvent_PrepareSleep:
+				NRF_LOG_INFO("Stopping animations for sleep mode");
+				stop();
+				break;;
+			case PowerManager::PowerManagerEvent_WakingUpFromSleep:
+				NRF_LOG_INFO("Resuming animations after wake up");
+				start();
+				break;
+			default:
+				break;
 		}
 	}
 

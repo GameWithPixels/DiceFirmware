@@ -1,10 +1,11 @@
 #include "battery_controller.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
+#include "drivers_nrf/timers.h"
 #include "drivers_hw/battery.h"
+#include "drivers_hw/ntc.h"
 #include "config/settings.h"
 #include "nrf_log.h"
-#include "app_timer.h"
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "die.h"
@@ -30,6 +31,9 @@ using namespace Utils;
 #define BATTERY_ALMOST_EMPTY_PCT 0.1f // 10%
 #define BATTERY_ALMOST_FULL_PCT 0.95f // 95%
 #define TRANSITION_TOO_LONG_DURATION_MS (10000) // 10s
+#define TEMPERATURE_TOO_HOT_ENTER 45.0f // degrees C
+#define TEMPERATURE_TOO_HOT_LEAVE 40.0f // degrees C
+
 
 namespace Modules::BatteryController
 {
@@ -42,6 +46,14 @@ namespace Modules::BatteryController
 
     static BatteryState currentBatteryState = BatteryState_Unknown;
     static uint32_t currentBatteryStateStartTime = 0; // Time when we switched to the current battery state
+
+    enum BatteryTemperatureState
+    {
+        BatteryTemperatureState_Normal,
+        BatteryTemperatureState_Hot
+    };
+
+    static BatteryTemperatureState currentBatteryTempState = BatteryTemperatureState_Normal;
 
 	static DelegateArray<BatteryStateChangeHandler, MAX_BATTERY_CLIENTS> clients;
     static DelegateArray<BatteryLevelChangeHandler, MAX_LEVEL_CLIENTS> levelClients;
@@ -100,6 +112,14 @@ namespace Modules::BatteryController
 
         NRF_LOG_INFO("Battery controller initialized");
         NRF_LOG_INFO("    Battery capacity " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(capacity * 100));
+
+        float ntc = NTC::getNTCTemperature();
+        currentBatteryTempState = (ntc < TEMPERATURE_TOO_HOT_ENTER) ? BatteryTemperatureState_Normal : BatteryTemperatureState_Hot;
+        if (currentBatteryTempState == BatteryTemperatureState_Hot) {
+            Battery::setDisableChargingOverride(true);
+            NRF_LOG_INFO("    Battery too hot: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(ntc));
+        }
+
         // Other values (voltage, vcoil) already displayed by Battery::init()
     }
 
@@ -239,9 +259,27 @@ namespace Modules::BatteryController
         charging = Battery::checkCharging();
         capacity = lookupCapacity(vBat, charging);
 
+        float temperature = NTC::getNTCTemperature();
+        //NRF_LOG_INFO("Battery Temperature: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(temperature));
+        switch (currentBatteryTempState) {
+            case BatteryTemperatureState_Normal:
+                if (temperature > TEMPERATURE_TOO_HOT_ENTER) {
+                    currentBatteryTempState = BatteryTemperatureState_Hot;
+                    Battery::setDisableChargingOverride(true);
+                    NRF_LOG_INFO("Battery too hot, Preventing Charge");
+                }
+                break;
+            case BatteryTemperatureState_Hot:
+                if (temperature < TEMPERATURE_TOO_HOT_LEAVE) {
+                    currentBatteryTempState = BatteryTemperatureState_Normal;
+                    Battery::setDisableChargingOverride(false);
+                    NRF_LOG_INFO("Battery cooled down, Allowing Charge");
+                }
+                break;
+        }
+
         auto newState = ComputeNewBatteryState();
-        if (newState != currentBatteryState)
-        {
+        if (newState != currentBatteryState) {
             // Update current state time
             currentBatteryStateStartTime = DriversNRF::Timers::millis();
             switch (newState) {

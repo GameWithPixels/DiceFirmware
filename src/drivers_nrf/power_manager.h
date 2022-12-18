@@ -13,11 +13,23 @@ namespace DriversNRF
         void pause();
         void resume();
         void goToSystemOff();
+        void goToSleep();
+        void wakeFromSleep();
         void reset();
 
-		typedef void(*PowerManagerClientMethod)(void* param, nrf_pwr_mgmt_evt_t event);
+        enum PowerManagerEvent
+        {
+            PowerManagerEvent_PrepareSysOff,
+            PowerManagerEvent_PrepareWakeUp,
+            PowerManagerEvent_PrepareDFU,
+            PowerManagerEvent_PrepareReset,
+            PowerManagerEvent_PrepareSleep,
+            PowerManagerEvent_WakingUpFromSleep,
+        };
+
+		typedef void(*PowerManagerClientMethod)(void* param, PowerManagerEvent event);
 		void hook(PowerManagerClientMethod method, void* param);
 		void unHook(PowerManagerClientMethod client);
-        bool checkFromSleep();
+        bool checkFromSysOff();
     }
 }

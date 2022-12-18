@@ -99,11 +99,6 @@ namespace AccelChip
         // Initialize settings
         ApplySettings();
 
-		// Make sure our interrupts are cleared to begin with!
-		disableInterrupt();
-		clearInterrupt();
-        enableDataInterrupt();
-
 		NRF_LOG_INFO("KXTJ3 Initialized");
 	}
 
@@ -167,9 +162,6 @@ namespace AccelChip
 	void enableInterrupt()
 	{        
         // Make sure our interrupts are cleared to begin with!
-        disableDataInterrupt();
-        clearInterrupt();
-
 		standby();
 
         // enable interrupt on all axis any direction - Latched
@@ -283,7 +275,8 @@ namespace AccelChip
 
 		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00000000);
 
-        GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
+        GPIOTE::disableInterrupt(
+            BoardManager::getBoard()->accInterruptPin);
 
 		active();
     }
