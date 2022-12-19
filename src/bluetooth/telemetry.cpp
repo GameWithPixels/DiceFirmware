@@ -36,7 +36,6 @@ namespace Bluetooth::Telemetry
 
         // Register for messages to send telemetry data over!
         MessageService::RegisterMessageHandler(Message::MessageType_RequestTelemetry, onRequestTelemetryHandler);
-        Bluetooth::Stack::hook(onConnectionEvent, nullptr);
 
         NRF_LOG_INFO("Telemetry initialized");
     }
@@ -47,21 +46,33 @@ namespace Bluetooth::Telemetry
         }
     }
 
-    void update() {
-        uint32_t time = DriversNRF::Timers::millis();
-        if (time - lastMessageMs >= minIntervalMs) {
+    void trySend() {
+        // Check that we got the acceleration, RSSI and temperature data
+        const bool allInit = teleMessage.accelFrame.time != 0 && teleMessage.rssi != 0 && teleMessage.tempTimes100 != 0;
+
+        // Check time interval since we last send a telemetry message
+        const uint32_t time = DriversNRF::Timers::millis();
+        if (allInit && time - lastMessageMs >= minIntervalMs) {
             if (MessageService::canSend()) {
-                // Update state
                 lastMessageMs = time;
                 if (requestMode == TelemetryRequestMode_Once) {
                     stop();
+                } else {
+                    // Request temperature update,
+                    // the result will be used on the next message
+                    DriversNRF::MCUTemperature::measure();
                 }
 
+                // Update battery values
+                teleMessage.batteryLevelPercent = BatteryController::getLevelPercent();
+                teleMessage.batteryChargeState = BatteryController::getBatteryState();
+                teleMessage.voltageTimes50 = BatteryController::getVoltageMilli() / 20;
+                teleMessage.vCoilTimes50 = BatteryController::getCoilVoltageMilli() / 20;
+
                 // Send the message
-                NRF_LOG_INFO("Sending telemetry");
+                NRF_LOG_DEBUG("Sending telemetry");
                 MessageService::SendMessage(&teleMessage);
-            }
-            else {
+            } else {
                 NRF_LOG_DEBUG("Couldn't send telemetry message");
             }
         }
@@ -69,64 +80,63 @@ namespace Bluetooth::Telemetry
 
     void onAccDataReceived(void* param, const Accelerometer::AccelFrame& frame) {
         teleMessage.accelFrame = frame;
-        update();
-    }
-
-    void onBatteryStateChanged(void* param, BatteryController::BatteryState chargeState) {
-        teleMessage.batteryChargeState = chargeState;
-        update();
-    }
-
-    void onBatteryLevelChanged(void* param, uint8_t levelPercent) {
-        teleMessage.batteryLevelPercent = levelPercent;
-        update();
+        trySend();
     }
 
     void onRssiChanged(void* param, int8_t rssi, uint8_t channelIndex) {
         teleMessage.rssi = rssi;
         teleMessage.channelIndex = channelIndex;
-        update();
+        trySend();
     }
 
     void onTemperatureRead(void* param, int temperatureTimes100) {
         if (teleMessage.tempTimes100 != temperatureTimes100) {
             teleMessage.tempTimes100 = temperatureTimes100;
-            update();
+            trySend();
         }
     }
 
     void onRequestTelemetryHandler(const Message* message) {
         auto reqTelem = static_cast<const MessageRequestTelemetry *>(message);
-        NRF_LOG_INFO("Received Telemetry Request, mode = %d, minInterval = %d", reqTelem->requestMode, reqTelem->minInterval);
+        NRF_LOG_DEBUG("Received Telemetry Request, mode = %d, minInterval = %d", reqTelem->requestMode, reqTelem->minInterval);
         if (reqTelem->requestMode != TelemetryRequestMode_Off) {
             start(reqTelem->requestMode == TelemetryRequestMode_Repeat, reqTelem->minInterval);
-        }
-        else {
+        } else {
             stop();
         }
     }
 
     void start(bool repeat, uint32_t minInterval) {
         minIntervalMs = minInterval;
-        lastMessageMs = 0; // Reset timestamp so next message is send ASAP
+
+        // Reset timestamp so next message is send on the first call to trySend()
+        lastMessageMs = 0;
 
         if (requestMode == TelemetryRequestMode_Off) {
             NRF_LOG_INFO("Starting Telemetry");
             requestMode = repeat ? TelemetryRequestMode_Repeat : TelemetryRequestMode_Once;
 
+            // Reset accel data, RSSI and temperature so we won't send
+            // a message until they are all updated
+            teleMessage.accelFrame.time = 0;
+            teleMessage.rssi = 0;
+            teleMessage.tempTimes100 = 0;
+
+            // Monitor connections status
+            Bluetooth::Stack::hook(onConnectionEvent, nullptr);
+
             // Ask the acceleration controller to be notified when
             // new acceleration data comes in!
             Accelerometer::hookFrameData(onAccDataReceived, nullptr);
-
-            // Battery
-            BatteryController::hook(onBatteryStateChanged, nullptr);
-            BatteryController::hookLevel(onBatteryLevelChanged, nullptr);
 
             // RSSI
             Stack::hookRssi(onRssiChanged, nullptr);
 
             // Temperature
             DriversNRF::MCUTemperature::hook(onTemperatureRead, nullptr);
+
+            // Request temperature update
+            DriversNRF::MCUTemperature::measure();
         }
     }
 
@@ -136,10 +146,9 @@ namespace Bluetooth::Telemetry
             requestMode = TelemetryRequestMode_Off;
 
             // Stop being notified!
-            Accelerometer::unHookFrameData(onAccDataReceived);
+            Bluetooth::Stack::unHook(onConnectionEvent);
 
-            BatteryController::unHook(onBatteryStateChanged);
-            BatteryController::unHookLevel(onBatteryLevelChanged);
+            Accelerometer::unHookFrameData(onAccDataReceived);
 
             Stack::unHookRssi(onRssiChanged);
 
