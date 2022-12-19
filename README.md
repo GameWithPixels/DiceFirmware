@@ -120,29 +120,41 @@ as Nordic doesn't always publish a new SDK when they release a SoftDevice update
 
 Using the project's *Makefile* you may:
 
+### Debug Build Commands
+
+* `clean_debug`: deletes the intermediary debug build folder.
+* `firmware_debug` (default): produces a debug build of the firmware => `firmware_d.hex`
+* `settings_debug`: generates the bootloader settings page for a debug build
+* `flash`: programs the firmware into the die's memory and reboot the device
+* `reflash`:calls `erase`, `flash_softdevice` and `flash` in a sequence
+
+*Note:* debug builds being quite bigger than release ones,
+we usually don't have enough memory to flash the *bootloader* with them.
+
+### Release Build Commands
+
+* `clean_release`: deletes the intermediary debug build folder.
+* `firmware_release`: produces a release build of the firmware => `firmware.hex`
+* `settings_release`: generates the bootloader settings page for a release build
+* `flash_release`: programs the firmware into the die's memory and reboot the device
+* `reflash_release`: calls `erase`, `flash_softdevice` and `flash_release` in a sequence
+* `flash_board`: calls `erase`, `flash_softdevice`, `flash_bootloader` and `flash_release` in a sequence
+
+### Publishing Commands
+
+* `hex_release`: produces a full hex file with Bootloader, SoftDevice and release Firmware
+* `zip`: produces a zipped DFU package with the SoftDevice and the Firmware.
+* `zip_bl`: produces a zipped DFU package with the Bootloader.
+* `zip_all`: runs `zip` and `zip_bl` commands
+
+### Other Commands
+
 * `reset`: restart the device
 * `erase`: entirely erase the flash memory
 * `flash_softdevice`: program the *SoftDevice* into the die's memory and reboot the device
 * `flash_bootloader`: program the bootloader into the die's memory and reboot the device
 
-**For debug builds:**
-
-* `firmware_debug` (default): produce a debug build of the firmware => `firmware_d.hex`
-* `settings_debug`: generate the bootloader settings page for a debug build
-* `flash`: program the firmware into the die's memory and reboot the device
-* `reflash`:call `erase`, `flash_softdevice` and `flash` in a sequence
-
-*Note:* debug builds being quite bigger than release ones,
-we usually don't have enough memory to flash the *bootloader* with them.
-
-**For release builds:**
-
-* `firmware_release`: produce a release build of the firmware => `firmware.hex`
-* `settings_release`: generate the bootloader settings page for a release build
-* `flash_release`: program the firmware into the die's memory and reboot the device
-* `reflash_release`: call `erase`, `flash_softdevice` and `flash_release` in a sequence
-* `flash_board`: call `erase`, `flash_softdevice`, `flash_bootloader` and `flash_release` in a sequence
-* `publish`: produce a zipped DFU package (also copied in the `binaries` folder)
+### Dependencies
 
 Some commands requires `nRF Util` to run properly (see
 [documentation](https://infocenter.nordicsemi.com/topic/ug_nrfutil/UG/nrfutil/nrfutil_intro.html)

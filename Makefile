@@ -385,6 +385,14 @@ flash_bootloader:
 # Debug commands
 #
 
+.PHONY: clean_debug
+clean_debug:
+	@IF EXIST "$(OUTPUT_DIRECTORY)/firmware_d" \
+	@echo ============================================ & \
+	@echo Deleting intermediary debug build directory! & \
+	@echo ============================================ & \
+	rd /s /q "$(OUTPUT_DIRECTORY)/firmware_d"
+
 .PHONY: firmware_debug
 firmware_debug: firmware_d
 
@@ -404,6 +412,14 @@ reflash: erase flash_softdevice flash
 #
 # Release commands
 #
+
+.PHONY: clean_release
+clean_release:
+	@IF EXIST "$(OUTPUT_DIRECTORY)/firmware" \
+	@echo ============================================== & \
+	@echo Deleting intermediary release build directory! & \
+	@echo ============================================== & \
+	rd /s /q "$(OUTPUT_DIRECTORY)/firmware"
 
 .PHONY: firmware_release
 firmware_release: firmware
@@ -469,11 +485,11 @@ flash_validation: erase hex_validation
 #
 
 .PHONY: hex_release
-hex_release: firmware_release settings_release
+hex_release: clean_release firmware_release settings_release
 	mergehex -m $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware.hex
 
 .PHONY: zip
-zip: firmware_release
+zip: clean_release firmware_release
 	nrfutil pkg generate --application $(OUTPUT_DIRECTORY)/firmware.hex --application-version $(FW_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
 .PHONY: zip_bl
