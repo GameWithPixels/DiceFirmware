@@ -10,7 +10,7 @@ namespace Modules::BatteryController
 {
 	void init();
 
-	enum BatteryState
+	enum BatteryState : uint8_t
 	{
 		BatteryState_Unknown,
 		BatteryState_Ok,			// Battery looks fine, nothing is happening

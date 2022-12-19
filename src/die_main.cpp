@@ -117,7 +117,7 @@ namespace Die
         identityMessage.rollState = Accelerometer::currentRollState();
         identityMessage.rollFace = Accelerometer::currentFace();
         identityMessage.batteryLevelPercent = BatteryController::getLevelPercent();
-        identityMessage.batteryChargeState = BatteryController::getBatteryState();
+        identityMessage.batteryState = BatteryController::getBatteryState();
         MessageService::SendMessage(&identityMessage);
     }
 

@@ -21,6 +21,8 @@ namespace Modules::Accelerometer
 		RollState_Count
 	};
 
+	#pragma pack(push, 1)
+
 	/// <summary>
 	/// Small struct holding a single frame of accelerometer data
 	/// used for both face detection (not that kind) and telemetry
@@ -38,6 +40,7 @@ namespace Modules::Accelerometer
 		uint8_t face;
 	};
 
+	#pragma pack(pop)
 
 	void init();
 	void start();

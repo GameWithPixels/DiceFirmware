@@ -29,7 +29,7 @@ namespace Notifications::Battery
             NRF_LOG_INFO("Sending battery level: %d%%, state: %d", level, state);
             MessageBatteryLevel batteryMsg;
             batteryMsg.levelPercent = level;
-            batteryMsg.chargeState = state;
+            batteryMsg.state = state;
             MessageService::SendMessage(&batteryMsg);
         }
     }

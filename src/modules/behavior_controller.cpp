@@ -27,7 +27,7 @@ namespace Modules::BehaviorController
 
     void chargingTimerInit(void* param, int periodMs);
 	void chargingTimerRecheck(void* param);
-    void chargingStateChange(void* param, BatteryController::BatteryState newState);
+    void batteryStateChange(void* param, BatteryController::BatteryState newState);
     void chargingFlashProgramming(void* param, Flash::ProgrammingEventType evt);
 
     void idleTimerInit(void* param, int periodMs);
@@ -167,7 +167,7 @@ namespace Modules::BehaviorController
         // Subscribe to be updated on a timer, so we can repeatedly check the condition
         if (Timers::setDelayedCallback(chargingTimerRecheck, param, periodMs)) {
             // Also subscribe when rollstate changes so we can kill the timer
-            BatteryController::unHook(chargingStateChange);
+            BatteryController::unHook(batteryStateChange);
             Flash::hookProgrammingEvent(chargingFlashProgramming, param);
         }
     }
@@ -183,26 +183,26 @@ namespace Modules::BehaviorController
         } else {
             // Stop Timer and unregister callback
             Timers::cancelDelayedCallback(chargingTimerRecheck, (void*)rule);
-            BatteryController::unHook(chargingStateChange);
+            BatteryController::unHook(batteryStateChange);
             Flash::unhookProgrammingEvent(chargingFlashProgramming);
         }
 	}
 
-    void chargingStateChange(void* param, BatteryController::BatteryState newState) {
+    void batteryStateChange(void* param, BatteryController::BatteryState newState) {
 		const Behaviors::Rule* rule = (const Behaviors::Rule*)param;
         auto condition = DataSet::getCondition(rule->condition);
         auto chargingCondition = static_cast<const Behaviors::ConditionBatteryState*>(condition);
         if (!chargingCondition->checkTrigger(BatteryController::getBatteryState())) {
             // Stop Timer and unregister callback
             Timers::cancelDelayedCallback(chargingTimerRecheck, (void*)rule);
-            BatteryController::unHook(chargingStateChange);
+            BatteryController::unHook(batteryStateChange);
             Flash::unhookProgrammingEvent(chargingFlashProgramming);
         }
     }
 
     void chargingFlashProgramming(void* param, Flash::ProgrammingEventType evt) {
         Timers::cancelDelayedCallback(chargingTimerRecheck, param);
-        BatteryController::unHook(chargingStateChange);
+        BatteryController::unHook(batteryStateChange);
         Flash::unhookProgrammingEvent(chargingFlashProgramming);
     }
 

@@ -65,7 +65,7 @@ namespace Bluetooth::Telemetry
 
                 // Update battery values
                 teleMessage.batteryLevelPercent = BatteryController::getLevelPercent();
-                teleMessage.batteryChargeState = BatteryController::getBatteryState();
+                teleMessage.batteryState = BatteryController::getBatteryState();
                 teleMessage.voltageTimes50 = BatteryController::getVoltageMilli() / 20;
                 teleMessage.vCoilTimes50 = BatteryController::getCoilVoltageMilli() / 20;
 

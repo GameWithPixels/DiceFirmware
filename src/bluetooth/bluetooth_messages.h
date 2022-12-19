@@ -5,6 +5,7 @@
 #include "config/dice_variants.h"
 #include "modules/accelerometer.h"
 #include "config/settings.h"
+#include "modules/battery_controller.h"
 
 #define MAX_DATA_SIZE 100
 
@@ -12,6 +13,9 @@
 
 namespace Bluetooth
 {
+
+using BatteryState = Modules::BatteryController::BatteryState;
+
 /// <summary>
 ///  Base class for messages from the die to the app
 /// </summary>
@@ -128,7 +132,7 @@ struct MessageIAmADie
 
 	// Battery level
 	uint8_t batteryLevelPercent;
-	uint8_t batteryChargeState; // See BatteryController::BatteryState enum
+	BatteryState batteryState;
 
 	MessageIAmADie() : Message(Message::MessageType_IAmADie) {}
 };
@@ -156,7 +160,7 @@ struct MessageTelemetry
 
 	// Battery and power
 	uint8_t batteryLevelPercent;
-	uint8_t batteryChargeState; // See BatteryController::BatteryState enum
+	BatteryState batteryState;
 	uint8_t voltageTimes50;
 	uint8_t vCoilTimes50;
 
@@ -358,7 +362,7 @@ struct MessageBatteryLevel
 	: public Message
 {
 	uint8_t levelPercent;
-	uint8_t chargeState; // See BatteryController::BatteryState enum
+	BatteryState state;
 
 	MessageBatteryLevel() : Message(Message::MessageType_BatteryLevel) {}
 };
