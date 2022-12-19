@@ -164,9 +164,9 @@ struct MessageTelemetry
 	int8_t rssi;
 	uint8_t channelIndex;
 
-	// Temperature
-	int16_t tempTimes100;
-	int16_t temp2Times100;
+	// Temperatures
+	int16_t mcuTempTimes100;
+	int16_t batteryTempTimes100;
 
 	MessageTelemetry() : Message(Message::MessageType_Telemetry) {}
 };

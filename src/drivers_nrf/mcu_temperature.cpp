@@ -87,7 +87,7 @@ namespace DriversNRF::MCUTemperature
             // Send message back
             MessageTemperature tmp;
             tmp.mcuTempTimes100 = 0xFFFF;
-            tmp.batteryTempTimes100 = (uint16_t)(NTC::getNTCTemperature() * 100.0f);
+            tmp.batteryTempTimes100 = (int16_t)(NTC::getNTCTemperature() * 100.0f);
             MessageService::SendMessage(&tmp);
         }
     }

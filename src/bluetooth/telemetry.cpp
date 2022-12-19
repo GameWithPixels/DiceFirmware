@@ -12,6 +12,7 @@
 #include "modules/accelerometer.h"
 #include "modules/battery_controller.h"
 #include "drivers_nrf/mcu_temperature.h"
+#include "drivers_hw/ntc.h"
 #include "utils/utils.h"
 
 using namespace Modules;
@@ -47,7 +48,7 @@ namespace Bluetooth::Telemetry
 
     void trySend() {
         // Check that we got the acceleration, RSSI and temperature data
-        const bool allInit = teleMessage.accelFrame.time != 0 && teleMessage.rssi != 0 && teleMessage.tempTimes100 != 0;
+        const bool allInit = teleMessage.accelFrame.time != 0 && teleMessage.rssi != 0 && teleMessage.mcuTempTimes100 != 0;
 
         // Check time interval since we last send a telemetry message
         const uint32_t time = DriversNRF::Timers::millis();
@@ -89,8 +90,11 @@ namespace Bluetooth::Telemetry
     }
 
     void onTemperatureRead(void* param, int temperatureTimes100) {
-        if (teleMessage.tempTimes100 != temperatureTimes100) {
-            teleMessage.tempTimes100 = temperatureTimes100;
+        auto batteryTempTimes100 = int16_t(DriversHW::NTC::getNTCTemperature() * 100.0f);
+        if (teleMessage.mcuTempTimes100 != temperatureTimes100 ||
+            teleMessage.batteryTempTimes100 != batteryTempTimes100) {
+            teleMessage.mcuTempTimes100 = temperatureTimes100;
+            teleMessage.batteryTempTimes100 = batteryTempTimes100;
             trySend();
         }
     }
@@ -119,7 +123,7 @@ namespace Bluetooth::Telemetry
             // a message until they are all updated
             teleMessage.accelFrame.time = 0;
             teleMessage.rssi = 0;
-            teleMessage.tempTimes100 = 0;
+            teleMessage.mcuTempTimes100 = 0;
 
             // Monitor connections status
             Bluetooth::Stack::hook(onConnectionEvent, nullptr);
