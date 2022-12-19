@@ -17,7 +17,7 @@ using namespace Config;
 using namespace DriversNRF;
 using namespace DataSet;
 
-#define BATT_TOO_LOW_LEVEL 0.5f
+#define BATT_TOO_LOW_LEVEL 50 // 50%
 
 namespace Modules::BehaviorController
 {
@@ -77,7 +77,7 @@ namespace Modules::BehaviorController
                 auto cond = static_cast<const Behaviors::ConditionHelloGoodbye*>(condition);
                 if (cond->checkTrigger(true)) {
                     // // Check the battery level!
-                    // if (BatteryController::getCurrentLevel() > BATT_TOO_LOW_LEVEL) {
+                    // if (BatteryController::getLevelPercent() > BATT_TOO_LOW_LEVEL) {
                         // Go on, do the thing!
                         if (PowerManager::checkFromSysOff()) 
                         {
@@ -176,7 +176,7 @@ namespace Modules::BehaviorController
 		const Behaviors::Rule* rule = (const Behaviors::Rule*)param;
         auto condition = DataSet::getCondition(rule->condition);
         auto chargingCondition = static_cast<const Behaviors::ConditionBatteryState*>(condition);
-        if (chargingCondition->checkTrigger(BatteryController::getCurrentChargeState())) {
+        if (chargingCondition->checkTrigger(BatteryController::getBatteryState())) {
             // do the thing
             Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
             Timers::setDelayedCallback(chargingTimerRecheck, (void*)rule, chargingCondition->repeatPeriodMs);
@@ -192,7 +192,7 @@ namespace Modules::BehaviorController
 		const Behaviors::Rule* rule = (const Behaviors::Rule*)param;
         auto condition = DataSet::getCondition(rule->condition);
         auto chargingCondition = static_cast<const Behaviors::ConditionBatteryState*>(condition);
-        if (!chargingCondition->checkTrigger(BatteryController::getCurrentChargeState())) {
+        if (!chargingCondition->checkTrigger(BatteryController::getBatteryState())) {
             // Stop Timer and unregister callback
             Timers::cancelDelayedCallback(chargingTimerRecheck, (void*)rule);
             BatteryController::unHook(chargingStateChange);
@@ -221,7 +221,7 @@ namespace Modules::BehaviorController
         auto idleCondition = static_cast<const Behaviors::ConditionIdle*>(condition);
         if (idleCondition->checkTrigger(Accelerometer::currentRollState(), Accelerometer::currentFace())) {
             // Check the battery level!
-            if (BatteryController::getCurrentLevel() > BATT_TOO_LOW_LEVEL) {
+            if (BatteryController::getLevelPercent() > BATT_TOO_LOW_LEVEL) {
                 // do the thing
                 Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
                 Timers::setDelayedCallback(idleTimerRecheck, (void*)rule, idleCondition->repeatPeriodMs);

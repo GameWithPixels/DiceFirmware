@@ -121,6 +121,15 @@ struct MessageIAmADie
 	uint32_t pixelId; // A unique identifier
 	uint16_t availableFlash; // How much room available for data
 	uint32_t buildTimestamp;
+
+	// Roll state
+	uint8_t rollState;
+	uint8_t rollFace;
+
+	// Battery level
+	uint8_t batteryLevelPercent;
+	uint8_t batteryChargeState; // See BatteryController::BatteryState enum
+
 	MessageIAmADie() : Message(Message::MessageType_IAmADie) {}
 };
 
@@ -142,7 +151,22 @@ struct MessageRollState
 struct MessageTelemetry
 	: public Message
 {
+	// Accelerometer
 	Modules::Accelerometer::AccelFrame accelFrame;
+
+	// Battery and power
+	uint8_t batteryLevelPercent;
+	uint8_t batteryChargeState; // See BatteryController::BatteryState enum
+	uint8_t voltageTimes50;
+	uint8_t vCoilTimes50;
+
+	// RSSI
+	int8_t rssi;
+	uint8_t channelIndex;
+
+	// Temperature
+	int16_t tempTimes100;
+	int16_t temp2Times100;
 
 	MessageTelemetry() : Message(Message::MessageType_Telemetry) {}
 };
@@ -278,10 +302,18 @@ struct MessageStopAnim
 	MessageStopAnim() : Message(Message::MessageType_StopAnim) {}
 };
 
+enum TelemetryRequestMode
+{
+	TelemetryRequestMode_Off = 0,
+	TelemetryRequestMode_Once = 1,
+	TelemetryRequestMode_Repeat = 2,
+};
+
 struct MessageRequestTelemetry
 	: public Message
 {
-	uint8_t activate; // Boolean
+	TelemetryRequestMode requestMode;
+	uint16_t minInterval; // Milli-seconds, 0 for no cap on rate
 
 	MessageRequestTelemetry() : Message(Message::MessageType_RequestTelemetry) {}
 };
@@ -322,21 +354,35 @@ struct MessageSetAllLEDsToColor
 	MessageSetAllLEDsToColor() : Message(Message::MessageType_SetAllLEDsToColor) {}
 };
 
+struct MessageRequestBatteryLevel
+	: public Message
+{
+	TelemetryRequestMode requestMode;
+
+	MessageRequestBatteryLevel() : Message(Message::MessageType_RequestBatteryLevel) {}
+};
+
 struct MessageBatteryLevel
 	: public Message
 {
-	float level;
-	float voltage;
-	uint8_t charging;
+	uint8_t levelPercent;
+	uint8_t chargeState; // See BatteryController::BatteryState enum
 
 	MessageBatteryLevel() : Message(Message::MessageType_BatteryLevel) {}
+};
+
+struct MessageRequestRssi
+	: public Message
+{
+	TelemetryRequestMode requestMode;
+
+	MessageRequestRssi() : Message(Message::MessageType_RequestRssi) {}
 };
 
 struct MessageRssi
 	: public Message
 {
 	int8_t rssi;
-	uint8_t channelIndex;
 
 	MessageRssi() : Message(Message::MessageType_Rssi) {}
 };
@@ -486,8 +532,6 @@ struct MessageTemperature
 
 	MessageTemperature() : Message(Message::MessageType_Temperature) {}
 };
-
-
 
 }
 

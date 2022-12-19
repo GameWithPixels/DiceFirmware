@@ -57,7 +57,8 @@ namespace Bluetooth::Stack
     #define SEC_PARAM_MIN_KEY_SIZE          7                                       /**< Minimum encryption key size. */
     #define SEC_PARAM_MAX_KEY_SIZE          16                                      /**< Maximum encryption key size. */
 
-    #define MAX_CLIENTS 2
+    #define MAX_CLIENTS 4
+    #define MAX_RSSI_CLIENTS 2
 
     #define RSSI_THRESHOLD_DBM 1
 
@@ -84,7 +85,7 @@ namespace Bluetooth::Stack
     };
 
 	DelegateArray<ConnectionEventMethod, MAX_CLIENTS> clients;
-	DelegateArray<RssiEventMethod, MAX_CLIENTS> rssiClients;
+	DelegateArray<RssiEventMethod, MAX_RSSI_CLIENTS> rssiClients;
 
 #pragma pack( push, 1)
     // Custom advertising data, so the Pixel app can identify dice before they're even connected
@@ -154,9 +155,9 @@ namespace Bluetooth::Stack
 #endif
 
     void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace);
-    void onBatteryLevelChange(void* param, float newLevel);
+    void onBatteryLevelChange(void *param, uint8_t newLevel);
     void updateCustomAdvertisingDataState(Accelerometer::RollState newState, int newFace);
-    void updateCustomAdvertisingDataBattery(float newLevel);
+    void updateCustomAdvertisingDataBattery(uint8_t newLevel);
 
     /**@brief Function for handling BLE events.
      *
@@ -460,7 +461,7 @@ namespace Bluetooth::Stack
         customManufacturerData.designAndColor = Config::SettingsManager::getSettings()->designAndColor;
         customManufacturerData.rollState = Accelerometer::RollState_Unknown;
         customManufacturerData.currentFace = 0;
-        customManufacturerData.batteryLevel = (uint8_t)(BatteryController::getCurrentLevel() * 255.0f);
+        customManufacturerData.batteryLevel = (uint8_t)(BatteryController::getLevelPercent());
         customServiceData.deviceId = Die::getDeviceID();
         customServiceData.buildTimestamp = BUILD_TIMESTAMP;
 
@@ -478,7 +479,7 @@ namespace Bluetooth::Stack
         NRF_LOG_DEBUG("Advertisement payload size: %d, and scan response payload size: %d", advertisingModule.adv_data.adv_data.len, advertisingModule.adv_data.scan_rsp_data.len);
     }
 
-    void onBatteryLevelChange(void* param, float newLevel) {
+    void onBatteryLevelChange(void* param, uint8_t newLevel) {
         updateCustomAdvertisingDataBattery(newLevel);
     }
 
@@ -486,8 +487,8 @@ namespace Bluetooth::Stack
         updateCustomAdvertisingDataState(newState, newFace);
     }
 
-    void updateCustomAdvertisingDataBattery(float batteryLevel) {
-        customManufacturerData.batteryLevel = (uint8_t)(batteryLevel * 255.0f);
+    void updateCustomAdvertisingDataBattery(uint8_t batteryLevel) {
+        customManufacturerData.batteryLevel = batteryLevel;
 
 #if SDK_VER >= 16
         ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
@@ -586,10 +587,6 @@ namespace Bluetooth::Stack
         resetOnDisconnectPending = true;
     }
 
-    void requestRssi() {
-
-    }
-
     bool canSend() {
         return connected && !notificationPending;
     }
@@ -642,8 +639,10 @@ namespace Bluetooth::Stack
     }
 
 	void hook(ConnectionEventMethod method, void* param) {
-		clients.Register(param, method);
-	}
+		if (!clients.Register(param, method)) {
+            NRF_LOG_ERROR("Too many connection state hooks registered.");
+        }
+    }
 
 	void unHook(ConnectionEventMethod method) {
 		clients.UnregisterWithHandler(method);
@@ -657,7 +656,9 @@ namespace Bluetooth::Stack
         if (rssiClients.Count() == 0) {
             sd_ble_gap_rssi_start(connectionHandle, RSSI_THRESHOLD_DBM, 1); 
         }
-        rssiClients.Register(param, method);
+        if (!rssiClients.Register(param, method)) {
+            NRF_LOG_ERROR("Too many RSSI hooks registered.");
+        }
     }
 	
     void unHookRssi(RssiEventMethod client) {

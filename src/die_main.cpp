@@ -60,12 +60,10 @@ void app_error_handler_bare(uint32_t error_code)
     on_error();
 }
 
-
 namespace Die
 {
-    TopLevelState currentTopLevelState = TopLevel_SoloPlay;
-    int currentFace = 0;
-    RollState currentRollState = RollState_Unknown;
+    static TopLevelState currentTopLevelState = TopLevel_SoloPlay;
+    static bool autoSendBatteryLevel = false;
 
     TopLevelState getCurrentState()
     {
@@ -75,13 +73,18 @@ namespace Die
 	void enterStandardState();
 	void enterLEDAnimState();
 
-    void onBatteryStateChange(void* token, BatteryController::BatteryState newState);
-    void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace);
-    void onPowerEvent(void* token, PowerManager::PowerManagerEvent event);
-    void sendRollState(Accelerometer::RollState rollState, int face);
+    void whoAreYouHandler(const Message *message);
 
-    void requestStateHandler(const Message* message);
-    void whoAreYouHandler(const Message* message);
+    void requestRollStateHandler(const Message *message);
+    void sendRollState(Accelerometer::RollState rollState, int face);
+    void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace);
+
+    void requestBatteryLevelHandler(const Message *message);
+    void sendBatteryLevel();
+    void onBatteryStateChange(void* token, BatteryController::BatteryState newState);
+    void onBatteryLevelChange(void* param, uint8_t levelPercent);
+    void onPowerEvent(void* token, PowerManager::PowerManagerEvent event);
+
     void playLEDAnimHandler(const Message* msg);
     void stopLEDAnimHandler(const Message* msg);
     void stopAllLEDAnimsHandler(const Message* msg);
@@ -90,50 +93,35 @@ namespace Die
 
     void onConnectionEvent(void* token, bool connected);
 
-    void initMainLogic() 
-    {
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_WhoAreYou, whoAreYouHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, playLEDAnimHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRollState, requestStateHandler);
+    void initMainLogic() {
+        MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_WhoAreYou, whoAreYouHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_RequestRollState, requestRollStateHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, requestBatteryLevelHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, playLEDAnimHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
 
         NRF_LOG_INFO("Main Logic Initialized");
     }
 
-    void initDieLogic() 
-    {
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, setTopLevelStateHandler);
+    void initDieLogic() {
+        MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, setTopLevelStateHandler);
         
-        Bluetooth::Stack::hook(onConnectionEvent, nullptr);
-
-        BatteryController::hook(onBatteryStateChange, nullptr);
+        Stack::hook(onConnectionEvent, nullptr);
 
         Accelerometer::hookRollState(onRollStateChange, nullptr);
 
-        PowerManager::hook(onPowerEvent, nullptr);
+        BatteryController::hook(onBatteryStateChange, nullptr);
+        BatteryController::hookLevel(onBatteryLevelChange, nullptr);
 
-        currentFace = Accelerometer::currentFace();
+        PowerManager::hook(onPowerEvent, nullptr);
 
         NRF_LOG_INFO("Die Logic Initialized");
     }
 
-    void initValidationLogic()
-    {
+    void initValidationLogic() {
         PowerManager::hook(onPowerEvent, nullptr);
-    }
-
-    void requestStateHandler(const Message* message) {
-        sendRollState(Accelerometer::currentRollState(), Accelerometer::currentFace());
-    }
-
-    void sendRollState(Accelerometer::RollState rollState, int face) {
-        // Central asked for the die state, return it!
-        Bluetooth::MessageRollState rollStateMsg;
-        rollStateMsg.state = (uint8_t)rollState;
-        rollStateMsg.face = (uint8_t)face;
-        Bluetooth::MessageService::SendMessage(&rollStateMsg);
     }
 
     void whoAreYouHandler(const Message* message) {
@@ -145,7 +133,51 @@ namespace Die
         identityMessage.pixelId = getDeviceID();
         identityMessage.availableFlash = DataSet::availableDataSize();
         identityMessage.buildTimestamp = BUILD_TIMESTAMP;
-        Bluetooth::MessageService::SendMessage(&identityMessage);
+        identityMessage.rollState = Accelerometer::currentRollState();
+        identityMessage.rollFace = Accelerometer::currentFace();
+        identityMessage.batteryLevelPercent = BatteryController::getLevelPercent();
+        identityMessage.batteryChargeState = BatteryController::getBatteryState();
+        MessageService::SendMessage(&identityMessage);
+    }
+
+    void requestRollStateHandler(const Message *message) {
+        NRF_LOG_DEBUG("Received Roll State Request");
+        sendRollState(Accelerometer::currentRollState(), Accelerometer::currentFace());
+    }
+
+    void sendRollState(Accelerometer::RollState rollState, int face) {
+        if (MessageService::canSend()) {
+            NRF_LOG_INFO("Sending roll state: %d, face: %d", rollState, face);
+            MessageRollState rollStateMsg;
+            rollStateMsg.state = (uint8_t)rollState;
+            rollStateMsg.face = (uint8_t)face;
+            MessageService::SendMessage(&rollStateMsg);
+        }
+    }
+
+    void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace) {
+        sendRollState(newRollState, newFace);
+    }
+
+    void requestBatteryLevelHandler(const Message *message) {
+        auto reqBattery = static_cast<const MessageRequestBatteryLevel *>(message);
+        NRF_LOG_INFO("Received Battery Level Request, mode = %d", reqBattery->requestMode);
+        autoSendBatteryLevel = reqBattery->requestMode == TelemetryRequestMode_Repeat;
+        if (reqBattery->requestMode != TelemetryRequestMode_Off) {
+            sendBatteryLevel();
+        }
+    }
+
+    void sendBatteryLevel() {
+        if (MessageService::canSend()) {
+            const auto level = BatteryController::getLevelPercent();
+            const auto state = BatteryController::getBatteryState();
+            NRF_LOG_INFO("Sending battery level: %d%%, state: %d", level, state);
+            MessageBatteryLevel batteryMsg;
+            batteryMsg.levelPercent = level;
+            batteryMsg.chargeState = state;
+            MessageService::SendMessage(&batteryMsg);
+        }
     }
 
     void onBatteryStateChange(void* token, BatteryController::BatteryState newState) {
@@ -162,16 +194,15 @@ namespace Die
         //     default:
         //         break;
         // }
+        if (autoSendBatteryLevel) {
+            sendBatteryLevel();
+        }
     }
 
-    void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace) {
-        if (MessageService::canSend)
-            {
-                sendRollState(newRollState, newFace);
-            }
-
-        currentRollState = newRollState;
-        currentFace = newFace;
+    void onBatteryLevelChange(void* param, uint8_t levelPercent) {
+        if (autoSendBatteryLevel) {
+            sendBatteryLevel();
+        }
     }
 
     void onPowerEvent(void* token, PowerManager::PowerManagerEvent event) {
@@ -180,7 +211,7 @@ namespace Die
                 NRF_LOG_INFO("Going to low power mode");
                 Accelerometer::stop();
                 Accelerometer::lowPower();
-                //Bluetooth::Stack::stopAdvertising();
+                //Stack::stopAdvertising();
                 break;
             case PowerManager::PowerManagerEvent_PrepareSleep:
                 NRF_LOG_INFO("Going to Sleep");
@@ -203,14 +234,14 @@ namespace Die
                             });
                         });
                     Accelerometer::enableInterrupt();
-                    //Bluetooth::Stack::stopAdvertising();
+                    //Stack::stopAdvertising();
                 }
                 break;
             case PowerManager::PowerManagerEvent_WakingUpFromSleep:
                 NRF_LOG_INFO("Resuming from Sleep");
                 Accelerometer::disableInterrupt();
                 Accelerometer::start();
-                //Bluetooth::Stack::startAdvertising();
+                //Stack::startAdvertising();
                 break;
             default:
                 break;
@@ -219,9 +250,8 @@ namespace Die
     }
 
     void onConnectionEvent(void* token, bool connected) {
-        if (connected) {
-            // Nothing
-        } else {
+        if (!connected) {
+            autoSendBatteryLevel = false;
             // Return to solo play
             enterStandardState();
         }
@@ -290,8 +320,7 @@ namespace Die
         PowerManager::goToSystemOff();
     }
 
-	uint32_t getDeviceID()
-    {
+	uint32_t getDeviceID() {
 		return NRF_FICR->DEVICEID[1] ^ NRF_FICR->DEVICEID[0];
     }
 

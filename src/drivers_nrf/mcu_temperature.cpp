@@ -23,7 +23,6 @@ namespace DriversNRF::MCUTemperature
 	DelegateArray<TemperatureClientMethod, MAX_CLIENTS> clients;
 
     void temperatureReadyHandler(int32_t raw_measurement);
-    void notifyClients(void * p_event_data, uint16_t event_size);
     void getTemperatureHandler(const Message* msg);
 
     void init(TemperatureInitCallback callback) {
@@ -56,11 +55,12 @@ namespace DriversNRF::MCUTemperature
     void getTemperatureHandler(const Message* msg) {
         // Since reading temperature takes times and uses our interrupt handler, register a lambda
         // and we'll unregister it once we have a result.
+        NRF_LOG_INFO("Received Temperature Request");
         void* uniqueToken = (void*)0x1234;
         ret_code_t ret = nrfx_temp_measure();
         if (ret == NRF_SUCCESS) {
             clients.Register(uniqueToken, [] (void* the_uniquetoken, int the_temp) {
-                NRF_LOG_INFO("Temperature Requested, Temp = %d.%d C", (the_temp / 100), (the_temp % 100));
+                NRF_LOG_INFO("Sending temperature: %d.%d C", (the_temp / 100), (the_temp % 100));
                 clients.UnregisterWithToken(the_uniquetoken);
 
                 // Send message back
