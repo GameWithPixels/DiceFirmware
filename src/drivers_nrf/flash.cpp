@@ -20,11 +20,9 @@ using namespace Config;
 using namespace DataSet;
 using namespace Behaviors;
 
-#define MAX_ACC_CLIENTS 8
+#define MAX_PROG_CLIENTS 8
 
-namespace DriversNRF
-{
-namespace Flash
+namespace DriversNRF::Flash
 {
     static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
 
@@ -33,8 +31,7 @@ namespace Flash
     FlashCallback callback; // This should be allocated per call...
     void* context;
 
-	DelegateArray<ProgrammingEventMethod, MAX_ACC_CLIENTS> programmingClients;
-
+    DelegateArray<ProgrammingEventMethod, MAX_PROG_CLIENTS> programmingClients;
 
     /**@brief   Helper function to obtain the last address on the last page of the on-chip flash that
      *          can be used to write user data.
@@ -377,5 +374,3 @@ namespace Flash
     }
     #endif
 }
-}
-

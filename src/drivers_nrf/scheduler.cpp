@@ -7,9 +7,7 @@
 #define SCHED_MAX_EVENT_DATA_SIZE      16        /**< Maximum size of scheduler events. */
 #define SCHED_QUEUE_SIZE               16        /**< Maximum number of events in the scheduler queue. */
 
-namespace DriversNRF
-{
-namespace Scheduler
+namespace DriversNRF::Scheduler
 {
     void init() {
         // Macro expansion calls APP_ERROR_CHECK automatically
@@ -26,5 +24,4 @@ namespace Scheduler
         ret_code_t ret = app_sched_event_put((void*)eventData, size, handler);
         return ret == NRF_SUCCESS;
     }
-}
 }

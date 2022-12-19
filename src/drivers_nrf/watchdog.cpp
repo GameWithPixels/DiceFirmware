@@ -8,9 +8,7 @@ static nrf_drv_wdt_channel_id m_channel_id;
 
 #define RESET_FLAG_TIME_MS 3000
 
-namespace DriversNRF
-{
-namespace Watchdog
+namespace DriversNRF::Watchdog
 {
     // WDT events handler.
     static void wdt_event_handler(void)
@@ -44,5 +42,4 @@ namespace Watchdog
     {
 
     }
-}
 }

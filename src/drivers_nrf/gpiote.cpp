@@ -4,9 +4,7 @@
 #include "app_error_weak.h"
 #include "nrf_log.h"
 
-namespace DriversNRF
-{
-namespace GPIOTE
+namespace DriversNRF::GPIOTE
 {
     void init()
     {
@@ -35,8 +33,3 @@ namespace GPIOTE
             nrfx_gpiote_in_uninit(pin);
     }
 }
-}
-
-
-
-

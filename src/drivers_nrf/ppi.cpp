@@ -3,9 +3,7 @@
 #include "nrf_drv_ppi.h"
 #include "log.h"
 
-namespace DriversNRF
-{
-namespace PPI
+namespace DriversNRF::PPI
 {
     void init() {
         ret_code_t err_code;
@@ -16,5 +14,3 @@ namespace PPI
         NRF_LOG_INFO("PPI Initialized");
     }
 }
-}
-

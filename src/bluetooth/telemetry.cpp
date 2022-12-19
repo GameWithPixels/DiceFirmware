@@ -16,9 +16,7 @@ using namespace Modules;
 using namespace Bluetooth;
 using namespace Utils;
 
-namespace Bluetooth
-{
-namespace Telemetry
+namespace Bluetooth::Telemetry
 {
     #define TELEMETRY_RATE_MS 100
     MessageTelemetry teleMessage;
@@ -83,5 +81,4 @@ namespace Telemetry
         Accelerometer::unHookFrameData(onAccDataReceived);
         telemetryActive = false;
     }
-}
 }

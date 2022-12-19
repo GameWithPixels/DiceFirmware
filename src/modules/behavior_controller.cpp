@@ -19,12 +19,10 @@ using namespace DataSet;
 
 #define BATT_TOO_LOW_LEVEL 0.5f
 
-namespace Modules
-{
-namespace BehaviorController
+namespace Modules::BehaviorController
 {
     void onConnectionEvent(void* param, bool connected);
-    void onBatterystateChange(void* param, BatteryController::BatteryState newState);
+    void onBatteryStateChange(void* param, BatteryController::BatteryState newState);
     void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace);
 
     void chargingTimerInit(void* param, int periodMs);
@@ -56,7 +54,7 @@ namespace BehaviorController
 
 		// Hook up the behavior controller to all the events it needs to know about to do its job!
         Bluetooth::Stack::hook(onConnectionEvent, nullptr);
-        BatteryController::hook(onBatterystateChange, nullptr);
+        BatteryController::hook(onBatteryStateChange, nullptr);
         Accelerometer::hookRollState(onRollStateChange, nullptr);
         Flash::hookProgrammingEvent(onFlashProgramming, nullptr);
 		NRF_LOG_INFO("Behavior Controller Initialized");
@@ -133,7 +131,7 @@ namespace BehaviorController
         }
     }
 
-    void onBatterystateChange(void* param, BatteryController::BatteryState newState) {
+    void onBatteryStateChange(void* param, BatteryController::BatteryState newState) {
         if (state == State_Running)
         {
             // Do we have a battery event condition?
@@ -385,5 +383,4 @@ namespace BehaviorController
         }
     }
 
-}
 }

@@ -8,9 +8,7 @@
 
 #include "bluetooth/bluetooth_stack.h"
 
-namespace DriversNRF
-{
-namespace DFU
+namespace DriversNRF::DFU
 {
     void buttonless_dfu_sdh_state_observer(nrf_sdh_state_evt_t state, void * p_context)
     {
@@ -89,5 +87,4 @@ namespace DFU
             APP_ERROR_CHECK(err_code);
         #endif
     }
-}
 }

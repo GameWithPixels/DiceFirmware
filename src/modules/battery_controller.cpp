@@ -406,7 +406,7 @@ namespace Modules::BatteryController
         int chargingOffset = isCharging ? 1 : 0;
 
 		// Find the first voltage that is greater than the measured voltage
-        // Because voltages are sprted, we know that we can then linearly interpolate the charge level
+        // Because voltages are sorted, we know that we can then linearly interpolate the charge level
         // using the previous and next entries in the lookup table.
 		int nextIndex = 0;
         while (nextIndex < VBAT_LOOKUP_SIZE && lookup[nextIndex].voltageTimes1000 >= voltageTimes1000) {

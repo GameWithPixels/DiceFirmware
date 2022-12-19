@@ -15,9 +15,7 @@
 #define CLEAR_SETTINGS_AND_DATASET  0x0002 // If above bit was still set when watchdog triggered reset,
                                            // then this bit gets set to tell boot up sequence to reprogram flash.
 
-namespace DriversNRF
-{
-namespace PowerManager
+namespace DriversNRF::PowerManager
 {
 	DelegateArray<PowerManagerClientMethod, MAX_POWER_CLIENTS> clients;
 
@@ -139,5 +137,3 @@ namespace PowerManager
     }
 
 }
-}
-

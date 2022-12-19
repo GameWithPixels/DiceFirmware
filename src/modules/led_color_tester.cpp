@@ -17,9 +17,7 @@ using namespace Utils;
 using namespace Animations;
 using namespace Config;
 
-namespace Modules
-{
-namespace LEDColorTester
+namespace Modules::LEDColorTester
 {
     void SetLEDToColorHandler(const Message* msg);
     void SetAllLEDsToColorHandler(const Message* msg);
@@ -78,5 +76,4 @@ namespace LEDColorTester
         LEDs::setPixelColor(ledIndex, lufmsg->color);
     }
 
-}
 }

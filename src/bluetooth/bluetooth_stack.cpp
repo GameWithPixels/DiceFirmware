@@ -28,9 +28,7 @@ using namespace Config;
 using namespace DriversNRF;
 using namespace Modules;
 
-namespace Bluetooth
-{
-namespace Stack
+namespace Bluetooth::Stack
 {
     #define DEVICE_NAME                     "Dice"
     #define MANUFACTURER_NAME               "Systemic Games, LLC"                   /**< Manufacturer. Will be passed to Device Information Service. */
@@ -669,6 +667,4 @@ namespace Stack
             sd_ble_gap_rssi_stop(connectionHandle);
         }
     }
-
-}
 }

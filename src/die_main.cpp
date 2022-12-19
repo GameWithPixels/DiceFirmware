@@ -72,41 +72,41 @@ namespace Die
         return currentTopLevelState;
     }
 
-	void EnterStandardState();
-	void EnterLEDAnimState();
+	void enterStandardState();
+	void enterLEDAnimState();
 
     void onBatteryStateChange(void* token, BatteryController::BatteryState newState);
     void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace);
     void onPowerEvent(void* token, PowerManager::PowerManagerEvent event);
-    void SendRollState(Accelerometer::RollState rollState, int face);
+    void sendRollState(Accelerometer::RollState rollState, int face);
 
-    void RequestStateHandler(const Message* message);
-    void WhoAreYouHandler(const Message* message);
-    void PlayLEDAnimHandler(const Message* msg);
-    void StopLEDAnimHandler(const Message* msg);
-    void StopAllLEDAnimsHandler(const Message* msg);
-    void SetTopLevelStateHandler(const Message* msg);
-    void EnterSleepModeHandler(const Message* message);
+    void requestStateHandler(const Message* message);
+    void whoAreYouHandler(const Message* message);
+    void playLEDAnimHandler(const Message* msg);
+    void stopLEDAnimHandler(const Message* msg);
+    void stopAllLEDAnimsHandler(const Message* msg);
+    void setTopLevelStateHandler(const Message* msg);
+    void enterSleepModeHandler(const Message* message);
 
-    void onConnection(void* token, bool connected);
+    void onConnectionEvent(void* token, bool connected);
 
     void initMainLogic() 
     {
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_WhoAreYou, WhoAreYouHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, PlayLEDAnimHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, StopLEDAnimHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, StopAllLEDAnimsHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_Sleep, EnterSleepModeHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRollState, RequestStateHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_WhoAreYou, whoAreYouHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, playLEDAnimHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRollState, requestStateHandler);
 
         NRF_LOG_INFO("Main Logic Initialized");
     }
 
     void initDieLogic() 
     {
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, SetTopLevelStateHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, setTopLevelStateHandler);
         
-        Bluetooth::Stack::hook(onConnection, nullptr);
+        Bluetooth::Stack::hook(onConnectionEvent, nullptr);
 
         BatteryController::hook(onBatteryStateChange, nullptr);
 
@@ -124,11 +124,11 @@ namespace Die
         PowerManager::hook(onPowerEvent, nullptr);
     }
 
-    void RequestStateHandler(const Message* message) {
-        SendRollState(Accelerometer::currentRollState(), Accelerometer::currentFace());
+    void requestStateHandler(const Message* message) {
+        sendRollState(Accelerometer::currentRollState(), Accelerometer::currentFace());
     }
 
-    void SendRollState(Accelerometer::RollState rollState, int face) {
+    void sendRollState(Accelerometer::RollState rollState, int face) {
         // Central asked for the die state, return it!
         Bluetooth::MessageRollState rollStateMsg;
         rollStateMsg.state = (uint8_t)rollState;
@@ -136,7 +136,7 @@ namespace Die
         Bluetooth::MessageService::SendMessage(&rollStateMsg);
     }
 
-    void WhoAreYouHandler(const Message* message) {
+    void whoAreYouHandler(const Message* message) {
         // Central asked for the die state, return it!
         Bluetooth::MessageIAmADie identityMessage;
         identityMessage.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
@@ -166,7 +166,7 @@ namespace Die
 
     void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace) {
         if (Bluetooth::MessageService::isConnected()) {
-            SendRollState(newRollState, newFace);
+            sendRollState(newRollState, newFace);
         }
 
         currentRollState = newRollState;
@@ -217,45 +217,45 @@ namespace Die
 
     }
 
-    void onConnection(void* token, bool connected) {
+    void onConnectionEvent(void* token, bool connected) {
         if (connected) {
             // Nothing
         } else {
             // Return to solo play
-            EnterStandardState();
+            enterStandardState();
         }
     }
 
-    void PlayLEDAnimHandler(const Message* msg) {
+    void playLEDAnimHandler(const Message* msg) {
         auto playAnimMessage = (const MessagePlayAnim*)msg;
         NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
         AnimController::play(playAnimMessage->animation, playAnimMessage->remapFace, playAnimMessage->loop);
     }
 
-    void StopLEDAnimHandler(const Message* msg) {
+    void stopLEDAnimHandler(const Message* msg) {
         auto stopAnimMessage = (const MessageStopAnim*)msg;
         NRF_LOG_DEBUG("Stopping animation %d", stopAnimMessage->animation);
         AnimController::stop((int)stopAnimMessage->animation, stopAnimMessage->remapFace);
     }
 
-    void StopAllLEDAnimsHandler(const Message* msg) {
+    void stopAllLEDAnimsHandler(const Message* msg) {
         NRF_LOG_DEBUG("Stopping all animations");
         AnimController::stopAll();
     }
 
-    void SetTopLevelStateHandler(const Message *msg) {
+    void setTopLevelStateHandler(const Message *msg) {
         auto setTopLevelStateMessage = (const MessageSetTopLevelState *)msg;
         switch (setTopLevelStateMessage->state) {
         case TopLevel_SoloPlay:
-            EnterStandardState();
+            enterStandardState();
             break;
         case TopLevel_Animator:
-            EnterLEDAnimState();
+            enterLEDAnimState();
             break;
         }
     }
 
-    void EnterStandardState() {
+    void enterStandardState() {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
             case TopLevel_Animator:
@@ -270,7 +270,7 @@ namespace Die
        }
     }
 
-	void EnterLEDAnimState() {
+	void enterLEDAnimState() {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
             case TopLevel_SoloPlay:
@@ -285,7 +285,7 @@ namespace Die
        }
     }
     
-    void EnterSleepModeHandler(const Message* msg) {
+    void enterSleepModeHandler(const Message* msg) {
         PowerManager::goToSystemOff();
     }
 

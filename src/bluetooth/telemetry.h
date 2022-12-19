@@ -1,11 +1,8 @@
 #pragma once
 
-namespace Bluetooth
+namespace Bluetooth::Telemetry
 {
-    namespace Telemetry
-    {
-        void init();
-        void start();
-        void stop();
-    }
+    void init();
+    void start();
+    void stop();
 }

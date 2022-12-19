@@ -7,9 +7,7 @@
 #include "app_timer.h"
 //#include "SEGGER_RTT.h"
 
-namespace DriversNRF
-{
-namespace Log
+namespace DriversNRF::Log
 {
     void init() {
         ret_code_t err_code = NRF_LOG_INIT(app_timer_cnt_get);
@@ -53,5 +51,4 @@ namespace Log
         NRF_LOG_INFO("Key successfully read: %d", key);
         process();
     }
-}
 }

@@ -15,9 +15,7 @@
 using namespace Bluetooth;
 using namespace DriversHW;
 
-namespace DriversNRF
-{
-namespace MCUTemperature
+namespace DriversNRF::MCUTemperature
 {
     const nrfx_temp_config_t temp_config = NRFX_TEMP_DEFAULT_CONFIG;
 
@@ -108,7 +106,3 @@ namespace MCUTemperature
 	}
 
 }
-}
-
-
-

@@ -6,9 +6,7 @@
 #include "nrf_log.h"
 #include "drivers_nrf/gpiote.h"
 
-namespace DriversNRF
-{
-namespace I2C
+namespace DriversNRF::I2C
 {
     /* TWI instance. */
     static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(0);
@@ -172,8 +170,3 @@ namespace I2C
     }
 
 }
-}
-
-
-
-

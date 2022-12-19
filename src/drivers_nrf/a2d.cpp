@@ -7,9 +7,7 @@
 
 #define BOARD_DETECT_SENSE_PIN NRF_SAADC_INPUT_AIN4
 
-namespace DriversNRF
-{
-namespace A2D
+namespace DriversNRF::A2D
 {
     bool supportsVCoil = false;
     bool supportsVLED = false;
@@ -418,5 +416,3 @@ namespace A2D
     }
 #endif // SELFTEST
 }
-}
-

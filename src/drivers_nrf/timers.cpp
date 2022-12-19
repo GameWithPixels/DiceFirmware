@@ -9,9 +9,7 @@
 
 #define MAX_DELAYED_CALLS 4
 
-namespace DriversNRF
-{
-namespace Timers
+namespace DriversNRF::Timers
 {
     APP_TIMER_DEF(delayedCallbacksTimer);
     void delayedCallbacksTimerCallback(void* ignore);
@@ -261,5 +259,4 @@ namespace Timers
         Log::process();
     }
     #endif
-}
 }

@@ -5,30 +5,27 @@
 
 using namespace Bluetooth;
 
-namespace Modules
+namespace Modules::RssiController
 {
-namespace RssiController
-{
-    void GetRssiHandler(const Message* msg);
-    void OnRssi(void *token, int8_t rssi, uint8_t channelIndex);
+    void getRssiHandler(const Message* msg);
+    void onRssi(void *token, int8_t rssi, uint8_t channelIndex);
 
     void init() {
-        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRssi, GetRssiHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRssi, getRssiHandler);
         NRF_LOG_INFO("Rssi controller initialized");
     }
 
-    void GetRssiHandler(const Message* msg) {
+    void getRssiHandler(const Message* msg) {
         NRF_LOG_INFO("Rssi requested");
-        Stack::hookRssi(OnRssi, nullptr);
+        Stack::hookRssi(onRssi, nullptr);
     }
 
-    void OnRssi(void* token, int8_t rssi, uint8_t channelIndex) {
+    void onRssi(void* token, int8_t rssi, uint8_t channelIndex) {
         NRF_LOG_INFO("Returning Rssi: %d", rssi);
-        Stack::unHookRssi(OnRssi);
+        Stack::unHookRssi(onRssi);
         MessageRssi retMsg;
         retMsg.rssi = rssi;
         retMsg.channelIndex = channelIndex;
         MessageService::SendMessage(&retMsg);
     }
-}
 }

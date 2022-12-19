@@ -22,9 +22,7 @@
 using namespace DriversNRF;
 using namespace Core;
 
-namespace Bluetooth
-{
-namespace MessageService
+namespace Bluetooth::MessageService
 {
     void BLEObserver(ble_evt_t const * p_ble_evt, void * p_context);
 
@@ -351,6 +349,4 @@ namespace MessageService
     }
 
 #endif
-
-}
 }
