@@ -11,7 +11,6 @@
 #include "drivers_nrf/timers.h"
 #include "modules/accelerometer.h"
 #include "modules/battery_controller.h"
-#include "modules/rssi_controller.h"
 #include "drivers_nrf/mcu_temperature.h"
 #include "utils/utils.h"
 

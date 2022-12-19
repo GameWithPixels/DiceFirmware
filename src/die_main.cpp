@@ -15,6 +15,9 @@
 #include "modules/battery_controller.h"
 #include "modules/validation_manager.h"
 #include "data_set/data_set.h"
+#include "notifications/battery.h"
+#include "notifications/roll.h"
+#include "notifications/rssi.h"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
@@ -39,23 +42,17 @@ static void on_error(void)
     NVIC_SystemReset();
 }
 
-
-void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
-{
+void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name) {
     NRF_LOG_ERROR("app_error_handler err_code:%d %s:%d", error_code, p_file_name, line_num);
     on_error();
 }
 
-
-void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
-{
+void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info) {
     NRF_LOG_ERROR("Received a fault! id: 0x%08x, pc: 0x%08x, info: 0x%08x", id, pc, info);
     on_error();
 }
 
-
-void app_error_handler_bare(uint32_t error_code)
-{
+void app_error_handler_bare(uint32_t error_code) {
     NRF_LOG_ERROR("Received an error: 0x%08x!", error_code);
     on_error();
 }
@@ -63,10 +60,8 @@ void app_error_handler_bare(uint32_t error_code)
 namespace Die
 {
     static TopLevelState currentTopLevelState = TopLevel_SoloPlay;
-    static bool autoSendBatteryLevel = false;
 
-    TopLevelState getCurrentState()
-    {
+    TopLevelState getCurrentState() {
         return currentTopLevelState;
     }
 
@@ -74,16 +69,8 @@ namespace Die
 	void enterLEDAnimState();
 
     void whoAreYouHandler(const Message *message);
-
-    void requestRollStateHandler(const Message *message);
-    void sendRollState(Accelerometer::RollState rollState, int face);
-    void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace);
-
-    void requestBatteryLevelHandler(const Message *message);
-    void sendBatteryLevel();
-    void onBatteryStateChange(void* token, BatteryController::BatteryState newState);
-    void onBatteryLevelChange(void* param, uint8_t levelPercent);
     void onPowerEvent(void* token, PowerManager::PowerManagerEvent event);
+    void onConnectionEvent(void *token, bool connected);
 
     void playLEDAnimHandler(const Message* msg);
     void stopLEDAnimHandler(const Message* msg);
@@ -91,12 +78,8 @@ namespace Die
     void setTopLevelStateHandler(const Message* msg);
     void enterSleepModeHandler(const Message* message);
 
-    void onConnectionEvent(void* token, bool connected);
-
     void initMainLogic() {
-        MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_WhoAreYou, whoAreYouHandler);
-        MessageService::RegisterMessageHandler(Message::MessageType_RequestRollState, requestRollStateHandler);
-        MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, requestBatteryLevelHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_WhoAreYou, whoAreYouHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, playLEDAnimHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
@@ -107,15 +90,13 @@ namespace Die
 
     void initDieLogic() {
         MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, setTopLevelStateHandler);
-        
         Stack::hook(onConnectionEvent, nullptr);
 
-        Accelerometer::hookRollState(onRollStateChange, nullptr);
-
-        BatteryController::hook(onBatteryStateChange, nullptr);
-        BatteryController::hookLevel(onBatteryLevelChange, nullptr);
-
         PowerManager::hook(onPowerEvent, nullptr);
+
+        Notifications::Battery::init();
+        Notifications::Roll::init();
+        Notifications::Rssi::init();
 
         NRF_LOG_INFO("Die Logic Initialized");
     }
@@ -140,70 +121,6 @@ namespace Die
         MessageService::SendMessage(&identityMessage);
     }
 
-    void requestRollStateHandler(const Message *message) {
-        NRF_LOG_DEBUG("Received Roll State Request");
-        sendRollState(Accelerometer::currentRollState(), Accelerometer::currentFace());
-    }
-
-    void sendRollState(Accelerometer::RollState rollState, int face) {
-        if (MessageService::canSend()) {
-            NRF_LOG_INFO("Sending roll state: %d, face: %d", rollState, face);
-            MessageRollState rollStateMsg;
-            rollStateMsg.state = (uint8_t)rollState;
-            rollStateMsg.face = (uint8_t)face;
-            MessageService::SendMessage(&rollStateMsg);
-        }
-    }
-
-    void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace) {
-        sendRollState(newRollState, newFace);
-    }
-
-    void requestBatteryLevelHandler(const Message *message) {
-        auto reqBattery = static_cast<const MessageRequestBatteryLevel *>(message);
-        NRF_LOG_INFO("Received Battery Level Request, mode = %d", reqBattery->requestMode);
-        autoSendBatteryLevel = reqBattery->requestMode == TelemetryRequestMode_Repeat;
-        if (reqBattery->requestMode != TelemetryRequestMode_Off) {
-            sendBatteryLevel();
-        }
-    }
-
-    void sendBatteryLevel() {
-        if (MessageService::canSend()) {
-            const auto level = BatteryController::getLevelPercent();
-            const auto state = BatteryController::getBatteryState();
-            NRF_LOG_INFO("Sending battery level: %d%%, state: %d", level, state);
-            MessageBatteryLevel batteryMsg;
-            batteryMsg.levelPercent = level;
-            batteryMsg.chargeState = state;
-            MessageService::SendMessage(&batteryMsg);
-        }
-    }
-
-    void onBatteryStateChange(void* token, BatteryController::BatteryState newState) {
-        // switch (newState) {
-        //     case BatteryController::BatteryState_Charging:
-        //         AnimController::play(AnimationEvent_ChargingStart);
-        //         break;
-        //     case BatteryController::BatteryState_Low:
-        //         AnimController::play(AnimationEvent_LowBattery);
-        //         break;
-        //     case BatteryController::BatteryState_Ok:
-        //         AnimController::play(AnimationEvent_ChargingDone);
-        //         break;
-        //     default:
-        //         break;
-        // }
-        if (autoSendBatteryLevel) {
-            sendBatteryLevel();
-        }
-    }
-
-    void onBatteryLevelChange(void* param, uint8_t levelPercent) {
-        if (autoSendBatteryLevel) {
-            sendBatteryLevel();
-        }
-    }
 
     void onPowerEvent(void* token, PowerManager::PowerManagerEvent event) {
         switch (event) {
@@ -248,14 +165,30 @@ namespace Die
         }
 
     }
-
     void onConnectionEvent(void* token, bool connected) {
         if (!connected) {
-            autoSendBatteryLevel = false;
             // Return to solo play
             enterStandardState();
         }
+
+        Notifications::Rssi::notifyConnectionEvent(connected);
     }
+
+    // void onBatteryStateChange(void* token, BatteryController::BatteryState newState) {
+    //     switch (newState) {
+    //         case BatteryController::BatteryState_Charging:
+    //             AnimController::play(AnimationEvent_ChargingStart);
+    //             break;
+    //         case BatteryController::BatteryState_Low:
+    //             AnimController::play(AnimationEvent_LowBattery);
+    //             break;
+    //         case BatteryController::BatteryState_Ok:
+    //             AnimController::play(AnimationEvent_ChargingDone);
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    // }
 
     void playLEDAnimHandler(const Message* msg) {
         auto playAnimMessage = (const MessagePlayAnim*)msg;

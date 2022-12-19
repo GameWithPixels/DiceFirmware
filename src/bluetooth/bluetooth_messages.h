@@ -313,7 +313,7 @@ struct MessageRequestTelemetry
 	: public Message
 {
 	TelemetryRequestMode requestMode;
-	uint16_t minInterval; // Milli-seconds, 0 for no cap on rate
+	uint16_t minInterval; // Milliseconds, 0 for no cap on rate
 
 	MessageRequestTelemetry() : Message(Message::MessageType_RequestTelemetry) {}
 };
@@ -354,14 +354,6 @@ struct MessageSetAllLEDsToColor
 	MessageSetAllLEDsToColor() : Message(Message::MessageType_SetAllLEDsToColor) {}
 };
 
-struct MessageRequestBatteryLevel
-	: public Message
-{
-	TelemetryRequestMode requestMode;
-
-	MessageRequestBatteryLevel() : Message(Message::MessageType_RequestBatteryLevel) {}
-};
-
 struct MessageBatteryLevel
 	: public Message
 {
@@ -375,6 +367,7 @@ struct MessageRequestRssi
 	: public Message
 {
 	TelemetryRequestMode requestMode;
+	uint16_t minInterval; // Milliseconds, 0 for no cap on rate
 
 	MessageRequestRssi() : Message(Message::MessageType_RequestRssi) {}
 };

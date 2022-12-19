@@ -40,9 +40,9 @@
 #include "modules/battery_controller.h"
 #include "modules/behavior_controller.h"
 #include "modules/hardware_test.h"
-#include "modules/rssi_controller.h"
-#include "utils/Utils.h"
 #include "modules/validation_manager.h"
+
+#include "utils/Utils.h"
 
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
@@ -333,9 +333,6 @@ namespace Die
 
                 // Instant Animation Controller preview depends on bluetooth
                 InstantAnimationController::init();
-
-                // Rssi controller requires the bluetooth stack
-                RssiController::init();
 
                 // Get ready for handling hardware test messages
                 HardwareTest::init();

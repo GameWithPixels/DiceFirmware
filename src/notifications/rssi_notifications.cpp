@@ -1,4 +1,4 @@
-#include "rssi_controller.h"
+#include "rssi.h"
 #include "bluetooth/bluetooth_stack.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "drivers_nrf/timers.h"
@@ -6,25 +6,28 @@
 
 using namespace Bluetooth;
 
-#define MIN_INTERVAL_MS 5000
-
-namespace Modules::RssiController
+namespace Notifications::Rssi
 {
     static TelemetryRequestMode requestMode = TelemetryRequestMode_Off;
     static int8_t lastRssi = 0;
     static uint32_t lastMessageMs = 0;
+    static uint32_t minIntervalMs = 0;
 
-    void getRssiHandler(const Message* msg);
+    void getRssiHandler(const Message *msg);
     void stop();
-    void onConnectionEvent(void *token, bool connected);
     void onRssi(void *token, int8_t rssi, uint8_t channelIndex);
 
     void init() {
         Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRssi, getRssiHandler);
-        Bluetooth::Stack::hook(onConnectionEvent, nullptr);
-        NRF_LOG_INFO("Rssi controller initialized");
+        NRF_LOG_INFO("Rssi notifications initialized");
     }
 
+    void notifyConnectionEvent(bool connected) {
+        if (!connected) {
+            stop();
+        }
+    }
+    
     void getRssiHandler(const Message* msg) {
         auto reqRssi = static_cast<const MessageRequestRssi *>(msg);
         NRF_LOG_INFO("Received RSSI Request, mode = %d", reqRssi->requestMode);
@@ -35,7 +38,9 @@ namespace Modules::RssiController
                 Stack::hookRssi(onRssi, nullptr);
             }
             requestMode = reqRssi->requestMode;
-            lastRssi = 0; // Reset value so next message is send immediately
+            minIntervalMs = reqRssi->minInterval;
+            // Reset timestamp so next message is send on the first RSSI update
+            lastMessageMs = 0;
         }
         else if (requestMode == TelemetryRequestMode_Repeat) {
             // If requestMode is "once", it will auto turn off on
@@ -52,22 +57,15 @@ namespace Modules::RssiController
         }
     }
 
-    void onConnectionEvent(void* token, bool connected) {
-        if (!connected) {
-            stop();
-        }
-    }
-
     void onRssi(void* token, int8_t rssi, uint8_t channelIndex) {
-        const bool sendOnce = requestMode == TelemetryRequestMode_Once;
         // Check time interval since we last send a telemetry message
         const uint32_t time = DriversNRF::Timers::millis();
-        if (sendOnce || lastRssi == 0 ||
-            (time - lastMessageMs >= MIN_INTERVAL_MS && rssi != lastRssi)) {
+        if (lastMessageMs == 0 ||
+            (time - lastMessageMs >= minIntervalMs && rssi != lastRssi)) {
             if (MessageService::canSend()) {
                 lastMessageMs = time;
                 lastRssi = rssi;
-                if (sendOnce) {
+                if (requestMode == TelemetryRequestMode_Once) {
                     // Send RSSI only once
                     stop();
                 }

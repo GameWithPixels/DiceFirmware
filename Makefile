@@ -169,8 +169,10 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/instant_anim_controller.cpp \
 	$(PROJ_DIR)/src/modules/led_color_tester.cpp \
 	$(PROJ_DIR)/src/modules/leds.cpp \
-	$(PROJ_DIR)/src/modules/rssi_controller.cpp \
 	$(PROJ_DIR)/src/modules/validation_manager.cpp \
+	$(PROJ_DIR)/src/notifications/battery_notifications.cpp \
+	$(PROJ_DIR)/src/notifications/roll_notifications.cpp \
+	$(PROJ_DIR)/src/notifications/rssi_notifications.cpp \
 	$(PROJ_DIR)/src/utils/abi.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
 	$(PROJ_DIR)/src/utils/utils.cpp
