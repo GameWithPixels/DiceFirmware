@@ -125,13 +125,13 @@ namespace Die
     void onPowerEvent(void* token, PowerManager::PowerManagerEvent event) {
         switch (event) {
             case PowerManager::PowerManagerEvent_PrepareWakeUp:
-                NRF_LOG_INFO("Going to low power mode");
+                //NRF_LOG_INFO("Going to low power mode");
                 Accelerometer::stop();
                 Accelerometer::lowPower();
                 //Stack::stopAdvertising();
                 break;
             case PowerManager::PowerManagerEvent_PrepareSleep:
-                NRF_LOG_INFO("Going to Sleep");
+                //NRF_LOG_INFO("Going to Sleep");
                 Accelerometer::stop();
 
                 if (ValidationManager::inValidation()) {
@@ -151,14 +151,14 @@ namespace Die
                             });
                         });
                     Accelerometer::enableInterrupt();
-                    //Stack::stopAdvertising();
+                    Stack::stopAdvertising();
                 }
                 break;
             case PowerManager::PowerManagerEvent_WakingUpFromSleep:
-                NRF_LOG_INFO("Resuming from Sleep");
+                //NRF_LOG_INFO("Resuming from Sleep");
                 Accelerometer::disableInterrupt();
                 Accelerometer::start();
-                //Stack::startAdvertising();
+                Stack::startAdvertising();
                 break;
             default:
                 break;

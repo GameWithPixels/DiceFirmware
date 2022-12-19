@@ -311,6 +311,7 @@ namespace Bluetooth::Stack
 
                 // Unhook from accelerometer events, we don't need them
                 Accelerometer::unHookRollState(onRollStateChange);
+                BatteryController::unHook(onBatteryStateChange);
                 BatteryController::unHookLevel(onBatteryLevelChange);
                 break;
 
@@ -646,8 +647,13 @@ namespace Bluetooth::Stack
     }
 
     void stopAdvertising() {
-        ret_code_t err_code = ble_advertising_start(&advertisingModule, BLE_ADV_MODE_IDLE);
+        ret_code_t err_code = sd_ble_gap_adv_stop(advertisingModule.adv_handle);
         APP_ERROR_CHECK(err_code);
+
+        // Unhook from accelerometer events, we don't need them
+        Accelerometer::unHookRollState(onRollStateChange);
+        BatteryController::unHook(onBatteryStateChange);
+        BatteryController::unHookLevel(onBatteryLevelChange);
     }
 
     bool isConnected() {
