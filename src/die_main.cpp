@@ -85,24 +85,20 @@ namespace Die
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
 
-        NRF_LOG_DEBUG("Main Logic Initialized");
+        PowerManager::hook(onPowerEvent, nullptr);
+
+        NRF_LOG_DEBUG("Main Logic init");
     }
 
     void initDieLogic() {
         MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, setTopLevelStateHandler);
         Stack::hook(onConnectionEvent, nullptr);
 
-        PowerManager::hook(onPowerEvent, nullptr);
-
         Notifications::Battery::init();
         Notifications::Roll::init();
         Notifications::Rssi::init();
 
-    }
-
-    void initValidationLogic() {
-        PowerManager::hook(onPowerEvent, nullptr);
-        NRF_LOG_DEBUG("Die Logic Initialized");
+        NRF_LOG_DEBUG("Die Logic init");
     }
 
     void whoAreYouHandler(const Message* message) {

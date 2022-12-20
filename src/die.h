@@ -15,8 +15,6 @@ namespace Die
     void init();
 	void initMainLogic();
     void initDieLogic();
-    void initValidationLogic();
-	void initDebugLogic();
 
 	uint32_t getDeviceID();
     void update();

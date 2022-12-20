@@ -346,7 +346,6 @@ namespace Die
 
                 // Entering the main loop! Play Hello! anim if in validation mode
                 if (inValidation) {
-                    initValidationLogic();
                     ValidationManager::init();
                     ValidationManager::onDiceInitialized();
                 } else {
