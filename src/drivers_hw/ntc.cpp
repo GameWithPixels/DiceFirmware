@@ -41,7 +41,7 @@ namespace DriversHW::NTC
     void init() {
         // Grab initial values from the battery driver
         float temp = getNTCTemperature();
-        NRF_LOG_INFO("NTC Initialized, battery temperature = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(temp));
+        NRF_LOG_INFO("NTC init, batt temp: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(temp));
     }
 
 

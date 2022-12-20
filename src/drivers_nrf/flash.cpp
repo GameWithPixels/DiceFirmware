@@ -61,10 +61,11 @@ namespace DriversNRF::Flash
         ret_code_t rc = nrf_fstorage_init(&fstorage, &nrf_fstorage_sd, NULL);
         APP_ERROR_CHECK(rc);
 
-        NRF_LOG_INFO("Flash Initialized - Address range: 0x%08x - 0x%08x", fstorage.start_addr, fstorage.end_addr);
-        NRF_LOG_INFO(" - %d bytes available for user data", getUsableBytes());
-        NRF_LOG_INFO(" - erase unit: %d bytes",      fstorage.p_flash_info->erase_unit);
-        NRF_LOG_INFO(" - program unit: %d bytes",    fstorage.p_flash_info->program_unit);
+        NRF_LOG_INFO("Flash init");
+        NRF_LOG_INFO("   Addr range: 0x%08x-0x%08x", fstorage.start_addr, fstorage.end_addr);
+        NRF_LOG_INFO("   %d B free", getUsableBytes());
+        NRF_LOG_DEBUG("   Erase unit: %d",      fstorage.p_flash_info->erase_unit);
+        NRF_LOG_DEBUG("   Program unit: %d", fstorage.p_flash_info->program_unit);
 
         // Not needed for validation
         #if DICE_SELFTEST && FLASH_SELFTEST
@@ -257,7 +258,7 @@ namespace DriversNRF::Flash
 
 			// Start by erasing the flash
 			Flash::erase(nullptr, pageAddress, pageCount, [](void* context, bool result, uint32_t address, uint16_t data_size) {
-				NRF_LOG_INFO("done Erasing %d page", data_size);
+				NRF_LOG_INFO("Done erasing %d page", data_size);
 				if (result) {
 					// Program settings
 					Flash::write(nullptr, getSettingsStartAddress(), _newSettings, sizeof(Settings), [](void* context, bool result, uint32_t address, uint16_t data_size) {

@@ -106,14 +106,14 @@ namespace Modules::BatteryController
 		Timers::createTimer(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
 		Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(BATTERY_TIMER_MS), NULL);
 
-        NRF_LOG_INFO("Battery controller initialized");
-        NRF_LOG_INFO("    Battery level %d%%", levelPercent);
+        NRF_LOG_INFO("Battery Controller init");
+        NRF_LOG_INFO("  Battery: %d%%", levelPercent);
 
         float ntc = NTC::getNTCTemperature();
         currentBatteryTempState = (ntc < TEMPERATURE_TOO_HOT_ENTER) ? BatteryTemperatureState_Normal : BatteryTemperatureState_Hot;
         if (currentBatteryTempState == BatteryTemperatureState_Hot) {
             Battery::setDisableChargingOverride(true);
-            NRF_LOG_INFO("    Battery too hot: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(ntc));
+            NRF_LOG_INFO("  Battery too hot! Temp: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(ntc));
         }
 
         // Other values (voltage, vcoil) already displayed by Battery::init()

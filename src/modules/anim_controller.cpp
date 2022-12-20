@@ -81,7 +81,7 @@ namespace Modules::AnimController
 		Timers::createTimer(&animControllerTimer, APP_TIMER_MODE_REPEATED, animationControllerUpdate);
 		PowerManager::hook(onPowerEvent, nullptr);
 
-		NRF_LOG_INFO("Anim Controller Initialized");
+		NRF_LOG_DEBUG("Anim Controller init");
 
 		start();
 	}

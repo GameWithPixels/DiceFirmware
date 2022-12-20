@@ -30,7 +30,7 @@ namespace DriversNRF::PowerManager
 		Timers::createTimer(&sleepTimer, APP_TIMER_MODE_SINGLE_SHOT, triggerSleepMode);
 		Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
 
-        NRF_LOG_INFO("Power Management Initialized");
+        NRF_LOG_DEBUG("Power Management init");
     }
 
     void hook(PowerManagerClientMethod method, void* param) {

@@ -59,7 +59,7 @@ namespace Modules::LEDs
         memset(pixels, 0, MAX_LED_COUNT * sizeof(uint32_t));
         numLed = board->ledCount;
 
-        NRF_LOG_INFO("LEDs initialized with powerPin=%d", (int)powerPin);
+        NRF_LOG_DEBUG("LEDs init, powerPin=%d", (int)powerPin);
     }
 
     void clear() {

@@ -60,7 +60,7 @@ namespace DriversNRF::A2D
 
         float vcc = readVDD();
 
-        NRF_LOG_INFO("A2D Initialized, VDD=" NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vcc));
+        NRF_LOG_INFO("A2D init, VDD: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vcc));
 
         // Not needed for validation
         #if DICE_SELFTEST && A2D_SELFTEST
@@ -167,7 +167,7 @@ namespace DriversNRF::A2D
             supportsNTC = true;
         }
 
-        NRF_LOG_INFO("A2D Pins Initialized");
+        NRF_LOG_DEBUG("A2D Pins init");
 
         #if DICE_SELFTEST && A2D_SELFTEST_BATT
         selfTestBatt();

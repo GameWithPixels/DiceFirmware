@@ -11,7 +11,7 @@ namespace DriversNRF::GPIOTE
         ret_code_t err_code = nrf_drv_gpiote_init();
         APP_ERROR_CHECK(err_code);
 
-        NRF_LOG_INFO("GPIOTE Initialized.");
+        NRF_LOG_DEBUG("GPIOTE init");
     }
 
     void enableInterrupt(uint32_t pin, nrf_gpio_pin_pull_t pull, nrf_gpiote_polarity_t polarity, PinHandler handler) {

@@ -61,7 +61,7 @@ namespace Config::SettingsManager
 			MessageService::RegisterMessageHandler(Message::MessageType_PrintNormals, PrintNormals);
 			#endif
 
-			NRF_LOG_INFO("Settings initialized, size=%d bytes", sizeof(Settings));
+			NRF_LOG_INFO("Settings init, size: %d", sizeof(Settings));
 
 			auto callBackCopy = _callback;
 			_callback = nullptr;

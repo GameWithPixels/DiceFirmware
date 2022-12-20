@@ -37,7 +37,7 @@ namespace Bluetooth::Telemetry
         // Register for messages to send telemetry data over!
         MessageService::RegisterMessageHandler(Message::MessageType_RequestTelemetry, onRequestTelemetryHandler);
 
-        NRF_LOG_INFO("Telemetry initialized");
+        NRF_LOG_DEBUG("Telemetry init");
     }
 
     void onConnectionEvent(void* param, bool connected) {

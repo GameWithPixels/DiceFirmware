@@ -128,7 +128,7 @@ namespace DriversHW
             // Pre-write the termination word
             pwm_sequence_values[numLEDs * NEOPIXEL_BYTES] = 0x8000;
 
-            NRF_LOG_INFO("Neopixel Initialized");
+            NRF_LOG_DEBUG("Neopixel init");
         }
 
         void uninit(void) {

@@ -11,6 +11,6 @@ namespace DriversNRF::PPI
         err_code = nrf_drv_ppi_init();
         APP_ERROR_CHECK(err_code);
 
-        NRF_LOG_INFO("PPI Initialized");
+        NRF_LOG_DEBUG("PPI init");
     }
 }

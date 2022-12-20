@@ -15,6 +15,8 @@ namespace Notifications::Roll
     void init() {
         MessageService::RegisterMessageHandler(Message::MessageType_RequestRollState, requestRollStateHandler);
         Accelerometer::hookRollState(onRollStateChange, nullptr);
+
+        NRF_LOG_DEBUG("Roll notifications init");
     }
 
     void sendRollState(Accelerometer::RollState rollState, int face) {

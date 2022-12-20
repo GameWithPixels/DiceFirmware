@@ -75,7 +75,7 @@ namespace Modules::Accelerometer
         currentFrame.smoothAcc = currentFrame.acc;
 
         start();
-        NRF_LOG_INFO("Acc initialized with model=%d", (int)accelerometerModel);
+        NRF_LOG_INFO("Acc init model: %d", (int)accelerometerModel);
     }
 
     void update(void *context)

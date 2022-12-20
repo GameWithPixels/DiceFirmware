@@ -54,7 +54,7 @@ namespace DriversNRF::Timers
         app_timer_resume();
         #endif
 
-        NRF_LOG_INFO("App Timers initialized");
+        NRF_LOG_DEBUG("App Timers init");
 
         // Not needed for validation, but possible unit testing
         #if DICE_SELFTEST && TIMERS_SELFTEST

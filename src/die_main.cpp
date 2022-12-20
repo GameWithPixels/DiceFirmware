@@ -85,7 +85,7 @@ namespace Die
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
 
-        NRF_LOG_INFO("Main Logic Initialized");
+        NRF_LOG_DEBUG("Main Logic Initialized");
     }
 
     void initDieLogic() {
@@ -98,11 +98,11 @@ namespace Die
         Notifications::Roll::init();
         Notifications::Rssi::init();
 
-        NRF_LOG_INFO("Die Logic Initialized");
     }
 
     void initValidationLogic() {
         PowerManager::hook(onPowerEvent, nullptr);
+        NRF_LOG_DEBUG("Die Logic Initialized");
     }
 
     void whoAreYouHandler(const Message* message) {

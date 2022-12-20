@@ -12,7 +12,7 @@ namespace DriversNRF::Scheduler
     void init() {
         // Macro expansion calls APP_ERROR_CHECK automatically
         APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-        NRF_LOG_INFO("Scheduler: %d bytes free", app_sched_queue_space_get() * SCHED_MAX_EVENT_DATA_SIZE);
+        NRF_LOG_INFO("Scheduler: %dB free", app_sched_queue_space_get() * SCHED_MAX_EVENT_DATA_SIZE);
     }
 
     void update() {

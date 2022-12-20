@@ -17,8 +17,8 @@ namespace Modules::HardwareTest
 #if defined(DEBUG)
         //MessageService::RegisterMessageHandler(Message::MessageType_TestHardware, nullptr, HardwareTestHandler);
         #endif
-        NRF_LOG_INFO("Hardware Test initialized");
-	}
+        NRF_LOG_DEBUG("Hardware Test init");
+    }
 
     void LedLoopbackHandler(const Message *msg) {
         messageLedLoopback.value = 1;

@@ -144,8 +144,8 @@ namespace AccelChip
 		#if DICE_SELFTEST && LIS2DE12_SELFTEST_INT
 		selfTestInterrupt();
 		#endif
-		NRF_LOG_INFO("LIS2DE12 Initialized");
-	}
+        NRF_LOG_DEBUG("LIS2DE12 init");
+    }
 
 	/// <summary>
 	/// READ ACCELERATION DATA

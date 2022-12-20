@@ -32,7 +32,7 @@ namespace Modules::AnimationPreview
         animation = nullptr;
         animationDataHash = 0;
 
-		NRF_LOG_INFO("Animation Preview Initialized");
+        NRF_LOG_DEBUG("Animation Preview init");
     }
 
     void ReceiveTestAnimSetHandler(const Message* msg)

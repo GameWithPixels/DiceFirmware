@@ -204,10 +204,10 @@ namespace Battery
         float vCoil = checkVCoil();
         float vBat = checkVBat();
 
-        NRF_LOG_INFO("Battery initialized");
-        NRF_LOG_INFO("   Battery Voltage= " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
-        NRF_LOG_INFO("   Charging= %d", (charging ? 1 : 0));
-        NRF_LOG_INFO("   VCoil= " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoil));
+        NRF_LOG_INFO("Battery init");
+        NRF_LOG_INFO("  Voltage: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+        NRF_LOG_INFO("  Charging: %d", (charging ? 1 : 0));
+        NRF_LOG_INFO("  VCoil: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoil));
 
         #if DICE_SELFTEST && BATTERY_SELFTEST
         selfTest();

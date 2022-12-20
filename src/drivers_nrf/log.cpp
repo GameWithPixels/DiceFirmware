@@ -16,8 +16,7 @@ namespace DriversNRF::Log
         // No error code to check
         NRF_LOG_DEFAULT_BACKENDS_INIT();
 
-        NRF_LOG_INFO("----- Initializing -----");
-        NRF_LOG_INFO("Log initialized");
+        NRF_LOG_DEBUG("Log init");
 
         // Not needed for validation
         #if DICE_SELFTEST && LOG_SELFTEST

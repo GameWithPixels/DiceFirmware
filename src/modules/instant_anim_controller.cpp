@@ -43,7 +43,7 @@ namespace Modules::InstantAnimationController
         animationsData = nullptr;
         clearData();
 
-        NRF_LOG_INFO("Instant Animation Controller Initialized");
+        NRF_LOG_DEBUG("Instant Animation Controller init");
     }
 
     void ReceiveInstantAnimSetHandler(const Message *msg)

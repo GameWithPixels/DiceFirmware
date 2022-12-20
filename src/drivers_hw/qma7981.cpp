@@ -99,8 +99,8 @@ namespace KXTJ3
 		disableInterrupt();
 		clearInterrupt();
 
-		NRF_LOG_INFO("KXTJ3 Initialized");
-	}
+        NRF_LOG_DEBUG("KXTJ3 init");
+    }
 
     void read(Core::float3* outAccel) {
 

@@ -43,7 +43,7 @@ namespace DriversNRF::I2C
 
         //scanBus();
 
-        NRF_LOG_INFO("I2C Initialized with freq=%d", (int)freq);
+        NRF_LOG_INFO("I2C init freq: %d", (int)freq);
     }
 
     void deinit()

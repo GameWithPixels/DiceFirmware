@@ -57,7 +57,7 @@ namespace Modules::BehaviorController
         BatteryController::hook(onBatteryStateChange, nullptr);
         Accelerometer::hookRollState(onRollStateChange, nullptr);
         Flash::hookProgrammingEvent(onFlashProgramming, nullptr);
-		NRF_LOG_INFO("Behavior Controller Initialized");
+        NRF_LOG_DEBUG("Behavior Controller init");
     }
 
     void onDiceInitialized() {

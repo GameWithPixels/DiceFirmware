@@ -49,7 +49,7 @@ namespace Modules::ValidationManager
         // Hook local connection function to BLE connection events
         Bluetooth::Stack::hook(onConnectionEvent, nullptr);
 
-        NRF_LOG_INFO("Validation Manager Initialized");
+        NRF_LOG_DEBUG("Validation Manager init");
     }
 
     // Function for playing validation animations

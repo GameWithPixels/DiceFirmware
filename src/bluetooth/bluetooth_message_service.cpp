@@ -99,7 +99,7 @@ namespace Bluetooth::MessageService
         err_code = characteristic_add(service_handle, &add_char_params, &tx_handles);
         APP_ERROR_CHECK(err_code);
 
-        NRF_LOG_INFO("Message Service Initialized");
+        NRF_LOG_DEBUG("Message Service init");
     }
 
     bool canSend() {

@@ -33,7 +33,7 @@ namespace DriversNRF::MCUTemperature
         // Register ourselves as handling temperature messages
         MessageService::RegisterMessageHandler(Message::MessageType_RequestTemperature, getTemperatureHandler);
 
-        NRF_LOG_INFO("Temperature Initialized");
+        NRF_LOG_DEBUG("Temperature init");
     }
 
     bool measure() {

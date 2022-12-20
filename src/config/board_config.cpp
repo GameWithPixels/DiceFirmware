@@ -693,7 +693,7 @@ namespace BoardManager
             break;
         }
         currentBoard = &(boards[boardIndex]);
-        NRF_LOG_INFO("Board is %s, boardIdVoltage=" NRF_LOG_FLOAT_MARKER, currentBoard->name, NRF_LOG_FLOAT(vboard));
+        NRF_LOG_INFO("Board is %s, boardIdV: " NRF_LOG_FLOAT_MARKER, currentBoard->name, NRF_LOG_FLOAT(vboard));
     }
 
     const Board* getBoard() {

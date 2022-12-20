@@ -19,7 +19,8 @@ namespace Notifications::Rssi
 
     void init() {
         Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRssi, getRssiHandler);
-        NRF_LOG_INFO("Rssi notifications initialized");
+
+        NRF_LOG_DEBUG("RSSI notifications init");
     }
 
     void notifyConnectionEvent(bool connected) {

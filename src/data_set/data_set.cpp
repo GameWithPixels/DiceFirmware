@@ -79,7 +79,7 @@ namespace DataSet
 			hash = computeDataSetHash();
 
 			MessageService::RegisterMessageHandler(Message::MessageType_TransferAnimSet, ReceiveDataSetHandler);
-			NRF_LOG_INFO("DataSet initialized, size=0x%x, hash=0x%08x", size, hash);
+			NRF_LOG_INFO("DataSet init, size: 0x%x, hash: 0x%08x", size, hash);
 			auto callBackCopy = _callback;
 			_callback = nullptr;
 			if (callBackCopy != nullptr) {

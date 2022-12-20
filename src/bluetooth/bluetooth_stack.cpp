@@ -389,7 +389,7 @@ namespace Bluetooth::Stack
         err_code = nrf_ble_gatt_init(&nrfGatt, NULL);
         APP_ERROR_CHECK(err_code);
 
-        NRF_LOG_INFO("Bluetooth Stack Initialized, RAM start: 0x%X", ram_start);
+        NRF_LOG_INFO("BLE Stack init, RAM start: 0x%X", ram_start);
     }
 
     void initAdvertising() {

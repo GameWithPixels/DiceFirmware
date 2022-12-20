@@ -158,7 +158,7 @@ namespace AccelChip
         disableInterrupt();
         enableDataInterrupt();
 
-        NRF_LOG_INFO("MXC4005XC Initialized, WAI: 0x%02x", wai);
+        NRF_LOG_INFO("MXC4005XC init, WAI: 0x%02x", wai);
 	}
 
 	/// <summary>

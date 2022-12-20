@@ -27,7 +27,7 @@ namespace Modules::LEDColorTester
         MessageService::RegisterMessageHandler(Message::MessageType_SetLEDToColor, SetLEDToColorHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_SetAllLEDsToColor, SetAllLEDsToColorHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_LightUpFace, LightUpFaceHandler);
-        NRF_LOG_INFO("LED Color tester initialized");
+        NRF_LOG_DEBUG("LED Color tester ini");
     }
 
     void SetLEDToColorHandler(const Message* msg) {
