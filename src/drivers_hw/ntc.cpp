@@ -53,7 +53,7 @@ namespace DriversHW::NTC
 
         // Workaround for early D20V15
         // Wait for voltage to rise
-        nrf_delay_ms(10);
+        nrf_delay_ms(50);
 
         // Read voltage divider
         float vntc = A2D::readVNTC();
