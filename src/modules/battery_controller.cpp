@@ -400,37 +400,43 @@ namespace Modules::BatteryController
         // Find the first voltage that is greater than the measured voltage
         // Because voltages are sorted, we know that we can then linearly interpolate the charge level
         // using the previous and next entries in the lookup table.
-		int nextIndex = 0;
+        int nextIndex = 0;
         while (nextIndex < VBAT_LOOKUP_SIZE && lookup[nextIndex].voltageMilli >= vBatMilli) {
             nextIndex++;
         }
 
-		uint8_t measuredLevel = 0;
-		if (nextIndex == 0) {
+        uint8_t measuredLevel = 0;
+        if (nextIndex == 0) {
             measuredLevel = 100;
-        } else if (nextIndex == VBAT_LOOKUP_SIZE) {
+        }
+        else if (nextIndex == VBAT_LOOKUP_SIZE) {
             measuredLevel = 0;
-        } else {
-			// Grab the prev and next keyframes
+        }
+        else {
+            // Grab the prev and next keyframes
             auto next = lookup[nextIndex];
             auto prev = lookup[nextIndex - 1];
 
-			// Compute the interpolation parameter
+            // Compute the interpolation parameter
             int percentMilli = ((int)prev.voltageMilli - (int)vBatMilli) * 1000 / ((int)prev.voltageMilli - (int)next.voltageMilli);
             measuredLevel = ((int)prev.levelPercent[chargingOffset] * (1000 - percentMilli) + (int)next.levelPercent[chargingOffset] * percentMilli) / 1000;
         }
 
         // Update the smooth level
-        auto newSmoothedLevel = measuredLevel << 24;
+        uint32_t newSmoothedLevel = (uint32_t)measuredLevel << 24;
         if (smoothedLevel == 0) {
             smoothedLevel = newSmoothedLevel;
-        } else {
+        }
+        else {
             // Slowly change the smoothed level
             int diff = (int)newSmoothedLevel - smoothedLevel;
             smoothedLevel += diff / LEVEL_SMOOTHING_RATIO;
         }
 
         // Round smoothed level into a percentage value
-        levelPercent = (smoothedLevel + (1 << 23)) >> 24;
+        levelPercent = (smoothedLevel + ((uint32_t)1 << 23)) >> 24;
+
+        // IGNORE SMOOTHING
+        levelPercent = measuredLevel;
     }
 }
