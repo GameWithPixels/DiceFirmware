@@ -475,7 +475,7 @@ namespace Bluetooth::Stack
             (BatteryController::getLevelPercent() & 0x7F) |
             (isProperlyOnCharger(BatteryController::getBatteryState()) ? 0x80 : 0);
         customServiceData.deviceId = Die::getDeviceID();
-        customServiceData.buildTimestamp = BUILD_TIMESTAMP;
+        customServiceData.buildTimestamp = Die::getBuildTimestamp();
 
 #if SDK_VER >= 16
         ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);

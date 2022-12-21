@@ -109,7 +109,7 @@ namespace Die
         identityMessage.dataSetHash = DataSet::dataHash();
         identityMessage.pixelId = getDeviceID();
         identityMessage.availableFlash = DataSet::availableDataSize();
-        identityMessage.buildTimestamp = BUILD_TIMESTAMP;
+        identityMessage.buildTimestamp = getBuildTimestamp();
         identityMessage.rollState = Accelerometer::currentRollState();
         identityMessage.rollFace = Accelerometer::currentFace();
         identityMessage.batteryLevelPercent = BatteryController::getLevelPercent();
@@ -249,6 +249,10 @@ namespace Die
 		return NRF_FICR->DEVICEID[1] ^ NRF_FICR->DEVICEID[0];
     }
 
+	uint32_t getBuildTimestamp() {
+        return BUILD_TIMESTAMP;
+    }
+
     // Main loop!
     void update() {
 
@@ -261,8 +265,7 @@ namespace Die
 
 int main() {
     Die::init();
-    for (;;)
-    {
+    for (;;) {
         Die::update();
 
         #if NRF_LOG_DEFERRED

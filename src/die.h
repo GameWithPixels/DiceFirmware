@@ -17,6 +17,7 @@ namespace Die
     void initDieLogic();
 
 	uint32_t getDeviceID();
+	uint32_t getBuildTimestamp();
     void update();
 
 	TopLevelState getCurrentState();
