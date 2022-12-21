@@ -55,10 +55,10 @@ namespace Modules::Accelerometer
 	const char *getRollStateString(RollState state);
 
 	void readAccelerometer(float3* acc);
-	void enableInterrupt();
-	void disableInterrupt();
-	void clearInterrupt();
 
+	typedef void(*AccelerometerInterruptMethod)(void* param);
+	void enableInterrupt(AccelerometerInterruptMethod callback, void* param);
+	void disableInterrupt();
 
 	// Notification management
 	typedef void(*FrameDataClientMethod)(void* param, const AccelFrame& accelFrame);

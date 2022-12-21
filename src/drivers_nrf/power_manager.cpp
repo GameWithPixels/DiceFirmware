@@ -8,7 +8,6 @@
 #include "core/delegate_array.h"
 #include "drivers_nrf/timers.h"
 
-#define MAX_POWER_CLIENTS 4
 #define GPREGRET_ID 0
 #define SLEEP_TIMEOUT_MS 30000
 #define WATCHDOG_TRIGGERED_RESET    0x0001 // This bit gets set the first time the watchdog resets the mcu
@@ -17,7 +16,7 @@
 
 namespace DriversNRF::PowerManager
 {
-	DelegateArray<PowerManagerClientMethod, MAX_POWER_CLIENTS> clients;
+	PowerManagerClientMethod powerEventCallback = nullptr;
 
 	APP_TIMER_DEF(sleepTimer);
     void triggerSleepMode(void* context);
@@ -33,12 +32,12 @@ namespace DriversNRF::PowerManager
         NRF_LOG_DEBUG("Power Management init");
     }
 
-    void hook(PowerManagerClientMethod method, void* param) {
-		clients.Register(param, method);
+    void setPowerEventCallback(PowerManagerClientMethod method) {
+		powerEventCallback = method;
     }
 
-    void unHook(PowerManagerClientMethod client) {
-        clients.UnregisterWithHandler(client);
+    void clearPowerEventCallback() {
+        powerEventCallback = nullptr;
     }
 
     bool powerEventHandler(nrf_pwr_mgmt_evt_t event)
@@ -68,9 +67,7 @@ namespace DriversNRF::PowerManager
         }
 
         // Notify clients
-        for (int i = 0; i < clients.Count(); ++i) {
-            clients[i].handler(clients[i].token, pwrEvent);
-        }
+        powerEventCallback(pwrEvent);
 
         Log::process();
         return true;
@@ -105,17 +102,13 @@ namespace DriversNRF::PowerManager
     }
 
     void goToSleep() {
-        // Notify clients
-        for (int i = 0; i < clients.Count(); ++i) {
-            clients[i].handler(clients[i].token, PowerManagerEvent_PrepareSleep);
-        }
+        powerEventCallback(PowerManagerEvent_PrepareSleep);
     }
 
     void wakeFromSleep() {
-        // Notify clients
-        for (int i = 0; i < clients.Count(); ++i) {
-            clients[i].handler(clients[i].token, PowerManagerEvent_WakingUpFromSleep);
-        }
+        powerEventCallback(PowerManagerEvent_WakingUpFromSleep);
+
+        // Restart the sleep timer
         Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
     }
 

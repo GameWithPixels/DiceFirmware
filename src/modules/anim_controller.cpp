@@ -51,26 +51,6 @@ namespace Modules::AnimController
 		update(timeMs);
 	}
 
-	// Stop all currently running animations when going to sleep
-	void onPowerEvent(void* context, PowerManager::PowerManagerEvent event) {
-		switch (event) {
-			case PowerManager::PowerManagerEvent_PrepareWakeUp:
-				NRF_LOG_INFO("Stopping anims for system off mode");
-				stop();
-				break;
-			case PowerManager::PowerManagerEvent_PrepareSleep:
-				NRF_LOG_INFO("Stopping anims for sleep mode");
-				stop();
-				break;;
-			case PowerManager::PowerManagerEvent_WakingUpFromSleep:
-				NRF_LOG_INFO("Resuming anims after wake up");
-				start();
-				break;
-			default:
-				break;
-		}
-	}
-
 	/// <summary>
 	/// Kick off the animation controller, registering it with the Timer system
 	/// </summary>
@@ -79,7 +59,6 @@ namespace Modules::AnimController
 		Flash::hookProgrammingEvent(onProgrammingEvent, nullptr);
 		MessageService::RegisterMessageHandler(Message::MessageType_PrintAnimControllerState, printAnimControllerStateHandler);
 		Timers::createTimer(&animControllerTimer, APP_TIMER_MODE_REPEATED, animationControllerUpdate);
-		PowerManager::hook(onPowerEvent, nullptr);
 
 		NRF_LOG_DEBUG("Anim Controller init");
 

@@ -69,7 +69,7 @@ namespace Die
 	void enterLEDAnimState();
 
     void whoAreYouHandler(const Message *message);
-    void onPowerEvent(void* token, PowerManager::PowerManagerEvent event);
+    void onPowerEvent(PowerManager::PowerManagerEvent event);
     void onConnectionEvent(void *token, bool connected);
 
     void playLEDAnimHandler(const Message* msg);
@@ -85,7 +85,7 @@ namespace Die
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
 
-        PowerManager::hook(onPowerEvent, nullptr);
+        PowerManager::setPowerEventCallback(onPowerEvent);
 
         NRF_LOG_DEBUG("Main Logic init");
     }
@@ -118,17 +118,19 @@ namespace Die
     }
 
 
-    void onPowerEvent(void* token, PowerManager::PowerManagerEvent event) {
+    void onPowerEvent(PowerManager::PowerManagerEvent event) {
         switch (event) {
             case PowerManager::PowerManagerEvent_PrepareWakeUp:
                 //NRF_LOG_INFO("Going to low power mode");
                 Accelerometer::stop();
                 Accelerometer::lowPower();
-                //Stack::stopAdvertising();
+                AnimController::stop();
                 break;
             case PowerManager::PowerManagerEvent_PrepareSleep:
                 //NRF_LOG_INFO("Going to Sleep");
                 Accelerometer::stop();
+                AnimController::stop();
+                Stack::stopAdvertising();
 
                 if (ValidationManager::inValidation()) {
                     // In validation mode we just go to system off mode and rely
@@ -136,24 +138,18 @@ namespace Die
                     PowerManager::goToSystemOff();
                 } else {
                     // Set interrupt pin to wake up power manager
-                    GPIOTE::enableInterrupt(
-                        BoardManager::getBoard()->accInterruptPin,
-                        NRF_GPIO_PIN_NOPULL,
-                        NRF_GPIOTE_POLARITY_HITOLO,
-                        [](uint32_t pin, nrf_gpiote_polarity_t action) {
-                            Accelerometer::clearInterrupt();
-                            Scheduler::push(nullptr, 0, [](void* ignoreData, uint16_t ignoreSize) {
-                                PowerManager::wakeFromSleep();
-                            });
+                    Accelerometer::enableInterrupt([](void* param) {
+                        Scheduler::push(nullptr, 0, [](void* ignoreData, uint16_t ignoreSize) {
+                            // Wake up
+                            PowerManager::wakeFromSleep();
                         });
-                    Accelerometer::enableInterrupt();
-                    Stack::stopAdvertising();
+                    }, nullptr);
                 }
                 break;
             case PowerManager::PowerManagerEvent_WakingUpFromSleep:
                 //NRF_LOG_INFO("Resuming from Sleep");
-                Accelerometer::disableInterrupt();
                 Accelerometer::start();
+                AnimController::start();
                 Stack::startAdvertising();
                 break;
             default:

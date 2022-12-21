@@ -540,8 +540,38 @@ namespace Modules::Accelerometer
         AccelChip::read(acc);
     }
 
-    void enableInterrupt()
+    // Interrupt Callback Storage
+    static void* interruptParam = nullptr;
+    static AccelerometerInterruptMethod interruptCallback = nullptr;
+    void enableInterrupt(AccelerometerInterruptMethod callback, void* param)
     {
+        ASSERT(interruptCallback == nullptr);
+        ASSERT(interruptParam== nullptr);
+
+        // Store the callback and param
+        interruptCallback = callback;
+        interruptParam = param;
+        GPIOTE::enableInterrupt(
+            BoardManager::getBoard()->accInterruptPin,
+            NRF_GPIO_PIN_NOPULL,
+            NRF_GPIOTE_POLARITY_HITOLO,
+            [](uint32_t pin, nrf_gpiote_polarity_t action) {
+
+                // Clear interrupt on the accelerometer
+                AccelChip::clearInterrupt();
+
+                // And the handler in the GPIOTE manager
+                GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
+
+                // Trigger and clear the callback
+                auto callback = interruptCallback;
+                auto param = interruptParam;
+                interruptParam = nullptr;
+                interruptCallback = nullptr;
+
+                // Callback!
+                callback(param);
+            });
         AccelChip::enableInterrupt();
     }
 
@@ -549,10 +579,5 @@ namespace Modules::Accelerometer
     {
         GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
         AccelChip::disableInterrupt();
-    }
-
-    void clearInterrupt()
-    {
-        AccelChip::clearInterrupt();
     }
 }

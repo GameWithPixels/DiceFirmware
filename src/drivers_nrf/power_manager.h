@@ -27,9 +27,9 @@ namespace DriversNRF
             PowerManagerEvent_WakingUpFromSleep,
         };
 
-		typedef void(*PowerManagerClientMethod)(void* param, PowerManagerEvent event);
-		void hook(PowerManagerClientMethod method, void* param);
-		void unHook(PowerManagerClientMethod client);
+		typedef void(*PowerManagerClientMethod)(PowerManagerEvent event);
+		void setPowerEventCallback(PowerManagerClientMethod method);
+		void clearPowerEventCallback();
         bool checkFromSysOff();
     }
 }
