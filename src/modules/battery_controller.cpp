@@ -33,7 +33,7 @@ using namespace Utils;
 #define TRANSITION_TOO_LONG_DURATION_MS 10000 // 10s
 #define TEMPERATURE_TOO_HOT_ENTER 45.0f // degrees C
 #define TEMPERATURE_TOO_HOT_LEAVE 40.0f // degrees C
-#define LEVEL_SMOOTHING_RATIO (60000 / BATTERY_TIMER_MS) // One minute of average smoothing latency
+#define LEVEL_SMOOTHING_RATIO 5
 
 namespace Modules::BatteryController
 {
@@ -376,8 +376,7 @@ namespace Modules::BatteryController
 	/// <summary>
 	/// </summary>
 	void hookLevel(BatteryLevelChangeHandler callback, void* parameter) {
-		if (!levelClients.Register(parameter, callback))
-		{
+		if (!levelClients.Register(parameter, callback)) {
 			NRF_LOG_ERROR("Too many battery state hooks registered.");
 		}
 	}
@@ -395,6 +394,7 @@ namespace Modules::BatteryController
 	}
 
     void updateLevelPercent() {
+        NRF_LOG_INFO("UPDATE");
         int chargingOffset = charging ? 1 : 0;
 
         // Find the first voltage that is greater than the measured voltage
@@ -435,8 +435,5 @@ namespace Modules::BatteryController
 
         // Round smoothed level into a percentage value
         levelPercent = (smoothedLevel + ((uint32_t)1 << 23)) >> 24;
-
-        // IGNORE SMOOTHING
-        levelPercent = measuredLevel;
     }
 }
