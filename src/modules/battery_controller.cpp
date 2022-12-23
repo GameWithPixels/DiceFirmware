@@ -31,6 +31,8 @@ using namespace Utils;
 #define BATTERY_ALMOST_EMPTY_PCT 10 // 10%
 #define BATTERY_ALMOST_FULL_PCT 95 // 95%
 #define TRANSITION_TOO_LONG_DURATION_MS 10000 // 10s
+#define TEMPERATURE_TOO_COLD_ENTER 0.0f // degrees C
+#define TEMPERATURE_TOO_COLD_LEAVE 5.0f // degrees C
 #define TEMPERATURE_TOO_HOT_ENTER 45.0f // degrees C
 #define TEMPERATURE_TOO_HOT_LEAVE 40.0f // degrees C
 #define LEVEL_SMOOTHING_RATIO 5
@@ -49,8 +51,9 @@ namespace Modules::BatteryController
 
     enum BatteryTemperatureState
     {
-        BatteryTemperatureState_Normal,
-        BatteryTemperatureState_Hot
+        BatteryTemperatureState_Normal = 0,
+        BatteryTemperatureState_Low,
+        BatteryTemperatureState_Hot,
     };
 
     static BatteryTemperatureState currentBatteryTempState = BatteryTemperatureState_Normal;
@@ -110,12 +113,17 @@ namespace Modules::BatteryController
         NRF_LOG_INFO("  Battery: %d%%", levelPercent);
 
         float ntc = NTC::getNTCTemperature();
-        currentBatteryTempState = (ntc < TEMPERATURE_TOO_HOT_ENTER) ? BatteryTemperatureState_Normal : BatteryTemperatureState_Hot;
-        if (currentBatteryTempState == BatteryTemperatureState_Hot) {
+        if (ntc < TEMPERATURE_TOO_COLD_ENTER) {
+            currentBatteryTempState = BatteryTemperatureState_Low;
+            Battery::setDisableChargingOverride(true);
+            NRF_LOG_INFO("  Battery too cold! Temp: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(ntc));
+        } else if (ntc > TEMPERATURE_TOO_HOT_ENTER) {
+            currentBatteryTempState = BatteryTemperatureState_Hot;
             Battery::setDisableChargingOverride(true);
             NRF_LOG_INFO("  Battery too hot! Temp: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(ntc));
+        } else {
+            currentBatteryTempState = BatteryTemperatureState_Normal;
         }
-
         // Other values (voltage, vcoil) already displayed by Battery::init()
     }
 
@@ -266,6 +274,10 @@ namespace Modules::BatteryController
                     currentBatteryTempState = BatteryTemperatureState_Hot;
                     Battery::setDisableChargingOverride(true);
                     NRF_LOG_INFO("Battery too hot, Preventing Charge");
+                } else if (temperature < TEMPERATURE_TOO_COLD_ENTER) {
+                    currentBatteryTempState = BatteryTemperatureState_Low;
+                    Battery::setDisableChargingOverride(true);
+                    NRF_LOG_INFO("Battery too cold, Preventing Charge");
                 }
                 break;
             case BatteryTemperatureState_Hot:
@@ -273,6 +285,13 @@ namespace Modules::BatteryController
                     currentBatteryTempState = BatteryTemperatureState_Normal;
                     Battery::setDisableChargingOverride(false);
                     NRF_LOG_INFO("Battery cooled down, Allowing Charge");
+                }
+                break;
+            case BatteryTemperatureState_Low:
+                if (temperature > TEMPERATURE_TOO_COLD_LEAVE) {
+                    currentBatteryTempState = BatteryTemperatureState_Normal;
+                    Battery::setDisableChargingOverride(false);
+                    NRF_LOG_INFO("Battery warmed up, Allowing Charge");
                 }
                 break;
         }
@@ -394,7 +413,6 @@ namespace Modules::BatteryController
 	}
 
     void updateLevelPercent() {
-        NRF_LOG_INFO("UPDATE");
         int chargingOffset = charging ? 1 : 0;
 
         // Find the first voltage that is greater than the measured voltage
