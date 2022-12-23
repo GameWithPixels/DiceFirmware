@@ -9,20 +9,22 @@
 using namespace DriversNRF;
 using namespace Config;
 
-#define NTC_LOOKUP_SIZE 11
+#define NTC_LOOKUP_SIZE 13
 
 namespace DriversHW::NTC
 {
     struct VoltageAndTemperature
     {
-        uint16_t voltageTimes1000;
-        uint16_t temperatureTimes100;
+        int16_t voltageTimes1000;
+        int16_t temperatureTimes100;
     };
 
     // This lookup table defines our voltage to temperature curve
     // based on the NTC datasheet and voltage divider (100k resistor)
     static const VoltageAndTemperature lookup[NTC_LOOKUP_SIZE] =
     {
+        {2770, -2000}, // 2.77V -> -20 C
+        {2590, -1000},
         {2350,  0000}, // 2.35V -> 0 C
         {2040,  1000},
         {1670,  2000},
@@ -78,11 +80,11 @@ namespace DriversHW::NTC
             nextIndex++;
         }
 
-		int temperatureTimes100 = 0;
+		int temperatureTimes100 = lookup[0].temperatureTimes100;
 		if (nextIndex == 0) {
-			temperatureTimes100 = 0;
+			temperatureTimes100 = lookup[0].temperatureTimes100;
 		} else if (nextIndex == NTC_LOOKUP_SIZE) {
-			temperatureTimes100 = 10000;
+			temperatureTimes100 = lookup[NTC_LOOKUP_SIZE-1].temperatureTimes100;
 		} else {
 			// Grab the prev and next keyframes
             auto next = lookup[nextIndex];
