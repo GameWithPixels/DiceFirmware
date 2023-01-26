@@ -338,6 +338,7 @@ struct MessageBlink
 	uint32_t color;
 	uint32_t faceMask;
 	uint8_t fade;
+	uint8_t loop;
 
 	MessageBlink() : Message(Message::MessageType_Blink) {}
 };

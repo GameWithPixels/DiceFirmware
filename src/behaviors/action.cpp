@@ -19,8 +19,9 @@ namespace Behaviors
                     {
                         auto playAnimAction = static_cast<const ActionPlayAnimation*>(action);
                         if (playAnimAction->animIndex < DataSet::getAnimationCount()) {
-                            uint8_t faceIndex = playAnimAction->faceIndex == FACE_INDEX_CURRENT_FACE    // if faceIndex == 255, ignore the value and get it from accelerometer, otherwise keep it
-                                ? Accelerometer::currentFace() : playAnimAction->faceIndex;
+                            // if faceIndex is getAnimationCount, ignore the value and get it from accelerometer, otherwise keep it
+                            uint8_t faceIndex = playAnimAction->faceIndex == FACE_INDEX_CURRENT_FACE ?
+                                Accelerometer::currentFace() : playAnimAction->faceIndex;
                             NRF_LOG_INFO("Playing anim %d on face %d, animFaceIndex: %d", playAnimAction->animIndex, faceIndex, playAnimAction->faceIndex);
                             AnimController::play(playAnimAction->animIndex, faceIndex, false); // FIXME, handle remapFace and loopCount properly
                         } else {

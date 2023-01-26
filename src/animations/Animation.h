@@ -61,12 +61,12 @@ namespace Animations
 		// starts the animation, with the option of repeating it if _loop is set
 		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
 		virtual int animationSize() const = 0;
-		// method used to set which faces to turn on as well as the color of their LEDS
+		// method used to set which faces to turn on as well as the color of their LEDs
 		// retIndices is one to one with retColors and keeps track of which face to turn on as well as its corresponding color
 		// return value of the method is the number of faces to turn on
 		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]) = 0;
 		virtual int stop(int retIndices[]) = 0;
-		// sets all of the LEDS that satisfy the face mask (eg: all LEDS on = 0x000FFFFF) to the given color and then stores this information in retIndices and retColors
+		// sets all of the LEDs that satisfy the face mask (eg: all LEDs on = 0x000FFFFF) to the given color and then stores this information in retIndices and retColors
 		int setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]);
 		// sets all indices that satisfy the facemask and stores the info in retIndices
 		int setIndices(uint32_t faceMask, int retIndices[]);

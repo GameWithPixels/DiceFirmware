@@ -28,7 +28,7 @@ namespace Animations
 	}
 
 	/// <summary>
-	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
+	/// (re)Initializes the instance to animate LEDs. This can be called on a reused instance.
 	/// </summary>
 	void AnimationInstanceSimple::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
@@ -40,9 +40,9 @@ namespace Animations
 	/// Computes the list of LEDs that need to be on, and what their intensities should be.
 	/// </summary>
 	/// <param name="ms">The animation time (in milliseconds)</param>
-	/// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
-	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
-	/// <returns>The number of leds/intensities added to the return array</returns>
+	/// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of LEDs</param>
+	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of LEDs</param>
+	/// <returns>The number of LEDs/intensities added to the return array</returns>
 	int AnimationInstanceSimple::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
         
         auto preset = getPreset();
@@ -67,7 +67,7 @@ namespace Animations
             color = black;
         }
 
-        // Fill the indices and colors for the anim controller to know how to update leds
+		// Fill the indices and colors for the anim controller to know how to update LEDs
 		return setColor(color, preset->faceMask, retIndices, retColors);
 	}
 

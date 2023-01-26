@@ -1,7 +1,7 @@
 #include "blink.h"
 #include "modules\anim_controller.h"
 #include "utils\Utils.h"
-#include "nrf_log.h"
+#include "config/board_config.h"
 
 namespace Animations
 {
@@ -12,7 +12,7 @@ namespace Animations
         animBits.paletteSize = 3;
     }
 
-    void Blink::play(uint32_t color, uint16_t durationMs, uint8_t flashCount /*= 1*/, uint8_t fade /*= 0*/, uint32_t faceMask /*=ANIM_FACEMASK_ALL_LEDS*/)
+    void Blink::play(uint32_t color, uint16_t durationMs, uint8_t flashCount /*= 1*/, uint8_t fade /*= 0*/, uint32_t faceMask /*=ANIM_FACEMASK_ALL_LEDS*/, bool loop /*= false*/)
     {
         // Store color in palette
         // Note: the color is stored at the same memory location on each call, the most recent call
@@ -30,6 +30,7 @@ namespace Animations
         blinkAnim.colorIndex = 0;
 
         Modules::AnimController::stop(&blinkAnim);
-        Modules::AnimController::play(&blinkAnim, &animBits);
+        const auto remapFace = Config::BoardManager::getBoard()->ledCount - 1;
+        Modules::AnimController::play(&blinkAnim, &animBits, remapFace, loop);
     }
 }
