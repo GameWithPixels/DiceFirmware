@@ -1,4 +1,4 @@
-TARGETS := firmware_d firmware firmware_m # debug, release and memory map
+TARGETS := firmware_d firmware firmware_mm # debug, release and memory map
 OUTPUT_DIRECTORY := _build
 PUBLISH_DIRECTORY := binaries
 PROJ_DIR := .
@@ -45,10 +45,15 @@ SD_REQ_ID := 0xCD,0x103,0x126
 BOOTLOADER_HEX_FILE := nrf52810_xxaa_s112.hex
 BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX_FILE)
 
-# Filename for the zip file used for DFU over Bluetooth
+# Filenames for the full firmware hex files (= bootload + SoftDevice + Firmware)
+FULL_FW_HEX_FILE := full_firmware.hex
+FULL_FW_VAL_HEX_FILE := full_firmware_validation.hex
+
+# Filenames for the zip file used for DFU over Bluetooth
 ZIP_FILE := firmware_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
 ZIPBL_FILE := bootloader_$(BUILD_DATE_TIME)_sdk$(SDK_VER).zip
 
+# Linker
 LINKER_SCRIPT := Firmware.ld
 
 # Default target = first one defined
@@ -450,9 +455,9 @@ flash_ble: zip
 	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
 .PHONY: firmware_memory_map
-firmware_memory_map: firmware_m
+firmware_memory_map: firmware_mm
 	@echo Generating elf file from linker output
-	$(OBJCOPY) -O elf32-littlearm $(OUTPUT_DIRECTORY)/firmware_m.out $(OUTPUT_DIRECTORY)/firmware_m.elf
+	$(OBJCOPY) -O elf32-littlearm $(OUTPUT_DIRECTORY)/firmware_mm.out $(OUTPUT_DIRECTORY)/firmware_mm.elf
 
 #
 # Validation commands
@@ -476,19 +481,19 @@ exit_validation_bit:
 
 .PHONY: hex_validation
 hex_validation: hex_release
-	mergehex -m $(OUTPUT_DIRECTORY)/full_firmware.hex UICR_ValidationModeEnabled.hex -o $(OUTPUT_DIRECTORY)/full_firmware_validation.hex
+	mergehex -m $(OUTPUT_DIRECTORY)/$(FULL_FW_HEX_FILE) UICR_ValidationModeEnabled.hex -o $(OUTPUT_DIRECTORY)/$(FULL_FW_VAL_HEX_FILE)
 
 .PHONY: flash_validation
 flash_validation: erase hex_validation
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/full_firmware_validation.hex --chiperase --verify --reset
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/$(FULL_FW_VAL_HEX_FILE) --chiperase --verify --reset
 
 #
 # Publishing commands
 #
 
 .PHONY: hex_release
-hex_release: clean_release firmware_release settings_release
-	mergehex -m $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/full_firmware.hex
+hex_release: firmware_release settings_release
+	mergehex -m $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex $(SOFTDEVICE_HEX_PATHNAME) $(BOOTLOADER_HEX_PATHNAME) -o $(OUTPUT_DIRECTORY)/$(FULL_FW_HEX_FILE)
 
 .PHONY: zip
 zip: clean_release firmware_release
@@ -498,11 +503,14 @@ zip: clean_release firmware_release
 zip_bl:
 	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
 
-.PHONY: zip_all
-zip_all: zip zip_bl
-	nrfutil pkg generate --bootloader $(BOOTLOADER_HEX_PATHNAME) --bootloader-version $(BL_VER) --hw-version 52 --key-file private.pem --sd-req $(SD_REQ_ID) $(OUTPUT_DIRECTORY)/$(ZIPBL_FILE)
-
-# Be sure to use a backslash in the pathname, otherwise the copy command will fail (in CMD environment) 
+# Be sure to use a backslash in the pathname, otherwise the copy command will fail (in CMD environment)
 .PHONY: publish
-publish: zip
-	copy $(OUTPUT_DIRECTORY)\$(ZIP_FILE) $(PUBLISH_DIRECTORY)
+publish: zip zip_bl hex_release hex_validation
+	@echo Copying output files to $(PUBLISH_DIRECTORY)\$(BUILD_DATE_TIME)
+	@IF NOT EXIST "$(PUBLISH_DIRECTORY)" md "$(PUBLISH_DIRECTORY)"
+	@IF EXIST $(PUBLISH_DIRECTORY)\$(BUILD_DATE_TIME) rd /s /q $(PUBLISH_DIRECTORY)\$(BUILD_DATE_TIME)
+	@md $(PUBLISH_DIRECTORY)\$(BUILD_DATE_TIME)
+	@copy "$(OUTPUT_DIRECTORY)\$(FULL_FW_HEX_FILE)" "$(PUBLISH_DIRECTORY)\$(BUILD_DATE_TIME)"
+	@copy "$(OUTPUT_DIRECTORY)\$(FULL_FW_VAL_HEX_FILE)" "$(PUBLISH_DIRECTORY)\$(BUILD_DATE_TIME)"
+	@copy "$(OUTPUT_DIRECTORY)\$(ZIP_FILE)" "$(PUBLISH_DIRECTORY)\$(BUILD_DATE_TIME)"
+	@copy "$(OUTPUT_DIRECTORY)\$(ZIPBL_FILE)" "$(PUBLISH_DIRECTORY)\$(BUILD_DATE_TIME)"
