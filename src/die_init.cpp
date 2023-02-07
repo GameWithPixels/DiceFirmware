@@ -1,4 +1,5 @@
 #include "die.h"
+#include "die_private.h"
 
 #include "app_timer.h"
 #include "app_error.h"
@@ -222,7 +223,7 @@ namespace Die
         Timers::init();
 
         // Power manager handles going to sleep and resetting the board
-        PowerManager::init();
+        PowerManager::init(onPowerEvent);
 
         // GPIO Interrupts, we use this to know when the accelerometer has a new reading available
         GPIOTE::init();
@@ -319,8 +320,7 @@ namespace Die
                 Stack::initCustomAdvertisingData();
 
                 const bool inValidation = ValidationManager::inValidation();
-                if (!inValidation)
-                {
+                if (!inValidation) {
                     // Want to prevent sleep mode due to animations while not in validation
                     AnimController::hook(feed, nullptr);
                 }
@@ -342,7 +342,6 @@ namespace Die
 
                 // Initialize common logic
                 initMainLogic();
-
 
                 // Entering the main loop! Play Hello! anim if in validation mode
                 if (inValidation) {

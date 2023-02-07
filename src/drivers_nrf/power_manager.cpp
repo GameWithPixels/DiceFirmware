@@ -10,9 +10,6 @@
 
 #define GPREGRET_ID 0
 #define SLEEP_TIMEOUT_MS 30000
-#define WATCHDOG_TRIGGERED_RESET    0x0001 // This bit gets set the first time the watchdog resets the mcu
-#define CLEAR_SETTINGS_AND_DATASET  0x0002 // If above bit was still set when watchdog triggered reset,
-                                           // then this bit gets set to tell boot up sequence to reprogram flash.
 
 namespace DriversNRF::PowerManager
 {
@@ -21,7 +18,9 @@ namespace DriversNRF::PowerManager
 	APP_TIMER_DEF(sleepTimer);
     void triggerSleepMode(void* context);
 
-    void init() {
+    void init(PowerManagerClientMethod callback) {
+        powerEventCallback = callback;
+
         ret_code_t err_code;
         err_code = nrf_pwr_mgmt_init();
         APP_ERROR_CHECK(err_code);
@@ -30,14 +29,6 @@ namespace DriversNRF::PowerManager
 		Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
 
         NRF_LOG_DEBUG("Power Management init");
-    }
-
-    void setPowerEventCallback(PowerManagerClientMethod method) {
-		powerEventCallback = method;
-    }
-
-    void clearPowerEventCallback() {
-        powerEventCallback = nullptr;
     }
 
     bool powerEventHandler(nrf_pwr_mgmt_evt_t event)

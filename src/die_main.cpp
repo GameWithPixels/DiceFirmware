@@ -1,4 +1,5 @@
 #include "die.h"
+#include "die_private.h"
 #include "drivers_nrf/watchdog.h"
 #include "drivers_nrf/scheduler.h"
 #include "drivers_nrf/power_manager.h"
@@ -69,7 +70,6 @@ namespace Die
 	void enterLEDAnimState();
 
     void whoAreYouHandler(const Message *message);
-    void onPowerEvent(PowerManager::PowerManagerEvent event);
     void onConnectionEvent(void *token, bool connected);
 
     void playLEDAnimHandler(const Message* msg);
@@ -84,8 +84,6 @@ namespace Die
         MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
-
-        PowerManager::setPowerEventCallback(onPowerEvent);
 
         Stack::hook(onConnectionEvent, nullptr);
 
@@ -117,7 +115,6 @@ namespace Die
         identityMessage.batteryState = BatteryController::getBatteryState();
         MessageService::SendMessage(&identityMessage);
     }
-
 
     void onPowerEvent(PowerManager::PowerManagerEvent event) {
         switch (event) {
@@ -158,6 +155,7 @@ namespace Die
         }
 
     }
+
     void onConnectionEvent(void* token, bool connected) {
         if (!connected) {
             // Return to solo play

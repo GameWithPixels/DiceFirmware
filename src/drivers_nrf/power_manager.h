@@ -7,16 +7,6 @@ namespace DriversNRF
     // Initializes the sdk log system
     namespace PowerManager
     {
-        void init();
-        void feed();
-        void update();
-        void pause();
-        void resume();
-        void goToSystemOff();
-        void goToSleep();
-        void wakeFromSleep();
-        void reset();
-
         enum PowerManagerEvent
         {
             PowerManagerEvent_PrepareSysOff,
@@ -27,9 +17,18 @@ namespace DriversNRF
             PowerManagerEvent_WakingUpFromSleep,
         };
 
-		typedef void(*PowerManagerClientMethod)(PowerManagerEvent event);
-		void setPowerEventCallback(PowerManagerClientMethod method);
-		void clearPowerEventCallback();
+        typedef void (*PowerManagerClientMethod)(PowerManagerEvent event);
+
+        void init(PowerManagerClientMethod callback);
+        void feed();
+        void update();
+        void pause();
+        void resume();
+        void goToSystemOff();
+        void goToSleep();
+        void wakeFromSleep();
+        void reset();
+
         bool checkFromSysOff();
     }
 }
