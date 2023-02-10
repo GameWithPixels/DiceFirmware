@@ -9,7 +9,7 @@
 #include "drivers_nrf/timers.h"
 
 #define GPREGRET_ID 0
-#define SLEEP_TIMEOUT_MS 30000
+#define SLEEP_TIMEOUT_MS 30000 //  Comment to disable sleep timeout
 
 namespace DriversNRF::PowerManager
 {
@@ -25,8 +25,10 @@ namespace DriversNRF::PowerManager
         err_code = nrf_pwr_mgmt_init();
         APP_ERROR_CHECK(err_code);
 
-		Timers::createTimer(&sleepTimer, APP_TIMER_MODE_SINGLE_SHOT, triggerSleepMode);
-		Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+        #if defined(SLEEP_TIMEOUT_MS)
+            Timers::createTimer(&sleepTimer, APP_TIMER_MODE_SINGLE_SHOT, triggerSleepMode);
+		    Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+        #endif
 
         NRF_LOG_DEBUG("Power Management init");
     }
@@ -76,8 +78,10 @@ namespace DriversNRF::PowerManager
         nrf_pwr_mgmt_feed();
 
         // Restart the timer
-        Timers::stopTimer(sleepTimer);
-        Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+        #if defined(SLEEP_TIMEOUT_MS)
+            Timers::stopTimer(sleepTimer);
+            Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+        #endif
     }
 
     void update() {
@@ -100,7 +104,9 @@ namespace DriversNRF::PowerManager
         powerEventCallback(PowerManagerEvent_WakingUpFromSleep);
 
         // Restart the sleep timer
-        Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+        #if defined(SLEEP_TIMEOUT_MS)
+            Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+        #endif
     }
 
     void reset() {
