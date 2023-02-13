@@ -26,7 +26,7 @@ using namespace Utils;
 #define MAX_BATTERY_CLIENTS 3
 #define MAX_LEVEL_CLIENTS 2
 #define OFF_VCOIL_THRESHOLD 500 //0.5V
-#define CHARGE_VCOIL_THRESHOLD 4600 //4.6V
+#define CHARGE_VCOIL_THRESHOLD 300 //at least 0.3V above VBat
 #define VBAT_LOOKUP_SIZE 11
 #define BATTERY_ALMOST_EMPTY_PCT 10 // 10%
 #define BATTERY_ALMOST_FULL_PCT 95 // 95%
@@ -175,7 +175,7 @@ namespace Modules::BatteryController
         CoilState coilState = CoilState::OnCoil_Error;
         if (vCoilMilli < OFF_VCOIL_THRESHOLD) {
             coilState = CoilState::NotOnCoil;
-        } else if (vCoilMilli > CHARGE_VCOIL_THRESHOLD) {
+        } else if (vCoilMilli > vBatMilli + CHARGE_VCOIL_THRESHOLD) {
             coilState = CoilState::OnCoil;
         }
 
