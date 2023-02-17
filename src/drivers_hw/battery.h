@@ -10,6 +10,7 @@ namespace DriversHW
         float checkVLED();
         bool checkCharging();
         void setDisableChargingOverride(bool disable);
+        bool getDisableChargingOverride();
 
         enum ChargingEvent
         {

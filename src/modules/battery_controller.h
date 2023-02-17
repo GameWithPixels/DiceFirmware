@@ -22,13 +22,17 @@ namespace Modules::BatteryController
 		BatteryState_Error,			// Charge state doesn't make sense (charging but no coil voltage detected for instance)
 		BatteryState_Charging,		// Battery is currently recharging
 		BatteryState_TrickleCharge, // Battery is almost full
-		BatteryState_Done			// Battery is full and finished charging
+		BatteryState_Done,			// Battery is full and finished charging
+		BatteryState_LowTemp,		// Battery is too cold
+		BatteryState_HighTemp,		// Battery is too hot
 	};
 
 	BatteryState getBatteryState();
 	uint8_t getLevelPercent();
 	uint16_t getVoltageMilli();
 	uint16_t getCoilVoltageMilli();
+
+	void slowMode(bool slow);
 
 	typedef void(*BatteryStateChangeHandler)(void* param, BatteryState newState);
 	void hook(BatteryStateChangeHandler method, void* param);

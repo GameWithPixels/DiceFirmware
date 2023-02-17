@@ -38,6 +38,7 @@ namespace Battery
     static nrf_drv_gpiote_in_config_t in_config;
     static uint8_t statePin = 0xFF; // Cached from board manager in init
     bool charging = false;
+    bool forceDisableChargingState = false;
 
     void battTimerHandler(nrf_timer_event_t event_type, void* p_context);
     void pinHiToLoHandler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
@@ -45,7 +46,6 @@ namespace Battery
     void handleChargeEvent(void * p_event_data, uint16_t event_size);
 
     bool checkChargingInternal() {
-        nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
         return nrf_gpio_pin_read(statePin) == 0;
     }
 
@@ -150,6 +150,8 @@ namespace Battery
 
         // Read battery level and convert
         nrf_gpio_cfg_input(statePin, NRF_GPIO_PIN_PULLUP);
+        // pull up inputs take a second for the voltage to rise up, so wait before reading it
+        nrf_delay_us(1);
         charging = checkChargingInternal();
 
         // By default we don't want to touch anything wrt charge programming
@@ -160,7 +162,9 @@ namespace Battery
         in_config.pull = NRF_GPIO_PIN_PULLUP;
         in_config.is_watcher = false;
         in_config.hi_accuracy = true;
-        in_config.skip_gpio_setup = false;
+        in_config.skip_gpio_setup = true;   // Don't reset gpio state, otherwise it causes the pull-up to be
+                                            // disabled briefly and not necessarily be in a valid state when
+                                            // we try to read it.
 
         ret_code_t err_code = NRF_SUCCESS;
         if (charging) {
@@ -258,6 +262,7 @@ namespace Battery
     void setDisableChargingOverride(bool disable) {
         auto progPin = BoardManager::getBoard()->progPin;
         if (progPin != 0xFF) {
+            forceDisableChargingState = disable;
             if (disable) {
                 nrf_gpio_cfg_output(progPin);
                 nrf_gpio_pin_set(progPin);
@@ -265,6 +270,10 @@ namespace Battery
                 nrf_gpio_cfg_default(progPin);
             }
         }
+    }
+
+    bool getDisableChargingOverride() {
+        return forceDisableChargingState;
     }
 
 

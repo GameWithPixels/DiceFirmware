@@ -13,6 +13,7 @@
 #include "modules/battery_controller.h"
 #include "drivers_nrf/mcu_temperature.h"
 #include "drivers_hw/ntc.h"
+#include "drivers_hw/battery.h"
 #include "utils/utils.h"
 
 using namespace Modules;
@@ -64,6 +65,8 @@ namespace Bluetooth::Telemetry
                 }
 
                 // Update battery values
+                teleMessage.internalChargeState = DriversHW::Battery::checkCharging() ? 1 : 0;
+                teleMessage.forceDisableChargingState = DriversHW::Battery::getDisableChargingOverride() ? 1 : 0;
                 teleMessage.batteryLevelPercent = BatteryController::getLevelPercent();
                 teleMessage.batteryState = BatteryController::getBatteryState();
                 teleMessage.voltageTimes50 = BatteryController::getVoltageMilli() / 20;

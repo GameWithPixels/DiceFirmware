@@ -158,7 +158,7 @@ struct MessageTelemetry
 	// Accelerometer
 	Modules::Accelerometer::AccelFrame accelFrame;
 
-	// Battery and power
+	// Battery controller data
 	uint8_t batteryLevelPercent;
 	BatteryState batteryState;
 	uint8_t voltageTimes50;
@@ -171,6 +171,10 @@ struct MessageTelemetry
 	// Temperatures
 	int16_t mcuTempTimes100;
 	int16_t batteryTempTimes100;
+
+	// Battery charger low level state
+	uint8_t internalChargeState;
+	uint8_t forceDisableChargingState;
 
 	MessageTelemetry() : Message(Message::MessageType_Telemetry) {}
 };

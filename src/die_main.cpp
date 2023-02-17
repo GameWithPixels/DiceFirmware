@@ -123,11 +123,13 @@ namespace Die
                 Accelerometer::stop();
                 Accelerometer::lowPower();
                 AnimController::stop();
+                BatteryController::slowMode(true);
                 break;
             case PowerManager::PowerManagerEvent_PrepareSleep:
                 //NRF_LOG_INFO("Going to Sleep");
                 Accelerometer::stop();
                 AnimController::stop();
+                BatteryController::slowMode(true);
                 Stack::stopAdvertising();
 
                 if (ValidationManager::inValidation()) {
@@ -148,6 +150,7 @@ namespace Die
                 //NRF_LOG_INFO("Resuming from Sleep");
                 Accelerometer::start();
                 AnimController::start();
+                BatteryController::slowMode(false);
                 Stack::startAdvertising();
                 break;
             default:
