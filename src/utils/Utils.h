@@ -20,6 +20,9 @@
                            (int)((((val) > 0) ? (val) - (int)(val)     \
                                               : (int)(val) - (val))*100)
 
+
+#define CLAMP(a, min, max) ((a) < (min) ? (min) : ((a) > (max) ? (max) : (a)))
+
 namespace Core
 {
 	struct float3;
@@ -50,6 +53,7 @@ namespace Utils
 
 	uint32_t addColors(uint32_t a, uint32_t b);
 
+	uint32_t scaleColor(uint32_t color, uint32_t scaleTimes1000);
 	uint32_t interpolateColors(uint32_t color1, uint32_t time1, uint32_t color2, uint32_t time2, uint32_t time);
 	uint8_t sine8(uint8_t x);
 	uint8_t gamma8(uint8_t x);

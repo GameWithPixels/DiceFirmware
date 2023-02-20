@@ -28,6 +28,13 @@ namespace Utils
 		return toColor(red,green,blue);
 	}
 
+	uint32_t scaleColor(uint32_t color, uint32_t scaleTimes1000) {
+		uint8_t red = CLAMP(getRed(color) * scaleTimes1000 / 1000, 0, 255);
+		uint8_t green = CLAMP(getGreen(color) * scaleTimes1000 / 1000, 0, 255);
+		uint8_t blue = CLAMP(getBlue(color) * scaleTimes1000 / 1000, 0, 255);
+		return toColor(red, green, blue);
+	}
+
 	uint32_t interpolateColors(uint32_t color1, uint32_t time1, uint32_t color2, uint32_t time2, uint32_t time) {
 		// To stick to integer math, we'll scale the values
 		int scaledPercent = (time - time1) * scaler / (time2 - time1);

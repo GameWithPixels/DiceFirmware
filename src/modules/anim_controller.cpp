@@ -25,6 +25,7 @@ using namespace DriversNRF;
 using namespace Bluetooth;
 
 #define MAX_ANIMS 20
+#define FORCE_FADE_OUT_DURATION_MS 500
 
 namespace Modules::AnimController
 {
@@ -88,18 +89,24 @@ namespace Modules::AnimController
 				allColors[j] = 0;
 			}
 
-			for (int i = 0; i < animationCount; ++i)
-			{
+			for (int i = 0; i < animationCount; ++i) {
 				auto anim = animations[i];
-				int animTime = ms - anim->startTime;
-				if (anim->loop && animTime > anim->animationPreset->duration)
-				{
+
+				bool loop = anim->loop;
+				bool fade = anim->forceFadeTime != -1;
+
+				int endTime = anim->startTime + anim->animationPreset->duration;
+				uint32_t fadePercentTimes1000 = 1000;
+				if (loop && ms > endTime) {
 					// Yes, update anim start time so next if statement updates the animation
 					anim->startTime += anim->animationPreset->duration;
-					animTime = ms - anim->startTime;
+					endTime += anim->animationPreset->duration;
+				} else if (fade) {
+					endTime = anim->forceFadeTime;
+					fadePercentTimes1000 = 1000 * (endTime - ms) / FORCE_FADE_OUT_DURATION_MS;
 				}
-
-				if (animTime > anim->animationPreset->duration)
+				
+				if (ms > endTime)
 				{
 					// The animation is over, get rid of it!
 					Animations::destroyAnimationInstance(anim);
@@ -134,10 +141,16 @@ namespace Modules::AnimController
 
 					// Update color array
 					for (int j = 0; j < animTrackCount; ++j) {
+
+						// Fade out all leds if necessary
+						auto color = colors[j];
+						if (fade) {
+							color = Utils::scaleColor(color, fadePercentTimes1000);
+						}
 						
 						// Combine colors if necessary
 						//NRF_LOG_INFO("index: %d -> %08x", ledIndices[j], colors[j]);
-						allColors[ledIndices[j]] = Utils::addColors(allColors[ledIndices[j]], colors[j]);
+						allColors[ledIndices[j]] = Utils::addColors(allColors[ledIndices[j]], color);
 					}
 				}
 			}
@@ -210,11 +223,11 @@ namespace Modules::AnimController
 		int ms = animControllerTicks * ANIM_FRAME_DURATION;
 		if (prevAnimIndex < animationCount)
 		{
-			// Replace a previous animation
-			stopAtIndex(prevAnimIndex);
-			animations[prevAnimIndex]->startTime = ms;
+			// Fade out the previous animation pretty quickly
+			animations[prevAnimIndex]->forceFadeOut(ms + FORCE_FADE_OUT_DURATION_MS);
 		}
-		else if (animationCount < MAX_ANIMS)
+		
+		if (animationCount < MAX_ANIMS)
 		{
 			// Add a new animation
 			animations[animationCount] = Animations::createAnimationInstance(animationPreset, animationBits);

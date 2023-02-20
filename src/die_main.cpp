@@ -148,7 +148,7 @@ namespace Die
                 break;
             case PowerManager::PowerManagerEvent_WakingUpFromSleep:
                 //NRF_LOG_INFO("Resuming from Sleep");
-                Accelerometer::start();
+                Accelerometer::wakeUp();
                 AnimController::start();
                 BatteryController::slowMode(false);
                 Stack::startAdvertising();

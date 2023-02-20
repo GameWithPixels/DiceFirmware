@@ -50,6 +50,7 @@ namespace Animations
 		Animation const * animationPreset;
 		const DataSet::AnimationBits* animationBits;
 		int startTime; //ms
+		int forceFadeTime; //ms, used when fading out (because anim is being replaced), -1 otherwise
 		uint8_t remapFace;
 		bool loop;
 
@@ -70,6 +71,7 @@ namespace Animations
 		int setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]);
 		// sets all indices that satisfy the facemask and stores the info in retIndices
 		int setIndices(uint32_t faceMask, int retIndices[]);
+		void forceFadeOut(int fadeOutTime);
 	};
 
 	Animations::AnimationInstance* createAnimationInstance(int animationIndex);

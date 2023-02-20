@@ -311,6 +311,20 @@ namespace Modules::Accelerometer
         AccelChip::lowPower();
     }
 
+    void wakeUp()
+    {
+        start();
+
+        // Force override the roll state, since we most likely just woke up from motion
+        currentFrame.rollState = RollState_Handling;
+
+        // Notify frame data clients
+        for (int i = 0; i < frameDataClients.Count(); ++i) {
+            frameDataClients[i].handler(frameDataClients[i].token, currentFrame);
+        }
+    }
+
+
     /// <summary>
     /// Returns the currently stored up face!
     /// </summary>

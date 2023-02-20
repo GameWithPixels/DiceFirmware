@@ -53,6 +53,7 @@ namespace Animations
 	void AnimationInstance::start(int _startTime, uint8_t _remapFace, bool _loop) {
 		startTime = _startTime;
 		remapFace = _remapFace;
+		forceFadeTime = -1;
 		loop = _loop;
 	}
 
@@ -81,6 +82,15 @@ namespace Animations
 			}
 		}
 		return retCount;
+	}
+
+	void AnimationInstance::forceFadeOut(int fadeOutTime) {
+		loop = false;
+		if (forceFadeTime < startTime + animationPreset->duration) {
+			forceFadeTime = fadeOutTime;
+		}
+		// Otherwise the anim will end sooner than the force fade out time, so
+		// making it not loop is enough.
 	}
 
 	AnimationInstance* createAnimationInstance(int animationIndex) {

@@ -46,6 +46,7 @@ namespace Modules::Accelerometer
 	void start();
 	void stop();
 	void lowPower();
+	void wakeUp();
 
 	int currentFace();
 	float currentFaceConfidence();
