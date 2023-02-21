@@ -7,5 +7,5 @@ namespace Modules::BehaviorController
 {
 	void init();
 
-	void onDiceInitialized();
+	void onPixelInitialized();
 }

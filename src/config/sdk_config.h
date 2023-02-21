@@ -1139,7 +1139,6 @@
 #define NRFX_PWM_NRF52_ANOMALY_109_EGU_INSTANCE 5
 
 #include "sdk_config_logging.h"
-#include "sdk_config_dice.h"
 
 #endif //SDK_CONFIG_H
 

@@ -27,7 +27,7 @@ namespace Modules::LEDs
     static uint8_t powerPin;
     static uint8_t numLed = 0;
     static bool powerOn = false;
-    static uint32_t pixels[MAX_LED_COUNT];
+    static uint32_t pixels[MAX_COUNT];
 
     void show();
 
@@ -56,14 +56,14 @@ namespace Modules::LEDs
         nrf_gpio_cfg_default(board->ledReturnPin);
 
         // Initialize our color array
-        memset(pixels, 0, MAX_LED_COUNT * sizeof(uint32_t));
+        memset(pixels, 0, MAX_COUNT * sizeof(uint32_t));
         numLed = board->ledCount;
 
         NRF_LOG_DEBUG("LEDs init, powerPin=%d", (int)powerPin);
     }
 
     void clear() {
-        memset(pixels, 0, MAX_LED_COUNT * sizeof(uint32_t));
+        memset(pixels, 0, MAX_COUNT * sizeof(uint32_t));
         show();
     }
 

@@ -60,7 +60,7 @@ namespace Modules::BehaviorController
         NRF_LOG_DEBUG("Behavior Controller init");
     }
 
-    void onDiceInitialized() {
+    void onPixelInitialized() {
 
         // We're ready to go!
         state = State_Running;

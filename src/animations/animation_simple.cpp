@@ -2,7 +2,6 @@
 #include "utils/utils.h"
 #include "config/board_config.h"
 #include "data_set/data_animation_bits.h"
-#include "data_set/data_set.h"
 
 namespace Animations
 {

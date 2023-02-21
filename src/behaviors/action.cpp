@@ -23,7 +23,8 @@ namespace Behaviors
                             uint8_t faceIndex = playAnimAction->faceIndex == FACE_INDEX_CURRENT_FACE ?
                                 Accelerometer::currentFace() : playAnimAction->faceIndex;
                             NRF_LOG_INFO("Playing anim %d on face %d, animFaceIndex: %d", playAnimAction->animIndex, faceIndex, playAnimAction->faceIndex);
-                            AnimController::play(playAnimAction->animIndex, faceIndex, false); // FIXME, handle remapFace and loopCount properly
+                            auto animationPreset = DataSet::getAnimation(playAnimAction->animIndex);
+                            AnimController::play(animationPreset, DataSet::getAnimationBits(), faceIndex, false); // FIXME, handle remapFace and loopCount properly
                         } else {
                             NRF_LOG_ERROR("Invalid animation index %d", playAnimAction->animIndex);
                         }

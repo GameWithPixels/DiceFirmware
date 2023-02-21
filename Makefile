@@ -123,6 +123,7 @@ SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_timer.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
+	$(PROJ_DIR)/src/pixel.cpp \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \
 	$(PROJ_DIR)/src/animations/animation.cpp \
@@ -138,6 +139,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/keyframes.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \
 	$(PROJ_DIR)/src/behaviors/condition.cpp \
+	$(PROJ_DIR)/src/bluetooth/bluetooth_custom_advertising_data.cpp \
 	$(PROJ_DIR)/src/bluetooth/bluetooth_stack.cpp \
 	$(PROJ_DIR)/src/bluetooth/bluetooth_messages.cpp \
 	$(PROJ_DIR)/src/bluetooth/bluetooth_message_service.cpp \
@@ -179,6 +181,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/notifications/roll_notifications.cpp \
 	$(PROJ_DIR)/src/notifications/rssi_notifications.cpp \
 	$(PROJ_DIR)/src/utils/abi.cpp \
+	$(PROJ_DIR)/src/utils/float3_utils.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
 	$(PROJ_DIR)/src/utils/utils.cpp
 

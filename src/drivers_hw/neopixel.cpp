@@ -5,7 +5,6 @@
 
 
 #include "neopixel.h"
-#include "nrf_gpio.h"
 #include "nrf_drv_pwm.h"
 #include "nrf_delay.h"
 #include "settings.h"
@@ -30,7 +29,7 @@ namespace DriversHW
     namespace NeoPixel
     {
         static nrf_drv_pwm_t m_pwm0 = NRF_DRV_PWM_INSTANCE(NEOPIXEL_INSTANCE);
-        static nrf_pwm_values_common_t pwm_sequence_values[MAX_LED_COUNT * NEOPIXEL_BYTES + 1];
+        static nrf_pwm_values_common_t pwm_sequence_values[MAX_COUNT * NEOPIXEL_BYTES + 1];
 
         typedef  void (*neopixel_handler_t)(void);
         static neopixel_handler_t m_handler = NULL;

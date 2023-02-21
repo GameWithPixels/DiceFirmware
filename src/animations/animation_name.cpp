@@ -1,9 +1,9 @@
 #include "animation_name.h"
 #include "modules/anim_controller.h"
-#include "die.h"
+#include "pixel.h"
 
 #define HEADER_BITS_COUNT 3
-#define DEVICE_BITS_COUNT (8 * sizeof(Die::getDeviceID()))
+#define DEVICE_BITS_COUNT (8 * sizeof(Pixel::getDeviceID()))
 #define CRC_BITS_COUNT 3
 #define CRC_DIVISOR 0xB // = 1011
 #define CRC_MASK 0x7
@@ -34,7 +34,7 @@ namespace Animations
     {
         // 3-bit CRC
         // https://en.wikipedia.org/wiki/Cyclic_redundancy_check#Computation
-        const uint64_t shiftedValue = (uint64_t)Die::getDeviceID() << CRC_BITS_COUNT;
+        const uint64_t shiftedValue = (uint64_t)Pixel::getDeviceID() << CRC_BITS_COUNT;
         const uint64_t mask = (uint64_t)(-1) ^ CRC_MASK;
         uint64_t div = (uint64_t)CRC_DIVISOR << DEVICE_BITS_COUNT;
         uint64_t crc = shiftedValue;

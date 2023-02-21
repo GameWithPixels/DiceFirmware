@@ -12,7 +12,7 @@
 #include "config/dice_variants.h"
 #include "utils/utils.h"
 #include "data_set/data_set.h"
-#include "die.h"
+#include "pixel.h"
 #include "app_error.h"
 
 #define SETTINGS_VALID_KEY (0x15E77165) // 1SETTINGS in leet speak ;)
@@ -118,7 +118,7 @@ namespace Config::SettingsManager
 	void setDefaultParameters(Settings& outSettings) {
         // Generate our name
         outSettings.name[0] = '\0';
-		uint32_t uniqueId = Die::getDeviceID();
+		uint32_t uniqueId = Pixel::getDeviceID();
 		for (int i = 0; i < 7; ++i) {
             outSettings.name[i] = '0' + uniqueId % 10;
             uniqueId /= 10;

@@ -28,15 +28,6 @@ namespace Core
 	struct float3;
 }
 
-namespace Config
-{
-namespace DiceVariants
-{
-	struct Layouts;
-	struct Layout;
-}
-}
-
 namespace Utils
 {
 	uint32_t roundUpTo4(uint32_t address);
@@ -58,14 +49,6 @@ namespace Utils
 	uint8_t sine8(uint8_t x);
 	uint8_t gamma8(uint8_t x);
 	uint32_t gamma(uint32_t color);
-
-	const Core::float3* getDefaultNormals(int faceCount);
-
-	float CalibrateNormals(
-		int face1Index, const Core::float3& face1Normal,
-		int face2Index, const Core::float3& face2Normal,
-		int face3Index, const Core::float3& face3Normal,
-		Core::float3* outNormals, int faceCount);
 
 	uint32_t lz77_compress (uint8_t *uncompressed_text, uint32_t uncompressed_size, uint8_t *compressed_text);
 	uint32_t lz77_decompress (uint8_t *compressed_text, uint8_t *uncompressed_text);

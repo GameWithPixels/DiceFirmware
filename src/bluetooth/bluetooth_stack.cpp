@@ -16,13 +16,11 @@
 #include "peer_manager.h"
 #include "peer_manager_handler.h"
 #include "config/settings.h"
-#include "config/board_config.h"
-#include "config/dice_variants.h"
 #include "drivers_nrf/power_manager.h"
 #include "core/delegate_array.h"
-#include "modules/accelerometer.h"
-#include "modules/battery_controller.h"
-#include "die.h"
+
+#include "pixel.h"
+#include "bluetooth_custom_advertising_data.h"
 
 using namespace Config;
 using namespace DriversNRF;
@@ -88,16 +86,6 @@ namespace Bluetooth::Stack
 	DelegateArray<RssiEventMethod, MAX_RSSI_CLIENTS> rssiClients;
 
 #pragma pack( push, 1)
-    // Custom advertising data, so the Pixel app can identify dice before they're even connected
-    struct CustomManufacturerData
-    {
-        uint8_t ledCount;
-        uint8_t designAndColor;
-        Accelerometer::RollState rollState; // Indicates whether the dice is being shaken, 8 bits
-        uint8_t currentFace; // Which face is currently up
-        uint8_t batteryLevelAndCharging; // Charge level in percent, MSB is charging
-    };
-
     struct CustomServiceData
     {
         uint32_t deviceId;
@@ -106,7 +94,6 @@ namespace Bluetooth::Stack
 #pragma pack(pop)
 
     // Global custom manufacturer and service data
-    static CustomManufacturerData customManufacturerData;
     static CustomServiceData customServiceData;
 
     // Buffers pointing to the custom advertising and service data
@@ -115,8 +102,8 @@ namespace Bluetooth::Stack
         .company_identifier = 0xFFFF, // <-- Temporary until we get our Company Id Code
         .data               =
         {
-            .size   = sizeof(customManufacturerData),
-            .p_data = (uint8_t*)&customManufacturerData
+            .size   = 0,        // Initialized later by the custom data handler
+            .p_data = nullptr
         }
     };
     static ble_advdata_service_data_t advertisedServiceData =
@@ -132,33 +119,6 @@ namespace Bluetooth::Stack
     // Advertising data structs
     static ble_advdata_t advertisementPacket;
     static ble_advdata_t scanResponsePacket;
-
-#if SDK_VER < 16
-    // This will store packed versions of advertising structs
-    static uint8_t adv_data_buffer[BLE_GAP_ADV_SET_DATA_SIZE_MAX];          /**< Advertising data buffer. */
-    static uint8_t sr_data_buffer[BLE_GAP_ADV_SET_DATA_SIZE_MAX];          /**< Scan Response data buffer. */
-
-    // And this will tell the Softdevice where those buffers are
-    static ble_gap_adv_data_t m_sp_advdata_buf = 
-    {
-        .advertisementPacket =
-        {
-            .p_data = adv_data_buffer,
-            .len    = sizeof(adv_data_buffer)
-        },
-        .scan_rsp_data =
-        {
-            .p_data = sr_data_buffer,
-            .len    = sizeof(sr_data_buffer)
-        }
-    };
-#endif
-
-    void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace);
-    void onBatteryStateChange(void *param, BatteryController::BatteryState state);
-    void onBatteryLevelChange(void *param, uint8_t levelPercent);
-    void updateCustomAdvertisingDataState(Accelerometer::RollState newState, int newFace);
-    void updateCustomAdvertisingDataBattery(uint8_t batteryValue, uint8_t mask);
 
     /**@brief Function for handling BLE events.
      *
@@ -196,13 +156,7 @@ namespace Bluetooth::Stack
                     clients[i].handler(clients[i].token, true);
                 }
 
-                // Unhook from accelerometer events, we don't need them
-                Accelerometer::unHookRollState(onRollStateChange);
-
-                // Unhook battery events too
-                BatteryController::unHook(onBatteryStateChange);
-                BatteryController::unHookLevel(onBatteryLevelChange);
-
+                CustomAdvertisingDataHandler::stop();
                 break;
 
             case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
@@ -287,20 +241,9 @@ namespace Bluetooth::Stack
             case BLE_ADV_EVT_FAST:
             {
                 NRF_LOG_INFO("Fast advertising");
-#if SDK_VER >= 16
                 ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
-#else
-                ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &m_sp_advdata_buf, false);
-#endif
                 APP_ERROR_CHECK(err_code);
-
-                // Register to be notified of accelerometer changes
-                Accelerometer::hookRollState(onRollStateChange, nullptr);
-
-                // And battery events too
-                BatteryController::hook(onBatteryStateChange, nullptr);
-                BatteryController::hookLevel(onBatteryLevelChange, nullptr);
-
+                CustomAdvertisingDataHandler::start();
                 currentlyAdvertising = true;
             }
             break;
@@ -308,11 +251,7 @@ namespace Bluetooth::Stack
             case BLE_ADV_EVT_IDLE:
                 NRF_LOG_INFO("Advertising Idle");
                 currentlyAdvertising = false;
-
-                // Unhook from accelerometer events, we don't need them
-                Accelerometer::unHookRollState(onRollStateChange);
-                BatteryController::unHook(onBatteryStateChange);
-                BatteryController::unHookLevel(onBatteryLevelChange);
+                CustomAdvertisingDataHandler::stop();
                 break;
 
             default:
@@ -403,6 +342,11 @@ namespace Bluetooth::Stack
         init.advdata.uuids_complete.uuid_cnt = sizeof(advertisedUuids) / sizeof(advertisedUuids[0]);
         init.advdata.uuids_complete.p_uuids  = advertisedUuids;
 
+        // Update device Id and build now even though it'll only be used on Scan Response
+        // These values never change.
+        customServiceData.deviceId = Pixel::getDeviceID();
+        customServiceData.buildTimestamp = Pixel::getBuildTimestamp();
+
         init.srdata.uuids_complete.uuid_cnt = sizeof(advertisedUuidsExtended) / sizeof(advertisedUuidsExtended[0]);
         init.srdata.uuids_complete.p_uuids  = advertisedUuidsExtended;
         init.srdata.p_service_data_array    = &advertisedServiceData;
@@ -416,14 +360,6 @@ namespace Bluetooth::Stack
         APP_ERROR_CHECK(err_code);
 
         ble_advertising_conn_cfg_tag_set(&advertisingModule, APP_BLE_CONN_CFG_TAG);
-
-        // nrf_ble_qwr_init_t qwr_init = {0};
-
-        // // Initialize Queued Write Module.
-        // qwr_init.error_handler = nrf_qwr_error_handler;
-
-        // err_code = nrf_ble_qwr_init(&nrfQwr, &qwr_init);
-        // APP_ERROR_CHECK(err_code);
 
         ble_conn_params_init_t cp_init;
 
@@ -448,91 +384,21 @@ namespace Bluetooth::Stack
         memcpy(&advertisementPacket, &init.advdata, sizeof(ble_advdata_t));
         memcpy(&scanResponsePacket, &init.srdata, sizeof(ble_advdata_t));
         advertisementPacket.p_manuf_specific_data = &advertisedManufData;
-    }
 
-    void initAdvertisingName() {
         ble_gap_conn_sec_mode_t sec_mode;
 
         BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
         // Generate our name
         auto name = SettingsManager::getSettings()->name;
-        ret_code_t err_code = sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *)name, strlen(name));
+        err_code = sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *)name, strlen(name));
         APP_ERROR_CHECK(err_code);
     }
 
-	bool isProperlyOnCharger(BatteryController::BatteryState state) {
-        return state >= BatteryController::BatteryState_Charging;
-    }
-
-    void initCustomAdvertisingData() {
-        // Initialize the custom advertising data
-        customManufacturerData.ledCount = Config::BoardManager::getBoard()->ledCount;
-        customManufacturerData.designAndColor = Config::SettingsManager::getSettings()->designAndColor;
-        customManufacturerData.rollState = Accelerometer::RollState_Unknown;
-        customManufacturerData.currentFace = 0;
-        customManufacturerData.batteryLevelAndCharging =
-            (BatteryController::getLevelPercent() & 0x7F) |
-            (isProperlyOnCharger(BatteryController::getBatteryState()) ? 0x80 : 0);
-        customServiceData.deviceId = Die::getDeviceID();
-        customServiceData.buildTimestamp = Die::getBuildTimestamp();
-
-#if SDK_VER >= 16
+    void updateCustomAdvertisingData(uint8_t* data, uint16_t size) {
+        advertisedManufData.data.p_data = data;
+        advertisedManufData.data.size = size;
         ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
-#else
-        // Update advertising data
-        ret_code_t err_code = ble_advdata_encode(&advertisementPacket, m_sp_advdata_buf.advertisementPacket.p_data, &m_sp_advdata_buf.advertisementPacket.len);
-        APP_ERROR_CHECK(err_code);
-
-        err_code = ble_advdata_encode(&scanResponsePacket, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
-#endif
-        APP_ERROR_CHECK(err_code);
-
-        NRF_LOG_DEBUG("Advertisement payload size: %d, and scan response payload size: %d", advertisingModule.adv_data.adv_data.len, advertisingModule.adv_data.scan_rsp_data.len);
-    }
-
-    void onBatteryStateChange(void *param, BatteryController::BatteryState state) {
-        updateCustomAdvertisingDataBattery((isProperlyOnCharger(state) ? 1 : 0) << 7, 0x7F);
-    }
-
-    void onBatteryLevelChange(void *param, uint8_t levelPercent) {
-        updateCustomAdvertisingDataBattery(levelPercent & 0x7F, 0x80);
-    }
-
-    void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace) {
-        updateCustomAdvertisingDataState(newState, newFace);
-    }
-
-    void updateCustomAdvertisingDataBattery(uint8_t batteryValue, uint8_t mask) {
-        customManufacturerData.batteryLevelAndCharging &= mask;
-        customManufacturerData.batteryLevelAndCharging |= batteryValue;
-
-#if SDK_VER >= 16
-        ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
-#else
-        // Update advertising data
-        ret_code_t err_code = ble_advdata_encode(&advertisementPacket, m_sp_advdata_buf.advertisementPacket.p_data, &m_sp_advdata_buf.advertisementPacket.len);
-        APP_ERROR_CHECK(err_code);
-
-        err_code = ble_advdata_encode(&scanResponsePacket, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
-#endif
-        APP_ERROR_CHECK(err_code);
-    }
-
-    void updateCustomAdvertisingDataState(Accelerometer::RollState newState, int newFace) {
-        // Update manufacturer specific advertising data
-        customManufacturerData.currentFace = newFace;
-        customManufacturerData.rollState = newState;
-
-#if SDK_VER >= 16
-        ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
-#else
-        // Update advertising data
-        ret_code_t err_code = ble_advdata_encode(&advertisementPacket, m_sp_advdata_buf.advertisementPacket.p_data, &m_sp_advdata_buf.advertisementPacket.len);
-        APP_ERROR_CHECK(err_code);
-
-        err_code = ble_advdata_encode(&scanResponsePacket, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
-#endif
         APP_ERROR_CHECK(err_code);
     }
 
@@ -563,18 +429,7 @@ namespace Bluetooth::Stack
     }
 
     void startAdvertising() {
-        customManufacturerData.currentFace = Accelerometer::currentFace();
-        customManufacturerData.rollState = Accelerometer::currentRollState();
-
-#if SDK_VER >= 16
         ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
-#else
-        // Update advertising data
-        ret_code_t err_code = ble_advdata_encode(&advertisementPacket, m_sp_advdata_buf.advertisementPacket.p_data, &m_sp_advdata_buf.advertisementPacket.len);
-        APP_ERROR_CHECK(err_code);
-
-        err_code = ble_advdata_encode(&scanResponsePacket, m_sp_advdata_buf.scan_rsp_data.p_data, &m_sp_advdata_buf.scan_rsp_data.len);
-#endif
         APP_ERROR_CHECK(err_code);
 
         err_code = ble_advertising_start(&advertisingModule, BLE_ADV_MODE_FAST);
@@ -649,11 +504,7 @@ namespace Bluetooth::Stack
     void stopAdvertising() {
         ret_code_t err_code = sd_ble_gap_adv_stop(advertisingModule.adv_handle);
         APP_ERROR_CHECK(err_code);
-
-        // Unhook from accelerometer events, we don't need them
-        Accelerometer::unHookRollState(onRollStateChange);
-        BatteryController::unHook(onBatteryStateChange);
-        BatteryController::unHookLevel(onBatteryLevelChange);
+        CustomAdvertisingDataHandler::stop();
     }
 
     bool isConnected() {

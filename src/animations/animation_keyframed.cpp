@@ -1,6 +1,5 @@
 #include "animation_keyframed.h"
 #include "keyframes.h"
-#include "data_set/data_set.h"
 #include "data_set/data_animation_bits.h"
 #include "assert.h"
 #include "../utils/utils.h"

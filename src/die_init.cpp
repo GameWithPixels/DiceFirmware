@@ -25,6 +25,7 @@
 #include "drivers_hw/ntc.h"
 
 #include "bluetooth/bluetooth_stack.h"
+#include "bluetooth/bluetooth_custom_advertising_data.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bulk_data_transfer.h"
 #include "bluetooth/telemetry.h"
@@ -59,22 +60,6 @@ using namespace Animations;
 using namespace Modules;
 
 #define APP_BLE_CONN_CFG_TAG    1
-
-/**@brief Callback function for asserts in the SoftDevice.
- *
- * @details This function will be called in case of an assert in the SoftDevice.
- *
- * @warning This handler is an example only and does not fit a final product. You need to analyze 
- *          how your product is supposed to react in case of Assert.
- * @warning On assert from the SoftDevice, the system can only recover on reset.
- *
- * @param[in]   line_num   Line number of the failing ASSERT call.
- * @param[in]   file_name  File name of the failing ASSERT call.
- */
-void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
-{
-    app_error_handler(0xDEADBEEF, line_num, p_file_name);
-}
 
 namespace Die
 {
@@ -196,7 +181,7 @@ namespace Die
     ///     - initMainLogic():
     ///         * nothing is checked?
     ///
-    ///     - BehaviorController::onDiceInitialized():
+    ///     - BehaviorController::onPixelInitialized():
     ///         * will probably use alternative function
     ///             for validation blinks
     ///
@@ -245,9 +230,6 @@ namespace Die
 
         // Initialize the DFU service so we can upgrade the firmware without needing to reset the die
         DFU::init();
-
-        // Now that the message service added its uuid to the SoftDevice, initialize the advertising
-        Stack::initAdvertising();
 
         // Flash is needed to update settings/animations
         Flash::init();
@@ -313,11 +295,11 @@ namespace Die
                 // Initialize Bluetooth Advertising Data + Name
                 //--------------------
 
-                // The advertising name depends on settings
-                Stack::initAdvertisingName();
+                // Initialize custom advertising data handler
+                CustomAdvertisingDataHandler::init();
 
-                // Now that the settings are set, update custom advertising data such as die type and battery level
-                Stack::initCustomAdvertisingData();
+                // Now that the message service added its uuid to the SoftDevice, initialize the advertising
+                Stack::initAdvertising();
 
                 const bool inValidation = ValidationManager::inValidation();
                 if (!inValidation) {
@@ -346,10 +328,10 @@ namespace Die
                 // Entering the main loop! Play Hello! anim if in validation mode
                 if (inValidation) {
                     ValidationManager::init();
-                    ValidationManager::onDiceInitialized();
+                    ValidationManager::onPixelInitialized();
                 } else {
                     initDieLogic();
-                    BehaviorController::onDiceInitialized();
+                    BehaviorController::onPixelInitialized();
                 }
 
                 NRF_LOG_INFO("----- Device initialized! -----");

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_util_platform.h"
+#include "string.h"
 
 namespace Bluetooth
 {

@@ -110,6 +110,12 @@ namespace DataSet
 		return &(data->animationBits);
 	}
 
+	AnimationInstance* createAnimationInstance(int animationIndex) {
+		// Grab the preset data
+		const Animation* preset = DataSet::getAnimation(animationIndex);
+		return createAnimationInstance(preset, DataSet::getAnimationBits());
+	}
+
 	const Animation* getAnimation(int animationIndex) {
 		if (animationIndex >= 0 && (uint32_t)animationIndex < data->animationCount) {
 			// Grab the preset data

@@ -5,7 +5,7 @@
 #include "core/float3.h"
 #include "dice_variants.h"
 
-#define MAX_LED_COUNT 21
+#define MAX_COUNT 21
 #define MAX_NAME_LENGTH 24
 
 namespace Config
@@ -47,7 +47,7 @@ namespace Config
 		float batteryHigh;
 
 		// Calibration data
-		Core::float3 faceNormals[MAX_LED_COUNT];
+		Core::float3 faceNormals[MAX_COUNT];
 
 		// Indicates whether there is valid data
 		uint32_t tailMarker;

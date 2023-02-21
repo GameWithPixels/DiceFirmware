@@ -74,7 +74,6 @@ namespace Animations
 		void forceFadeOut(int fadeOutTime);
 	};
 
-	Animations::AnimationInstance* createAnimationInstance(int animationIndex);
 	Animations::AnimationInstance* createAnimationInstance(const Animations::Animation* preset, const DataSet::AnimationBits* bits);
 	void destroyAnimationInstance(Animations::AnimationInstance* animationInstance);
 

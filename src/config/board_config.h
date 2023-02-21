@@ -98,13 +98,14 @@ namespace Config
 
             // Name of the board
             const char* name;
-
-            uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace) const;
         };
 
         void init();
         void setNTC_ID_VDD(bool set);
         const Board* getBoard();
+
+        uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
+        uint8_t electricalToCanonicalIndex(int index);
     }
 }
 

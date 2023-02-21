@@ -642,17 +642,6 @@ namespace BoardManager
         },
     };
 
-	uint8_t Board::animIndexToLEDIndex(int animLEDIndex, int remapFace) const {
-		// The transformation is:
-		// animFaceIndex (what face the animation says it wants to light up)
-		//	-> rotatedAnimFaceIndex (based on remapFace and remapping table, i.e. what actual
-		//	   face should light up to "retarget" the animation around the current up face)
-		//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
-		//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
-		int rotatedAnimFaceIndex = layout.canonicalIndexFaceToFaceRemapLookup[remapFace * ledCount + animLEDIndex];
-		return layout.canonicalIndexToElectricalIndexLookup[rotatedAnimFaceIndex];
-	}
-
     // The board we're currently using
     static const Board* currentBoard = nullptr;
 
@@ -698,6 +687,21 @@ namespace BoardManager
 
     const Board* getBoard() {
         return currentBoard;
+    }
+
+	uint8_t animIndexToLEDIndex(int animLEDIndex, int remapFace) {
+		// The transformation is:
+		// animFaceIndex (what face the animation says it wants to light up)
+		//	-> rotatedAnimFaceIndex (based on remapFace and remapping table, i.e. what actual
+		//	   face should light up to "retarget" the animation around the current up face)
+		//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the internal rotation
+		//		   of the PCB and the fact that the LEDs are not accessed in the same order as the number of the faces)
+		int rotatedAnimFaceIndex = getBoard()->layout.canonicalIndexFaceToFaceRemapLookup[remapFace * getBoard()->ledCount + animLEDIndex];
+		return getBoard()->layout.canonicalIndexToElectricalIndexLookup[rotatedAnimFaceIndex];
+	}
+
+    uint8_t electricalToCanonicalIndex(int index) {
+        return getBoard()->layout.electricalIndexToCanonicalIndexLookup[index];
     }
 
     void setNTC_ID_VDD(bool set) {

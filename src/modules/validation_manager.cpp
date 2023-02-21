@@ -1,4 +1,4 @@
-#include "die.h"
+#include "pixel.h"
 #include "validation_manager.h"
 #include "config/board_config.h"
 #include "nrf_log.h"
@@ -53,7 +53,7 @@ namespace Modules::ValidationManager
     }
 
     // Function for playing validation animations
-    void onDiceInitialized()
+    void onPixelInitialized()
     {
         // Trigger a callback to turn die off
         Timers::setDelayedCallback(GoToSleepCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);

@@ -38,6 +38,7 @@ namespace DataSet
 	const AnimationBits* getAnimationBits();
 
 	// Animations
+	Animations::AnimationInstance* createAnimationInstance(int animationIndex);
 	const Animations::Animation* getAnimation(int animationIndex);
 	uint16_t getAnimationCount();
 

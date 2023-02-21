@@ -1,7 +1,7 @@
 #include "accelerometer.h"
 
 #include "drivers_hw/accel_chip.h"
-#include "utils/utils.h"
+#include "utils/float3_utils.h"
 #include "core/ring_buffer.h"
 #include "config/board_config.h"
 #include "config/settings.h"

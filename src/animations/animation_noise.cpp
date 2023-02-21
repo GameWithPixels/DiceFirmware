@@ -36,7 +36,7 @@ namespace Animations
 		curRand = (uint16_t)(_startTime % (1 << 16));
 
 		// initializing the durations and times of each blink
-		for(int i = 0; i < MAX_LED_COUNT; i++){
+		for(int i = 0; i < MAX_COUNT; i++){
 			individualBlinkTimes[i] = 0;
 			blinkDurations[i] = 0;
 		}

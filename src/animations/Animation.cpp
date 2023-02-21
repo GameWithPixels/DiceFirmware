@@ -1,5 +1,4 @@
 #include "animation.h"
-#include "data_set/data_set.h"
 #include "data_set/data_animation_bits.h"
 
 #include "assert.h"
@@ -91,12 +90,6 @@ namespace Animations
 		}
 		// Otherwise the anim will end sooner than the force fade out time, so
 		// making it not loop is enough.
-	}
-
-	AnimationInstance* createAnimationInstance(int animationIndex) {
-		// Grab the preset data
-		const Animation* preset = DataSet::getAnimation(animationIndex);
-		return createAnimationInstance(preset, DataSet::getAnimationBits());
 	}
 
 	AnimationInstance* createAnimationInstance(const Animation* preset, const AnimationBits* bits) {

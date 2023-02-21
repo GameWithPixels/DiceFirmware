@@ -1,11 +1,14 @@
 #include "die.h"
 #include "die_private.h"
+#include "pixel.h"
 #include "drivers_nrf/watchdog.h"
 #include "drivers_nrf/scheduler.h"
 #include "drivers_nrf/power_manager.h"
 #include "drivers_nrf/flash.h"
 #include "drivers_nrf/log.h"
 #include "drivers_nrf/gpiote.h"
+#include "drivers_nrf/mcu_temperature.h"
+#include "drivers_hw/ntc.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
@@ -19,44 +22,14 @@
 #include "notifications/battery.h"
 #include "notifications/roll.h"
 #include "notifications/rssi.h"
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 
-#if !defined(BUILD_TIMESTAMP)
-    #warning Build timestamp not defined
-    #define BUILD_TIMESTAMP 0
-#endif
-
-using namespace DriversNRF;
 using namespace Modules;
 using namespace Bluetooth;
 using namespace Accelerometer;
 using namespace Config;
 using namespace Animations;
-
-static void on_error(void)
-{
-    NRF_LOG_FINAL_FLUSH();
-#ifdef NRF_DFU_DEBUG_VERSION
-    NRF_BREAKPOINT_COND;
-#endif
-    NVIC_SystemReset();
-}
-
-void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name) {
-    NRF_LOG_ERROR("app_error_handler err_code:%d %s:%d", error_code, p_file_name, line_num);
-    on_error();
-}
-
-void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info) {
-    NRF_LOG_ERROR("Received a fault! id: 0x%08x, pc: 0x%08x, info: 0x%08x", id, pc, info);
-    on_error();
-}
-
-void app_error_handler_bare(uint32_t error_code) {
-    NRF_LOG_ERROR("Received an error: 0x%08x!", error_code);
-    on_error();
-}
+using namespace DriversNRF;
+using namespace DriversHW;
 
 namespace Die
 {
@@ -77,6 +50,7 @@ namespace Die
     void stopAllLEDAnimsHandler(const Message* msg);
     void setTopLevelStateHandler(const Message* msg);
     void enterSleepModeHandler(const Message* message);
+    void getTemperatureHandler(const Message* msg);
 
     void initMainLogic() {
         MessageService::RegisterMessageHandler(Message::MessageType_WhoAreYou, whoAreYouHandler);
@@ -84,6 +58,7 @@ namespace Die
         MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_RequestTemperature, getTemperatureHandler);
 
         Stack::hook(onConnectionEvent, nullptr);
 
@@ -106,9 +81,9 @@ namespace Die
         identityMessage.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
         identityMessage.designAndColor = SettingsManager::getSettings()->designAndColor;
         identityMessage.dataSetHash = DataSet::dataHash();
-        identityMessage.pixelId = getDeviceID();
+        identityMessage.pixelId = Pixel::getDeviceID();
         identityMessage.availableFlash = DataSet::availableDataSize();
-        identityMessage.buildTimestamp = getBuildTimestamp();
+        identityMessage.buildTimestamp = Pixel::getBuildTimestamp();
         identityMessage.rollState = Accelerometer::currentRollState();
         identityMessage.rollFace = Accelerometer::currentFace();
         identityMessage.batteryLevelPercent = BatteryController::getLevelPercent();
@@ -187,19 +162,61 @@ namespace Die
     void playLEDAnimHandler(const Message* msg) {
         auto playAnimMessage = (const MessagePlayAnim*)msg;
         NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
-        AnimController::play(playAnimMessage->animation, playAnimMessage->remapFace, playAnimMessage->loop);
+		auto animationPreset = DataSet::getAnimation((int)playAnimMessage->animation);
+        AnimController::play(animationPreset, DataSet::getAnimationBits(), playAnimMessage->remapFace, playAnimMessage->loop);
     }
 
     void stopLEDAnimHandler(const Message* msg) {
         auto stopAnimMessage = (const MessageStopAnim*)msg;
         NRF_LOG_DEBUG("Stopping animation %d", stopAnimMessage->animation);
-        AnimController::stop((int)stopAnimMessage->animation, stopAnimMessage->remapFace);
+		// Find the preset for this animation Index
+		auto animationPreset = DataSet::getAnimation((int)stopAnimMessage->animation);
+        AnimController::stop(animationPreset, stopAnimMessage->remapFace);
     }
 
     void stopAllLEDAnimsHandler(const Message* msg) {
         NRF_LOG_DEBUG("Stopping all animations");
         AnimController::stopAll();
     }
+
+    void getTemperatureHandler(const Message* msg) {
+        // We don't want to register to the clients list multiple times.
+        // It would happen when we get several Temp request messages before 
+        // having the time to send the response.
+        // In this case sending just one response for all the pending requests
+        // is fine.
+        static bool hasPendingRequest = false;
+        if (hasPendingRequest)
+            return;
+            
+        // Since reading temperature takes times and uses our interrupt handler, register a lambda
+        // and we'll unregister it once we have a result.
+        NRF_LOG_INFO("Received Temp Request");
+        void* uniqueToken = (void*)0x1234;
+        if (MCUTemperature::measure()) {
+            MCUTemperature::hook([] (void* the_uniquetoken, int the_tempTimes100) {
+                NRF_LOG_INFO("Sending temp: %d.%d C", (the_tempTimes100 / 100), (the_tempTimes100 % 100));
+                MCUTemperature::unHookWithParam(the_uniquetoken);
+
+                // Send message back
+                MessageTemperature tmp;
+                tmp.mcuTempTimes100 = the_tempTimes100;
+                tmp.batteryTempTimes100 = (uint16_t)(NTC::getNTCTemperature() * 100.0f);
+                MessageService::SendMessage(&tmp);
+
+                // The response message was send, allow ourselves to register
+                // to the clients list again on the next temp request
+                hasPendingRequest = false;
+            }, uniqueToken);
+        } else {
+            // Send message back
+            MessageTemperature tmp;
+            tmp.mcuTempTimes100 = 0xFFFF;
+            tmp.batteryTempTimes100 = (int16_t)(NTC::getNTCTemperature() * 100.0f);
+            MessageService::SendMessage(&tmp);
+        }
+    }
+
 
     void setTopLevelStateHandler(const Message *msg) {
         auto setTopLevelStateMessage = (const MessageSetTopLevelState *)msg;
@@ -245,14 +262,6 @@ namespace Die
     
     void enterSleepModeHandler(const Message* msg) {
         PowerManager::goToSystemOff();
-    }
-
-	uint32_t getDeviceID() {
-		return NRF_FICR->DEVICEID[1] ^ NRF_FICR->DEVICEID[0];
-    }
-
-	uint32_t getBuildTimestamp() {
-        return BUILD_TIMESTAMP;
     }
 
     // Main loop!

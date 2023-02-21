@@ -1,5 +1,4 @@
 #include "animation_gradient.h"
-#include "data_set/data_set.h"
 #include "data_set/data_animation_bits.h"
 
 namespace Animations

@@ -1,6 +1,5 @@
 #include "anim_controller.h"
 #include "animations/animation.h"
-#include "data_set/data_set.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/power_manager.h"
 #include "drivers_nrf/flash.h"
@@ -8,15 +7,14 @@
 #include "utils/rainbow.h"
 #include "config/board_config.h"
 #include "config/settings.h"
-#include "config/dice_variants.h"
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "nrf_log.h"
-#include "accelerometer.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "leds.h"
 #include "drivers_nrf/scheduler.h"
+#include "core/delegate_array.h"
 
 using namespace Animations;
 using namespace Modules;
@@ -84,7 +82,7 @@ namespace Modules::AnimController
 			});
 
 			// clear the global color array
-			uint32_t allColors[MAX_LED_COUNT];
+			uint32_t allColors[MAX_COUNT];
 			for (int j = 0; j < c; ++j) {
 				allColors[j] = 0;
 			}
@@ -125,9 +123,9 @@ namespace Modules::AnimController
 				}
 				else
 				{
-					int canonIndices[MAX_LED_COUNT * 4]; // Allow up to 4 tracks to target the same LED
-					int ledIndices[MAX_LED_COUNT * 4];
-					uint32_t colors[MAX_LED_COUNT * 4];
+					int canonIndices[MAX_COUNT * 4]; // Allow up to 4 tracks to target the same LED
+					int ledIndices[MAX_COUNT * 4];
+					uint32_t colors[MAX_COUNT * 4];
 
 					// Update the leds
 					int animTrackCount = anim->updateLEDs(ms, canonIndices, colors);
@@ -136,7 +134,7 @@ namespace Modules::AnimController
 					//NRF_LOG_INFO("track_count = %d", animTrackCount);
 					for (int j = 0; j < animTrackCount; ++j) {
 						//colors[j] = Utils::gamma(colors[j]);
-                        ledIndices[j] = b->animIndexToLEDIndex(canonIndices[j], anim->remapFace);
+                        ledIndices[j] = BoardManager::animIndexToLEDIndex(canonIndices[j], anim->remapFace);
 					}
 
 					// Update color array
@@ -175,16 +173,6 @@ namespace Modules::AnimController
 	{
 		NRF_LOG_INFO("Starting anim controller");
 		Timers::startTimer(animControllerTimer, ANIM_FRAME_DURATION, NULL);
-	}
-
-	/// <summary>
-	/// Add an animation to the list of running animations
-	/// </summary>
-	void play(int animIndex, uint8_t remapFace, bool loop)
-	{
-		// Find the preset for this animation Index
-		auto animationPreset = DataSet::getAnimation(animIndex);
-		play(animationPreset, DataSet::getAnimationBits(), remapFace, loop);
 	}
 
 	void play(const Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace, bool loop)
@@ -237,17 +225,6 @@ namespace Modules::AnimController
 		// Else there is no more room
 	}
 
-	/// <summary>
-	/// Forcibly stop a currently running animation
-	/// </summary>
-	void stop(int animIndex, uint8_t remapFace)	{
-
-		// Find the preset for this animation Index
-		auto animationPreset = DataSet::getAnimation(animIndex);
-
-		stop(animationPreset, remapFace);
-	}
-
 	void stop(const Animation* animationPreset, uint8_t remapFace) {
 
 		// Find the animation with that preset and remap face
@@ -292,17 +269,15 @@ namespace Modules::AnimController
 	/// </summary>
 	void stopAtIndex(int animIndex)
 	{
-		auto b = BoardManager::getBoard();
-
 		// Found the animation, start by killing the leds it controls
-		int canonIndices[MAX_LED_COUNT];
-		int ledIndices[MAX_LED_COUNT];
-		uint32_t zeros[MAX_LED_COUNT];
-		memset(zeros, 0, sizeof(uint32_t) * MAX_LED_COUNT);
+		int canonIndices[MAX_COUNT];
+		int ledIndices[MAX_COUNT];
+		uint32_t zeros[MAX_COUNT];
+		memset(zeros, 0, sizeof(uint32_t) * MAX_COUNT);
 		auto anim = animations[animIndex];
 		int ledCount = anim->stop(canonIndices);
 		for (int i = 0; i < ledCount; ++i) {
-            ledIndices[i] = b->animIndexToLEDIndex(canonIndices[i], anim->remapFace);
+            ledIndices[i] = BoardManager::animIndexToLEDIndex(canonIndices[i], anim->remapFace);
 		}
 		LEDs::setPixelColors(ledIndices, zeros, ledCount);
 	}
