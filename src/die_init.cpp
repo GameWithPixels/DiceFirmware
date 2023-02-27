@@ -295,11 +295,11 @@ namespace Die
                 // Initialize Bluetooth Advertising Data + Name
                 //--------------------
 
-                // Initialize custom advertising data handler
-                CustomAdvertisingDataHandler::init();
-
                 // Now that the message service added its uuid to the SoftDevice, initialize the advertising
                 Stack::initAdvertising();
+
+                // Initialize custom advertising data handler
+                CustomAdvertisingDataHandler::init();
 
                 const bool inValidation = ValidationManager::inValidation();
                 if (!inValidation) {
