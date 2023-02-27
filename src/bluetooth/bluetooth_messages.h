@@ -85,6 +85,8 @@ struct Message
 		MessageType_StopAllAnims,
 		MessageType_RequestTemperature,
 		MessageType_Temperature,
+		MessageType_EnableCharging,
+		MessageType_DisableCharging,
 
 		// TESTING
 		MessageType_TestBulkSend,

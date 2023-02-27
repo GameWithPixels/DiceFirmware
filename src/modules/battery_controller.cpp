@@ -47,6 +47,9 @@ namespace Modules::BatteryController
     void updateLevelPercent();
     BatteryState computeNewBatteryState();
 
+    void onEnableChargingHandler(const Message *msg);
+    void onDisableChargingHandler(const Message *msg);
+
     static BatteryState currentBatteryState = BatteryState_Unknown;
     static uint32_t currentBatteryStateStartTime = 0; // Time when we switched to the current battery state
 
@@ -128,6 +131,9 @@ namespace Modules::BatteryController
         
 		Timers::createTimer(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
 		Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(batteryTimerMs), NULL);
+
+        MessageService::RegisterMessageHandler(Message::MessageType_EnableCharging, onEnableChargingHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_DisableCharging, onDisableChargingHandler);
 
         NRF_LOG_INFO("Battery Controller init");
         NRF_LOG_INFO("  Battery: %d%%", levelPercent);
@@ -404,6 +410,14 @@ namespace Modules::BatteryController
             // Restart the timer
 		    Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(delay), NULL);
         }
+    }
+
+    void onEnableChargingHandler(const Message *msg) {
+        Battery::setDisableChargingOverride(false);
+    }
+
+    void onDisableChargingHandler(const Message *msg) {
+        Battery::setDisableChargingOverride(true);
     }
 
 	/// <summary>
