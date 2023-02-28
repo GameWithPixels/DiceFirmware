@@ -18,6 +18,13 @@ namespace DriversNRF::PowerManager
 	APP_TIMER_DEF(sleepTimer);
     void triggerSleepMode(void* context);
 
+    enum PowerManagerState {
+        PowerManagerState_Normal = 0,
+        PowerManagerState_Paused
+    };
+
+    PowerManagerState state = PowerManagerState_Normal;
+
     void init(PowerManagerClientMethod callback) {
         powerEventCallback = callback;
 
@@ -29,6 +36,8 @@ namespace DriversNRF::PowerManager
             Timers::createTimer(&sleepTimer, APP_TIMER_MODE_SINGLE_SHOT, triggerSleepMode);
 		    Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
         #endif
+
+        state = PowerManagerState_Normal;
 
         NRF_LOG_DEBUG("Power Management init");
     }
@@ -77,11 +86,13 @@ namespace DriversNRF::PowerManager
     void feed() {
         nrf_pwr_mgmt_feed();
 
+        if (state == PowerManagerState_Normal) {
         // Restart the timer
         #if defined(SLEEP_TIMEOUT_MS)
             Timers::stopTimer(sleepTimer);
             Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
         #endif
+        }
     }
 
     void update() {
@@ -124,6 +135,27 @@ namespace DriversNRF::PowerManager
             fromSleep = (reason & 0x00010000) != 0;
         }
         return fromSleep;
+    }
+
+    void pause() {
+
+        if (state == PowerManagerState_Normal) {
+        // Stop the timer
+        #if defined(SLEEP_TIMEOUT_MS)
+            Timers::stopTimer(sleepTimer);
+        #endif
+            state = PowerManagerState_Paused;
+        }
+    }
+
+    void resume() {
+        if (state == PowerManagerState_Paused) {
+        // Restart the sleep timer
+        #if defined(SLEEP_TIMEOUT_MS)
+            Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+        #endif
+            state = PowerManagerState_Normal;
+        }
     }
 
 }

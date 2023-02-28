@@ -138,6 +138,9 @@ namespace Die
         if (!connected) {
             // Return to solo play
             enterStandardState();
+            PowerManager::resume();
+        } else {
+            PowerManager::pause();
         }
 
         Notifications::Rssi::notifyConnectionEvent(connected);
