@@ -15,7 +15,7 @@ namespace Behaviors
     {
         Action_Unknown = 0,
         Action_PlayAnimation,
-        Action_PlaySound
+        Action_RunOnDevice
     };
 
     /// <summary>
@@ -39,13 +39,13 @@ namespace Behaviors
     };
 
     /// <summary>
-    /// Action to play a sound on a connected phone
+    /// Action to be run on a connected device
     /// </summary>
-    struct ActionPlaySound
+    struct ActionRunOnDevice
         : Action
     {
-        uint8_t paddingType;
-        uint16_t clipId;
+        uint8_t remoteActionType; // Type of remote action
+        uint16_t actionId;        // The id of the remote action
     };
 
     // This method will execute the passed in action from the dataset
