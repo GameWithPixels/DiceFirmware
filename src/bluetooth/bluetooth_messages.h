@@ -45,7 +45,7 @@ struct Message
 		MessageType_PlayAnim,
 		MessageType_PlayAnimEvent,
 		MessageType_StopAnim,
-		MessageType_PlaySound,
+		MessageType_RemoteAction,
 		MessageType_RequestRollState,
 		MessageType_RequestAnimSet,
 		MessageType_RequestSettings,
@@ -286,12 +286,13 @@ struct MessagePlayAnim
 	MessagePlayAnim() : Message(Message::MessageType_PlayAnim) {}
 };
 
-struct MessagePlaySound
+struct MessageRemoteAction
 	: public Message
 {
-	uint16_t clipId;
+	// uint8_t remoteActionType;
+	uint16_t actionId;
 
-	MessagePlaySound() : Message(Message::MessageType_PlaySound) {}
+	MessageRemoteAction() : Message(Message::MessageType_RemoteAction) {}
 };
 
 struct MessagePlayAnimEvent

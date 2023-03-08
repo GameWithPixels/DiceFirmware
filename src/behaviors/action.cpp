@@ -30,19 +30,20 @@ namespace Behaviors
                         }
                     }
                     break;
-                case Action_PlaySound:
+                case Action_RunOnDevice:
                     {
-                        auto playSoundAction = static_cast<const ActionPlaySound*>(action);
+                        auto runOnDeviceAction = static_cast<const ActionRunOnDevice*>(action);
                         if (MessageService::canSend())
                         {
-                            NRF_LOG_INFO("Playing sound %08x", playSoundAction->clipId);
-                            MessagePlaySound playSound;
-                            playSound.clipId = playSoundAction->clipId;
-                            MessageService::SendMessage(&playSound);
+                            NRF_LOG_INFO("Sending message for remote action %08x", runOnDeviceAction->actionId);
+                            MessageRemoteAction remoteAction;
+                            // remoteAction.remoteActionType = runOnDeviceAction->remoteActionType;
+                            remoteAction.actionId = runOnDeviceAction->actionId;
+                            MessageService::SendMessage(&remoteAction);
                         }
                         else
                         {
-                            NRF_LOG_INFO("(Ignored) Playing sound %08x", playSoundAction->clipId);
+                            NRF_LOG_INFO("(Ignored) Remote action %08x", runOnDeviceAction->actionId);
                         }
                     }
                     break;

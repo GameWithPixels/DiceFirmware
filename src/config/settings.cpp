@@ -117,13 +117,15 @@ namespace Config::SettingsManager
 
 	void setDefaultParameters(Settings& outSettings) {
         // Generate our name
-        outSettings.name[0] = '\0';
+		const char pixel[] = "Pixel";
+		static_assert(sizeof(pixel) + 9 < sizeof(outSettings.name));
+		strcpy(outSettings.name, pixel);
 		uint32_t uniqueId = Pixel::getDeviceID();
-		for (int i = 0; i < 7; ++i) {
-            outSettings.name[i] = '0' + uniqueId % 10;
-            uniqueId /= 10;
-        }
-        outSettings.name[7] = '\0';
+    	for (int i = 0; i < 8; ++i) {
+			const char value = (uniqueId >> ((7 - i) << 2)) & 0xf;
+			outSettings.name[i + sizeof(pixel) - 1] = value + (value < 10 ? '0' : 'a' - 10);
+		}
+		outSettings.name[8 + sizeof(pixel)] = '\0';
 		outSettings.designAndColor = DiceVariants::DesignAndColor::DesignAndColor_Generic;
 		outSettings.jerkClamp = 10.f;
 		outSettings.sigmaDecay = 0.5f;
