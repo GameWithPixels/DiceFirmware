@@ -13,12 +13,18 @@ namespace DriversNRF::A2D
     bool supportsVLED = false;
     bool supportsNTC = false;
 
-    nrf_saadc_channel_config_t channel_config_conf;
-    nrf_saadc_channel_config_t channel_config_batt;
-    nrf_saadc_channel_config_t channel_config_5v;
-    nrf_saadc_channel_config_t channel_config_vled;
-    nrf_saadc_channel_config_t channel_config_vcc;
-    nrf_saadc_channel_config_t channel_config_ntc;
+    nrf_saadc_channel_config_t channel_config_base =
+    {
+        .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
+        .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
+        .gain       = NRF_SAADC_GAIN1_6,
+        .reference  = NRF_SAADC_REFERENCE_INTERNAL,
+        .acq_time   = NRF_SAADC_ACQTIME_40US,
+        .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
+        .burst      = NRF_SAADC_BURST_DISABLED,
+        .pin_p      = NRF_SAADC_INPUT_DISABLED, // Override value as needed
+        .pin_n      = NRF_SAADC_INPUT_DISABLED
+    };
 
     void saadc_callback(nrfx_saadc_evt_t const * p_event) {
         // Do nothing!
@@ -28,32 +34,6 @@ namespace DriversNRF::A2D
 
         err_code = nrf_drv_saadc_init(NULL, saadc_callback);
         APP_ERROR_CHECK(err_code);
-
-        channel_config_conf =
-        {
-            .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
-            .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
-            .gain       = NRF_SAADC_GAIN1_6,
-            .reference  = NRF_SAADC_REFERENCE_INTERNAL,
-            .acq_time   = NRF_SAADC_ACQTIME_40US,
-            .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
-            .burst      = NRF_SAADC_BURST_DISABLED,
-            .pin_p      = (nrf_saadc_input_t)(BOARD_DETECT_SENSE_PIN),
-            .pin_n      = NRF_SAADC_INPUT_DISABLED
-        };
-
-        channel_config_vcc = 
-        {
-            .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
-            .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
-            .gain       = NRF_SAADC_GAIN1_6,
-            .reference  = NRF_SAADC_REFERENCE_INTERNAL,
-            .acq_time   = NRF_SAADC_ACQTIME_40US,
-            .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
-            .burst      = NRF_SAADC_BURST_DISABLED,
-            .pin_p      = (nrf_saadc_input_t)(NRF_SAADC_INPUT_VDD),
-            .pin_n      = NRF_SAADC_INPUT_DISABLED
-        };
 
         supportsVCoil = false;
         supportsVLED = false;
@@ -68,114 +48,10 @@ namespace DriversNRF::A2D
         #endif
     }
 
-    int16_t readConfigPin() {
-        ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_conf);
-        APP_ERROR_CHECK(err_code);
-
-        int16_t ret;
-        err_code = nrf_drv_saadc_sample_convert(0, &ret);
-        if (err_code != NRF_SUCCESS) {
-            ret = -1;
-        }
-
-        nrf_drv_saadc_channel_uninit(0);
-
-        return ret;
-    }
-
-    int16_t readVDDPin() {
-        ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_vcc);
-        APP_ERROR_CHECK(err_code);
-
-        int16_t ret;
-        err_code = nrf_drv_saadc_sample_convert(0, &ret);
-        if (err_code != NRF_SUCCESS) {
-            ret = -1;
-        }
-
-        nrf_drv_saadc_channel_uninit(0);
-
-        return ret;
-    }
-
-    void initBoardPins() {
-        // For the battery, we're going to need to change the default config
-        channel_config_batt =
-        {
-            .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
-            .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
-            .gain       = NRF_SAADC_GAIN1_6,
-            .reference  = NRF_SAADC_REFERENCE_INTERNAL,
-            .acq_time   = NRF_SAADC_ACQTIME_40US,
-            .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
-            .burst      = NRF_SAADC_BURST_DISABLED,
-            .pin_p      = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->vbatSensePin),
-            .pin_n      = NRF_SAADC_INPUT_DISABLED
-        };
-
-        auto csPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->coilSensePin);
-        if (csPin != NRF_SAADC_INPUT_DISABLED) {
-            channel_config_5v =
-            {
-                .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
-                .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
-                .gain       = NRF_SAADC_GAIN1_6,
-                .reference  = NRF_SAADC_REFERENCE_INTERNAL,
-                .acq_time   = NRF_SAADC_ACQTIME_40US,
-                .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
-                .burst      = NRF_SAADC_BURST_DISABLED,
-                .pin_p      = csPin,
-                .pin_n      = NRF_SAADC_INPUT_DISABLED
-            };
-
-            supportsVCoil = true;
-        }
-
-        auto vledPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->vledSensePin);
-        if (vledPin != NRF_SAADC_INPUT_DISABLED) {
-            channel_config_vled =
-            {
-                .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
-                .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
-                .gain       = NRF_SAADC_GAIN1_6,
-                .reference  = NRF_SAADC_REFERENCE_INTERNAL,
-                .acq_time   = NRF_SAADC_ACQTIME_40US,
-                .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
-                .burst      = NRF_SAADC_BURST_DISABLED,
-                .pin_p      = vledPin,
-                .pin_n      = NRF_SAADC_INPUT_DISABLED
-            };
-
-            supportsVLED = true;
-        }
-
-        auto ntcPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->ntcSensePin);
-        if (ntcPin != NRF_SAADC_INPUT_DISABLED) {
-            channel_config_ntc =
-            {
-                .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
-                .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
-                .gain       = NRF_SAADC_GAIN1_6,
-                .reference  = NRF_SAADC_REFERENCE_INTERNAL,
-                .acq_time   = NRF_SAADC_ACQTIME_40US,
-                .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
-                .burst      = NRF_SAADC_BURST_DISABLED,
-                .pin_p      = ntcPin,
-                .pin_n      = NRF_SAADC_INPUT_DISABLED
-            };
-
-            supportsNTC = true;
-        }
-
-        NRF_LOG_DEBUG("A2D Pins init");
-
-        #if DICE_SELFTEST && A2D_SELFTEST_BATT
-        selfTestBatt();
-        #endif
-    }
-
-    int16_t readBatteryPin() {
-        ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_batt);
+    int16_t readPin(nrf_saadc_input_t pin) {
+        // Set A2D pin
+        channel_config_base.pin_p = pin;
+        ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_base);
         APP_ERROR_CHECK(err_code);
 
         int16_t ret;
@@ -188,63 +64,7 @@ namespace DriversNRF::A2D
         return ret;
     }
 
-    int16_t read5VPin() {
-        int16_t ret;
-        if (supportsVCoil) {
-            ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_5v);
-            APP_ERROR_CHECK(err_code);
-
-            err_code = nrf_drv_saadc_sample_convert(0, &ret);
-            if (err_code != NRF_SUCCESS) {
-                ret = -1;
-            }
-
-            nrf_drv_saadc_channel_uninit(0);
-        } else {
-            ret = -1;
-        }
-
-
-        return ret;
-    }
-
-    int16_t readVLEDPin() {
-        int16_t ret;
-        if (supportsVLED) {
-            ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_vled);
-            APP_ERROR_CHECK(err_code);
-
-            err_code = nrf_drv_saadc_sample_convert(0, &ret);
-            if (err_code != NRF_SUCCESS) {
-                ret = -1;
-            }
-
-            nrf_drv_saadc_channel_uninit(0);
-        } else {
-            ret = -1;
-        }
-        return ret;
-    }
-
-    int16_t readNTCPin() {
-        int16_t ret;
-        if (supportsNTC) {
-            ret_code_t err_code = nrf_drv_saadc_channel_init(0, &channel_config_ntc);
-            APP_ERROR_CHECK(err_code);
-
-            err_code = nrf_drv_saadc_sample_convert(0, &ret);
-            if (err_code != NRF_SUCCESS) {
-                ret = -1;
-            }
-
-            nrf_drv_saadc_channel_uninit(0);
-        } else {
-            ret = -1;
-        }
-        return ret;
-    }
-
-    float readVDD() {
+    float readPinValue(nrf_saadc_input_t pin) {
         // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
         // In our case:
         // - V(n) = 0
@@ -256,91 +76,7 @@ namespace DriversNRF::A2D
         // => V(p) = val * 3.6 / 2^10
         // => V(p) = val * 0.003515625
 
-        int16_t val = readVDDPin();
-        if (val != -1) {
-            return (float)val * 0.003515625f;
-        } else {
-            return 0.0f;
-        }
-    }
-
-    float readVBat() {
-
-        // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
-        // In our case:
-        // - V(n) = 0
-        // - Gain = 1/6
-        // - Reference = 0.6V
-        // - Resolution = 10
-        // - m = 0
-        // val = V(p) * 2^12 / (6 * 0.6)
-        // => V(p) = val * 3.6 / 2^10
-        // => V(p) = val * 0.003515625
-
-        int16_t val = readBatteryPin();
-        if (val != -1) {
-            return (float)val * 0.003515625f;
-        } else {
-            return 0.0f;
-        }
-    }
-    
-    float read5V() {
-
-        // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
-        // In our case:
-        // - V(n) = 0
-        // - Gain = 1/6
-        // - Reference = 0.6V
-        // - Resolution = 10
-        // - m = 0
-        // val = V(p) * 2^12 / (6 * 0.6)
-        // => V(p) = val * 3.6 / 2^10
-        // => V(p) = val * 0.003515625
-
-        int16_t val = read5VPin();
-        if (val != -1) {
-            return (float)val * 0.003515625f;
-        } else {
-            return 0.0f;
-        }
-    }
-    
-    float readVLED() {
-
-        // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
-        // In our case:
-        // - V(n) = 0
-        // - Gain = 1/6
-        // - Reference = 0.6V
-        // - Resolution = 10
-        // - m = 0
-        // val = V(p) * 2^12 / (6 * 0.6)
-        // => V(p) = val * 3.6 / 2^10
-        // => V(p) = val * 0.003515625
-
-        int16_t val = readVLEDPin();
-        if (val != -1) {
-            return (float)val * 0.003515625f;
-        } else {
-            return 0.0f;
-        }
-    }
-
-    float readVNTC() {
-
-        // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
-        // In our case:
-        // - V(n) = 0
-        // - Gain = 1/6
-        // - Reference = 0.6V
-        // - Resolution = 10
-        // - m = 0
-        // val = V(p) * 2^12 / (6 * 0.6)
-        // => V(p) = val * 3.6 / 2^10
-        // => V(p) = val * 0.003515625
-
-        int16_t val = readNTCPin();
+        int16_t val = readPin(pin);
         if (val != -1) {
             return (float)val * 0.003515625f;
         } else {
@@ -349,20 +85,39 @@ namespace DriversNRF::A2D
     }
 
     float readVBoard() {
-        // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
-        // In our case:
-        // - V(n) = 0
-        // - Gain = 1/6
-        // - Reference = 0.6V
-        // - Resolution = 10
-        // - m = 0
-        // val = V(p) * 2^12 / (6 * 0.6)
-        // => V(p) = val * 3.6 / 2^10
-        // => V(p) = val * 0.003515625
+        return readPinValue((nrf_saadc_input_t)(BOARD_DETECT_SENSE_PIN));
+    }
 
-        int16_t val = readConfigPin();
-        if (val != -1) {
-            return (float)val * 0.003515625f;
+    float readVDD() {
+        return readPinValue(NRF_SAADC_INPUT_VDD);
+    }
+
+    float readVBat() {
+        return readPinValue((nrf_saadc_input_t)(Config::BoardManager::getBoard()->vbatSensePin));
+    }
+    
+    float read5V() {
+        auto csPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->coilSensePin);
+        if (csPin != NRF_SAADC_INPUT_DISABLED) {
+            return readPinValue(csPin);
+        } else {
+            return 0.0f;
+        }
+    }
+    
+    float readVLED() {
+        auto vledPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->vledSensePin);
+        if (vledPin != NRF_SAADC_INPUT_DISABLED) {
+            return readPinValue(vledPin);
+        } else {
+            return 0.0f;
+        }
+    }
+
+    float readVNTC() {
+        auto ntcPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->ntcSensePin);
+        if (ntcPin != NRF_SAADC_INPUT_DISABLED) {
+            return readPinValue(ntcPin);
         } else {
             return 0.0f;
         }

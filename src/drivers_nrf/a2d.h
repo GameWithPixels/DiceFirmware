@@ -11,14 +11,6 @@ namespace DriversNRF
 	namespace A2D
 	{
 		void init();
-        int16_t readConfigPin();
-        int16_t readVDDPin();
-
-		void initBoardPins();
-        int16_t readBatteryPin();
-        int16_t read5VPin();
-        int16_t readVLEDPin();
-        int16_t readNTCPin();
 
         float readVBat();
         float read5V();

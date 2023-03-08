@@ -90,7 +90,7 @@ namespace AccelChip
 	{
 		uint8_t c = I2C::readRegister(devAddress, WHO_AM_I);  // Read WHO_AM_I register
         bool success = c == 0x35;
-		if (success) {
+		if (!success) {
              // WHO_AM_I should always be 0x35 on KXTJ3
 			NRF_LOG_ERROR("KXTJ3 - Bad WHOAMI - received 0x%02x, should be 0x35", c);
 		} else {
