@@ -39,9 +39,6 @@ namespace Die
         return currentTopLevelState;
     }
 
-	void enterStandardState();
-	void enterLEDAnimState();
-
     void whoAreYouHandler(const Message *message);
     void onConnectionEvent(void *token, bool connected);
 
@@ -93,6 +90,12 @@ namespace Die
 
     void onPowerEvent(PowerManager::PowerManagerEvent event) {
         switch (event) {
+            case PowerManager::PowerManagerEvent_PrepareSysOff:
+                //NRF_LOG_INFO("Going to system off mode");
+                Accelerometer::stop();
+                Accelerometer::lowPower();
+                AnimController::stop();
+                break;
             case PowerManager::PowerManagerEvent_PrepareWakeUp:
                 //NRF_LOG_INFO("Going to low power mode");
                 Accelerometer::stop();
@@ -194,17 +197,17 @@ namespace Die
             
         // Since reading temperature takes times and uses our interrupt handler, register a lambda
         // and we'll unregister it once we have a result.
-        NRF_LOG_INFO("Received Temp Request");
+        NRF_LOG_DEBUG("Received Temp Request");
         void* uniqueToken = (void*)0x1234;
         if (MCUTemperature::measure()) {
             MCUTemperature::hook([] (void* the_uniquetoken, int the_tempTimes100) {
-                NRF_LOG_INFO("Sending temp: %d.%d C", (the_tempTimes100 / 100), (the_tempTimes100 % 100));
+                NRF_LOG_DEBUG("Sending temp: %d.%d C", (the_tempTimes100 / 100), (the_tempTimes100 % 100));
                 MCUTemperature::unHookWithParam(the_uniquetoken);
 
                 // Send message back
                 MessageTemperature tmp;
                 tmp.mcuTempTimes100 = the_tempTimes100;
-                tmp.batteryTempTimes100 = (uint16_t)(NTC::getNTCTemperature() * 100.0f);
+                tmp.batteryTempTimes100 = NTC::getNTCTemperatureTimes100();
                 MessageService::SendMessage(&tmp);
 
                 // The response message was send, allow ourselves to register
@@ -215,7 +218,7 @@ namespace Die
             // Send message back
             MessageTemperature tmp;
             tmp.mcuTempTimes100 = 0xFFFF;
-            tmp.batteryTempTimes100 = (int16_t)(NTC::getNTCTemperature() * 100.0f);
+            tmp.batteryTempTimes100 = NTC::getNTCTemperatureTimes100();
             MessageService::SendMessage(&tmp);
         }
     }
@@ -224,25 +227,39 @@ namespace Die
     void setTopLevelStateHandler(const Message *msg) {
         auto setTopLevelStateMessage = (const MessageSetTopLevelState *)msg;
         switch (setTopLevelStateMessage->state) {
-        case TopLevel_SoloPlay:
-            enterStandardState();
-            break;
-        case TopLevel_Animator:
-            enterLEDAnimState();
-            break;
+            case TopLevel_SoloPlay:
+                enterStandardState();
+                break;
+            case TopLevel_Animator:
+                enterLEDAnimState();
+                break;
+            case TopLevel_Testing:
+                enterTestingState();
+                break;
+            default:
+                break;
         }
     }
 
     void enterStandardState() {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
-            case TopLevel_Animator:
             default:
                 // Reactivate playing animations based on face
                 currentTopLevelState = TopLevel_SoloPlay;
                 break;
+            case TopLevel_Animator:
+                // Animator mode had turned accelerometer off, restart it now
+                Accelerometer::start();
+                currentTopLevelState = TopLevel_SoloPlay;
+                break;
+            case TopLevel_Testing:
+                // Testing mode had anim controller off, restart it now
+                AnimController::start();
+                Accelerometer::start();
+                currentTopLevelState = TopLevel_SoloPlay;
+                break;
             case TopLevel_SoloPlay:
-            case TopLevel_LowPower:
                 // Nothing to do
                 break;
        }
@@ -251,20 +268,47 @@ namespace Die
 	void enterLEDAnimState() {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
-            case TopLevel_SoloPlay:
             default:
                 // Reactivate playing animations based on face
                 currentTopLevelState = TopLevel_Animator;
                 break;
+            case TopLevel_SoloPlay:
+                Accelerometer::stop();
+                currentTopLevelState = TopLevel_Animator;
+                break;
+            case TopLevel_Testing:
+                AnimController::start();
+                currentTopLevelState = TopLevel_Animator;
+                break;
             case TopLevel_Animator:
-            case TopLevel_LowPower:
                 // Nothing to do
                 break;
        }
     }
+
+    void enterTestingState() {
+        switch (currentTopLevelState) {
+            case TopLevel_Unknown:
+            case TopLevel_SoloPlay:
+                Accelerometer::stop();
+                AnimController::stop();
+                currentTopLevelState = TopLevel_Testing;
+                break;
+            case TopLevel_Animator:
+                AnimController::stop();
+                currentTopLevelState = TopLevel_Testing;
+                break;
+            default:
+                currentTopLevelState = TopLevel_Testing;
+                break;
+            case TopLevel_Testing:
+                break;
+       }
+    }
+
     
     void enterSleepModeHandler(const Message* msg) {
-        PowerManager::goToSystemOff();
+        PowerManager::goToDeepSleep();
     }
 
     // Main loop!

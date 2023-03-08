@@ -18,6 +18,7 @@ namespace Modules::ValidationManager
 {
     void init();
     void onPixelInitialized();
+    bool checkMinVBat();
 
     void leaveValidation();
     bool inValidation();

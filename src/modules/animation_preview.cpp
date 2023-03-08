@@ -151,7 +151,7 @@ namespace Modules::AnimationPreview
     void BlinkLEDsHandler(const Message* msg)
     {
         const MessageBlink *message = (const MessageBlink *)msg;
-        NRF_LOG_INFO("Received request to blink the LEDs %d times with duration of %d ms", message->flashCount, message->duration);
+        NRF_LOG_DEBUG("Received request to blink the LEDs %d times with duration of %d ms", message->flashCount, message->duration);
 
         static Blink blink;
         blink.play(message->color, message->duration, message->flashCount, message->fade, message->faceMask, message->loop);

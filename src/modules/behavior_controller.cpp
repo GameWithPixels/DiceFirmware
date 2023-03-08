@@ -371,12 +371,12 @@ namespace Modules::BehaviorController
     void onFlashProgramming(void* param, Flash::ProgrammingEventType evt) {
         switch (evt) {
             case Flash::ProgrammingEventType_Begin:
-                NRF_LOG_INFO("Pausing Behavior Controller");
+                NRF_LOG_DEBUG("Pausing Behavior Controller");
                 Timers::pauseDelayedCallbacks();
                 state = State_Paused;
                 break;
             case Flash::ProgrammingEventType_End:
-                NRF_LOG_INFO("Resuming Behavior Controller");
+                NRF_LOG_DEBUG("Resuming Behavior Controller");
                 Timers::resumeDelayedCallbacks();
                 state = State_Running;
                 break;

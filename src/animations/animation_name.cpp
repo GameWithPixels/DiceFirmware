@@ -96,7 +96,8 @@ namespace Animations
         if (tick < preambleNumTicks || tick >= totalTicks)
         {
             // Show white for the preamble (and possibly the last frame)
-            color = (brightness << 16) | (brightness << 8) | brightness;
+            auto whiteBrightness = brightness / 2;
+            color = (whiteBrightness << 16) | (whiteBrightness << 8) | whiteBrightness;
         }
         else
         {

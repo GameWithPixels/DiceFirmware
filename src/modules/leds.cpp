@@ -8,6 +8,7 @@
 #include "drivers_nrf/log.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/scheduler.h"
+#include "drivers_nrf/gpiote.h"
 
 #include "string.h" // for memset
 
@@ -31,10 +32,15 @@ namespace Modules::LEDs
 
     void show();
 
-    void setPowerOn(Timers::DelayedCallback callback);
+    void setPowerOn(Timers::DelayedCallback callback, void* parameter);
     void setPowerOff();
 
-	void init() {
+	typedef void (*TestLEDCallback)(bool success);
+    void testLEDReturn(TestLEDCallback callback);
+
+	void init(InitCallback callback) {
+		static InitCallback _callback; // Don't initialize this static inline because it would only do it on first call!
+		_callback = callback;
 		auto board = BoardManager::getBoard();
 
         switch (board->ledModel) {
@@ -59,7 +65,62 @@ namespace Modules::LEDs
         memset(pixels, 0, MAX_COUNT * sizeof(uint32_t));
         numLed = board->ledCount;
 
-        NRF_LOG_DEBUG("LEDs init, powerPin=%d", (int)powerPin);
+        testLEDReturn([](bool success) {
+            if (success) {
+                NRF_LOG_DEBUG("LEDs init, powerPin=%d", (int)powerPin);
+            } else {
+                NRF_LOG_ERROR("LED Return not detected");
+            }
+            _callback(success);
+        });
+    }
+
+    
+    void testLEDReturn(TestLEDCallback callback) {
+		static TestLEDCallback _callback; // Don't initialize this static inline because it would only do it on first call!
+		_callback = callback;
+        
+        // test LED return
+        setPowerOn([](void* ignore) {
+
+            // Now that suposedly LEDs are powered on, set interrupt pin
+            // to detect the output of the last LED toggling
+            static bool ledReturnDetected;
+
+            // Initialize on separate line to make sure it happens every call, as this is a static variable
+            ledReturnDetected = false;
+            GPIOTE::enableInterrupt(
+                BoardManager::getBoard()->ledReturnPin,
+                NRF_GPIO_PIN_PULLUP,
+                NRF_GPIOTE_POLARITY_TOGGLE,
+                [](uint32_t pin, nrf_gpiote_polarity_t action) {
+                    ledReturnDetected = true;
+                });
+
+            // Set a timer to check for LED return
+            Timers::setDelayedCallback([] (void* ignore) {
+
+                // When the callback happens:
+
+                // Turn off the interrupt handler
+                GPIOTE::disableInterrupt(BoardManager::getBoard()->ledReturnPin);
+                nrf_gpio_cfg_default(BoardManager::getBoard()->ledReturnPin);
+
+                // Turn off LED power
+                setPowerOff();
+
+                // Trigger callback with the result
+                _callback(ledReturnDetected);
+            }, nullptr, 5);
+
+            // Have LEDs test the return
+            switch (Config::BoardManager::getBoard()->ledModel) {
+                case Config::LEDModel::NEOPIXEL_RGB:
+                case Config::LEDModel::NEOPIXEL_GRB:
+                    NeoPixel::testLEDReturn();
+                    break;
+            }
+        }, nullptr);
     }
 
     void clear() {
@@ -131,7 +192,7 @@ namespace Modules::LEDs
                         NeoPixel::show(pixels);
                         break;
                 }
-            });
+            }, nullptr);
         }
     }
 
@@ -140,11 +201,11 @@ namespace Modules::LEDs
 		return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 	}
 
-    void setPowerOn(Timers::DelayedCallback callback) {
+    void setPowerOn(Timers::DelayedCallback callback, void* parameter) {
         // Are we already on?
         if (powerOn) {
             // Power already on, just proceed.
-            callback(nullptr);
+            callback(parameter);
         } else {
             // Notify clients we're turning led power on
             for (int i = 0; i < ledPowerClients.Count(); ++i) {
@@ -157,7 +218,7 @@ namespace Modules::LEDs
             powerOn = true;
 
             // Give enough time for the LEDs to power up (5ms)
-            Timers::setDelayedCallback(callback, nullptr, 5);
+            Timers::setDelayedCallback(callback, parameter, 5);
         }
    }
 

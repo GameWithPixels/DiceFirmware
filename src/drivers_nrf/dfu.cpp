@@ -14,7 +14,7 @@ namespace DriversNRF::DFU
     {
         if (state == NRF_SDH_EVT_STATE_DISABLED)
         {
-            DriversNRF::PowerManager::goToSystemOff();
+            DriversNRF::PowerManager::goToDeepSleep();
         }
     }
 

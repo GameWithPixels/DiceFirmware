@@ -87,6 +87,7 @@ struct Message
 		MessageType_Temperature,
 		MessageType_EnableCharging,
 		MessageType_DisableCharging,
+		MessageType_Discharge,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -535,6 +536,14 @@ struct MessageTemperature
 	int16_t batteryTempTimes100;
 
 	MessageTemperature() : Message(Message::MessageType_Temperature) {}
+};
+
+struct MessageDischarge
+	: public Message
+{
+	uint8_t currentMA; // Current in mA, rounded up to nearest 10mA, or 0 to reset
+
+	MessageDischarge() : Message(Message::MessageType_Discharge) {}
 };
 
 }

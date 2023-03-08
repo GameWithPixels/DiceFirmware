@@ -7,7 +7,8 @@
 /// </summary>
 namespace Modules::LEDs
 {
-	void init();
+	typedef void (*InitCallback)(bool result);
+	void init(InitCallback callback);
 	void setPixelColor(uint16_t n, uint32_t c);
 	void setPixelColors(int* indices, uint32_t* colors, int count);
 	void setPixelColors(uint32_t* colors);

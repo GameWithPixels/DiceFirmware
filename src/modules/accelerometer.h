@@ -42,7 +42,7 @@ namespace Modules::Accelerometer
 
 	#pragma pack(pop)
 
-	void init();
+	bool init();
 	void start();
 	void stop();
 	void lowPower();

@@ -9,19 +9,21 @@
 #include "nrf_drv_ppi.h"
 #include "nrf_drv_timer.h"
 
-#include "../drivers_nrf/gpiote.h"
-#include "../drivers_nrf/a2d.h"
-#include "../drivers_nrf/log.h"
-#include "../drivers_nrf/timers.h"
-#include "../drivers_nrf/power_manager.h"
-#include "../drivers_nrf/scheduler.h"
-#include "../core/delegate_array.h"
+#include "drivers_nrf/gpiote.h"
+#include "drivers_nrf/a2d.h"
+#include "drivers_nrf/log.h"
+#include "drivers_nrf/timers.h"
+#include "drivers_nrf/power_manager.h"
+#include "drivers_nrf/scheduler.h"
+#include "core/delegate_array.h"
+#include "modules/validation_manager.h"
 
 using namespace DriversNRF;
 using namespace Config;
 
 #define MAX_BATTERY_CLIENTS 2
 #define BATTERY_CHARGE_PIN_TIMER 1000 // milliseconds
+#define VBAT_LOW_THRESHOLD 3.0f // Volts
 
 namespace DriversHW
 {
@@ -142,7 +144,7 @@ namespace Battery
     }
 
 
-    void init() {
+    bool init() {
         // Set charger and fault pins as input
 
         // Drive the status pin down for a moment
@@ -208,6 +210,11 @@ namespace Battery
         float vCoil = checkVCoil();
         float vBat = checkVBat();
 
+        bool success = vBat > VBAT_LOW_THRESHOLD;
+        if (!success) {
+            NRF_LOG_ERROR("Battery Voltage too low: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+        }
+
         NRF_LOG_INFO("Battery init");
         NRF_LOG_INFO("  Voltage: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
         NRF_LOG_INFO("  Charging: %d", (charging ? 1 : 0));
@@ -216,6 +223,8 @@ namespace Battery
         #if DICE_SELFTEST && BATTERY_SELFTEST
         selfTest();
         #endif
+
+        return success;
     }
 
     float checkVBat() {

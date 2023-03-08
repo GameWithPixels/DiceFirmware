@@ -43,6 +43,7 @@
 #include "modules/behavior_controller.h"
 #include "modules/hardware_test.h"
 #include "modules/validation_manager.h"
+#include "modules/led_error_indicator.h"
 
 #include "utils/Utils.h"
 
@@ -68,128 +69,11 @@ namespace Die
         PowerManager::feed();
     }
 
-    /// ***********************************************************************
-    /// Init function validation checks:
-    ///
-    ///     - Watchdog::init():
-    ///         * if watchdog driver init fails
-    ///         * if channel allocation fails
-    ///
-    ///     - Log::init():
-    ///         * if log driver initialization fails
-    ///
-    ///     - Scheduler::init():
-    ///         * if scheduler driver init fails
-    ///
-    ///     - Timers::init():
-    ///         * if timer driver init fails
-    ///
-    ///     - GPIOTE::init():
-    ///         * if GPIOTE driver init fails
-    ///
-    ///     - A2D::init():
-    ///         * if SAADC driver init fails
-    ///
-    ///     - Stack::init():
-    ///         * if SoftDevice enable fails
-    ///         * if BLE stack config fails
-    ///         * if BLE enable fails
-    ///         * if setting GAP connection parameters fails
-    ///         * if GATT init fails
-    ///
-    ///     - MessageService::init():
-    ///         * if adding custom base UUID fails
-    ///         * if adding GATT service fails
-    ///         * if adding RX characteristic fails
-    ///         * if adding TX characteristic fails
-    ///
-    ///     - DFU::init():
-    ///         * if async SVCI init fails
-    ///         * if DFU driver init fails
-    ///
-    ///     - Stack::initAdvertising():
-    ///         * if advertising init fails
-    ///         * if queued writes module init fails
-    ///         * if connection parameters module init fails
-    ///
-    ///     - Flash::init():
-    ///         * if f-storage init fails
-    ///
-    ///     - BoardManager::init():
-    ///         * no validation checks
-    ///         * may want to fail-safe for unexpectedly
-    ///             high voltage measurement?
-    ///
-    ///     - A2D::initBoardPins():
-    ///         * no validation checks (needed?)
-    ///
-    ///     - SettingsManager::init():
-    ///         * if Flash::write() fails to write dataset
-    ///
-    ///     - Stack::initAdvertisingName():
-    ///         * if setting GAP device name fails
-    ///
-    ///     - Stack::initCustomAdvertisingData():
-    ///         * if advertising data update fails
-    ///         * if advertising data encode fail (SDK_VER 12)
-    ///
-    ///     - I2C::init():
-    ///         * if twi driver init fails
-    ///
-    ///     - LEDs::init():
-    ///         * if pwm_init fails (NeoPixel)
-    ///         * maybe check getSettings() return value?
-    ///
-    ///     - Accelerometer::init():
-    ///         * maybe throw error for invalid accel model
-    ///             in init() and start()?
-    ///
-    ///     - Battery::init():
-    ///         * maybe use self-test?
-    ///
-    ///     - DataSet::init:
-    ///         * nothing is checked?
-    ///
-    ///     - Telemetry::init():
-    ///         * nothing is checked?
-    ///
-    ///     - AnimController::init():
-    ///         * if create animControllerTimer fails
-    ///         * if start animControllerTimer fails
-    ///
-    ///     - BatteryController::init():
-    ///         * if create batteryControllerTimer fails
-    ///         * if start batteryControllerTimer fails
-    ///
-    ///     - BehaviorController::init():
-    ///         * nothing is checked?
-    ///
-    ///     - AnimationPreview::init():
-    ///         * nothing is checked?
-    ///
-    ///     - RssiController::init():
-    ///         * nothing is checked?
-    ///
-    ///     - HardwareTest::init():
-    ///         * this test does not seem necessary for validation
-    ///
-    ///     - Stack::startAdvertising():
-    ///         * if advertising data update fails
-    ///         * if advertising data encode fails (SDK_VER 12)
-    ///         * if advertising start fails
-    ///
-    ///     - initMainLogic():
-    ///         * nothing is checked?
-    ///
-    ///     - BehaviorController::onPixelInitialized():
-    ///         * will probably use alternative function
-    ///             for validation blinks
-    ///
-    /// ***********************************************************************
-
     void init() {
         //--------------------
         // Initialize NRF drivers
+        // We don't expect NRF drivers to error unless because of a firmware bug
+        // because all NRF drivers are internal to the NRF chip.
         //--------------------
 
         // ** Reminder ** Update above list of validation checks if adding new functions
@@ -253,91 +137,111 @@ namespace Die
 
             //--------------------
             // Initialize Hardware drivers
+            // Hardware drivers can fail because of physical problems (bad pcb, bad components, damage, etc...)
             //--------------------
 
             // Lights depend on board info as well
-            LEDs::init();
+            LEDs::init([] (bool success) {
+                // If LED init failed, we will "try" to turn LEDs on, hoping the problem is simply an led chain thing
+                if (!success) {
+                    LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_LEDs);
+                }
 
-            // Accel pins depend on the board info
-            Accelerometer::init();
 
-            // Battery sense pin depends on board info
-            Battery::init();
+                // Battery sense pin depends on board info
+                // on fail blink red one long time then power off
+                if (!Battery::init()) {
+                    LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_Battery);
+                }
 
-            // Battery Temperature Module
-            NTC::init();
+                // Accel pins depend on the board info
+                // on fail blink 2 short times then power off
+                if (!Accelerometer::init()) {
+                    LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_Accelerometer);
+                }
 
-            // Temperature sensor
-            MCUTemperature::init();
+                // Battery Temperature Module
+                // on fail blink red 3 short times then power off
+                if (!NTC::init()) {
+                    LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_NTC);
+                }
+
+                // Temperature sensor
+                MCUTemperature::init();
             
-            //--------------------
-            // Initialize Modules
-            //--------------------
-
-            // Animation set needs flash and board info
-            DataSet::init([] () {
-
-            #if defined(DEBUG)
-                // Useful for development
-                LEDColorTester::init();
-            #endif
-
-                // Telemetry depends on accelerometer
-                Telemetry::init();
-
-                // Animation controller relies on animation set
-                AnimController::init();
-
-                // Battery controller relies on the battery driver
-                BatteryController::init();
-
                 //--------------------
-                // Initialize Bluetooth Advertising Data + Name
+                // Initialize Modules
                 //--------------------
 
-                // Now that the message service added its uuid to the SoftDevice, initialize the advertising
-                Stack::initAdvertising();
+                // Animation set needs flash and board info
+                DataSet::init([] () {
 
-                // Initialize custom advertising data handler
-                CustomAdvertisingDataHandler::init();
+                #if defined(DEBUG)
+                    // Useful for development
+                    LEDColorTester::init();
+                #endif
 
-                const bool inValidation = ValidationManager::inValidation();
-                if (!inValidation) {
-                    // Want to prevent sleep mode due to animations while not in validation
-                    AnimController::hook(feed, nullptr);
-                }
+                    // Telemetry depends on accelerometer
+                    Telemetry::init();
 
-                // Behavior Controller relies on all the modules
-                BehaviorController::init();
+                    // Animation controller relies on animation set
+                    AnimController::init();
 
-                // Animation Preview depends on bluetooth
-                AnimationPreview::init();
+                    // Battery controller relies on the battery driver
+                    BatteryController::init();
 
-                // Instant Animation Controller preview depends on bluetooth
-                InstantAnimationController::init();
+                    //--------------------
+                    // Initialize Bluetooth Advertising Data + Name
+                    //--------------------
 
-                // Get ready for handling hardware test messages
-                HardwareTest::init();
+                    // Now that the message service added its uuid to the SoftDevice, initialize the advertising
+                    Stack::initAdvertising();
 
-                // Start advertising!
-                Stack::startAdvertising();
+                    // Initialize custom advertising data handler
+                    CustomAdvertisingDataHandler::init();
 
-                // Initialize common logic
-                initMainLogic();
+                    const bool inValidation = ValidationManager::inValidation();
+                    if (!inValidation) {
+                        // Want to prevent sleep mode due to animations while not in validation
+                        AnimController::hook(feed, nullptr);
+                    }
 
-                // Entering the main loop! Play Hello! anim if in validation mode
-                if (inValidation) {
-                    ValidationManager::init();
-                    ValidationManager::onPixelInitialized();
-                } else {
-                    initDieLogic();
-                    BehaviorController::onPixelInitialized();
-                }
+                    // Behavior Controller relies on all the modules
+                    BehaviorController::init();
 
-                NRF_LOG_INFO("----- Device initialized! -----");
+                    // Animation Preview depends on bluetooth
+                    AnimationPreview::init();
+
+                    // Instant Animation Controller preview depends on bluetooth
+                    InstantAnimationController::init();
+
+                    // Get ready for handling hardware test messages
+                    HardwareTest::init();
+
+                    // Before we turn the radio on, check the battery level in validation mode
+                    // We want to make sure the die is at least 50% charged!
+                    if (inValidation && !ValidationManager::checkMinVBat()) {
+                        LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_Battery);
+                    }
+
+                    // Start advertising!
+                    Stack::startAdvertising();
+
+                    // Initialize common logic
+                    initMainLogic();
+
+                    // Entering the main loop! Play Hello! anim if in validation mode
+                    if (inValidation) {
+                        ValidationManager::init();
+                        ValidationManager::onPixelInitialized();
+                    } else {
+                        initDieLogic();
+                        BehaviorController::onPixelInitialized();
+                    }
+
+                    NRF_LOG_INFO("----- Device initialized! -----");
+                });
             });
-
         });
-
     }
 }

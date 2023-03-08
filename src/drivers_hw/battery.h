@@ -4,7 +4,7 @@ namespace DriversHW
 {
     namespace Battery
     {
-        void init();
+        bool init();
         float checkVBat();
         float checkVCoil();
         float checkVLED();

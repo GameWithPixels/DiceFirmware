@@ -104,6 +104,14 @@ namespace DriversNRF::PowerManager
         nrf_power_gpregret2_set(BOOTLOADER_DFU_SKIP_CRC);
 
         // Go to system off.
+        nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_STAY_IN_SYSOFF);
+    }
+
+    void goToDeepSleep() {
+        // Inform bootloader to skip CRC on next boot.
+        nrf_power_gpregret2_set(BOOTLOADER_DFU_SKIP_CRC);
+
+        // Go to system off.
         nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
     }
 

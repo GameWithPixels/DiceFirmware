@@ -15,5 +15,6 @@ namespace DriversHW
         void uninit(void);
         void clear();
         void show(uint32_t* colors);
+        void testLEDReturn();
     }
 }

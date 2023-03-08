@@ -55,7 +55,7 @@ namespace Bluetooth::Stack
     #define SEC_PARAM_MIN_KEY_SIZE          7                                       /**< Minimum encryption key size. */
     #define SEC_PARAM_MAX_KEY_SIZE          16                                      /**< Maximum encryption key size. */
 
-    #define MAX_CLIENTS 3
+    #define MAX_CLIENTS 4
     #define MAX_RSSI_CLIENTS 2
 
     #define RSSI_THRESHOLD_DBM 1
@@ -240,7 +240,7 @@ namespace Bluetooth::Stack
         {
             case BLE_ADV_EVT_FAST:
             {
-                NRF_LOG_INFO("Fast advertising");
+                NRF_LOG_DEBUG("Fast advertising");
                 ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
                 APP_ERROR_CHECK(err_code);
                 CustomAdvertisingDataHandler::start();
@@ -249,7 +249,7 @@ namespace Bluetooth::Stack
             break;
 
             case BLE_ADV_EVT_IDLE:
-                NRF_LOG_INFO("Advertising Idle");
+                NRF_LOG_DEBUG("Advertising Idle");
                 currentlyAdvertising = false;
                 CustomAdvertisingDataHandler::stop();
                 break;
@@ -421,7 +421,7 @@ namespace Bluetooth::Stack
         // This is required to receive a service changed indication
         // on bootup after a successful (or aborted) Device Firmware Update.
         uint32_t conn_count = ble_conn_state_for_each_connected(disconnectLink, NULL);
-        NRF_LOG_INFO("Disconnected %d links.", conn_count);
+        NRF_LOG_DEBUG("Disconnected %d links.", conn_count);
     }
 
     bool isAdvertising() {
@@ -434,7 +434,7 @@ namespace Bluetooth::Stack
 
         err_code = ble_advertising_start(&advertisingModule, BLE_ADV_MODE_FAST);
         APP_ERROR_CHECK(err_code);
-        NRF_LOG_DEBUG("Starting advertising with name=%s and deviceId=0x%x", SettingsManager::getSettings()->name, customServiceData.deviceId);
+        NRF_LOG_INFO("Starting advertising with name=%s and deviceId=0x%x", SettingsManager::getSettings()->name, customServiceData.deviceId);
     }
 
     void disableAdvertisingOnDisconnect() {

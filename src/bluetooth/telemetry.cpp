@@ -93,7 +93,7 @@ namespace Bluetooth::Telemetry
     }
 
     void onTemperatureRead(void* param, int temperatureTimes100) {
-        auto batteryTempTimes100 = int16_t(DriversHW::NTC::getNTCTemperature() * 100.0f);
+        auto batteryTempTimes100 = DriversHW::NTC::getNTCTemperatureTimes100();
         if (teleMessage.mcuTempTimes100 != temperatureTimes100 ||
             teleMessage.batteryTempTimes100 != batteryTempTimes100) {
             teleMessage.mcuTempTimes100 = temperatureTimes100;

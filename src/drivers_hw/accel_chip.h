@@ -14,7 +14,7 @@ namespace DriversHW
 	/// </summary>
 	namespace AccelChip
 	{
-		void init();
+		bool init();
 		void read(Core::float3* outAccel);
 
 		void enableInterrupt();

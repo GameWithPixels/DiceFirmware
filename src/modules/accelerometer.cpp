@@ -35,7 +35,6 @@ using namespace Bluetooth;
 namespace Modules::Accelerometer
 {
     static float3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
-    static bool paused;
     static Config::AccelerometerModel accelerometerModel;
 
     // This stores our current Acceleration Data
@@ -43,6 +42,16 @@ namespace Modules::Accelerometer
 
     static DelegateArray<FrameDataClientMethod, MAX_FRAMEDATA_CLIENTS> frameDataClients;
     static DelegateArray<RollStateClientMethod, MAX_ACC_CLIENTS> rollStateClients;
+
+    enum State
+    {
+        State_Unknown = 0,
+        State_Initializing,
+        State_Off,
+        State_On,
+        State_LowPower
+    };
+    State currentState = State_Unknown;
 
     void updateState();
     void pauseNotifications();
@@ -56,9 +65,12 @@ namespace Modules::Accelerometer
 
     void update(void *context);
 
-    void init()
+    bool init()
     {
-        AccelChip::init();
+        currentState = State_Initializing;
+        if (!AccelChip::init()) {
+            return false;
+        }
 
         MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, calibrateHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, calibrateFaceHandler);
@@ -74,8 +86,11 @@ namespace Modules::Accelerometer
         currentFrame.sigma = 0.0f;
         currentFrame.smoothAcc = currentFrame.acc;
 
+        currentState = State_Off;
         start();
         NRF_LOG_INFO("Acc init model: %d", (int)accelerometerModel);
+
+        return true;
     }
 
     void update(void *context)
@@ -138,7 +153,7 @@ namespace Modules::Accelerometer
         
         // If the time between the last and current time is zero, log it
         if(newTime - currentFrame.time == 0) {
-            NRF_LOG_INFO("Time diff between frames is 0, time: %d", newTime);
+            NRF_LOG_WARNING("Time diff between frames is 0, time: %d", newTime);
         }      
 
         float jerkMag = newJerk.sqrMagnitude();
@@ -235,7 +250,7 @@ namespace Modules::Accelerometer
 
         bool faceChanged = newFace != currentFrame.face;
         bool stateChanged = newRollState != currentFrame.rollState;
-        if ((faceChanged || stateChanged) && !paused)
+        if (faceChanged || stateChanged)
         {
             for (int i = 0; i < rollStateClients.Count(); ++i)
             {
@@ -265,34 +280,44 @@ namespace Modules::Accelerometer
     /// </summary>
     void start()
     {
-        NRF_LOG_INFO("Starting acc");
+        switch (currentState) {
+            case State_Off:
+            case State_LowPower:
+                {
+                    NRF_LOG_DEBUG("Starting accelerometer");
 
-        // Set initial value
-        readAccelerometer(&currentFrame.acc);
-        currentFrame.smoothAcc = currentFrame.acc;
-        currentFrame.time = Timers::millis();
-        currentFrame.jerk = Core::float3::zero();
-        currentFrame.sigma = 0.0f;
-        currentFrame.face = determineFace(currentFrame.acc, &currentFrame.faceConfidence);
+                    // Set initial value
+                    readAccelerometer(&currentFrame.acc);
+                    currentFrame.smoothAcc = currentFrame.acc;
+                    currentFrame.time = Timers::millis();
+                    currentFrame.jerk = Core::float3::zero();
+                    currentFrame.sigma = 0.0f;
+                    currentFrame.face = determineFace(currentFrame.acc, &currentFrame.faceConfidence);
 
-        // Determine what state we're in to begin with
-        auto settings = SettingsManager::getSettings();
-        bool onFace = currentFrame.faceConfidence > settings->faceThreshold;
-        if (onFace)
-        {
-            currentFrame.rollState = RollState_OnFace;
+                    // Determine what state we're in to begin with
+                    auto settings = SettingsManager::getSettings();
+                    bool onFace = currentFrame.faceConfidence > settings->faceThreshold;
+                    if (onFace) {
+                        currentFrame.rollState = RollState_OnFace;
+                    } else {
+                        currentFrame.rollState = RollState_Crooked;
+                    }
+
+                    // Unhook first to avoid being hooked more than once if start() is called multiple times
+                    AccelChip::unHook(accHandler);
+                    AccelChip::hook(accHandler, nullptr);
+                    AccelChip::disableInterrupt();
+                    AccelChip::clearInterrupt();
+                    AccelChip::enableDataInterrupt();
+
+                    // Update current state
+                    currentState = State_On;
+                }
+                break;
+            default:
+                NRF_LOG_WARNING("Accelerometer not in valid state to be started");
+                break;
         }
-        else
-        {
-            currentFrame.rollState = RollState_Crooked;
-        }
-
-        // Unhook first to avoid being hooked more than once if start() is called multiple times
-        AccelChip::unHook(accHandler);
-        AccelChip::hook(accHandler, nullptr);
-		AccelChip::disableInterrupt();
-		AccelChip::clearInterrupt();
-        AccelChip::enableDataInterrupt();
     }
 
     /// <summary>
@@ -300,15 +325,33 @@ namespace Modules::Accelerometer
     /// </summary>
     void stop()
     {
-        AccelChip::unHook(accHandler);
-        AccelChip::disableDataInterrupt();
-		AccelChip::clearInterrupt();
-        NRF_LOG_INFO("Stopped acc");
+        switch (currentState) {
+            case State_On:
+                AccelChip::unHook(accHandler);
+                AccelChip::disableDataInterrupt();
+                AccelChip::clearInterrupt();
+
+                // Update current state
+                currentState = State_Off;
+                NRF_LOG_DEBUG("Stopped accelerometer");
+                break;
+            default:
+                NRF_LOG_WARNING("Accelerometer not in valid state to stop");
+                break;
+        }
     }
 
     void lowPower()
     {
-        AccelChip::lowPower();
+        switch (currentState) {
+            case State_Off:
+                AccelChip::lowPower();
+                currentState = State_LowPower;
+                break;
+            default:
+                NRF_LOG_WARNING("Accelerometer not in valid state to go to low power");
+                break;
+        }
     }
 
     void wakeUp()

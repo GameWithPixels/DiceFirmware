@@ -12,15 +12,17 @@
 #include "data_set/data_set.h"
 #include "nrf_nvmc.h"
 #include "drivers_nrf/timers.h"
+#include "drivers_hw/battery.h"
 
 using namespace Animations;
 using namespace Modules;
 using namespace Config;
 using namespace DriversNRF;
+using namespace DriversHW;
 using namespace Bluetooth;
 
 #define VALIDATION_MODE_SLEEP_DELAY_MS 25000 // milliseconds
-
+#define VALIDATION_MIN_VBAT 3.6f // volts
 namespace Modules::ValidationManager
 {
     static AnimationName nameAnim;
@@ -31,7 +33,7 @@ namespace Modules::ValidationManager
     void onConnectionEvent(void *token, bool connected);
     void exitValidationModeHandler(const Message *msg);
 
-    void GoToSleepCallback(void* ignore);
+    void GoToSysOffCallback(void* ignore);
 
     // Initializes validation animation objects and hooks AnimController callback
     void init()
@@ -56,10 +58,15 @@ namespace Modules::ValidationManager
     void onPixelInitialized()
     {
         // Trigger a callback to turn die off
-        Timers::setDelayedCallback(GoToSleepCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
+        Timers::setDelayedCallback(GoToSysOffCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
 
         // Play preamble/name animation
         startNameAnim();
+    }
+
+    bool checkMinVBat()
+    {
+        return Battery::checkVBat() > VALIDATION_MIN_VBAT;
     }
 
     // Stop playing name animation
@@ -84,11 +91,11 @@ namespace Modules::ValidationManager
         if (connected)
         {
             stopNameAnim(); // Stop animation on connect
-            Timers::cancelDelayedCallback(GoToSleepCallback, nullptr);
+            Timers::cancelDelayedCallback(GoToSysOffCallback, nullptr);
         }
         else
         {
-            Timers::setDelayedCallback(GoToSleepCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
+            Timers::setDelayedCallback(GoToSysOffCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
             if (!isPlaying)
                 startNameAnim(); // Resume animation on disconnect
         }
@@ -114,7 +121,7 @@ namespace Modules::ValidationManager
         return (*validation == 0xFFFFFFFE);
     }
 
-    void GoToSleepCallback(void* ignore)
+    void GoToSysOffCallback(void* ignore)
     {
         PowerManager::goToSystemOff();
     }

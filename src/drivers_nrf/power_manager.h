@@ -25,6 +25,7 @@ namespace DriversNRF
         void pause();
         void resume();
         void goToSystemOff();
+        void goToDeepSleep();
         void goToSleep();
         void wakeFromSleep();
         void reset();

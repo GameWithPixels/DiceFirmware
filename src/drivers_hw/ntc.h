@@ -4,8 +4,8 @@ namespace DriversHW
 {
     namespace NTC
     {
-        void init();
-        float getNTCTemperature();
+        bool init();
+        int getNTCTemperatureTimes100();
     }
 }
 

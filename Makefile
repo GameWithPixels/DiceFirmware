@@ -175,6 +175,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/hardware_test.cpp \
 	$(PROJ_DIR)/src/modules/instant_anim_controller.cpp \
 	$(PROJ_DIR)/src/modules/led_color_tester.cpp \
+	$(PROJ_DIR)/src/modules/led_error_indicator.cpp \
 	$(PROJ_DIR)/src/modules/leds.cpp \
 	$(PROJ_DIR)/src/modules/validation_manager.cpp \
 	$(PROJ_DIR)/src/notifications/battery_notifications.cpp \

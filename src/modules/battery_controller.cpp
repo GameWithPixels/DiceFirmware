@@ -32,10 +32,10 @@ using namespace Utils;
 #define BATTERY_ALMOST_EMPTY_PCT 10 // 10%
 #define BATTERY_ALMOST_FULL_PCT 95 // 95%
 #define TRANSITION_TOO_LONG_DURATION_MS 10000 // 10s
-#define TEMPERATURE_TOO_COLD_ENTER 0.0f // degrees C
-#define TEMPERATURE_TOO_COLD_LEAVE 5.0f // degrees C
-#define TEMPERATURE_TOO_HOT_ENTER 45.0f // degrees C
-#define TEMPERATURE_TOO_HOT_LEAVE 40.0f // degrees C
+#define TEMPERATURE_TOO_COLD_ENTER 0   // degrees C
+#define TEMPERATURE_TOO_COLD_LEAVE 500 // degrees C
+#define TEMPERATURE_TOO_HOT_ENTER 4500 // degrees C
+#define TEMPERATURE_TOO_HOT_LEAVE 4000 // degrees C
 #define LEVEL_SMOOTHING_RATIO 5
 
 namespace Modules::BatteryController
@@ -106,20 +106,20 @@ namespace Modules::BatteryController
         Battery::hook(onBatteryEventHandler, nullptr);
 
         // Register for led events
-        LEDs::hookPowerState(onLEDPowerEventHandler, nullptr);
+        //LEDs::hookPowerState(onLEDPowerEventHandler, nullptr);
 
-        float ntc = NTC::getNTCTemperature();
-        if (ntc <= -20.0f || ntc >= 100.0f) {
+        int ntcTimes100 = NTC::getNTCTemperatureTimes100();
+        if (ntcTimes100 <= -2000 || ntcTimes100 >= 10000) {
             currentBatteryTempState = BatteryTemperatureState_Disabled;
-            NRF_LOG_INFO("  Battery ntc invalid, temp: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(ntc));
-        } else if (ntc < TEMPERATURE_TOO_COLD_ENTER) {
+            NRF_LOG_WARNING("  Battery ntc invalid, temp: %d.%d", ntcTimes100 / 100, ntcTimes100 % 100);
+        } else if (ntcTimes100 < TEMPERATURE_TOO_COLD_ENTER) {
             currentBatteryTempState = BatteryTemperatureState_Low;
             Battery::setDisableChargingOverride(true);
-            NRF_LOG_INFO("  Battery too cold! Temp: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(ntc));
-        } else if (ntc > TEMPERATURE_TOO_HOT_ENTER) {
+            NRF_LOG_INFO("  Battery too cold! Temp: %d.%d", ntcTimes100 / 100, ntcTimes100 % 100);
+        } else if (ntcTimes100 > TEMPERATURE_TOO_HOT_ENTER) {
             currentBatteryTempState = BatteryTemperatureState_Hot;
             Battery::setDisableChargingOverride(true);
-            NRF_LOG_INFO("  Battery too hot! Temp: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(ntc));
+            NRF_LOG_INFO("  Battery too hot! Temp: %d.%d", ntcTimes100 / 100, ntcTimes100 % 100);
         } else {
             currentBatteryTempState = BatteryTemperatureState_Normal;
         }
@@ -135,8 +135,7 @@ namespace Modules::BatteryController
         MessageService::RegisterMessageHandler(Message::MessageType_EnableCharging, onEnableChargingHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_DisableCharging, onDisableChargingHandler);
 
-        NRF_LOG_INFO("Battery Controller init");
-        NRF_LOG_INFO("  Battery: %d%%", levelPercent);
+        NRF_LOG_INFO("Battery Controller init: %d%%", levelPercent);
     }
 
     void readBatteryValues() {
@@ -290,32 +289,31 @@ namespace Modules::BatteryController
         uint8_t prevLevel = levelPercent;
         updateLevelPercent();
 
-        float temperature = NTC::getNTCTemperature();
-        //NRF_LOG_INFO("Battery Temperature: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(temperature));
+        int temperatureTimes100 = NTC::getNTCTemperatureTimes100();
         switch (currentBatteryTempState) {
             case BatteryTemperatureState_Disabled:
                 // Don't do anything
                 break;
             case BatteryTemperatureState_Normal:
-                if (temperature > TEMPERATURE_TOO_HOT_ENTER) {
+                if (temperatureTimes100 > TEMPERATURE_TOO_HOT_ENTER) {
                     currentBatteryTempState = BatteryTemperatureState_Hot;
                     Battery::setDisableChargingOverride(true);
                     NRF_LOG_INFO("Battery too hot, Preventing Charge");
-                } else if (temperature < TEMPERATURE_TOO_COLD_ENTER) {
+                } else if (temperatureTimes100 < TEMPERATURE_TOO_COLD_ENTER) {
                     currentBatteryTempState = BatteryTemperatureState_Low;
                     Battery::setDisableChargingOverride(true);
                     NRF_LOG_INFO("Battery too cold, Preventing Charge");
                 }
                 break;
             case BatteryTemperatureState_Hot:
-                if (temperature < TEMPERATURE_TOO_HOT_LEAVE) {
+                if (temperatureTimes100 < TEMPERATURE_TOO_HOT_LEAVE) {
                     currentBatteryTempState = BatteryTemperatureState_Normal;
                     Battery::setDisableChargingOverride(false);
                     NRF_LOG_INFO("Battery cooled down, Allowing Charge");
                 }
                 break;
             case BatteryTemperatureState_Low:
-                if (temperature > TEMPERATURE_TOO_COLD_LEAVE) {
+                if (temperatureTimes100 > TEMPERATURE_TOO_COLD_LEAVE) {
                     currentBatteryTempState = BatteryTemperatureState_Normal;
                     Battery::setDisableChargingOverride(false);
                     NRF_LOG_INFO("Battery warmed up, Allowing Charge");
@@ -362,10 +360,10 @@ namespace Modules::BatteryController
                     NRF_LOG_INFO("Battery state is Unknown");
                     break;
             }
-            NRF_LOG_INFO("    vBat: %d mV", vBatMilli);
-            NRF_LOG_INFO("    vCoil: %d mV", vCoilMilli);
-            NRF_LOG_INFO("    charging: %d", charging);
-            NRF_LOG_INFO("    level: %d%%", levelPercent);
+            NRF_LOG_DEBUG("    vBat: %d mV", vBatMilli);
+            NRF_LOG_DEBUG("    vCoil: %d mV", vCoilMilli);
+            NRF_LOG_DEBUG("    charging: %d", charging);
+            NRF_LOG_DEBUG("    level: %d%%", levelPercent);
 
             currentBatteryState = newState;
             for (int i = 0; i < clients.Count(); ++i) {
@@ -489,19 +487,20 @@ namespace Modules::BatteryController
             int percentMilli = ((int)prev.voltageMilli - (int)vBatMilli) * 1000 / ((int)prev.voltageMilli - (int)next.voltageMilli);
             measuredLevel = ((int)prev.levelPercent[chargingOffset] * (1000 - percentMilli) + (int)next.levelPercent[chargingOffset] * percentMilli) / 1000;
         }
+        
+        // // Update the smooth level
+        // uint32_t newSmoothedLevel = (uint32_t)measuredLevel << 24;
+        // if (smoothedLevel == 0) {
+        //     smoothedLevel = newSmoothedLevel;
+        // }
+        // else {
+        //     // Slowly change the smoothed level
+        //     int diff = (int)newSmoothedLevel - smoothedLevel;
+        //     smoothedLevel += diff / LEVEL_SMOOTHING_RATIO;
+        // }
 
-        // Update the smooth level
-        uint32_t newSmoothedLevel = (uint32_t)measuredLevel << 24;
-        if (smoothedLevel == 0) {
-            smoothedLevel = newSmoothedLevel;
-        }
-        else {
-            // Slowly change the smoothed level
-            int diff = (int)newSmoothedLevel - smoothedLevel;
-            smoothedLevel += diff / LEVEL_SMOOTHING_RATIO;
-        }
-
-        // Round smoothed level into a percentage value
-        levelPercent = (smoothedLevel + ((uint32_t)1 << 23)) >> 24;
+        // // Round smoothed level into a percentage value
+        // levelPercent = (smoothedLevel + ((uint32_t)1 << 23)) >> 24;
+        levelPercent = measuredLevel;
     }
 }

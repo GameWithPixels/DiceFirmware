@@ -171,5 +171,23 @@ namespace DriversHW
 
             (void)nrf_drv_pwm_simple_playback(&m_pwm0, &seq0, 1, NRF_DRV_PWM_FLAG_STOP);
         }
+
+        void testLEDReturn() {
+            // Forces LEDs to forward color values past the last one so we can detect it
+            for (int i = 0; i < numLEDs+1; i++) {
+                writeColor(0, i);
+            }
+
+            nrf_pwm_sequence_t const seq0 =
+                {
+                    .values = {
+                        .p_common = pwm_sequence_values,
+                    },
+                    .length = (uint16_t)(NEOPIXEL_BYTES * (numLEDs + 1) + 1),
+                    .repeats = 0,
+                    .end_delay = 0};
+
+            (void)nrf_drv_pwm_simple_playback(&m_pwm0, &seq0, 1, NRF_DRV_PWM_FLAG_STOP);
+        }
     }
 }

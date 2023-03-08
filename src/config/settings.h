@@ -5,7 +5,8 @@
 #include "core/float3.h"
 #include "dice_variants.h"
 
-#define MAX_COUNT 21
+#define MAX_COUNT 22		// Max LED count so far is 21 (on PD6)
+							// but we want room for one more 'fake' LED to test LED return
 #define MAX_NAME_LENGTH 24
 
 namespace Config

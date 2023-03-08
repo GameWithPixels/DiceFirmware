@@ -33,6 +33,15 @@ namespace Modules::AnimController
 	static Animations::AnimationInstance *animations[MAX_ANIMS];
 	static int animationCount = 0;
 
+    enum State
+    {
+        State_Unknown = 0,
+        State_Initializing,
+        State_Off,
+        State_On,
+    };
+    State currentState = State_Unknown;
+
 	// Some local functions
 	void update(int ms);
 	uint32_t getColorForAnim(void* token, uint32_t colorIndex);
@@ -55,12 +64,14 @@ namespace Modules::AnimController
 	/// </summary>
 	void init()
 	{
+        currentState = State_Initializing;
 		Flash::hookProgrammingEvent(onProgrammingEvent, nullptr);
 		MessageService::RegisterMessageHandler(Message::MessageType_PrintAnimControllerState, printAnimControllerStateHandler);
 		Timers::createTimer(&animControllerTimer, APP_TIMER_MODE_REPEATED, animationControllerUpdate);
 
 		NRF_LOG_DEBUG("Anim Controller init");
 
+        currentState = State_Off;
 		start();
 	}
 
@@ -163,16 +174,32 @@ namespace Modules::AnimController
 	/// </summary>
 	void stop()
 	{
-		Timers::stopTimer(animControllerTimer);
-		// Clear all data
-		stopAll();
-		NRF_LOG_INFO("Stopped anim controller");
+		switch (currentState) {
+			case State_On:
+				Timers::stopTimer(animControllerTimer);
+				// Clear all data
+				stopAll();
+				NRF_LOG_DEBUG("Stopped anim controller");
+				currentState = State_Off;
+				break;
+			default:
+				NRF_LOG_WARNING("Anim Controller in invalid state to stop");
+				break;
+		}
 	}
 
 	void start()
 	{
-		NRF_LOG_INFO("Starting anim controller");
-		Timers::startTimer(animControllerTimer, ANIM_FRAME_DURATION, NULL);
+		switch (currentState) {
+			case State_Off:
+				NRF_LOG_DEBUG("Starting anim controller");
+				Timers::startTimer(animControllerTimer, ANIM_FRAME_DURATION, NULL);
+				currentState = State_On;
+				break;
+			default:
+				NRF_LOG_WARNING("Anim Controller in invalid state to start");
+				break;
+		}
 	}
 
 	void play(const Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace, bool loop)
@@ -308,11 +335,11 @@ namespace Modules::AnimController
 	}
 
 	void printAnimControllerStateHandler(const Message* msg) {
-		NRF_LOG_INFO("Anim Controller has %d anims", animationCount);
+		NRF_LOG_DEBUG("Anim Controller has %d anims", animationCount);
 		for (int i = 0; i < animationCount; ++i) {
 			AnimationInstance* anim = animations[i];
-			NRF_LOG_INFO("Anim %d is of type %d, duration %d", i, anim->animationPreset->type, anim->animationPreset->duration);
-			NRF_LOG_INFO("StartTime %d, remapFace %d, loop %d", anim->startTime, anim->remapFace, anim->loop ? 1: 0);
+			NRF_LOG_DEBUG("Anim %d is of type %d, duration %d", i, anim->animationPreset->type, anim->animationPreset->duration);
+			NRF_LOG_DEBUG("StartTime %d, remapFace %d, loop %d", anim->startTime, anim->remapFace, anim->loop ? 1: 0);
 		}
 	}
 

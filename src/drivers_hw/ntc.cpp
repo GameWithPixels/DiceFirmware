@@ -38,16 +38,20 @@ namespace DriversHW::NTC
         { 150, 10000}, // 0.15V -> 100 C
     };
 
-    float lookupTemperature(float voltage);
+    int lookupTemperature(float voltage);
 
-    void init() {
+    bool init() {
         // Grab initial values from the battery driver
-        float temp = getNTCTemperature();
-        NRF_LOG_INFO("NTC init, batt temp: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(temp));
+        int tempTimes100 = getNTCTemperatureTimes100();
+        NRF_LOG_INFO("NTC init, batt temp: %d.%d", tempTimes100 / 100, tempTimes100 % 100);
+
+        // TODO: check that temperature is in valid range
+
+        return true;
     }
 
 
-    float getNTCTemperature() {
+    int getNTCTemperatureTimes100() {
         // Sample adc board pin
 
         // Turn VDD on
@@ -67,7 +71,7 @@ namespace DriversHW::NTC
         return lookupTemperature(vntc);
     }
 
-    float lookupTemperature(float voltage)
+    int lookupTemperature(float voltage)
     {
         // Convert voltage to integer so we can quickly compare it with the lookup table
         int voltageTimes1000 = (int)(voltage * 1000.0f);
@@ -96,7 +100,7 @@ namespace DriversHW::NTC
             temperatureTimes100 = ((int)prev.temperatureTimes100 * (1000 - percentTimes1000) + (int)next.temperatureTimes100 * percentTimes1000) / 1000;
 		}
 
-		return (float)(temperatureTimes100) / 100.0f;
+		return temperatureTimes100;
     }
 }
 

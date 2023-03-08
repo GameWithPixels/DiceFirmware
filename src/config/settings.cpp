@@ -246,7 +246,7 @@ namespace Config::SettingsManager
 			});
 		}
 		else {
-			NRF_LOG_INFO("Name already set to %s", newName);
+			NRF_LOG_DEBUG("Name already set to %s", newName);
 			callback(true);
 		}
 	}
