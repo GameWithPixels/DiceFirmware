@@ -201,7 +201,7 @@ namespace Die
         void* uniqueToken = (void*)0x1234;
         if (MCUTemperature::measure()) {
             MCUTemperature::hook([] (void* the_uniquetoken, int the_tempTimes100) {
-                NRF_LOG_DEBUG("Sending temp: %d.%d C", (the_tempTimes100 / 100), (the_tempTimes100 % 100));
+                NRF_LOG_DEBUG("Sending temp: %d.%02d C", (the_tempTimes100 / 100), (the_tempTimes100 % 100));
                 MCUTemperature::unHookWithParam(the_uniquetoken);
 
                 // Send message back

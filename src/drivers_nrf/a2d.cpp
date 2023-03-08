@@ -38,9 +38,8 @@ namespace DriversNRF::A2D
         supportsVCoil = false;
         supportsVLED = false;
 
-        float vcc = readVDD();
-
-        NRF_LOG_INFO("A2D init, VDD: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vcc));
+        int32_t vccTimes1000 = readVDDTimes1000();
+        NRF_LOG_INFO("A2D init, VDD: %d.%03d", vccTimes1000 / 1000, vccTimes1000 % 1000);
 
         // Not needed for validation
         #if DICE_SELFTEST && A2D_SELFTEST
@@ -64,7 +63,7 @@ namespace DriversNRF::A2D
         return ret;
     }
 
-    float readPinValue(nrf_saadc_input_t pin) {
+    int32_t readPinValueTimes1000(nrf_saadc_input_t pin) {
         // Digital value read is [V(p) - V(n)] * Gain / Reference * 2^(Resolution - m)
         // In our case:
         // - V(n) = 0
@@ -75,51 +74,52 @@ namespace DriversNRF::A2D
         // val = V(p) * 2^12 / (6 * 0.6)
         // => V(p) = val * 3.6 / 2^10
         // => V(p) = val * 0.003515625
+        // V(p) * 1,000,000 = val * 3516
 
-        int16_t val = readPin(pin);
+        int32_t val = readPin(pin);
         if (val != -1) {
-            return (float)val * 0.003515625f;
+            return (val * 3516) / 1000;
         } else {
-            return 0.0f;
+            return 0;
         }
     }
 
-    float readVBoard() {
-        return readPinValue((nrf_saadc_input_t)(BOARD_DETECT_SENSE_PIN));
+    int32_t readVBoardTimes1000() {
+        return readPinValueTimes1000((nrf_saadc_input_t)(BOARD_DETECT_SENSE_PIN));
     }
 
-    float readVDD() {
-        return readPinValue(NRF_SAADC_INPUT_VDD);
+    int32_t readVDDTimes1000() {
+        return readPinValueTimes1000(NRF_SAADC_INPUT_VDD);
     }
 
-    float readVBat() {
-        return readPinValue((nrf_saadc_input_t)(Config::BoardManager::getBoard()->vbatSensePin));
+    int32_t readVBatTimes1000() {
+        return readPinValueTimes1000((nrf_saadc_input_t)(Config::BoardManager::getBoard()->vbatSensePin));
     }
     
-    float read5V() {
+    int32_t read5VTimes1000() {
         auto csPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->coilSensePin);
         if (csPin != NRF_SAADC_INPUT_DISABLED) {
-            return readPinValue(csPin);
+            return readPinValueTimes1000(csPin);
         } else {
-            return 0.0f;
+            return 0;
         }
     }
     
-    float readVLED() {
+    int32_t readVLEDTimes1000() {
         auto vledPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->vledSensePin);
         if (vledPin != NRF_SAADC_INPUT_DISABLED) {
-            return readPinValue(vledPin);
+            return readPinValueTimes1000(vledPin);
         } else {
-            return 0.0f;
+            return 0;
         }
     }
 
-    float readVNTC() {
+    int32_t readVNTCTimes1000() {
         auto ntcPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->ntcSensePin);
         if (ntcPin != NRF_SAADC_INPUT_DISABLED) {
-            return readPinValue(ntcPin);
+            return readPinValueTimes1000(ntcPin);
         } else {
-            return 0.0f;
+            return 0;
         }
     }
 

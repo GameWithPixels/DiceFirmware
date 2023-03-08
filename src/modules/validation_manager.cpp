@@ -22,7 +22,7 @@ using namespace DriversHW;
 using namespace Bluetooth;
 
 #define VALIDATION_MODE_SLEEP_DELAY_MS 25000 // milliseconds
-#define VALIDATION_MIN_VBAT 3.6f // volts
+#define VALIDATION_MIN_VBAT_TIMES_1000 3.6f // volts
 namespace Modules::ValidationManager
 {
     static AnimationName nameAnim;
@@ -66,7 +66,7 @@ namespace Modules::ValidationManager
 
     bool checkMinVBat()
     {
-        return Battery::checkVBat() > VALIDATION_MIN_VBAT;
+        return Battery::checkVBatTimes1000() > VALIDATION_MIN_VBAT_TIMES_1000;
     }
 
     // Stop playing name animation

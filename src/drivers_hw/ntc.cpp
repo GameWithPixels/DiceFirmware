@@ -38,12 +38,12 @@ namespace DriversHW::NTC
         { 150, 10000}, // 0.15V -> 100 C
     };
 
-    int lookupTemperature(float voltage);
+    int getNTCTemperatureTimes100(int32_t voltageTimes1000);
 
     bool init() {
         // Grab initial values from the battery driver
         int tempTimes100 = getNTCTemperatureTimes100();
-        NRF_LOG_INFO("NTC init, batt temp: %d.%d", tempTimes100 / 100, tempTimes100 % 100);
+        NRF_LOG_INFO("NTC init, batt temp: %d.%02d", tempTimes100 / 100, tempTimes100 % 100);
 
         // TODO: check that temperature is in valid range
 
@@ -62,20 +62,17 @@ namespace DriversHW::NTC
         nrf_delay_ms(50);
 
         // Read voltage divider
-        float vntc = A2D::readVNTC();
+        int32_t vntcTimes1000 = A2D::readVNTCTimes1000();
 
         // Now that we're done reading, we can turn off the drive pin
         BoardManager::setNTC_ID_VDD(false);
 
         // Calculate temperature from voltage
-        return lookupTemperature(vntc);
+        return getNTCTemperatureTimes100(vntcTimes1000);
     }
 
-    int lookupTemperature(float voltage)
+    int getNTCTemperatureTimes100(int32_t voltageTimes1000)
     {
-        // Convert voltage to integer so we can quickly compare it with the lookup table
-        int voltageTimes1000 = (int)(voltage * 1000.0f);
-
 		// Find the first voltage that is greater than the measured voltage
         // Because voltages are sorted, we know that we can then linearly interpolate the temperature
         // using the previous and next entries in the lookup table.

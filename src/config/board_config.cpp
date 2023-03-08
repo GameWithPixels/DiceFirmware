@@ -649,7 +649,7 @@ namespace BoardManager
         // Sample adc board pin
         setNTC_ID_VDD(true);
 
-        float vboard = DriversNRF::A2D::readVBoard();
+        int32_t vboardTimes1000 = DriversNRF::A2D::readVBoardTimes1000();
 
         // Now that we're done reading, we can turn off the drive pin
         setNTC_ID_VDD(false);
@@ -661,28 +661,28 @@ namespace BoardManager
         // The D20v2 board should read 0 (unconnected)
         // So we can allow a decent
         //const float vdd = DriversNRF::A2D::readVDD();
-        const float vdd = DriversNRF::A2D::readVDD();
+        const int32_t vddTimes1000 = DriversNRF::A2D::readVDDTimes1000();
 
         // Compute board voltages
         const int boardCount = sizeof(boards) / sizeof(boards[0]);
-        float boardVoltages[boardCount];
+        int32_t boardVoltagesTimes1000[boardCount];
         for (int i = 0; i < boardCount; ++i) {
-            boardVoltages[i] = (vdd * boards[i].boardResistorValueInKOhms * 1000) / (float)(BOARD_DETECT_RESISTOR + boards[i].boardResistorValueInKOhms * 1000);
-            NRF_LOG_DEBUG("%s: voltage:" NRF_LOG_FLOAT_MARKER, boards[i].name, NRF_LOG_FLOAT(boardVoltages[i]));
+            boardVoltagesTimes1000[i] = (vddTimes1000 * boards[i].boardResistorValueInKOhms * 1000) / (BOARD_DETECT_RESISTOR + boards[i].boardResistorValueInKOhms * 1000);
+            NRF_LOG_DEBUG("%s: voltage: %d.%03d", boards[i].name, boardVoltagesTimes1000[i] / 1000, boardVoltagesTimes1000[i] % 1000);
         }
-        float midpointVoltages[boardCount-1];
+        int32_t midpointVoltagesTimes1000[boardCount-1];
         for (int i = 0; i < boardCount-1; ++i) {
-            midpointVoltages[i] = (boardVoltages[i] + boardVoltages[i+1]) * 0.5f;
+            midpointVoltagesTimes1000[i] = (boardVoltagesTimes1000[i] + boardVoltagesTimes1000[i+1]) / 2;
         }
 
         // Find the first midpoint voltage that is above the measured voltage
         int boardIndex = 0;
         for (; boardIndex < boardCount-1; ++boardIndex) {
-            if (midpointVoltages[boardIndex] > vboard)
+            if (midpointVoltagesTimes1000[boardIndex] > vboardTimes1000)
             break;
         }
         currentBoard = &(boards[boardIndex]);
-        NRF_LOG_INFO("Board is %s, boardIdV: " NRF_LOG_FLOAT_MARKER, currentBoard->name, NRF_LOG_FLOAT(vboard));
+        NRF_LOG_INFO("Board is %s, boardId V: %d.%03d", currentBoard->name, vboardTimes1000 / 1000, vboardTimes1000 % 1000);
     }
 
     const Board* getBoard() {

@@ -1,13 +1,15 @@
 #pragma once
 
+#include "stdint.h"
+
 namespace DriversHW
 {
     namespace Battery
     {
         bool init();
-        float checkVBat();
-        float checkVCoil();
-        float checkVLED();
+        int32_t checkVBatTimes1000();
+        int32_t checkVCoilTimes1000();
+        int32_t checkVLEDTimes1000();
         bool checkCharging();
         void setDisableChargingOverride(bool disable);
         bool getDisableChargingOverride();

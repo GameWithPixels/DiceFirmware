@@ -29,9 +29,9 @@ namespace DriversHW
 {
 namespace Battery
 {
-    const float vBatMult = 1.4f; // Voltage divider 10M over 4M
-    const float vLEDMult = 1.4f; // Voltage divider 10M over 4M
-    const float vCoilMult = 2.0f; // Voltage divider 4M over 4M
+    const int32_t vBatMultTimes1000 = 1400; // Voltage divider 10M over 4M
+    const int32_t vLEDMultTimes1000 = 1400; // Voltage divider 10M over 4M
+    const int32_t vCoilMultTimes1000 = 2000; // Voltage divider 4M over 4M
 
 	DelegateArray<ClientMethod, MAX_BATTERY_CLIENTS> clients;
 
@@ -207,18 +207,18 @@ namespace Battery
         // Enable gpio event so we get an interrupt when the state pin toggles
         nrf_drv_gpiote_in_event_enable(statePin, true);
 
-        float vCoil = checkVCoil();
-        float vBat = checkVBat();
+        int32_t vCoilTimes1000 = checkVCoilTimes1000();
+        int32_t vBatTimes1000 = checkVBatTimes1000();
 
-        bool success = vBat > VBAT_LOW_THRESHOLD;
+        bool success = vBatTimes1000 > VBAT_LOW_THRESHOLD;
         if (!success) {
-            NRF_LOG_ERROR("Battery Voltage too low: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+            NRF_LOG_ERROR("Battery Voltage too low: %d.%03d", vBatTimes1000 / 1000, vBatTimes1000 % 1000);
         }
 
         NRF_LOG_INFO("Battery init");
-        NRF_LOG_INFO("  Voltage: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vBat));
+        NRF_LOG_INFO("  Voltage: %d.%03d", vBatTimes1000 / 1000, vBatTimes1000 % 1000);
         NRF_LOG_INFO("  Charging: %d", (charging ? 1 : 0));
-        NRF_LOG_INFO("  VCoil: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoil));
+        NRF_LOG_INFO("  VCoil: %d.%03d", vCoilTimes1000 / 1000, vCoilTimes1000 % 1000);
 
         #if DICE_SELFTEST && BATTERY_SELFTEST
         selfTest();
@@ -227,18 +227,18 @@ namespace Battery
         return success;
     }
 
-    float checkVBat() {
-        float ret = A2D::readVBat() * vBatMult;
+    int32_t checkVBatTimes1000() {
+        int32_t ret = A2D::readVBatTimes1000() * vBatMultTimes1000 / 1000;
         return ret;
     }
 
-    float checkVCoil() {
-        float ret = A2D::read5V() * vCoilMult;
+    int32_t checkVCoilTimes1000() {
+        int32_t ret = A2D::read5VTimes1000() * vCoilMultTimes1000 / 1000;
         return ret;
     }
 
-    float checkVLED() {
-        float ret = A2D::readVLED() * vLEDMult;
+    int32_t checkVLEDTimes1000() {
+        int32_t ret = A2D::readVLEDTimes1000() * vLEDMultTimes1000 / 1000;
         return ret;
     }
 

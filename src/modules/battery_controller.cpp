@@ -111,15 +111,15 @@ namespace Modules::BatteryController
         int ntcTimes100 = NTC::getNTCTemperatureTimes100();
         if (ntcTimes100 <= -2000 || ntcTimes100 >= 10000) {
             currentBatteryTempState = BatteryTemperatureState_Disabled;
-            NRF_LOG_WARNING("  Battery ntc invalid, temp: %d.%d", ntcTimes100 / 100, ntcTimes100 % 100);
+            NRF_LOG_WARNING("  Battery ntc invalid, temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
         } else if (ntcTimes100 < TEMPERATURE_TOO_COLD_ENTER) {
             currentBatteryTempState = BatteryTemperatureState_Low;
             Battery::setDisableChargingOverride(true);
-            NRF_LOG_INFO("  Battery too cold! Temp: %d.%d", ntcTimes100 / 100, ntcTimes100 % 100);
+            NRF_LOG_INFO("  Battery too cold! Temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
         } else if (ntcTimes100 > TEMPERATURE_TOO_HOT_ENTER) {
             currentBatteryTempState = BatteryTemperatureState_Hot;
             Battery::setDisableChargingOverride(true);
-            NRF_LOG_INFO("  Battery too hot! Temp: %d.%d", ntcTimes100 / 100, ntcTimes100 % 100);
+            NRF_LOG_INFO("  Battery too hot! Temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
         } else {
             currentBatteryTempState = BatteryTemperatureState_Normal;
         }
@@ -139,8 +139,8 @@ namespace Modules::BatteryController
     }
 
     void readBatteryValues() {
-        vBatMilli = Battery::checkVBat() * 1000;
-        vCoilMilli = Battery::checkVCoil() * 1000;
+        vBatMilli = Battery::checkVBatTimes1000();
+        vCoilMilli = Battery::checkVCoilTimes1000();
         charging = Battery::checkCharging();
     }
 
