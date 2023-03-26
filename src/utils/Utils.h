@@ -43,6 +43,9 @@ namespace Utils
 	}
 
 	uint32_t addColors(uint32_t a, uint32_t b);
+	template<typename T> T clamp(T value, T min, T max) {
+		return value < min ? min : (value > max ? max : value);
+	}
 
 	uint32_t scaleColor(uint32_t color, uint32_t scaleTimes1000);
 	uint32_t interpolateColors(uint32_t color1, uint32_t time1, uint32_t color2, uint32_t time2, uint32_t time);

@@ -36,6 +36,7 @@ using namespace Utils;
 #define TEMPERATURE_TOO_HOT_ENTER 4500 // degrees C
 #define TEMPERATURE_TOO_HOT_LEAVE 4000 // degrees C
 #define LEVEL_SMOOTHING_RATIO 5
+#define MAX_V_MILLIS 10000
 
 namespace Modules::BatteryController
 {
@@ -138,9 +139,9 @@ namespace Modules::BatteryController
     }
 
     void readBatteryValues() {
-        vBatMilli = Battery::checkVBatTimes1000();
-        vCoilMilli = Battery::checkVCoilTimes1000();
-        charging = Battery::checkCharging();
+        vBatMilli = clamp<int32_t>(Battery::checkVBatTimes1000(), 0, MAX_V_MILLIS);
+        vCoilMilli = clamp<int32_t>(Battery::checkVCoilTimes1000(), 0, MAX_V_MILLIS);
+        charging = clamp<int32_t>(Battery::checkCharging(), 0, MAX_V_MILLIS);
     }
 
     BatteryState getBatteryState(){
