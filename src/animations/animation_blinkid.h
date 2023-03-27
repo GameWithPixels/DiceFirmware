@@ -13,7 +13,7 @@ namespace Animations
 	/// Each blink lasts for the given number of frames.
 	/// Use setDuration() to compute the correct duration.
 	/// </summary>
-	struct AnimationName
+	struct AnimationBlinkId
 		: public Animation
 	{
 		uint8_t framesPerBlink;
@@ -25,12 +25,12 @@ namespace Animations
 	/// <summary>
 	/// Procedural on off animation instance data
 	/// </summary>
-	class AnimationInstanceName
+	class AnimationInstanceBlinkId
 		: public AnimationInstance
 	{
 	public:
-		AnimationInstanceName(const AnimationName* preset, const DataSet::AnimationBits* bits);
-		virtual ~AnimationInstanceName();
+		AnimationInstanceBlinkId(const AnimationBlinkId* preset, const DataSet::AnimationBits* bits);
+		virtual ~AnimationInstanceBlinkId();
 		virtual int animationSize() const;
 
 		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
@@ -38,7 +38,7 @@ namespace Animations
 		virtual int stop(int retIndices[]);
 
 	private:
-		const AnimationName* getPreset() const;
+		const AnimationBlinkId* getPreset() const;
 		static uint64_t getMessage();
 		const uint64_t message;
 	};

@@ -83,7 +83,7 @@ namespace Modules::LEDs
         // test LED return
         setPowerOn([](void* ignore) {
 
-            // Now that suposedly LEDs are powered on, set interrupt pin
+            // Now that supposedly LEDs are powered on, set interrupt pin
             // to detect the output of the last LED toggling
             static bool ledReturnDetected;
 

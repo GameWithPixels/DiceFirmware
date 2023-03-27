@@ -1,6 +1,5 @@
 #include "instant_anim_controller.h"
 #include "animations/animation.h"
-#include "animations/blink.h"
 #include "data_set/data_animation_bits.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"

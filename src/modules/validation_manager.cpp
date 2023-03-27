@@ -4,7 +4,7 @@
 #include "nrf_log.h"
 #include "animations/animation.h"
 #include "modules/anim_controller.h"
-#include "animations/animation_name.h"
+#include "animations/animation_blinkid.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
@@ -25,7 +25,7 @@ using namespace Bluetooth;
 #define VALIDATION_MIN_VBAT_TIMES_1000 3.6f // volts
 namespace Modules::ValidationManager
 {
-    static AnimationName nameAnim;
+    static AnimationBlinkId nameAnim;
     static bool isPlaying;
 
     void stopNameAnim();
@@ -41,7 +41,7 @@ namespace Modules::ValidationManager
         isPlaying = false;
 
         // Name animation object
-        nameAnim.type = Animation_Name;
+        nameAnim.type = Animation_BlinkId;
         nameAnim.framesPerBlink = 3; // 3 animation frames per blink
         nameAnim.setDuration(1000);
         nameAnim.brightness = 0x10;

@@ -1,7 +1,7 @@
 #pragma once
 
 /// <summary>
-/// The validation manager repeatedly plays an AnimationName
+/// The validation manager repeatedly plays an AnimationBlinkId
 /// instance, until there is BLE connection.
 /// It also resumes playing the animation when disconnected.
 /// The manager should be initialized only when inValidation()

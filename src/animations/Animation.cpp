@@ -12,7 +12,7 @@
 #include "animation_gradientpattern.h"
 #include "animation_noise.h"
 #include "animation_cycle.h"
-#include "animation_name.h"
+#include "animation_blinkid.h"
 #include "config/board_config.h"
 
 
@@ -117,8 +117,8 @@ namespace Animations
 			case Animation_Cycle:
 				ret = new AnimationInstanceCycle(static_cast<const AnimationCycle *>(preset), bits);
 				break;
-			case Animation_Name:
-				ret = new AnimationInstanceName(static_cast<const AnimationName*>(preset), bits);
+			case Animation_BlinkId:
+				ret = new AnimationInstanceBlinkId(static_cast<const AnimationBlinkId*>(preset), bits);
 				break;
 			default:
 				NRF_LOG_ERROR("Unknown animation preset type");

@@ -26,7 +26,7 @@ namespace Animations
 		Animation_Gradient,
 		Animation_Noise,
 		Animation_Cycle,
-		Animation_Name,
+		Animation_BlinkId,
 	};
 
 	/// <summary>

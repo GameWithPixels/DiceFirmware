@@ -1,6 +1,7 @@
 #include "animation_preview.h"
 #include "animations/animation.h"
 #include "animations/blink.h"
+#include "animations/animation_blinkid.h"
 #include "data_set/data_animation_bits.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
@@ -23,11 +24,13 @@ namespace Modules::AnimationPreview
 
     void ReceiveTestAnimSetHandler(const Message *msg);
     void BlinkLEDsHandler(const Message *msg);
+    void BlinkIdHandler(const Message *msg);
 
     void init()
     {
         MessageService::RegisterMessageHandler(Message::MessageType_TransferTestAnimSet, ReceiveTestAnimSetHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Blink, BlinkLEDsHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_BlinkId, BlinkIdHandler);
         animationData = nullptr;
         animation = nullptr;
         animationDataHash = 0;
@@ -148,14 +151,38 @@ namespace Modules::AnimationPreview
         }
     }
 
-    void BlinkLEDsHandler(const Message* msg)
+    void BlinkLEDsHandler(const Message* msg) 
     {
-        const MessageBlink *message = (const MessageBlink *)msg;
+        auto *message = (const MessageBlink *)msg;
         NRF_LOG_DEBUG("Received request to blink the LEDs %d times with duration of %d ms", message->flashCount, message->duration);
 
+        // Create and initialize animation data
+        // We keep the data in a static variable so it stays valid after this call returns
+        // Note: we keep the data in a static variable so it stays valid after this call returns
         static Blink blink;
         blink.play(message->color, message->duration, message->flashCount, message->fade, message->faceMask, message->loop);
 
-        MessageService::SendMessage(Message::MessageType_BlinkFinished);
+        MessageService::SendMessage(Message::MessageType_BlinkAck);
+    }
+
+    void BlinkIdHandler(const Message* msg)
+    {
+        auto *message = (const MessageBlinkId *)msg;
+        NRF_LOG_DEBUG("Received request to blink id with brightness=%d and loop=%d", message->brightness, message->loop);
+
+        // Create and initialize animation data
+        // Note: we keep the data in a static variable so it stays valid after this call returns
+        static AnimationBlinkId blinkId;
+        blinkId.type = Animation_BlinkId;
+        blinkId.framesPerBlink = 3; // 3 animation frames per blink
+        blinkId.setDuration(1000);
+        blinkId.brightness = message->brightness;
+
+        // Stop previous instance in case it was still playing
+        Modules::AnimController::stop(&blinkId);
+        // And play new animation
+        Modules::AnimController::play(&blinkId, nullptr, 0, message->loop);
+
+        MessageService::SendMessage(Message::MessageType_BlinkIdAck);
     }
 }

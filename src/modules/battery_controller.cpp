@@ -13,7 +13,6 @@
 #include "utils/utils.h"
 #include "drivers_nrf/a2d.h"
 #include "leds.h"
-#include "animations\blink.h"
 
 using namespace DriversHW;
 using namespace DriversNRF;
@@ -68,7 +67,7 @@ namespace Modules::BatteryController
 
     static uint16_t vBatMilli = 0;
     static uint16_t vCoilMilli = 0;
-    static uint32_t smoothedLevel = 0;
+    // static uint32_t smoothedLevel = 0;
     static uint8_t levelPercent = 0;
     static bool charging = false;
     static uint16_t batteryTimerMs = BATTERY_TIMER_MS;

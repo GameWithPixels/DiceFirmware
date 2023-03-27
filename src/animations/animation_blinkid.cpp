@@ -1,4 +1,4 @@
-#include "animation_name.h"
+#include "animation_blinkid.h"
 #include "modules/anim_controller.h"
 #include "pixel.h"
 
@@ -15,7 +15,7 @@ namespace Animations
     /// Update the animation duration based on the passed preamble duration
     /// and number of frames per blink.
     /// </summary>
-    void AnimationName::setDuration(uint16_t preambleDuration)
+    void AnimationBlinkId::setDuration(uint16_t preambleDuration)
     {
         // Add preamble duration to time it takes to blink the header and the device id
         duration = preambleDuration + ANIM_FRAME_DURATION * framesPerBlink * (HEADER_BITS_COUNT + DEVICE_BITS_COUNT);
@@ -25,12 +25,12 @@ namespace Animations
     /// constructor for simple animations
     /// Needs to have an associated preset passed in
     /// </summary>
-    AnimationInstanceName::AnimationInstanceName(const AnimationName *preset, const DataSet::AnimationBits *bits)
-        : AnimationInstance(preset, bits), message(AnimationInstanceName::getMessage())
+    AnimationInstanceBlinkId::AnimationInstanceBlinkId(const AnimationBlinkId *preset, const DataSet::AnimationBits *bits)
+        : AnimationInstance(preset, bits), message(AnimationInstanceBlinkId::getMessage())
     {
     }
 
-    uint64_t AnimationInstanceName::getMessage()
+    uint64_t AnimationInstanceBlinkId::getMessage()
     {
         // 3-bit CRC
         // https://en.wikipedia.org/wiki/Cyclic_redundancy_check#Computation
@@ -54,22 +54,22 @@ namespace Animations
     /// <summary>
 	/// destructor
 	/// </summary>
-	AnimationInstanceName::~AnimationInstanceName()
+	AnimationInstanceBlinkId::~AnimationInstanceBlinkId()
     {
 	}
 
 	/// <summary>
 	/// Small helper to return the expected size of the preset data
 	/// </summary>
-	int AnimationInstanceName::animationSize() const
+	int AnimationInstanceBlinkId::animationSize() const
     {
-		return sizeof(AnimationName);
+		return sizeof(AnimationBlinkId);
 	}
 
 	/// <summary>
 	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
 	/// </summary>
-	void AnimationInstanceName::start(int _startTime, uint8_t _remapFace, bool _loop)
+	void AnimationInstanceBlinkId::start(int _startTime, uint8_t _remapFace, bool _loop)
     {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
     }
@@ -81,7 +81,7 @@ namespace Animations
 	/// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
 	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
 	/// <returns>The number of leds/intensities added to the return array</returns>
-	int AnimationInstanceName::updateLEDs(int ms, int retIndices[], uint32_t retColors[])
+	int AnimationInstanceBlinkId::updateLEDs(int ms, int retIndices[], uint32_t retColors[])
     {
         auto preset = getPreset();
 
@@ -127,13 +127,13 @@ namespace Animations
 	/// <summary>
 	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
 	/// </summary>
-	int AnimationInstanceName::stop(int retIndices[])
+	int AnimationInstanceBlinkId::stop(int retIndices[])
     {
         return setIndices(ANIM_FACEMASK_ALL_LEDS, retIndices);
     }
 
-	const AnimationName* AnimationInstanceName::getPreset() const
+	const AnimationBlinkId* AnimationInstanceBlinkId::getPreset() const
     {
-        return static_cast<const AnimationName*>(animationPreset);
+        return static_cast<const AnimationBlinkId*>(animationPreset);
     }
 }

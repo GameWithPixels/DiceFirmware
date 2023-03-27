@@ -53,7 +53,7 @@ struct Message
 		MessageType_ProgramDefaultAnimSet,
 		MessageType_ProgramDefaultAnimSetFinished,
 		MessageType_Blink,
-		MessageType_BlinkFinished,
+		MessageType_BlinkAck,
 		MessageType_RequestDefaultAnimSetColor,
 		MessageType_DefaultAnimSetColor,
 		MessageType_RequestBatteryLevel,
@@ -88,6 +88,8 @@ struct Message
 		MessageType_EnableCharging,
 		MessageType_DisableCharging,
 		MessageType_Discharge,
+		MessageType_BlinkId,
+		MessageType_BlinkIdAck,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -300,7 +302,7 @@ struct MessagePlayAnimEvent
 {
 	uint8_t evt;
 	uint8_t remapFace;
-	uint8_t loop;
+	uint8_t loop; // 1 == loop, 0 == once
 
 	MessagePlayAnimEvent() : Message(Message::MessageType_PlayAnimEvent) {}
 };
@@ -346,7 +348,7 @@ struct MessageBlink
 	uint32_t color;
 	uint32_t faceMask;
 	uint8_t fade;
-	uint8_t loop;
+	uint8_t loop; // 1 == loop, 0 == once
 
 	MessageBlink() : Message(Message::MessageType_Blink) {}
 };
@@ -545,6 +547,15 @@ struct MessageDischarge
 	uint8_t currentMA; // Current in mA, rounded up to nearest 10mA, or 0 to reset
 
 	MessageDischarge() : Message(Message::MessageType_Discharge) {}
+};
+
+struct MessageBlinkId
+	: public Message
+{
+	uint8_t brightness;
+	uint8_t loop; // 1 == loop, 0 == once
+
+	MessageBlinkId() : Message(Message::MessageType_BlinkId) {}
 };
 
 }
