@@ -35,10 +35,28 @@ namespace Bluetooth::CustomAdvertisingDataHandler
     void updateCustomAdvertisingDataState(Accelerometer::RollState newState, int newFace);
     void updateCustomAdvertisingDataBattery(uint8_t batteryValue, uint8_t mask);
 
+    void init() {
+        // Set custom advertising data values to 0
+        // Actual values will be updated on start()
+        memset(&customManufacturerData, 0, sizeof(customManufacturerData));
+    }
+
+	bool isChargingOrDone(BatteryController::BatteryState state) {
+        return state >= BatteryController::BatteryState_Charging && state <= BatteryController::BatteryState_Done;
+    }
+
     void start() {
-        // Update current values
+        // Initialize the custom advertising data
+        customManufacturerData.ledCount = Config::BoardManager::getBoard()->ledCount;
+        customManufacturerData.designAndColor = Config::SettingsManager::getSettings()->designAndColor;
         customManufacturerData.currentFace = Accelerometer::currentFace();
         customManufacturerData.rollState = Accelerometer::currentRollState();
+        customManufacturerData.batteryLevelAndCharging =
+            (BatteryController::getLevelPercent() & 0x7F)
+            | (isChargingOrDone(BatteryController::getBatteryState()) ? 0x80 : 0);
+
+        Bluetooth::Stack::updateCustomAdvertisingData(
+            (uint8_t *)&customManufacturerData, sizeof(customManufacturerData));
 
         // Register to be notified of accelerometer changes
         Accelerometer::hookRollState(onRollStateChange, nullptr);
@@ -57,26 +75,8 @@ namespace Bluetooth::CustomAdvertisingDataHandler
         BatteryController::unHookLevel(onBatteryLevelChange);
     }
 
-	bool isProperlyOnCharger(BatteryController::BatteryState state) {
-        return state >= BatteryController::BatteryState_Charging;
-    }
-
-    void init() {
-        // Initialize the custom advertising data
-        customManufacturerData.ledCount = Config::BoardManager::getBoard()->ledCount;
-        customManufacturerData.designAndColor = Config::SettingsManager::getSettings()->designAndColor;
-        customManufacturerData.rollState = Accelerometer::RollState_Unknown;
-        customManufacturerData.currentFace = 0;
-        customManufacturerData.batteryLevelAndCharging =
-            (BatteryController::getLevelPercent() & 0x7F) |
-            (isProperlyOnCharger(BatteryController::getBatteryState()) ? 0x80 : 0);
-
-        Bluetooth::Stack::updateCustomAdvertisingData((uint8_t*)&customManufacturerData, sizeof(customManufacturerData));
-        //NRF_LOG_INFO("Advertisement payload size: %d, and scan response payload size: %d", advertisingModule.adv_data.adv_data.len, advertisingModule.adv_data.scan_rsp_data.len);
-    }
-
     void onBatteryStateChange(void *param, BatteryController::BatteryState state) {
-        updateCustomAdvertisingDataBattery((isProperlyOnCharger(state) ? 1 : 0) << 7, 0x7F);
+        updateCustomAdvertisingDataBattery(isChargingOrDone(state) ? 0x80 : 0, 0x7F);
     }
 
     void onBatteryLevelChange(void *param, uint8_t levelPercent) {
@@ -99,6 +99,4 @@ namespace Bluetooth::CustomAdvertisingDataHandler
         customManufacturerData.rollState = newState;
         Bluetooth::Stack::updateCustomAdvertisingData((uint8_t*)&customManufacturerData, sizeof(customManufacturerData));
     }
-
-
 }

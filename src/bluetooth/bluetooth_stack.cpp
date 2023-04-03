@@ -68,17 +68,14 @@ namespace Bluetooth::Stack
 
     static bool notificationPending = false;
     static bool connected = false;
-    static bool currentlyAdvertising = false;
     static bool resetOnDisconnectPending = false;
 
     /**< Universally unique service identifiers. */
-    static ble_uuid_t advertisedUuids[] = 
-    {
+    static ble_uuid_t advertisedUuids[] = {
         {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
     };
 
-    static ble_uuid_t advertisedUuidsExtended[] = 
-    {
+    static ble_uuid_t advertisedUuidsExtended[] = {
         {GENERIC_DATA_SERVICE_UUID_SHORT, BLE_UUID_TYPE_VENDOR_BEGIN},
     };
 
@@ -86,8 +83,7 @@ namespace Bluetooth::Stack
 	DelegateArray<RssiEventMethod, MAX_RSSI_CLIENTS> rssiClients;
 
 #pragma pack( push, 1)
-    struct CustomServiceData
-    {
+    struct CustomServiceData {
         uint32_t deviceId;
         uint32_t buildTimestamp;
     };
@@ -97,20 +93,16 @@ namespace Bluetooth::Stack
     static CustomServiceData customServiceData;
 
     // Buffers pointing to the custom advertising and service data
-    static ble_advdata_manuf_data_t advertisedManufData =
-    {
+    static ble_advdata_manuf_data_t advertisedManufData = {
         .company_identifier = 0xFFFF, // <-- Temporary until we get our Company Id Code
-        .data               =
-        {
+        .data = {
             .size   = 0,        // Initialized later by the custom data handler
             .p_data = nullptr
         }
     };
-    static ble_advdata_service_data_t advertisedServiceData =
-    {
+    static ble_advdata_service_data_t advertisedServiceData = {
         .service_uuid = BLE_UUID_DEVICE_INFORMATION_SERVICE,
-        .data =
-        {
+        .data = {
             .size   = sizeof(customServiceData),
             .p_data = (uint8_t*)&customServiceData
         }
@@ -125,16 +117,13 @@ namespace Bluetooth::Stack
      * @param[in]   p_ble_evt   Bluetooth stack event.
      * @param[in]   p_context   Unused.
      */
-    void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
-    {
+    void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context) {
         ret_code_t err_code = NRF_SUCCESS;
 
-        switch (p_ble_evt->header.evt_id)
-        {
+        switch (p_ble_evt->header.evt_id) {
             case BLE_GAP_EVT_DISCONNECTED:
                 NRF_LOG_INFO("Disconnected, reason: 0x%02x", p_ble_evt->evt.gap_evt.params.disconnected.reason);
                 connected = false;
-                currentlyAdvertising = true;
                 for (int i = 0; i < clients.Count(); ++i) {
                     clients[i].handler(clients[i].token, false);
                 }
@@ -146,11 +135,10 @@ namespace Bluetooth::Stack
                 break;
 
             case BLE_GAP_EVT_CONNECTED:
-                NRF_LOG_INFO("Connected.");
+                NRF_LOG_INFO("Connected");
                 connectionHandle = p_ble_evt->evt.gap_evt.conn_handle;
                 // err_code = nrf_ble_qwr_conn_handle_assign(&nrfQwr, connectionHandle);
                 // APP_ERROR_CHECK(err_code);
-                currentlyAdvertising = false;
                 connected = true;
                 for (int i = 0; i < clients.Count(); ++i) {
                     clients[i].handler(clients[i].token, true);
@@ -159,9 +147,8 @@ namespace Bluetooth::Stack
                 CustomAdvertisingDataHandler::stop();
                 break;
 
-            case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
-            {
-                NRF_LOG_DEBUG("PHY update request.");
+            case BLE_GAP_EVT_PHY_UPDATE_REQUEST: {
+                NRF_LOG_DEBUG("PHY update request");
                 ble_gap_phys_t const phys =
                 {
                     .tx_phys = BLE_GAP_PHY_AUTO,
@@ -172,8 +159,7 @@ namespace Bluetooth::Stack
                 break;
             }
 
-            case BLE_GAP_EVT_RSSI_CHANGED:
-            {
+            case BLE_GAP_EVT_RSSI_CHANGED: {
                 auto rssi = p_ble_evt->evt.gap_evt.params.rssi_changed.rssi;
                 auto chIndex = p_ble_evt->evt.gap_evt.params.rssi_changed.ch_index;
                 for (int i = 0; i < rssiClients.Count(); ++i) {
@@ -184,7 +170,7 @@ namespace Bluetooth::Stack
 
             case BLE_GATTC_EVT_TIMEOUT:
                 // Disconnect on GATT Client timeout event.
-                NRF_LOG_DEBUG("GATT Client Timeout.");
+                NRF_LOG_DEBUG("GATT Client Timeout");
                 err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gattc_evt.conn_handle,
                                                 BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
                 APP_ERROR_CHECK(err_code);
@@ -192,7 +178,7 @@ namespace Bluetooth::Stack
 
             case BLE_GATTS_EVT_TIMEOUT:
                 // Disconnect on GATT Server timeout event.
-                NRF_LOG_DEBUG("GATT Server Timeout.");
+                NRF_LOG_DEBUG("GATT Server Timeout");
                 err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gatts_evt.conn_handle,
                                                 BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
                 APP_ERROR_CHECK(err_code);
@@ -235,32 +221,28 @@ namespace Bluetooth::Stack
     // Function for handling advertising events.
     // This function will be called for advertising events which are passed to the application.
     void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
-
         switch (ble_adv_evt)
         {
-            case BLE_ADV_EVT_FAST:
-            {
-                NRF_LOG_DEBUG("Fast advertising");
+            case BLE_ADV_EVT_FAST: {
+                NRF_LOG_INFO("Fast advertising");
                 ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
                 APP_ERROR_CHECK(err_code);
                 CustomAdvertisingDataHandler::start();
-                currentlyAdvertising = true;
             }
             break;
 
             case BLE_ADV_EVT_IDLE:
-                NRF_LOG_DEBUG("Advertising Idle");
-                currentlyAdvertising = false;
+                NRF_LOG_INFO("Advertising Idle");
                 CustomAdvertisingDataHandler::stop();
                 break;
 
             default:
+                // No implementation needed.
                 break;
         }
     }
 
-    void nrf_qwr_error_handler(uint32_t nrf_error)
-    {
+    void nrf_qwr_error_handler(uint32_t nrf_error) {
         APP_ERROR_HANDLER(nrf_error);
     }
 
@@ -268,8 +250,7 @@ namespace Bluetooth::Stack
      *
      * @param[in] nrf_error  Error code containing information about what went wrong.
      */
-    void conn_params_error_handler(uint32_t nrf_error)
-    {
+    void conn_params_error_handler(uint32_t nrf_error) {
         APP_ERROR_HANDLER(nrf_error);
     }
 
@@ -277,8 +258,7 @@ namespace Bluetooth::Stack
      *
      * @param[in] p_evt  Peer Manager event.
      */
-    void pm_evt_handler(pm_evt_t const * p_evt)
-    {
+    void pm_evt_handler(pm_evt_t const * p_evt) {
         pm_handler_on_pm_evt(p_evt);
         pm_handler_flash_clean(p_evt);
     }
@@ -292,7 +272,6 @@ namespace Bluetooth::Stack
     }
 
     void init() {
-
         ret_code_t err_code;
 
         err_code = nrf_sdh_enable_request();
@@ -393,6 +372,8 @@ namespace Bluetooth::Stack
         auto name = SettingsManager::getSettings()->name;
         err_code = sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *)name, strlen(name));
         APP_ERROR_CHECK(err_code);
+
+        NRF_LOG_DEBUG("Advertisement payload size: %d, and scan response payload size: %d", advertisingModule.adv_data.adv_data.len, advertisingModule.adv_data.scan_rsp_data.len);
     }
 
     void updateCustomAdvertisingData(uint8_t* data, uint16_t size) {
@@ -406,12 +387,9 @@ namespace Bluetooth::Stack
         UNUSED_PARAMETER(p_context);
 
         ret_code_t err_code = sd_ble_gap_disconnect(conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-        if (err_code != NRF_SUCCESS)
-        {
+        if (err_code != NRF_SUCCESS) {
             NRF_LOG_WARNING("Failed to disconnect connection. Connection handle: %d Error: %d", conn_handle, err_code);
-        }
-        else
-        {
+        } else {
             NRF_LOG_DEBUG("Disconnected connection handle %d", conn_handle);
         }
     }
@@ -419,13 +397,9 @@ namespace Bluetooth::Stack
     void disconnect() {
         // Disconnect all other bonded devices that currently are connected.
         // This is required to receive a service changed indication
-        // on bootup after a successful (or aborted) Device Firmware Update.
+        // on boot after a successful (or aborted) Device Firmware Update.
         uint32_t conn_count = ble_conn_state_for_each_connected(disconnectLink, NULL);
         NRF_LOG_DEBUG("Disconnected %d links.", conn_count);
-    }
-
-    bool isAdvertising() {
-        return currentlyAdvertising;
     }
 
     void startAdvertising() {
@@ -438,7 +412,6 @@ namespace Bluetooth::Stack
     }
 
     void disableAdvertisingOnDisconnect() {
-
         // Prevent device from advertising on disconnect.
         ble_adv_modes_config_t config;
         advertising_config_get(&config);
@@ -447,8 +420,7 @@ namespace Bluetooth::Stack
     }
 
     void enableAdvertisingOnDisconnect() {
-
-        // Prevent device from advertising on disconnect.
+        // Setup device to re-start advertising on disconnect.
         ble_adv_modes_config_t config;
         advertising_config_get(&config);
         config.ble_adv_on_disconnect_disabled = false;
@@ -464,13 +436,11 @@ namespace Bluetooth::Stack
     }
 
     SendResult send(uint16_t handle, const uint8_t* data, uint16_t len) {
-
         PowerManager::feed();
         if (connected) {
             if (!notificationPending) {
                 ble_gatts_hvx_params_t hvx_params;
                 memset(&hvx_params, 0, sizeof(hvx_params));
-
                 hvx_params.handle = handle;
                 hvx_params.p_data = data;
                 hvx_params.p_len = &len;
