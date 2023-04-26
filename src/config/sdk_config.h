@@ -557,12 +557,12 @@
 #define NRF_SDH_CLOCK_LF_SRC 0
 
 // <o> NRF_SDH_CLOCK_LF_RC_CTIV - SoftDevice calibration timer interval. 
-#define NRF_SDH_CLOCK_LF_RC_CTIV 1
+#define NRF_SDH_CLOCK_LF_RC_CTIV 16
 
 // <o> NRF_SDH_CLOCK_LF_RC_TEMP_CTIV - SoftDevice calibration timer interval under constant temperature. 
 // <i> How often (in number of calibration intervals) the RC oscillator shall be calibrated
 // <i>  if the temperature has not changed.
-#define NRF_SDH_CLOCK_LF_RC_TEMP_CTIV 0
+#define NRF_SDH_CLOCK_LF_RC_TEMP_CTIV 2
 
 // <o> NRF_SDH_CLOCK_LF_ACCURACY  - External clock accuracy used in the LL to compute timing.
 // <0=> NRF_CLOCK_LF_ACCURACY_250_PPM 
