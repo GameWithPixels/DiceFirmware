@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 void NeopixelBitBangSetLEDs(uint32_t* colors, int count, uint8_t dataPin, uint8_t powerPin);
-
+void NeopixelBitBangSetD20Face20LED(uint32_t color);
 #ifdef __cplusplus
 }
 #endif

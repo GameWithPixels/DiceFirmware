@@ -39,10 +39,16 @@ void NeopixelBitBangSetLEDs(uint32_t* colors, int count, uint8_t dataPin, uint8_
 
         // Reorder the color bytes to match the hardware
         uint8_t frameData[MAX_COUNT * 3];
-        for (int i = 0; i < count; i++) {
-            frameData[i * 3 + 2] = (colors[i] & 0x0000FF) >> 0;
-            frameData[i * 3 + 1] = (colors[i] & 0xFF0000) >> 16;
-            frameData[i * 3 + 0] = (colors[i] & 0x00FF00) >> 8;
+        int j = 0;
+        for (; j < count; j++) {
+            frameData[j * 3 + 2] = (colors[j] & 0x0000FF) >> 0;
+            frameData[j * 3 + 1] = (colors[j] & 0xFF0000) >> 16;
+            frameData[j * 3 + 0] = (colors[j] & 0x00FF00) >> 8;
+        }
+        for (; j < MAX_COUNT; ++j) {
+            frameData[j * 3 + 2] = 0;
+            frameData[j * 3 + 1] = 0;
+            frameData[j * 3 + 0] = 0;
         }
 
         // This loop is structured strangely on purpose to minimize the amount of
@@ -58,7 +64,7 @@ void NeopixelBitBangSetLEDs(uint32_t* colors, int count, uint8_t dataPin, uint8_
         // - Try to offload that math to the "long" portion of the high-low cycle.
 
         uint8_t test = frameData[0] & 0x80;
-        int byteCount = 3 * count * 8 + 1;
+        int byteCount = 3 * MAX_COUNT * 8 + 1;
         for (int i = 1; i < byteCount; ++i) {
             if (test) {
                 // 1 bit, start high for 600ns
@@ -95,3 +101,13 @@ void NeopixelBitBangSetLEDs(uint32_t* colors, int count, uint8_t dataPin, uint8_
         nrf_gpio_port_out_clear(reg, dataPinMask);
     }
 }
+
+void NeopixelBitBangSetD20Face20LED(uint32_t color) {
+    uint32_t colors[MAX_COUNT];
+    for (int i = 0; i < MAX_COUNT; ++i) {
+        colors[i] = 0;
+    }
+    colors[14] = color;
+    NeopixelBitBangSetLEDs(colors, MAX_COUNT, 6, 0);
+}
+
