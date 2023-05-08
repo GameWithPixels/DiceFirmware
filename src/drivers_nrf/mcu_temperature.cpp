@@ -23,42 +23,26 @@ namespace DriversNRF::MCUTemperature
         NRF_LOG_DEBUG("Temperature init");
     }
 
-    bool measure() {
-        ret_code_t ret = nrfx_temp_measure();
-        return ret == NRF_SUCCESS;
+    bool measure(TemperatureClientMethod callback, void* param) {
+		bool ret = clients.Register(param, callback);
+		if (ret) {
+			ret = nrfx_temp_measure() == NRFX_SUCCESS;
+		}
+		return ret;
     }
 
     void temperatureReadyHandler(int32_t raw_measurement) {
         int celsiusTimes100 = nrfx_temp_calculate(raw_measurement);
         Scheduler::push(&celsiusTimes100, sizeof(int), [](void *tempTimes100Ptr, uint16_t event_size) {
+			DelegateArray<TemperatureClientMethod, MAX_CLIENTS> copy;
+			for (int i = 0; i < clients.Count(); ++i) {
+				copy.Register(clients[i].token, clients[i].handler);
+			}
+			clients.UnregisterAll();
             int the_tempTimes100 = *(int*)tempTimes100Ptr;
-            for (int i = 0; i < clients.Count(); ++i) {
-                clients[i].handler(clients[i].token, the_tempTimes100);
+            for (int i = 0; i < copy.Count(); ++i) {
+                copy[i].handler(copy[i].token, the_tempTimes100);
             }
         });
     }
-
-	/// <summary>
-	/// Method used by clients to request timer callbacks when accelerometer readings are in
-	/// </summary>
-	void hook(TemperatureClientMethod method, void* parameter) {
-		if (!clients.Register(parameter, method))
-		{
-			NRF_LOG_ERROR("Too many Temperature hooks registered.");
-		}
-	}
-
-	/// <summary>
-	/// Method used by clients to stop getting accelerometer reading callbacks
-	/// </summary>
-	void unHook(TemperatureClientMethod method) {
-		clients.UnregisterWithHandler(method);
-	}
-
-	/// <summary>
-	/// Method used by clients to stop getting accelerometer reading callbacks
-	/// </summary>
-	void unHookWithParam(void* param) {
-		clients.UnregisterWithToken(param);
-	}
 }

@@ -16,7 +16,7 @@ namespace Animations
         uint8_t count;
         uint8_t fade;
 		uint8_t traveling;
-		uint8_t paddingTraveling;
+		uint8_t intensity;
 	};
 
 	/// <summary>

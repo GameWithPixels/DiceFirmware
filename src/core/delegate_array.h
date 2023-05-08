@@ -82,6 +82,17 @@ public:
 		}
 	}
 
+	void UnregisterAll()
+	{
+		for (int index = 0; index < itemCount; ++index)
+		{
+			items[index].handler = nullptr;
+			items[index].token = nullptr;
+		}
+
+		itemCount = 0;
+	}
+
 	/// <summary>
 	/// How many registered delegates?
 	/// </summary>

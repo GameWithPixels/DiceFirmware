@@ -143,9 +143,9 @@ namespace Config::SettingsManager
 
 	void setDefaultCalibrationData(Settings& outSettings) {
 		// Copy normals from defaults
-        auto board = BoardManager::getBoard();
-		int ledCount = board->ledCount;
-		const Core::float3* defaultNormals = board->layout.baseNormals;
+        auto layout = DiceVariants::getLayout();
+		int ledCount = layout->ledCount;
+		const Core::float3* defaultNormals = layout->baseNormals;
 		for (int i = 0; i < ledCount; ++i) {
 			outSettings.faceNormals[i] = defaultNormals[i];
 		}

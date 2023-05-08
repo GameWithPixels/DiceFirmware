@@ -14,7 +14,6 @@ namespace DriversNRF
 
         int32_t readVBatTimes1000();
         int32_t read5VTimes1000();
-        int32_t readVLEDTimes1000();
         int32_t readVBoardTimes1000();
         int32_t readVDDTimes1000();
         int32_t readVNTCTimes1000();

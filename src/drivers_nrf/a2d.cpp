@@ -105,15 +105,6 @@ namespace DriversNRF::A2D
         }
     }
     
-    int32_t readVLEDTimes1000() {
-        auto vledPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->vledSensePin);
-        if (vledPin != NRF_SAADC_INPUT_DISABLED) {
-            return readPinValueTimes1000(vledPin);
-        } else {
-            return 0;
-        }
-    }
-
     int32_t readVNTCTimes1000() {
         auto ntcPin = (nrf_saadc_input_t)(Config::BoardManager::getBoard()->ntcSensePin);
         if (ntcPin != NRF_SAADC_INPUT_DISABLED) {

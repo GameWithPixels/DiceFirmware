@@ -36,6 +36,12 @@ namespace Config
                                                                     // to remap from canonical (i.e. face) index to electrical (i.e. LED) index.
             const uint8_t* electricalIndexToCanonicalIndexLookup;   // Reverse Lookup Table from previous, this is useful for 'traveling' animations
             uint8_t faceCount; // Face count isn't always equal to LED count (i.e. PD6, D4)
+            uint8_t ledCount;
         };
-    }
+
+        const Layout* getLayout();
+
+        uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
+        uint8_t electricalToCanonicalIndex(int index);
+   }
 }

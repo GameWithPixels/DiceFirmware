@@ -145,7 +145,7 @@ namespace Modules::AnimController
 					//NRF_LOG_INFO("track_count = %d", animTrackCount);
 					for (int j = 0; j < animTrackCount; ++j) {
 						//colors[j] = Utils::gamma(colors[j]);
-                        ledIndices[j] = BoardManager::animIndexToLEDIndex(canonIndices[j], anim->remapFace);
+                        ledIndices[j] = DiceVariants::animIndexToLEDIndex(canonIndices[j], anim->remapFace);
 					}
 
 					// Update color array
@@ -304,7 +304,7 @@ namespace Modules::AnimController
 		auto anim = animations[animIndex];
 		int ledCount = anim->stop(canonIndices);
 		for (int i = 0; i < ledCount; ++i) {
-            ledIndices[i] = BoardManager::animIndexToLEDIndex(canonIndices[i], anim->remapFace);
+            ledIndices[i] = DiceVariants::animIndexToLEDIndex(canonIndices[i], anim->remapFace);
 		}
 		LEDs::setPixelColors(ledIndices, zeros, ledCount);
 	}

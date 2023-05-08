@@ -32,8 +32,8 @@ namespace Utils
 		float3* outNormals, int faceCount) {
 
 		// Figure out the rotation that transforms canonical normals into accelerometer reference frame
-		auto b = BoardManager::getBoard();
-        auto& canonNormals = b->layout.baseNormals;
+		auto l = DiceVariants::getLayout();
+        auto& canonNormals = l->baseNormals;
 
         // int closestCanonNormal1 = findClosestNormal(canonNormals, count, face1Normal);
         // int closestCanonNormal2 = findClosestNormal(canonNormals, count, face2Normal);

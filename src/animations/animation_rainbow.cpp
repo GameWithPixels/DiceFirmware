@@ -1,6 +1,6 @@
 #include "animation_rainbow.h"
 #include "utils/rainbow.h"
-#include "config/board_config.h"
+#include "config/dice_variants.h"
 
 using namespace Config;
 
@@ -42,8 +42,8 @@ namespace Animations
 	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
 	/// <returns>The number of leds/intensities added to the return array</returns>
 	int AnimationInstanceRainbow::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
-		auto b = BoardManager::getBoard();
-		int c = b->ledCount;
+		auto l = DiceVariants::getLayout();
+		int c = l->ledCount;
 
 		auto preset = getPreset();
 
@@ -54,13 +54,13 @@ namespace Animations
 
 		int wheelPos = (time * preset->count * 255 / preset->duration) % 256;
 
-		uint8_t intensity = 255;
+		uint8_t intensity = preset->intensity;
 		if (time <= fadeTime) {
 			// Ramp up
-			intensity = (uint8_t)(time * 255 / fadeTime);
+			intensity = (uint8_t)(time * preset->intensity / fadeTime);
 		} else if (time >= (preset->duration - fadeTime)) {
 			// Ramp down
-			intensity = (uint8_t)((preset->duration - time) * 255 / fadeTime);
+			intensity = (uint8_t)((preset->duration - time) * preset->intensity / fadeTime);
 		}
 
 		// Fill the indices and colors for the anim controller to know how to update leds
@@ -69,7 +69,7 @@ namespace Animations
 			for (int i = 0; i < c; ++i) {
 				if ((preset->faceMask & (1 << i)) != 0)
 				{
-					retIndices[retCount] = b->layout.electricalIndexToCanonicalIndexLookup[i];
+					retIndices[retCount] = l->electricalIndexToCanonicalIndexLookup[i];
 					retColors[retCount] = Rainbow::wheel((uint8_t)((wheelPos + i * 256 / c) % 256), intensity);
 					retCount++;
 				}

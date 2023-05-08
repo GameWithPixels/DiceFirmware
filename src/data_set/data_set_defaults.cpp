@@ -2,6 +2,7 @@
 #include "data_set_data.h"
 #include "config/board_config.h"
 #include "animations/animation_simple.h"
+#include "animations/animation_rainbow.h"
 #include "behaviors/action.h"
 #include "behaviors/behavior.h"
 #include "behaviors/condition.h"
@@ -88,9 +89,10 @@ namespace DataSet
         int rgbTrackCount = 0;
 		int keyframeCount = 0;
         int trackCount = 0;
-		int animCount = 3 + 3;
+        int simpleAnimCount = 3 + 3;
+		int animCount = simpleAnimCount + 1;
         int animOffsetSize = Utils::roundUpTo4(animCount * sizeof(uint16_t));
-        int animSize = sizeof(AnimationSimple) * animCount;
+        int animSize = sizeof(AnimationSimple) * 6 + sizeof(AnimationRainbow);
         int actionCount = 4;
         int actionOffsetSize = Utils::roundUpTo4(actionCount * sizeof(uint16_t));
         int actionSize = sizeof(ActionPlayAnimation) * actionCount;
@@ -166,7 +168,8 @@ namespace DataSet
 		newData->animationCount = animCount;
 
 		newData->animations = (const Animation*)(dataAddress + currentOffset);
-        auto writeAnimations = (AnimationSimple*)(writeBufferAddress + currentOffset);
+        auto writeSimpleAnimations = (AnimationSimple*)(writeBufferAddress + currentOffset);
+        auto writeRainbowAnimation = (AnimationRainbow*)(writeBufferAddress + currentOffset + sizeof(AnimationSimple) * simpleAnimCount);
         currentOffset += animSize;
 		newData->animationsSize = animSize;
 		
@@ -214,27 +217,38 @@ namespace DataSet
 
 		// Create animations
 		for (int c = 0; c < 3; ++c) {
-            writeAnimations[c].type = Animation_Simple;
-            writeAnimations[c].duration = 1000;
-		    writeAnimations[c].faceMask = 0x80000;
-            writeAnimations[c].count = 1;
-            writeAnimations[c].fade = 255;
-            writeAnimations[c].colorIndex = c;
+            writeSimpleAnimations[c].type = Animation_Simple;
+            writeSimpleAnimations[c].duration = 1000;
+		    writeSimpleAnimations[c].faceMask = 0x80000;
+            writeSimpleAnimations[c].count = 1;
+            writeSimpleAnimations[c].fade = 255;
+            writeSimpleAnimations[c].colorIndex = c;
 		}
 
 		for (int c = 0; c < 3; ++c) {
-            writeAnimations[3 + c].type = Animation_Simple;
-            writeAnimations[3 + c].duration = 1000;
-            writeAnimations[3 + c].faceMask = ANIM_FACEMASK_ALL_LEDS;
-            writeAnimations[3 + c].count = 2;
-            writeAnimations[3 + c].fade = 255;
-            writeAnimations[3 + c].colorIndex = c;
+            writeSimpleAnimations[3 + c].type = Animation_Simple;
+            writeSimpleAnimations[3 + c].duration = 1000;
+            writeSimpleAnimations[3 + c].faceMask = ANIM_FACEMASK_ALL_LEDS;
+            writeSimpleAnimations[3 + c].count = 2;
+            writeSimpleAnimations[3 + c].fade = 255;
+            writeSimpleAnimations[3 + c].colorIndex = c;
 		}
 
+        writeRainbowAnimation->type = Animation_Rainbow;
+		writeRainbowAnimation->duration = 2000;
+		writeRainbowAnimation->faceMask = ANIM_FACEMASK_ALL_LEDS;
+        writeRainbowAnimation->count = 2;
+        writeRainbowAnimation->fade = 200;
+		writeRainbowAnimation->traveling = 1;
+        writeRainbowAnimation->intensity = 0x80;
+
 		// Create offsets
-		for (int i = 0; i < animCount; ++i) {
+		for (int i = 0; i < simpleAnimCount; ++i) {
 			writeAnimationOffsets[i] = i * sizeof(AnimationSimple);
 		}
+
+        // Offset for rainbow anim
+        writeAnimationOffsets[simpleAnimCount] = simpleAnimCount * sizeof(AnimationSimple);
 
         // Create conditions
         uint32_t address = reinterpret_cast<uint32_t>(writeConditions);
@@ -249,7 +263,7 @@ namespace DataSet
         address += sizeof(ConditionHelloGoodbye);
         // And matching action
         writeActions[0].type = Action_PlayAnimation;
-        writeActions[0].animIndex = 4; // All LEDs green
+        writeActions[0].animIndex = 6; // Rainbow
         writeActions[0].faceIndex = 0; // doesn't matter
         writeActions[0].loopCount = 1;
 

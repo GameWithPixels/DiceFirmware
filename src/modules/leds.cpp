@@ -42,13 +42,7 @@ namespace Modules::LEDs
 		static InitCallback _callback; // Don't initialize this static inline because it would only do it on first call!
 		_callback = callback;
 		auto board = BoardManager::getBoard();
-
-        switch (board->ledModel) {
-            case LEDModel::NEOPIXEL_RGB:
-            case LEDModel::NEOPIXEL_GRB:
-                NeoPixel::init();
-                break;
-        }
+        NeoPixel::init();
 
         // Initialize Power pin
 		powerPin = board->ledPowerPin;
@@ -114,12 +108,7 @@ namespace Modules::LEDs
             }, nullptr, 5);
 
             // Have LEDs test the return
-            switch (Config::BoardManager::getBoard()->ledModel) {
-                case Config::LEDModel::NEOPIXEL_RGB:
-                case Config::LEDModel::NEOPIXEL_GRB:
-                    NeoPixel::testLEDReturn();
-                    break;
-            }
+            NeoPixel::testLEDReturn();
         }, nullptr);
     }
 
@@ -186,12 +175,7 @@ namespace Modules::LEDs
         } else {
             // Turn power on so we display something!!!
             setPowerOn([](void* ignore) {
-                switch (Config::BoardManager::getBoard()->ledModel) {
-                    case Config::LEDModel::NEOPIXEL_RGB:
-                    case Config::LEDModel::NEOPIXEL_GRB:
-                        NeoPixel::show(pixels);
-                        break;
-                }
+                NeoPixel::show(pixels);
             }, nullptr);
         }
     }

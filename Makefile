@@ -17,17 +17,11 @@ BUILD_DATE_TIME := $(shell python -c 'from datetime import datetime; \
 	print(dt.strftime("$(PERCENT)Y-$(PERCENT)m-$(PERCENT)dT$(PERCENT)H$(PERCENT)M$(PERCENT)z")) \
 	')
 
-# Different accelerometer hw for compiling old boards, uncomment to compile its source
-# Can override the default in cmd line by calling "make ACCEL_HW='*name*' *target*"
-# ACCEL_HW = lis2de12		#	D20v9.3, D20v9.1, D20v8, D20v5, D6, D20v1, DevD20
-# ACCEL_HW = mxc4005xc		#	D20v10, D20v9.4
-ACCEL_HW := kxtj3-1057
-
 # To prevent downgrading the firmware, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
 # The bootloader can only be upgraded (applying an update with a higher version number).
 FW_VER := 0x100
-BL_VER := 0x100
-
+BL_VER := 0x155
+  
 # SDK 17 path
 SDK_ROOT := C:/nRF5_SDK
 
@@ -42,8 +36,9 @@ SD_REQ_ID := 0xCD,0x103,0x126
 # Any version: 0xFFFE
 
 # Bootloader image filename and path
+BOOTLOADER_ROOT := $(PROJ_DIR)/../DiceBootloader
 BOOTLOADER_HEX_FILE := nrf52810_xxaa_s112.hex
-BOOTLOADER_HEX_PATHNAME := $(PROJ_DIR)/../DiceBootloader/_build/$(BOOTLOADER_HEX_FILE)
+BOOTLOADER_HEX_PATHNAME := $(BOOTLOADER_ROOT)/_build/$(BOOTLOADER_HEX_FILE)
 
 # Filenames for the full firmware hex files (= bootload + SoftDevice + Firmware)
 FULL_FW_HEX_FILE := full_firmware.hex
@@ -59,7 +54,7 @@ LINKER_SCRIPT := Firmware.ld
 # Default target = first one defined
 .PHONY: default
 default: firmware_debug
- 
+
 # Source files common to all targets
 SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52810.S \
@@ -153,9 +148,8 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
 	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
-	$(PROJ_DIR)/src/drivers_hw/neopixel_bitbang.c \
 	$(PROJ_DIR)/src/drivers_hw/ntc.cpp \
-	$(PROJ_DIR)/src/drivers_hw/$(ACCEL_HW).cpp \
+	$(PROJ_DIR)/src/drivers_hw/kxtj3-1057.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/a2d.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/dfu.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/flash.cpp \
@@ -241,19 +235,8 @@ INC_FOLDERS += \
 	$(SDK_ROOT)/integration/nrfx/legacy \
 	$(SDK_ROOT)/external/fprintf \
 	$(SDK_ROOT)/external/segger_rtt \
-	# $(RTOS_DIR)/Source/include \
-	# $(RTOS_DIR)/config \
-	# $(RTOS_DIR)/portable/GCC/nrf52 \
-	# $(RTOS_DIR)/portable/CMSIS/nrf52 \
-	# $(ARDUINO_CORE) \
-	# $(ARDUINO_CORE)/cmsis/include \
-	# $(ARDUINO_CORE)/sysview/SEGGER \
-	# $(ARDUINO_CORE)/sysview/Config \
-	# $(ARDUINO_CORE)/usb \
-	# $(ARDUINO_CORE)/usb/tinyusb/src \
-	# $(ARDUINO_ROOT)/libraries/Wire \
-	# $(ARDUINO_ROOT)/libraries/SPI \
-	# $(ARDUINO_ROOT)/
+	$(SDK_ROOT)/modules/nrfx/drivers/src \
+	$(BOOTLOADER_ROOT)/svcs \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -282,6 +265,8 @@ COMMON_FLAGS += -DNRF_DFU_TRANSPORT_BLE=1
 COMMON_FLAGS += -DSDK_VER=$(SDK_VER)
 COMMON_FLAGS += -DBUILD_TIMESTAMP=$(BUILD_TIMESTAMP)
 
+firmware_debug: COMMON_FLAGS += -DPIXELS_FIRMWARE_DEBUG
+
 # COMMON_FLAGS += -DDEVELOP_IN_NRF52832
 
 # Storage address: first available page in flash memory for storing app data at runtime.
@@ -291,7 +276,7 @@ COMMON_FLAGS += -DBUILD_TIMESTAMP=$(BUILD_TIMESTAMP)
 FSTORAGE_ADDR = 0x26000 # 0x19000 + 0xD000 (max app size = 53248 bytes = 52 kB)
 
 # Debug builds are bigger, but the bootloader is not present so we can use higher addresses
-firmware_debug: FSTORAGE_ADDR = 0x2E000 
+firmware_debug: FSTORAGE_ADDR = 0x2E000
 
 COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR)
 

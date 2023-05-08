@@ -20,9 +20,6 @@ namespace DriversNRF::I2C
         auto board = Config::BoardManager::getBoard();
 
         nrf_drv_twi_frequency_t freq = NRF_DRV_TWI_FREQ_100K;
-        if (board->accModel == Config::AccelerometerModel::MXC4005XC) {
-            freq = NRF_DRV_TWI_FREQ_400K;
-        }
 
         const nrf_drv_twi_config_t twi_config = {
             .scl                = board->i2cClockPin,

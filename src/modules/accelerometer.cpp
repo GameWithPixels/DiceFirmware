@@ -35,7 +35,6 @@ using namespace Bluetooth;
 namespace Modules::Accelerometer
 {
     static float3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
-    static Config::AccelerometerModel accelerometerModel;
 
     // This stores our current Acceleration Data
     static AccelFrame currentFrame;
@@ -88,7 +87,7 @@ namespace Modules::Accelerometer
 
         currentState = State_Off;
         start();
-        NRF_LOG_INFO("Acc init model: %d", (int)accelerometerModel);
+        NRF_LOG_DEBUG("Acc init");
 
         return true;
     }

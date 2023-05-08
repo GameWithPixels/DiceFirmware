@@ -24,6 +24,20 @@
             //"showDevDebugOutput": "raw"
         },
         {
+            "name": "Cortex Release",
+            "cwd": "${workspaceRoot}",
+            "executable": "_build/firmware.out",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "device": "nRF52810_xxAA",
+            "interface": "swd",
+            "ipAddress": null,
+            "armToolchainPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/bin",
+            "serverpath": "C:/Program Files/SEGGER/JLink/JLinkGDBServerCL.exe",
+            //"showDevDebugOutput": "raw"
+        },
+        {
             "name": "Cortex Attach",
             "cwd": "${workspaceRoot}",
             "executable": "_build/firmware_d.out",

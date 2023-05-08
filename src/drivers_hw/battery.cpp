@@ -23,7 +23,7 @@ using namespace Config;
 
 #define MAX_BATTERY_CLIENTS 2
 #define BATTERY_CHARGE_PIN_TIMER 1000 // milliseconds
-#define VBAT_LOW_THRESHOLD 3.0f // Volts
+#define VBAT_LOW_THRESHOLD 3000 // x0.001 Volts
 
 namespace DriversHW
 {
@@ -234,11 +234,6 @@ namespace Battery
 
     int32_t checkVCoilTimes1000() {
         int32_t ret = A2D::read5VTimes1000() * vCoilMultTimes1000 / 1000;
-        return ret;
-    }
-
-    int32_t checkVLEDTimes1000() {
-        int32_t ret = A2D::readVLEDTimes1000() * vLEDMultTimes1000 / 1000;
         return ret;
     }
 

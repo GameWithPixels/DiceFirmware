@@ -22,21 +22,14 @@ using namespace Config;
 #define DUTY0 6
 #define DUTY1 13
 
-#define NEOPIXEL_GRB(green,red,blue) ( ((uint8_t)(blue)) | (((uint8_t)(red)) << 8) | (((uint8_t)(green)) << 16))
-
 namespace DriversHW
 {
     namespace NeoPixel
     {
-        static nrf_drv_pwm_t m_pwm0 = NRF_DRV_PWM_INSTANCE(NEOPIXEL_INSTANCE);
+        static nrf_drv_pwm_t m_pwm0;
         static nrf_pwm_values_common_t pwm_sequence_values[MAX_COUNT * NEOPIXEL_BYTES + 1];
-
-        typedef  void (*neopixel_handler_t)(void);
-        static neopixel_handler_t m_handler = NULL;
-
         static uint8_t numLEDs;
         static uint8_t dataPin;
-        static Config::LEDModel ledModel;
 
         struct component
         {
@@ -45,68 +38,32 @@ namespace DriversHW
             uint16_t pwmSequenceOffset;
         };
 
-        static const component rgbComponents[] = {
-            // Red
-            {
-                .colorMask = 0xFF0000, // mask in source color
-                .colorShift = 16, // bit offset in source color
-                .pwmSequenceOffset = 0 // short offset in pwm sequence (i.e. bit offset in wire data)
-            },
-            // Green
-            {
-                .colorMask = 0xFF00,
-                .colorShift = 8, // bits
-                .pwmSequenceOffset = 8
-            },
-            // Blue
-            {
-                .colorMask = 0xFF,
-                .colorShift = 0, // bits
-                .pwmSequenceOffset = 16
-            },
-        };
+        void writeColor(uint32_t color, uint32_t ledIndex) {
 
-        static const component grbComponents[] = {
-            // Red
-            {
-                .colorMask = 0xFF0000,
-                .colorShift = 16, // bits
-                .pwmSequenceOffset = 8
-            },
-            // Green
-            {
-                .colorMask = 0xFF00,
-                .colorShift = 8, // bits
-                .pwmSequenceOffset = 0
-            },
-            // Blue
-            {
-                .colorMask = 0xFF,
-                .colorShift = 0, // bits
-                .pwmSequenceOffset = 16
-            },
-        };
-
-
-        void writeColor(uint32_t color, uint32_t ledIndex);
+            // Reorder the color bytes to match the hardware
+            int pwm_baseIndex = 24 * ledIndex;
+            for (int i = 0; i < 8; ++i) {
+                pwm_sequence_values[pwm_baseIndex + 16 + i] = ((color & 0x000080) == 0 ? DUTY0 : DUTY1) | 0x8000;
+                pwm_sequence_values[pwm_baseIndex +  8 + i] = ((color & 0x800000) == 0 ? DUTY0 : DUTY1) | 0x8000;
+                pwm_sequence_values[pwm_baseIndex      + i] = ((color & 0x008000) == 0 ? DUTY0 : DUTY1) | 0x8000;
+                color <<= 1;
+            }
+        }
 
         void pwm_handler(nrf_drv_pwm_evt_type_t event_type) {
-            if (event_type == NRF_DRV_PWM_EVT_FINISHED) {
-                if ( m_handler != NULL ) {
-                    m_handler();
-                }
-            }
+            // Nothing
         }
 
         void init() {
 
+            m_pwm0.p_registers  = NRFX_CONCAT_2(NRF_PWM, NEOPIXEL_INSTANCE);
+            m_pwm0.drv_inst_idx = NRFX_CONCAT_3(NRFX_PWM, NEOPIXEL_INSTANCE, _INST_IDX);
+
             // Cache configuration data
-            auto board = BoardManager::getBoard();
+            const Board* board = Config::BoardManager::getBoard();
             dataPin = board->ledDataPin;
             numLEDs = board->ledCount;
-            ledModel = board->ledModel;
-
-            m_handler = nullptr;
+            
             nrf_drv_pwm_config_t const config0 =
                 {
                     .output_pins =
@@ -124,9 +81,6 @@ namespace DriversHW
                     .step_mode = NRF_PWM_STEP_AUTO};
             APP_ERROR_CHECK(nrf_drv_pwm_init(&m_pwm0, &config0, pwm_handler));
 
-            // Pre-write the termination word
-            pwm_sequence_values[numLEDs * NEOPIXEL_BYTES] = 0x8000;
-
             NRF_LOG_DEBUG("Neopixel init");
         }
 
@@ -141,24 +95,12 @@ namespace DriversHW
             }
         }
 
-        void writeColor(uint32_t color, uint32_t ledIndex) {
-
-            const component* components = ledModel == Config::LEDModel::NEOPIXEL_RGB ? rgbComponents : grbComponents;
-            for (int comp = 0; comp < 3; ++comp) {
-                uint8_t color_comp = (color & components[comp].colorMask) >> components[comp].colorShift;
-                uint16_t offset = components[comp].pwmSequenceOffset;
-                for (uint8_t i = 0; i < 8; ++i) {
-                    uint16_t value = (color_comp & 0x80) == 0 ? DUTY0 : DUTY1;
-                    pwm_sequence_values[ledIndex * NEOPIXEL_BYTES + offset + i] = value | 0x8000;
-                    color_comp <<= 1;
-                }
-            }
-        }
-
         void show(uint32_t* colors) {
             for (int i = 0; i < numLEDs; i++) {
                 writeColor(colors[i], i);
             }
+            // write the termination word
+            pwm_sequence_values[numLEDs * NEOPIXEL_BYTES] = 0x8000;
 
             nrf_pwm_sequence_t const seq0 =
                 {
@@ -177,6 +119,8 @@ namespace DriversHW
             for (int i = 0; i < numLEDs+1; i++) {
                 writeColor(0, i);
             }
+            // write the termination word
+            pwm_sequence_values[(numLEDs+1) * NEOPIXEL_BYTES] = 0x8000;
 
             nrf_pwm_sequence_t const seq0 =
                 {

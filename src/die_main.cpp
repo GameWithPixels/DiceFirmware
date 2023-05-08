@@ -199,10 +199,8 @@ namespace Die
         // and we'll unregister it once we have a result.
         NRF_LOG_DEBUG("Received Temp Request");
         void* uniqueToken = (void*)0x1234;
-        if (MCUTemperature::measure()) {
-            MCUTemperature::hook([] (void* the_uniquetoken, int the_tempTimes100) {
+        if (!MCUTemperature::measure([](void* the_uniquetoken, int the_tempTimes100) {
                 NRF_LOG_DEBUG("Sending temp: %d.%02d C", (the_tempTimes100 / 100), (the_tempTimes100 % 100));
-                MCUTemperature::unHookWithParam(the_uniquetoken);
 
                 // Send message back
                 MessageTemperature tmp;
@@ -213,9 +211,8 @@ namespace Die
                 // The response message was send, allow ourselves to register
                 // to the clients list again on the next temp request
                 hasPendingRequest = false;
-            }, uniqueToken);
-        } else {
-            // Send message back
+            }, uniqueToken)) {
+            // Send error message back
             MessageTemperature tmp;
             tmp.mcuTempTimes100 = 0xFFFF;
             tmp.batteryTempTimes100 = NTC::getNTCTemperatureTimes100();
