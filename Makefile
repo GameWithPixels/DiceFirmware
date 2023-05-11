@@ -20,7 +20,7 @@ BUILD_DATE_TIME := $(shell python -c 'from datetime import datetime; \
 # To prevent downgrading the firmware, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
 # The bootloader can only be upgraded (applying an update with a higher version number).
 FW_VER := 0x100
-BL_VER := 0x155
+BL_VER := 0x200
   
 # SDK 17 path
 SDK_ROOT := C:/nRF5_SDK
@@ -172,6 +172,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/led_color_tester.cpp \
 	$(PROJ_DIR)/src/modules/led_error_indicator.cpp \
 	$(PROJ_DIR)/src/modules/leds.cpp \
+	$(PROJ_DIR)/src/modules/temperature.cpp \
 	$(PROJ_DIR)/src/modules/validation_manager.cpp \
 	$(PROJ_DIR)/src/notifications/battery_notifications.cpp \
 	$(PROJ_DIR)/src/notifications/roll_notifications.cpp \

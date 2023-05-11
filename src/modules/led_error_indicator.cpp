@@ -82,7 +82,7 @@ namespace Modules::LEDErrorIndicator
             BlinkColor(Utils::toColor(16, 8, 0), 3000, 100, 1);
             break;
         case ErrorType_NTC:
-            BlinkColor(Utils::toColor(16, 16, 0), 3000, 100, 1);
+            BlinkColor(Utils::toColor(48, 16, 0), 3000, 100, 1);
             break;
         default:
             break;

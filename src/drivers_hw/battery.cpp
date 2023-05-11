@@ -23,7 +23,14 @@ using namespace Config;
 
 #define MAX_BATTERY_CLIENTS 2
 #define BATTERY_CHARGE_PIN_TIMER 1000 // milliseconds
-#define VBAT_LOW_THRESHOLD 3000 // x0.001 Volts
+
+// Battery voltage is 4.0V nominal (can go as low as 3.2 and as high as 4.3)
+#define VBAT_LOW_THRESHOLD 1000 // mV
+#define VBAT_HIGH_THRESHOLD 6000 // mV
+
+// Coil voltage is 0.0V or 5.0V nominal (can't go negative)
+#define VCOIL_LOW_THRESHOLD (-1000) // mV
+#define VCOIL_HIGH_THRESHOLD 7000 // mV
 
 namespace DriversHW
 {
@@ -210,15 +217,17 @@ namespace Battery
         int32_t vCoilTimes1000 = checkVCoilTimes1000();
         int32_t vBatTimes1000 = checkVBatTimes1000();
 
-        bool success = vBatTimes1000 > VBAT_LOW_THRESHOLD;
+        // Check that the measured voltages are in a valid range
+        bool success = vBatTimes1000 > VBAT_LOW_THRESHOLD && vBatTimes1000 < VBAT_HIGH_THRESHOLD &&
+                       vCoilTimes1000 > VCOIL_LOW_THRESHOLD && vCoilTimes1000 < VCOIL_HIGH_THRESHOLD;
         if (!success) {
-            NRF_LOG_ERROR("Battery Voltage too low: %d.%03d", vBatTimes1000 / 1000, vBatTimes1000 % 1000);
+            NRF_LOG_ERROR("Battery or Vcoil Voltage invalid, VBat: %d.%03d, VCoil: %d.%03d", vBatTimes1000 / 1000, vBatTimes1000 % 1000, vCoilTimes1000 / 1000, vCoilTimes1000 % 1000);
         }
 
         NRF_LOG_INFO("Battery init");
         NRF_LOG_INFO("  Voltage: %d.%03d", vBatTimes1000 / 1000, vBatTimes1000 % 1000);
-        NRF_LOG_INFO("  Charging: %d", (charging ? 1 : 0));
         NRF_LOG_INFO("  VCoil: %d.%03d", vCoilTimes1000 / 1000, vCoilTimes1000 % 1000);
+        NRF_LOG_INFO("  Charging: %d", (charging ? 1 : 0));
 
         #if DICE_SELFTEST && BATTERY_SELFTEST
         selfTest();

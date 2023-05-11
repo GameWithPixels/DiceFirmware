@@ -17,6 +17,7 @@
 #include "modules/accelerometer.h"
 #include "modules/anim_controller.h"
 #include "modules/battery_controller.h"
+#include "modules/temperature.h"
 #include "modules/validation_manager.h"
 #include "data_set/data_set.h"
 #include "notifications/battery.h"
@@ -47,7 +48,6 @@ namespace Die
     void stopAllLEDAnimsHandler(const Message* msg);
     void setTopLevelStateHandler(const Message* msg);
     void enterSleepModeHandler(const Message* message);
-    void getTemperatureHandler(const Message* msg);
 
     void initMainLogic() {
         MessageService::RegisterMessageHandler(Message::MessageType_WhoAreYou, whoAreYouHandler);
@@ -55,7 +55,6 @@ namespace Die
         MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
-        MessageService::RegisterMessageHandler(Message::MessageType_RequestTemperature, getTemperatureHandler);
 
         Stack::hook(onConnectionEvent, nullptr);
 
@@ -102,12 +101,14 @@ namespace Die
                 Accelerometer::lowPower();
                 AnimController::stop();
                 BatteryController::slowMode(true);
+                Temperature::slowMode(true);
                 break;
             case PowerManager::PowerManagerEvent_PrepareSleep:
                 //NRF_LOG_INFO("Going to Sleep");
                 Accelerometer::stop();
                 AnimController::stop();
                 BatteryController::slowMode(true);
+                Temperature::slowMode(true);
                 Stack::stopAdvertising();
 
                 if (ValidationManager::inValidation()) {
@@ -129,6 +130,7 @@ namespace Die
                 Accelerometer::wakeUp();
                 AnimController::start();
                 BatteryController::slowMode(false);
+                Temperature::slowMode(false);
                 Stack::startAdvertising();
                 break;
             default:
@@ -184,42 +186,6 @@ namespace Die
         NRF_LOG_DEBUG("Stopping all animations");
         AnimController::stopAll();
     }
-
-    void getTemperatureHandler(const Message* msg) {
-        // We don't want to register to the clients list multiple times.
-        // It would happen when we get several Temp request messages before 
-        // having the time to send the response.
-        // In this case sending just one response for all the pending requests
-        // is fine.
-        static bool hasPendingRequest = false;
-        if (hasPendingRequest)
-            return;
-            
-        // Since reading temperature takes times and uses our interrupt handler, register a lambda
-        // and we'll unregister it once we have a result.
-        NRF_LOG_DEBUG("Received Temp Request");
-        void* uniqueToken = (void*)0x1234;
-        if (!MCUTemperature::measure([](void* the_uniquetoken, int the_tempTimes100) {
-                NRF_LOG_DEBUG("Sending temp: %d.%02d C", (the_tempTimes100 / 100), (the_tempTimes100 % 100));
-
-                // Send message back
-                MessageTemperature tmp;
-                tmp.mcuTempTimes100 = the_tempTimes100;
-                tmp.batteryTempTimes100 = NTC::getNTCTemperatureTimes100();
-                MessageService::SendMessage(&tmp);
-
-                // The response message was send, allow ourselves to register
-                // to the clients list again on the next temp request
-                hasPendingRequest = false;
-            }, uniqueToken)) {
-            // Send error message back
-            MessageTemperature tmp;
-            tmp.mcuTempTimes100 = 0xFFFF;
-            tmp.batteryTempTimes100 = NTC::getNTCTemperatureTimes100();
-            MessageService::SendMessage(&tmp);
-        }
-    }
-
 
     void setTopLevelStateHandler(const Message *msg) {
         auto setTopLevelStateMessage = (const MessageSetTopLevelState *)msg;

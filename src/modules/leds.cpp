@@ -9,18 +9,21 @@
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/scheduler.h"
 #include "drivers_nrf/gpiote.h"
-
+#include "battery_controller.h"
+#include "utils/Utils.h"
 #include "string.h" // for memset
 
 using namespace Config;
 using namespace DriversHW;
 using namespace DriversNRF;
 
+
 #define OFFSET_RED 2
 #define OFFSET_GREEN 1
 #define OFFSET_BLUE 0
 
 #define MAX_APA102_CLIENTS 2
+#define LOW_BATT_LED_INTENSITY 1
 
 namespace Modules::LEDs
 {
@@ -168,15 +171,40 @@ namespace Modules::LEDs
         return true;
     }
 
+    void clampColors() {
+        for (int i = 0; i < numLed; ++i) {
+            uint32_t color = pixels[i];
+            // Clamp intensity
+            uint8_t r = Utils::getRed(color);
+            if (r > LOW_BATT_LED_INTENSITY) {
+                r = LOW_BATT_LED_INTENSITY;
+            }
+            uint8_t g = Utils::getGreen(color);
+            if (g > LOW_BATT_LED_INTENSITY) {
+                g = LOW_BATT_LED_INTENSITY;
+            }
+            uint8_t b = Utils::getBlue(color);
+            if (b > LOW_BATT_LED_INTENSITY) {
+                b = LOW_BATT_LED_INTENSITY;
+            }
+            pixels[i] = Utils::toColor(r,g,b);
+        }
+    }
+
     void show() {
         // Do we want all the LEDs to be off?
         if (isPixelDataZero()) {
             setPowerOff();
         } else {
-            // Turn power on so we display something!!!
-            setPowerOn([](void* ignore) {
-                NeoPixel::show(pixels);
-            }, nullptr);
+            if (BatteryController::getBatteryState() != BatteryController::BatteryState_VeryLow) {
+                // Turn power on so we display something!!!
+                setPowerOn([](void* ignore) {
+                    if (BatteryController::getBatteryState() == BatteryController::BatteryState_Low) {
+                        clampColors();
+                    }
+                    NeoPixel::show(pixels);
+                }, nullptr);
+            }
         }
     }
 

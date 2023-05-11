@@ -25,6 +25,7 @@ namespace Modules::BatteryController
 		BatteryState_Done,			// Battery is full and finished charging
 		BatteryState_LowTemp,		// Battery is too cold
 		BatteryState_HighTemp,		// Battery is too hot
+		BatteryState_VeryLow,		// Battery level is too low to turn any leds on
 	};
 
 	BatteryState getBatteryState();

@@ -11,6 +11,7 @@
 #include "drivers_nrf/timers.h"
 #include "modules/accelerometer.h"
 #include "modules/battery_controller.h"
+#include "modules/temperature.h"
 #include "drivers_nrf/mcu_temperature.h"
 #include "drivers_hw/ntc.h"
 #include "drivers_hw/battery.h"
@@ -61,11 +62,6 @@ namespace Bluetooth::Telemetry
                 if (requestMode == TelemetryRequestMode_Once) {
                     stop();
                 }
-                //  else if (requestMode == TelemetryRequestMode_Repeat) {
-                //     // Request temperature update,
-                //     // the result will be used on the next message
-                //     DriversNRF::MCUTemperature::measure(onTemperatureRead, nullptr);
-                // }
 
                 // Update battery values
                 teleMessage.internalChargeState = DriversHW::Battery::checkCharging() ? 1 : 0;
@@ -95,13 +91,11 @@ namespace Bluetooth::Telemetry
         trySend();
     }
 
-    void onTemperatureRead(void* param, int temperatureTimes100) {
-        NRF_LOG_INFO("temp: %d", temperatureTimes100);
-        auto batteryTempTimes100 = DriversHW::NTC::getNTCTemperatureTimes100();
-        if (teleMessage.mcuTempTimes100 != temperatureTimes100 ||
-            teleMessage.batteryTempTimes100 != batteryTempTimes100) {
-            teleMessage.mcuTempTimes100 = temperatureTimes100;
-            teleMessage.batteryTempTimes100 = batteryTempTimes100;
+    void onTemperatureChanged(void* param, int32_t mcuTemperatureTimes100, int32_t ntcTemperatureTimes100) {
+       if (teleMessage.mcuTempTimes100 != mcuTemperatureTimes100 ||
+            teleMessage.batteryTempTimes100 != ntcTemperatureTimes100) {
+            teleMessage.mcuTempTimes100 = mcuTemperatureTimes100;
+            teleMessage.batteryTempTimes100 = ntcTemperatureTimes100;
             trySend();
         }
     }
@@ -130,7 +124,8 @@ namespace Bluetooth::Telemetry
             // a message until they are all updated
             teleMessage.accelFrame.time = 0;
             teleMessage.rssi = 0;
-            teleMessage.mcuTempTimes100 = 0;
+            teleMessage.mcuTempTimes100 = Temperature::getMCUTemperatureTimes100();
+            teleMessage.batteryTempTimes100 = Temperature::getNTCTemperatureTimes100();
 
             // Monitor connections status
             Bluetooth::Stack::hook(onConnectionEvent, nullptr);
@@ -143,7 +138,7 @@ namespace Bluetooth::Telemetry
             Stack::hookRssi(onRssiChanged, nullptr);
 
             // Request temperature update
-            //DriversNRF::MCUTemperature::measure(onTemperatureRead, nullptr);
+            Temperature::hookTemperatureChange(onTemperatureChanged, nullptr);
         }
     }
 

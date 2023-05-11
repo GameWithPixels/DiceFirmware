@@ -4,6 +4,7 @@
 #include "nrf_delay.h"
 #include "board_config.h"
 #include "drivers_nrf/a2d.h"
+#include "drivers_nrf/timers.h"
 
 
 using namespace DriversNRF;
@@ -38,41 +39,12 @@ namespace DriversHW::NTC
         { 150, 10000}, // 0.15V -> 100 C
     };
 
-    int getNTCTemperatureTimes100(int32_t voltageTimes1000);
-
-    bool init() {
+    void init() {
         // Grab initial values from the battery driver
-        int tempTimes100 = getNTCTemperatureTimes100();
-        NRF_LOG_INFO("NTC init, batt temp: %d.%02d", tempTimes100 / 100, tempTimes100 % 100);
-
-        // TODO: check that temperature is in valid range
-
-        return true;
+        NRF_LOG_DEBUG("NTC init");
     }
 
-
-    int getNTCTemperatureTimes100() {
-        // Sample adc board pin
-
-        // Turn VDD on
-        BoardManager::setNTC_ID_VDD(true);
-
-        // Workaround for early D20V15
-        // Wait for voltage to rise
-        nrf_delay_ms(50);
-
-        // Read voltage divider
-        int32_t vntcTimes1000 = A2D::readVNTCTimes1000();
-
-        // Now that we're done reading, we can turn off the drive pin
-        BoardManager::setNTC_ID_VDD(false);
-
-        // Calculate temperature from voltage
-        return getNTCTemperatureTimes100(vntcTimes1000);
-    }
-
-    int getNTCTemperatureTimes100(int32_t voltageTimes1000)
-    {
+    int getNTCTemperatureTimes100(int32_t voltageTimes1000) {
 		// Find the first voltage that is greater than the measured voltage
         // Because voltages are sorted, we know that we can then linearly interpolate the temperature
         // using the previous and next entries in the lookup table.
@@ -99,5 +71,31 @@ namespace DriversHW::NTC
 
 		return temperatureTimes100;
     }
+
+    bool measure(TemperatureClientMethod callback) {
+        // Sample adc board pin
+
+        // Turn VDD on
+        BoardManager::setNTC_ID_VDD(true);
+
+        // Workaround for early D20V15
+        int delayMs = 50;
+
+        // Wait for voltage to rise
+        return Timers::setDelayedCallback([](void* delayCallbackParam) {
+
+            // Read voltage divider
+            int32_t vntcTimes1000 = A2D::readVNTCTimes1000();
+
+            // Now that we're done reading, we can turn off the drive pin
+            BoardManager::setNTC_ID_VDD(false);
+
+            // Calculate temperature from voltage
+            TemperatureClientMethod the_callback = (TemperatureClientMethod)delayCallbackParam;
+            the_callback(getNTCTemperatureTimes100(vntcTimes1000));
+
+        }, (void*)callback, delayMs);
+    }
+
 }
 
