@@ -42,7 +42,6 @@ namespace Modules::Temperature
         if (!NTC::measure([](int32_t ntcTimes100) {
             currentNTCTemperature = ntcTimes100;
             currentMCUTemperature = MCUTemperature::measure();
-            currentNTCTemperature = -500;
 
             MessageService::RegisterMessageHandler(Message::MessageType_RequestTemperature, getTemperatureHandler);
 

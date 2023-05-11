@@ -20,7 +20,6 @@ using namespace DriversNRF;
 using namespace Bluetooth;
 using namespace Config;
 using namespace Utils;
-using namespace Modules;
 
 #define BATTERY_TIMER_MS 1000	// ms
 #define BATTERY_TIMER_MS_SLOW 5000	// ms
@@ -30,8 +29,7 @@ using namespace Modules;
 #define OFF_VCOIL_THRESHOLD 500 //0.5V
 #define CHARGE_VCOIL_THRESHOLD 300 //at least 0.3V above VBat
 #define VBAT_LOOKUP_SIZE 11
-#define BATTERY_VERY_LOW_PCT 1 // 1%
-#define BATTERY_LOW_PCT 10 // 10%
+#define BATTERY_ALMOST_EMPTY_PCT 10 // 10%
 #define BATTERY_ALMOST_FULL_PCT 95 // 95%
 #define TRANSITION_TOO_LONG_DURATION_MS 10000 // 10s
 #define TEMPERATURE_TOO_COLD_ENTER 0   // degrees C
@@ -169,16 +167,13 @@ namespace Modules::BatteryController
         // Figure out a battery charge level
         enum CapacityState
         {
-            VeryLow,    // Battery is very low, we shouldn't use the LEDs
-            Low,        // Battery is low
+            AlmostEmpty,    // Battery is low
             Average,
             AlmostFull
         };
         CapacityState capacityState = CapacityState::Average;
-        if (levelPercent < BATTERY_VERY_LOW_PCT) {
-            capacityState = CapacityState::VeryLow;
-        } else if (levelPercent < BATTERY_LOW_PCT) {
-            capacityState = CapacityState::Low;
+        if (levelPercent < BATTERY_ALMOST_EMPTY_PCT) {
+            capacityState = CapacityState::AlmostEmpty;
         } else if (levelPercent> BATTERY_ALMOST_FULL_PCT) {
             capacityState = CapacityState::AlmostFull;
         }
@@ -210,10 +205,7 @@ namespace Modules::BatteryController
                     } else {
                         // Not on charger, not charging, that's perfectly normal, just check the battery level
                         switch (capacityState) {
-                            case CapacityState::VeryLow:
-                                ret = BatteryState::BatteryState_VeryLow;
-                                break;
-                            case CapacityState::Low:
+                            case CapacityState::AlmostEmpty:
                                 ret = BatteryState::BatteryState_Low;
                                 break;
                             case CapacityState::AlmostFull:
@@ -227,8 +219,7 @@ namespace Modules::BatteryController
                 case CoilState::OnCoil:
                     if (charging) {
                         switch (capacityState) {
-                            case CapacityState::VeryLow:
-                            case CapacityState::Low:
+                            case CapacityState::AlmostEmpty:
                             case CapacityState::Average:
                             default:
                                 // On charger and charging, good!
@@ -243,10 +234,7 @@ namespace Modules::BatteryController
                         // On coil but not charging. It's not necessarily an error if charging hasn't started yet or is complete
                         // So check battery level now.
                         switch (capacityState) {
-                            case CapacityState::VeryLow:
-                                ret = BatteryState::BatteryState_VeryLow;
-                                break;
-                            case CapacityState::Low:
+                            case CapacityState::AlmostEmpty:
                                 ret = BatteryState::BatteryState_Low;
                                 break;
                             case CapacityState::Average:
@@ -359,9 +347,6 @@ namespace Modules::BatteryController
                     break;
                 case BatteryState_Low:
                     NRF_LOG_INFO("Battery is Low");
-                    break;
-                case BatteryState_VeryLow:
-                    NRF_LOG_INFO("Battery is Very Low");
                     break;
                 case BatteryState_Error:
                     NRF_LOG_INFO("Battery is in an error state");
