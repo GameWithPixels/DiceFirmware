@@ -22,66 +22,74 @@ using namespace Behaviors;
 
 namespace DataSet
 {
-#ifdef USE_BINARY_BUFFER_IMAGE
-    uint8_t defaultDataSetData[] __attribute__ ((aligned (4))) = {
-        0x00, 0x00, 0x0C, 0x00, 0x18, 0x00, 0x24, 0x00,
-        0x30, 0x00, 0x3C, 0x00, 0x01, 0xA6, 0xE8, 0x03,
-        0x00, 0xA9, 0xB6, 0xBE, 0x00, 0x00, 0xFF, 0x00,
-        0x01, 0xB0, 0xE8, 0x03, 0x00, 0xCE, 0x13, 0x3F,
-        0x00, 0xFF, 0x00, 0x00, 0x01, 0xBA, 0xE8, 0x03,
-        0x00, 0xEB, 0x13, 0x3F, 0xFF, 0x00, 0x00, 0x00,
-        0x01, 0xA9, 0xE8, 0x03, 0x01, 0xCC, 0x13, 0xBF,
-        0x00, 0x00, 0xFF, 0x00, 0x01, 0x00, 0xE8, 0x03,
-        0x01, 0x00, 0x00, 0x80, 0x00, 0xFF, 0x00, 0x00,
-        0x01, 0xCE, 0xE8, 0x03, 0x01, 0xCA, 0x13, 0x3F,
-        0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00,
-        0x08, 0x00, 0x0C, 0x00, 0x01, 0x04, 0x00, 0x01,
-        0x01, 0x05, 0x00, 0x01, 0x01, 0x00, 0xFF, 0x01,
-        0x01, 0x00, 0xFF, 0x01, 0x00, 0x00, 0x04, 0x00,
-        0x08, 0x00, 0x0C, 0x00, 0x01, 0x01, 0x00, 0x00,
-        0x06, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-        0x04, 0x00, 0x06, 0x01, 0x00, 0x00, 0x00, 0x00,
-        0x01, 0x00, 0x01, 0x00, 0x02, 0x00, 0x02, 0x00,
-        0x03, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00,
-    };
-
-    
-    uint8_t defaultDataSet[] __attribute__ ((aligned (4))) = {
-        0x0D, 0xF0, 0x0D, 0x60, 0x01, 0x00, 0x00, 0x00,
-        0x74, 0xB0, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x74, 0xB0, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x74, 0xB0, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x74, 0xB0, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x74, 0xB0, 0x02, 0x00, 0x06, 0x00, 0x00, 0x00,
-        0x80, 0xB0, 0x02, 0x00, 0x48, 0x00, 0x00, 0x00,
-        0xE0, 0xB0, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00,
-        0xE8, 0xB0, 0x02, 0x00, 0x10, 0x00, 0x00, 0x00,
-        0xC8, 0xB0, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00,
-        0xD0, 0xB0, 0x02, 0x00, 0x10, 0x00, 0x00, 0x00,
-        0xF8, 0xB0, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00,
-        0x08, 0xB1, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x02, 0x3E, 0x00, 0x00, 0x00, 0x00,
-        0x0D, 0xF0, 0x0D, 0x60,
-    };
-
-#endif
-
 	void ProgramDefaultDataSet(const Settings& settingsPackAlong, DataSetWrittenCallback callback) {
-
         NRF_LOG_INFO("Programming default data set");
 
         static DataSetWrittenCallback _setWrittenCallback;
 		_setWrittenCallback = callback;
+#ifdef USE_BINARY_BUFFER_IMAGE
+        // Doesn't quite work yet...
+        static const uint8_t writeBuffer[] __attribute__ ((aligned (4))) = {
+            0x10, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00,
+            0x18, 0x00, 0x24, 0x00, 0x30, 0x00, 0x3C, 0x00,
+            0x48, 0x00, 0x54, 0x00, 0x01, 0x00, 0xB8, 0x0B,
+            0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0xFF,
+            0x01, 0x00, 0xD0, 0x07, 0x00, 0x00, 0x08, 0x00,
+            0x00, 0x00, 0x0A, 0xFF, 0x01, 0x00, 0xDC, 0x05,
+            0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x03, 0xFF,
+            0x01, 0x00, 0x88, 0x13, 0x00, 0x00, 0x08, 0x00,
+            0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0xE8, 0x03,
+            0xFF, 0xFF, 0xFF, 0xFF, 0x02, 0x00, 0x02, 0xFF,
+            0x01, 0x00, 0x64, 0x00, 0x00, 0x00, 0x08, 0x00,
+            0x7F, 0x00, 0x01, 0xFF, 0x01, 0x00, 0xB8, 0x0B,
+            0xFF, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0x01, 0xFF,
+            0x02, 0x00, 0xD0, 0x07, 0xFF, 0xFF, 0xFF, 0xFF,
+            0x02, 0xC8, 0x01, 0x80, 0x00, 0x00, 0x04, 0x00,
+            0x08, 0x00, 0x0C, 0x00, 0x10, 0x00, 0x14, 0x00,
+            0x18, 0x00, 0x1C, 0x00, 0x01, 0x07, 0x13, 0x01,
+            0x01, 0x04, 0x00, 0x01, 0x01, 0x05, 0xFF, 0x01,
+            0x01, 0x06, 0xFF, 0x01, 0x01, 0x02, 0x00, 0x01,
+            0x01, 0x00, 0x13, 0x01, 0x01, 0x03, 0x13, 0x01,
+            0x01, 0x01, 0x13, 0x01, 0x00, 0x00, 0x04, 0x00,
+            0x08, 0x00, 0x0C, 0x00, 0x10, 0x00, 0x14, 0x00,
+            0x18, 0x00, 0x1C, 0x00, 0x01, 0x01, 0x00, 0x00,
+            0x06, 0x03, 0x00, 0x00, 0x03, 0x00, 0xF4, 0x01,
+            0x04, 0x00, 0x06, 0x00, 0x07, 0x02, 0x30, 0x75,
+            0x07, 0x04, 0x88, 0x13, 0x07, 0x88, 0xB8, 0x0B,
+            0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+            0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00,
+            0x02, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00,
+            0x03, 0x00, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00,
+            0x04, 0x00, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00,
+            0x05, 0x00, 0x05, 0x00, 0x01, 0x00, 0x00, 0x00,
+            0x06, 0x00, 0x06, 0x00, 0x01, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x07, 0x00,
+        };
+        static const uint32_t bufferSize = sizeof(writeBuffer);
 
+        static const uint8_t dataBuffer[] __attribute__ ((aligned (4))) = {
+            0x0C, 0xF0, 0x0D, 0x60, 0x03, 0x00, 0x00, 0x00,
+            0xD0, 0xE1, 0x02, 0x00, 0x09, 0x00, 0x00, 0x00,
+            0xDC, 0xE1, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0xDC, 0xE1, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0xDC, 0xE1, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0xDC, 0xE1, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0xDC, 0xE1, 0x02, 0x00, 0x08, 0x00, 0x00, 0x00,
+            0xEC, 0xE1, 0x02, 0x00, 0x60, 0x00, 0x00, 0x00,
+            0x7C, 0xE2, 0x02, 0x00, 0x08, 0x00, 0x00, 0x00,
+            0x8C, 0xE2, 0x02, 0x00, 0x1C, 0x00, 0x00, 0x00,
+            0x4C, 0xE2, 0x02, 0x00, 0x08, 0x00, 0x00, 0x00,
+            0x5C, 0xE2, 0x02, 0x00, 0x20, 0x00, 0x00, 0x00,
+            0xA8, 0xE2, 0x02, 0x00, 0x07, 0x00, 0x00, 0x00,
+            0xE0, 0xE2, 0x02, 0x00, 0x0C, 0xF0, 0x0D, 0x60,
+        };
+
+		static const Data* newData = (const Data*)dataBuffer;
+#else
         static void* writeBuffer;
         static uint32_t bufferSize;
 		static Data* newData; 
-
-#ifdef USE_BINARY_BUFFER_IMAGE
-        writeBuffer = defaultDataSetData;
-        bufferSize = sizeof(defaultDataSetData);
-        newData = (Data*)defaultDataSet;
-#else
 
 		int paletteCount = 3;
         int paletteSize = Utils::roundUpTo4(paletteCount * 3);
@@ -89,22 +97,24 @@ namespace DataSet
         int rgbTrackCount = 0;
 		int keyframeCount = 0;
         int trackCount = 0;
-        int simpleAnimCount = 3 + 3;
+        int simpleAnimCount = 7;
 		int animCount = simpleAnimCount + 1;
         int animOffsetSize = Utils::roundUpTo4(animCount * sizeof(uint16_t));
-        int animSize = sizeof(AnimationSimple) * 6 + sizeof(AnimationRainbow);
-        int actionCount = 4;
+        int animSize = sizeof(AnimationSimple) * simpleAnimCount + sizeof(AnimationRainbow);
+        int actionCount = 8;
         int actionOffsetSize = Utils::roundUpTo4(actionCount * sizeof(uint16_t));
         int actionSize = sizeof(ActionPlayAnimation) * actionCount;
-        int conditionCount = 4;
+        int conditionCount = 8;
         int conditionOffsetSize = Utils::roundUpTo4(conditionCount * sizeof(uint16_t));
         uint32_t conditionsSize =
             sizeof(ConditionHelloGoodbye) + 
             sizeof(ConditionConnectionState) +
             sizeof(ConditionRolling) +
             sizeof(ConditionFaceCompare) + 
-            sizeof(ConditionIdle);
-        int ruleCount = 5;
+            sizeof(ConditionBatteryState) +
+            sizeof(ConditionBatteryState) +
+            sizeof(ConditionBatteryState);
+        int ruleCount = 7;
         int behaviorCount = 1;
 
 		// Compute the size of the needed buffer to store all that data!
@@ -205,35 +215,66 @@ namespace DataSet
 		newData->tailMarker = ANIMATION_SET_VALID_KEY;
 
         // Cute way to create Red Green Blue colors in palette
-        writePalette[0] = 4;
+        writePalette[0] = 16;
         writePalette[1] = 0;
         writePalette[2] = 0;
         writePalette[3] = 0;
-        writePalette[4] = 4;
+        writePalette[4] = 16;
         writePalette[5] = 0;
         writePalette[6] = 0;
         writePalette[7] = 0;
-        writePalette[8] = 4;
+        writePalette[8] = 16;
 
 		// Create animations
-		for (int c = 0; c < 3; ++c) {
+		for (int c = 0; c < 7; ++c) {
             writeSimpleAnimations[c].type = Animation_Simple;
-            writeSimpleAnimations[c].duration = 1000;
-		    writeSimpleAnimations[c].faceMask = 0x80000;
-            writeSimpleAnimations[c].count = 1;
             writeSimpleAnimations[c].fade = 255;
-            writeSimpleAnimations[c].colorIndex = c;
 		}
 
-		for (int c = 0; c < 3; ++c) {
-            writeSimpleAnimations[3 + c].type = Animation_Simple;
-            writeSimpleAnimations[3 + c].duration = 1000;
-            writeSimpleAnimations[3 + c].faceMask = ANIM_FACEMASK_ALL_LEDS;
-            writeSimpleAnimations[3 + c].count = 2;
-            writeSimpleAnimations[3 + c].fade = 255;
-            writeSimpleAnimations[3 + c].colorIndex = c;
-		}
+        // 0 Charging
+        writeSimpleAnimations[0].count = 1;
+        writeSimpleAnimations[0].duration = 3000;
+        writeSimpleAnimations[0].colorIndex = 0; // Red
+	    writeSimpleAnimations[0].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
 
+        // 1 Charging Problem
+        writeSimpleAnimations[1].count = 10;
+        writeSimpleAnimations[1].duration = 2000;
+        writeSimpleAnimations[1].colorIndex = 0; // Red
+	    writeSimpleAnimations[1].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+
+        // 2 Low battery
+        writeSimpleAnimations[2].count = 3;
+        writeSimpleAnimations[2].duration = 1500;
+        writeSimpleAnimations[2].colorIndex = 0; // Red
+	    writeSimpleAnimations[2].faceMask = ANIM_FACEMASK_ALL_LEDS;
+
+        // 3 Fully charged
+        writeSimpleAnimations[3].count = 1;
+        writeSimpleAnimations[3].duration = 5000;
+        writeSimpleAnimations[3].colorIndex = 1; // Green
+	    writeSimpleAnimations[3].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+        writeSimpleAnimations[3].fade = 0;
+
+        // 4 Connection
+        writeSimpleAnimations[4].count = 2;
+        writeSimpleAnimations[4].duration = 1000;
+        writeSimpleAnimations[4].colorIndex = 2; // Blue
+	    writeSimpleAnimations[4].faceMask = ANIM_FACEMASK_ALL_LEDS;
+
+        // 5 Rolling
+        writeSimpleAnimations[5].count = 1;
+        writeSimpleAnimations[5].duration = 100;
+        writeSimpleAnimations[5].colorIndex = PALETTE_COLOR_FROM_FACE; // We'll override based on face
+	    writeSimpleAnimations[5].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+
+        // 6 On Face
+        writeSimpleAnimations[6].count = 1;
+        writeSimpleAnimations[6].duration = 3000;
+        writeSimpleAnimations[6].colorIndex = PALETTE_COLOR_FROM_FACE; // We'll override based on face
+	    writeSimpleAnimations[6].faceMask = ANIM_FACEMASK_ALL_LEDS;
+
+        // 7 Rainbow
         writeRainbowAnimation->type = Animation_Rainbow;
 		writeRainbowAnimation->duration = 2000;
 		writeRainbowAnimation->faceMask = ANIM_FACEMASK_ALL_LEDS;
@@ -263,8 +304,8 @@ namespace DataSet
         address += sizeof(ConditionHelloGoodbye);
         // And matching action
         writeActions[0].type = Action_PlayAnimation;
-        writeActions[0].animIndex = 6; // Rainbow
-        writeActions[0].faceIndex = 0; // doesn't matter
+        writeActions[0].animIndex = 7; // Rainbow
+        writeActions[0].faceIndex = BoardManager::getBoard()->ledCount - 1; // doesn't really matter
         writeActions[0].loopCount = 1;
 
         // Add New Connection condition (index 1)
@@ -276,7 +317,7 @@ namespace DataSet
         address += sizeof(ConditionConnectionState);
         // And matching action
         writeActions[1].type = Action_PlayAnimation;
-        writeActions[1].animIndex = 5; // All LEDs blue
+        writeActions[1].animIndex = 4; // All LEDs blue
         writeActions[1].faceIndex = 0; // doesn't matter
         writeActions[1].loopCount = 1;
 
@@ -289,22 +330,9 @@ namespace DataSet
         address += sizeof(ConditionRolling);
         // And matching action
         writeActions[2].type = Action_PlayAnimation;
-        writeActions[2].animIndex = 0; // face led red
+        writeActions[2].animIndex = 5; // face based on color
         writeActions[2].faceIndex = FACE_INDEX_CURRENT_FACE;
         writeActions[2].loopCount = 1;
-
-        // // Add Idle condition (index 4)
-        // ConditionIdle* idle = reinterpret_cast<ConditionIdle*>(address);
-        // idle->type = Condition_Idle; 
-        // idle->repeatPeriodMs = 5000;
-        // writeConditionsOffsets[3] = offset;
-        // offset += sizeof(ConditionIdle);
-        // address += sizeof(ConditionIdle);
-        // // And matching action
-        // writeActions[3].type = Action_PlayAnimation;
-        // writeActions[3].animIndex = 2; // face led red
-        // writeActions[3].faceIndex = FACE_INDEX_CURRENT_FACE;
-        // writeActions[3].loopCount = 1;
 
         // Add OnFace condition (index 3)
         ConditionFaceCompare* face = reinterpret_cast<ConditionFaceCompare*>(address);
@@ -316,9 +344,65 @@ namespace DataSet
         address += sizeof(ConditionFaceCompare);
         // And matching action
         writeActions[3].type = Action_PlayAnimation;
-        writeActions[3].animIndex = 0; // face led green
-        writeActions[3].faceIndex = FACE_INDEX_CURRENT_FACE;
+        writeActions[3].animIndex = 6; // face led green
+        writeActions[3].faceIndex = FACE_INDEX_CURRENT_FACE; // Doesn't actually matter
         writeActions[3].loopCount = 1;
+
+        // Add Low Battery condition (index 4)
+        ConditionBatteryState* low_batt = reinterpret_cast<ConditionBatteryState*>(address);
+        low_batt->type = Condition_BatteryState;
+        low_batt->flags = ConditionBatteryState_Flags::ConditionBatteryState_Low;
+        low_batt->repeatPeriodMs = 30000; // 30s
+        writeConditionsOffsets[4] = offset;
+        offset += sizeof(ConditionBatteryState);
+        address += sizeof(ConditionBatteryState);
+        // And matching action
+        writeActions[4].type = Action_PlayAnimation;
+        writeActions[4].animIndex = 2; // face led red
+        writeActions[4].faceIndex = 0;
+        writeActions[4].loopCount = 1;
+
+        // Add Charging condition (index 5)
+        ConditionBatteryState* charge_batt = reinterpret_cast<ConditionBatteryState*>(address);
+        charge_batt->type = Condition_BatteryState;
+        charge_batt->flags = ConditionBatteryState_Flags::ConditionBatteryState_Charging;
+        charge_batt->repeatPeriodMs = 5000; // 10s
+        writeConditionsOffsets[5] = offset;
+        offset += sizeof(ConditionBatteryState);
+        address += sizeof(ConditionBatteryState);
+        // And matching action
+        writeActions[5].type = Action_PlayAnimation;
+        writeActions[5].animIndex = 0; // face led red
+        writeActions[5].faceIndex = BoardManager::getBoard()->ledCount - 1;
+        writeActions[5].loopCount = 1;
+
+        // Add Done charging condition (index 6)
+        ConditionBatteryState* done_charge = reinterpret_cast<ConditionBatteryState*>(address);
+        done_charge->type = Condition_BatteryState;
+        done_charge->flags = ConditionBatteryState_Flags::ConditionBatteryState_TrickleCharge | ConditionBatteryState_Done;
+        done_charge->repeatPeriodMs = 3000; // 10s
+        writeConditionsOffsets[6] = offset;
+        offset += sizeof(ConditionBatteryState);
+        address += sizeof(ConditionBatteryState);
+        // And matching action
+        writeActions[6].type = Action_PlayAnimation;
+        writeActions[6].animIndex = 3; // face led green
+        writeActions[6].faceIndex = BoardManager::getBoard()->ledCount - 1;
+        writeActions[6].loopCount = 1;
+
+        // Add Bad charging condition (index 7)
+        ConditionBatteryState* bad_charge = reinterpret_cast<ConditionBatteryState*>(address);
+        bad_charge->type = Condition_BatteryState;
+        bad_charge->flags = ConditionBatteryState_Flags::ConditionBatteryState_BadCharging;
+        bad_charge->repeatPeriodMs = 2000;
+        writeConditionsOffsets[7] = offset;
+        offset += sizeof(ConditionBatteryState);
+        address += sizeof(ConditionBatteryState);
+        // And matching action
+        writeActions[7].type = Action_PlayAnimation;
+        writeActions[7].animIndex = 1; // face led red
+        writeActions[7].faceIndex = BoardManager::getBoard()->ledCount - 1;
+        writeActions[7].loopCount = 1;
 
         // Create action offsets
 		for (int i = 0; i < actionCount; ++i) {
@@ -336,8 +420,11 @@ namespace DataSet
         writeBehaviors[0].rulesOffset = 0;
         writeBehaviors[0].rulesCount = ruleCount;
 
+        // NRF_LOG_INFO("Default Dataset Buffer size: %d bytes", bufferSize);
+        // NRF_LOG_HEXDUMP_INFO(writeBuffer, bufferSize);
+        // NRF_LOG_INFO("Dataset size: %d bytes", sizeof(Data));
+        // NRF_LOG_HEXDUMP_INFO(newData, sizeof(Data));
 #endif
-
         static auto programDefaultsToFlash = [](Flash::ProgramFlashFuncCallback callback) {
             Flash::write(nullptr, Flash::getDataSetDataAddress(), writeBuffer, bufferSize, callback);
         };
