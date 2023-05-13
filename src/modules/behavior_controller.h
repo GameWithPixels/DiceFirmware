@@ -6,6 +6,8 @@
 namespace Modules::BehaviorController
 {
 	void init();
-
 	void onPixelInitialized();
+
+	void DisableAccelerometerRules();
+	void EnableAccelerometerRules();
 }
