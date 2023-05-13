@@ -365,7 +365,7 @@ namespace DataSet
         // Add Charging condition (index 5)
         ConditionBatteryState* charge_batt = reinterpret_cast<ConditionBatteryState*>(address);
         charge_batt->type = Condition_BatteryState;
-        charge_batt->flags = ConditionBatteryState_Flags::ConditionBatteryState_Charging;
+        charge_batt->flags = ConditionBatteryState_Flags::ConditionBatteryState_Charging | ConditionBatteryState_Flags::ConditionBatteryState_TrickleCharge;
         charge_batt->repeatPeriodMs = 5000; // 10s
         writeConditionsOffsets[5] = offset;
         offset += sizeof(ConditionBatteryState);
@@ -379,7 +379,7 @@ namespace DataSet
         // Add Done charging condition (index 6)
         ConditionBatteryState* done_charge = reinterpret_cast<ConditionBatteryState*>(address);
         done_charge->type = Condition_BatteryState;
-        done_charge->flags = ConditionBatteryState_Flags::ConditionBatteryState_TrickleCharge | ConditionBatteryState_Done;
+        done_charge->flags = ConditionBatteryState_Done;
         done_charge->repeatPeriodMs = 3000; // 10s
         writeConditionsOffsets[6] = offset;
         offset += sizeof(ConditionBatteryState);
