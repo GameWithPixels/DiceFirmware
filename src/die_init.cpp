@@ -237,6 +237,7 @@ namespace Die
                             ValidationManager::onPixelInitialized();
                         } else {
                             initDieLogic();
+                            BehaviorController::EnableAccelerometerRules();
                             BehaviorController::onPixelInitialized();
                         }
 

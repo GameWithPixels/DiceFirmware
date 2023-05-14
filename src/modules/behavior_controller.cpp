@@ -31,7 +31,6 @@ namespace Modules::BehaviorController
 		// Hook up the behavior controller to all the events it needs to know about to do its job!
         Bluetooth::Stack::hook(onConnectionEvent, nullptr);
         BatteryController::hook(onBatteryStateChange, nullptr);
-        EnableAccelerometerRules();
         NRF_LOG_DEBUG("Behavior Controller init");
     }
 
