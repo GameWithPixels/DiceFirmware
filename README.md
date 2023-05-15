@@ -44,7 +44,7 @@ nrfjprog -f nrf52 --program firmware.hex --chiperase --verify --reset
 Firmware releases are available on the releases
 [page](https://github.com/GameWithPixels/DiceFirmware/releases) of this repository.
 To program the board, download the .hex file from the latest release,
-and run the commands above from the folder where the .hex file was saved
+and run the commands above from the directory where the .hex file was saved
 (be sure to change `firmware.hex` in the command to the correct filename).
 
 ## Device Firmware Upgrade (DFU)
@@ -105,11 +105,11 @@ than this project.
 
 ### Building
 
-Make sure that the *Makefile* `SDK_ROOT` variable is pointing to the correct folder.
+Make sure that the *Makefile* `SDK_ROOT` variable is pointing to the correct directory.
 
-Open a command line and go the folder where this repository is cloned and run `make`.
+Open a command line and go the directory where this repository is cloned and run `make`.
 
-The output files are placed in the `_builds` folder, by default those are debug files (not release).
+The output files are placed in the `_builds` directory, by default those are debug files (not release).
 The one that we want to program to the flash memory is the `.hex` file
 (more about this format [here](https://en.wikipedia.org/wiki/Intel_HEX)).
 
@@ -122,7 +122,7 @@ Using the project's *Makefile* you may:
 
 ### Debug Build Commands
 
-* `clean_debug`: deletes the intermediary debug build folder.
+* `clean_debug`: deletes the intermediary debug build directory.
 * `firmware_debug` (default): produces a debug build of the firmware => `firmware_d.hex`
 * `settings_debug`: generates the bootloader settings page for a debug build
 * `flash`: programs the firmware into the die's memory and reboot the device
@@ -133,7 +133,7 @@ we usually don't have enough memory to flash the *bootloader* with them.
 
 ### Release Build Commands
 
-* `clean_release`: deletes the intermediary debug build folder.
+* `clean_release`: deletes the intermediary debug build directory.
 * `firmware_release`: produces a release build of the firmware => `firmware.hex`
 * `settings_release`: generates the bootloader settings page for a release build
 * `flash_release`: programs the firmware into the die's memory and reboot the device
@@ -143,9 +143,12 @@ we usually don't have enough memory to flash the *bootloader* with them.
 ### Publishing Commands
 
 * `hex_release`: produces a full hex file with Bootloader, SoftDevice and release Firmware
-* `zip`: produces a zipped DFU package with the SoftDevice and the Firmware.
+* `zip`: cleans up temporary build files before building, produces a zipped DFU package
+         with the SoftDevice and the Firmware.
 * `zip_bl`: produces a zipped DFU package with the Bootloader.
-* `zip_all`: runs `zip` and `zip_bl` commands
+* `publish`: runs `zip`, `zip_bl`, `hex_release` and `hex_validation` commands and copies the output
+             files in a sub-directory of the "_build" directory. This sub-directory has the date/time
+             of the build in its name.
 
 ### Other Commands
 
@@ -160,7 +163,7 @@ Some commands requires `nRF Util` to run properly (see
 [documentation](https://infocenter.nordicsemi.com/topic/ug_nrfutil/UG/nrfutil/nrfutil_intro.html)
 about this tool).
 
-The *Makefile* expects to find `nrfutil.exe` in the current folder or from the `PATH`.
+The *Makefile* expects to find `nrfutil.exe` in the current directory or from the `PATH`.
 Search for `NRFUTIL` to set a different path.
 We're using the 6.1.3 build that can be downloaded from
 [GitHub](https://github.com/NordicSemiconductor/pc-nrfutil/releases/tag/v6.1.3).
