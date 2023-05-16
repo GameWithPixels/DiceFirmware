@@ -15,7 +15,7 @@ namespace Notifications::Battery
 
     void init() {
         MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, requestBatteryLevelHandler);
-        BatteryController::hook(onBatteryStateChange, nullptr);
+        BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
         BatteryController::hookLevel(onBatteryLevelChange, nullptr);
 
         NRF_LOG_DEBUG("Battery notifications init");

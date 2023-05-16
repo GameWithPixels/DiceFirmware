@@ -55,6 +55,23 @@ namespace Modules::LEDErrorIndicator
         }
     }
 
+    void BlinkSingle(uint32_t color, uint32_t onTimeMillis, uint32_t offTimeMillis, int count) {
+        // Color buffers
+        uint32_t colors[MAX_COUNT];
+        uint32_t zeros[MAX_COUNT];
+        for (int i = 0; i < MAX_COUNT; ++i) {
+            colors[i] = 0;
+            zeros[i] = 0;
+        }
+        colors[BoardManager::getBoard()->debugLedIndex] = color;
+        for (int i = 0; i < count; ++i) {
+            NeoPixel::show(colors);
+            WatchdogSafeDelayMs(onTimeMillis);
+            NeoPixel::show(zeros);
+            WatchdogSafeDelayMs(offTimeMillis);
+        }
+    }
+
     void ShowErrorAndHalt(ErrorType error) {
 
         // Before we do stuff we need to stop running modules that may be filling queues, such as the accelerometer
@@ -73,16 +90,19 @@ namespace Modules::LEDErrorIndicator
         switch (error)
         {
         case ErrorType_LEDs:
-            BlinkColor(Utils::toColor(8, 0, 8), 3000, 100, 1);
+            BlinkColor(Utils::toColor(12, 0, 12), 3000, 100, 1);
             break;
-        case ErrorType_Battery:
-            BlinkColor(Utils::toColor(2, 0, 0), 3000, 100, 1);
+        case ErrorType_BatterySense:
+            BlinkColor(Utils::toColor(24, 0, 0), 3000, 100, 1);
+            break;
+        case ErrorType_BatteryCharge:
+            BlinkSingle(Utils::toColor(1, 0, 0), 50, 50, 30);
             break;
         case ErrorType_Accelerometer:
-            BlinkColor(Utils::toColor(16, 8, 0), 3000, 100, 1);
+            BlinkColor(Utils::toColor(0, 16, 8), 3000, 100, 1);
             break;
         case ErrorType_NTC:
-            BlinkColor(Utils::toColor(48, 16, 0), 3000, 100, 1);
+            BlinkColor(Utils::toColor(16, 8, 0), 3000, 100, 1);
             break;
         default:
             break;

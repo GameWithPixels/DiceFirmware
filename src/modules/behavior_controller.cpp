@@ -30,7 +30,7 @@ namespace Modules::BehaviorController
 
 		// Hook up the behavior controller to all the events it needs to know about to do its job!
         Bluetooth::Stack::hook(onConnectionEvent, nullptr);
-        BatteryController::hook(onBatteryStateChange, nullptr);
+        BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
         NRF_LOG_DEBUG("Behavior Controller init");
     }
 
@@ -85,6 +85,14 @@ namespace Modules::BehaviorController
         }
     }
 
+    bool processBatteryStateRule(int ruleIndex, BatteryController::BatteryState newState);
+
+    void processBatteryStateRuleCallback(void* param) {
+        // Recheck ourselves!
+        BatteryController::BatteryState newState = BatteryController::getBatteryState();
+        processBatteryStateRule((int)param, newState);
+    }
+
     bool processBatteryStateRule(int ruleIndex, BatteryController::BatteryState newState) {
         auto rule = DataSet::getRule(ruleIndex);
         auto condition = DataSet::getCondition(rule->condition);
@@ -98,14 +106,11 @@ namespace Modules::BehaviorController
             
             // Setup a timer to repeat this check in a little bit if appropriate
             if (cond->repeatPeriodMs != 0) {
-                // Trigger ourselves to check this condition again!
-                Timers::setDelayedCallback([](void* param) {
+                // If we had any other battery-rule related delayed callback, cancel them
+                Timers::cancelDelayedCallback(processBatteryStateRuleCallback);
 
-                    // Recheck ourselves!
-                    BatteryController::BatteryState newState = BatteryController::getBatteryState();
-                    processBatteryStateRule((int)param, newState);
-
-                }, (void*)ruleIndex, cond->repeatPeriodMs);
+                // And trigger ourselves to check this condition again!
+                Timers::setDelayedCallback(processBatteryStateRuleCallback, (void*)ruleIndex, cond->repeatPeriodMs);
             }
 
             // Go on, do the thing!

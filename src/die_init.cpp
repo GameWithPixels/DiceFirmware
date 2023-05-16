@@ -138,41 +138,50 @@ namespace Die
             // Hardware drivers can fail because of physical problems (bad pcb, bad components, damage, etc...)
             //--------------------
 
-            // Lights depend on board info as well
-            LEDs::init([] (bool success) {
-                // If LED init failed, we will "try" to turn LEDs on, hoping the problem is simply an led chain thing
-                if (!success) {
-                    LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_LEDs);
-                }
+            // Battery sense pin depends on board info
+            // on fail blink red one long time then power off
+            static bool batteryInitRet = false;
+            batteryInitRet = Battery::init();
 
-                // Battery Temperature Module
-                // on fail blink red 3 short times then power off
-                NTC::init();
+            // Accel pins depend on the board info
+            // on fail blink 2 short times then power off
+            static bool accInitRet = false;
+            accInitRet = Accelerometer::init();
 
-                // Temperature sensor
-                MCUTemperature::init();
+            // Battery Temperature Module
+            // on fail blink red 3 short times then power off
+            NTC::init();
 
-                // Temperature Module
-                Temperature::init([] (bool success) {
-                    if (!success) {
+            // Temperature sensor
+            MCUTemperature::init();
+
+            // Temperature Module
+            Temperature::init([] (bool tempInitRetParam) {
+
+                static bool tempInitRet = false;
+                tempInitRet = tempInitRetParam;
+                // Battery controller relies on the battery driver
+                BatteryController::init();
+
+                // Lights depend on board info as well
+                LEDs::init([] (bool ledInitRet) {
+                    // If LED init failed, we will "try" to turn LEDs on, hoping the problem is simply an led chain thing
+                    if (!ledInitRet) {
+                        LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_LEDs);
+                    }
+
+                    if (!tempInitRet) {
                         LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_NTC);
                     }
 
-                    // Battery sense pin depends on board info
-                    // on fail blink red one long time then power off
-                    if (!Battery::init()) {
-                        LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_Battery);
+                    // Now that we have leds, indicate battery or acc errors
+                    if (!batteryInitRet) {
+                        LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_BatterySense);
                     }
 
-                    // Accel pins depend on the board info
-                    // on fail blink 2 short times then power off
-                    if (!Accelerometer::init()) {
+                    if (!accInitRet) {
                         LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_Accelerometer);
                     }
-
-                    //--------------------
-                    // Initialize Modules
-                    //--------------------
 
                     // Animation set needs flash and board info
                     DataSet::init([] () {
@@ -187,9 +196,6 @@ namespace Die
 
                         // Animation controller relies on animation set
                         AnimController::init();
-
-                        // Battery controller relies on the battery driver
-                        BatteryController::init();
 
                         //--------------------
                         // Initialize Bluetooth Advertising Data + Name
@@ -222,7 +228,7 @@ namespace Die
                         // Before we turn the radio on, check the battery level in validation mode
                         // We want to make sure the die is at least 50% charged!
                         if (inValidation && !ValidationManager::checkMinVBat()) {
-                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_Battery);
+                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_BatteryCharge);
                         }
 
                         // Start advertising!

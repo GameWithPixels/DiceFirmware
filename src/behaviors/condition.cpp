@@ -90,7 +90,7 @@ namespace Behaviors
     bool ConditionBatteryState::checkTrigger(Modules::BatteryController::BatteryState newState) const {
         bool ret = false;
         if (flags & ConditionBatteryState_Ok) {
-            // The flag says we should trigger is the battery is now Ok
+            // The flag says we should trigger if the battery is now Ok
             ret = ret || (newState == Modules::BatteryController::BatteryState_Ok);
         }
         if (flags & ConditionBatteryState_Low) {
@@ -102,17 +102,11 @@ namespace Behaviors
         if (flags & ConditionBatteryState_Done) {
             ret = ret || (newState == Modules::BatteryController::BatteryState_Done);
         }
-        if (flags & ConditionBatteryState_Transition) {
-            ret = ret || (newState == Modules::BatteryController::BatteryState_Transition);
-        }
         if (flags & ConditionBatteryState_BadCharging) {
             ret = ret || (newState == Modules::BatteryController::BatteryState_BadCharging);
         }
         if (flags & ConditionBatteryState_Error) {
             ret = ret || (newState == Modules::BatteryController::BatteryState_Error);
-        }
-        if (flags & ConditionBatteryState_TrickleCharge) {
-            ret = ret || (newState == Modules::BatteryController::BatteryState_TrickleCharge);
         }
         return ret;
     }

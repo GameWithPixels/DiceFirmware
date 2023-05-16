@@ -21,6 +21,7 @@ namespace DriversNRF
         typedef void (*DelayedCallback)(void* param);
         bool setDelayedCallback(DelayedCallback callback, void* param, int periodMs);
         bool cancelDelayedCallback(DelayedCallback callback, void* param);
+        bool cancelDelayedCallback(DelayedCallback callback);
         void pauseDelayedCallbacks();
         void resumeDelayedCallbacks();
     }

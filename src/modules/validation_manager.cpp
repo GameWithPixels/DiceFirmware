@@ -22,7 +22,7 @@ using namespace DriversHW;
 using namespace Bluetooth;
 
 #define VALIDATION_MODE_SLEEP_DELAY_MS 25000 // milliseconds
-#define VALIDATION_MIN_VBAT_TIMES_1000 3.6f // volts
+#define VALIDATION_MIN_VBAT_TIMES_1000 3500 // millivolts
 namespace Modules::ValidationManager
 {
     static AnimationBlinkId nameAnim;

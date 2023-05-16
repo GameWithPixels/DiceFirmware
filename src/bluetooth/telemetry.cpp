@@ -149,10 +149,9 @@ namespace Bluetooth::Telemetry
 
             // Stop being notified!
             Bluetooth::Stack::unHook(onConnectionEvent);
-
             Accelerometer::unHookFrameData(onAccDataReceived);
-
             Stack::unHookRssi(onRssiChanged);
+            Temperature::unHookTemperatureChange(onTemperatureChanged);
         }
     }
 }

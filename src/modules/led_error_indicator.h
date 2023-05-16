@@ -8,7 +8,8 @@ namespace Modules::LEDErrorIndicator
     {
         ErrorType_None = 0,
         ErrorType_LEDs,
-        ErrorType_Battery,
+        ErrorType_BatterySense,
+        ErrorType_BatteryCharge,
         ErrorType_Accelerometer,
         ErrorType_NTC,
     };

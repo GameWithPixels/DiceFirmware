@@ -5,6 +5,7 @@
 #include "config/settings.h"
 #include "core/delegate_array.h"
 #include "drivers_hw/neopixel.h"
+#include "drivers_hw/battery.h"
 #include "drivers_nrf/log.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/scheduler.h"
@@ -62,14 +63,21 @@ namespace Modules::LEDs
         memset(pixels, 0, MAX_COUNT * sizeof(uint32_t));
         numLed = board->ledCount;
 
-        testLEDReturn([](bool success) {
-            if (success) {
-                NRF_LOG_DEBUG("LEDs init, powerPin=%d", (int)powerPin);
-            } else {
-                NRF_LOG_ERROR("LED Return not detected");
-            }
-            _callback(success);
-        });
+        if (BatteryController::getState() != BatteryController::State_Empty &&
+            BatteryController::getState() != BatteryController::State_Low &&
+            BatteryController::getState() != BatteryController::State_ChargingLow) {
+            testLEDReturn([](bool success) {
+                if (success) {
+                    NRF_LOG_DEBUG("LEDs init, powerPin=%d", (int)powerPin);
+                } else {
+                    NRF_LOG_ERROR("LED Return not detected");
+                }
+                _callback(success);
+            });
+        } else {
+            // Don't try to turn LED power on, voltage is too low
+            _callback(true);
+        }
     }
 
     
@@ -190,13 +198,18 @@ namespace Modules::LEDs
         if (isPixelDataZero()) {
             setPowerOff();
         } else {
-            // Turn power on so we display something!!!
-            setPowerOn([](void* ignore) {
-                if (BatteryController::getBatteryState() == BatteryController::BatteryState_Low) {
-                    clampColors();
-                }
-                NeoPixel::show(pixels);
-            }, nullptr);
+            // Only turn power on if Battery is strong enough
+            if (BatteryController::getState() != BatteryController::State_Empty) {
+                // Turn power on so we display something!!!
+                setPowerOn([](void* ignore) {
+                    // Check battery and coil voltage to determine if we should turn leds on
+                    if (BatteryController::getState() == BatteryController::State_Low ||
+                        BatteryController::getState() == BatteryController::State_ChargingLow) {
+                        clampColors();
+                    }
+                    NeoPixel::show(pixels);
+                }, nullptr);
+            }
         }
     }
 

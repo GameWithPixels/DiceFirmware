@@ -62,7 +62,7 @@ namespace Bluetooth::CustomAdvertisingDataHandler
         Accelerometer::hookRollState(onRollStateChange, nullptr);
 
         // And battery events too
-        BatteryController::hook(onBatteryStateChange, nullptr);
+        BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
         BatteryController::hookLevel(onBatteryLevelChange, nullptr);
     }
 
@@ -71,7 +71,7 @@ namespace Bluetooth::CustomAdvertisingDataHandler
         Accelerometer::unHookRollState(onRollStateChange);
 
         // Unhook battery events too
-        BatteryController::unHook(onBatteryStateChange);
+        BatteryController::unHookBatteryState(onBatteryStateChange);
         BatteryController::unHookLevel(onBatteryLevelChange);
     }
 

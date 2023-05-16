@@ -168,7 +168,7 @@ namespace Modules::AnimationPreview
     void BlinkIdHandler(const Message* msg)
     {
         auto *message = (const MessageBlinkId *)msg;
-        NRF_LOG_DEBUG("Received request to blink id with brightness=%d and loop=%d", message->brightness, message->loop);
+        NRF_LOG_INFO("Received request to blink id with brightness=%d and loop=%d", message->brightness, message->loop);
 
         // Create and initialize animation data
         // Note: we keep the data in a static variable so it stays valid after this call returns

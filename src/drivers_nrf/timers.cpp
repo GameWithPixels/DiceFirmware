@@ -7,7 +7,7 @@
 #include "nrf_gpio.h"
 #include "nrf_drv_clock.h"
 
-#define MAX_DELAYED_CALLS 4
+#define MAX_DELAYED_CALLS 8
 
 namespace DriversNRF::Timers
 {
@@ -155,6 +155,30 @@ namespace DriversNRF::Timers
             if (insertIndex == 0) {
                 // Start the timer
                 startTimer(delayedCallbacksTimer, periodMs, nullptr);
+            }
+        }
+        return ret;
+    }
+
+    bool cancelDelayedCallback(DelayedCallback callback) { 
+        bool ret = false;
+        for (int i = 0; i < delayedCallbacksCount; ++i) {
+            if (delayedCallbacks[i].callback == callback) {
+                // Found the item to remove
+                if (i == 0) {
+                    stopTimer(delayedCallbacksTimer);
+                    if (delayedCallbacksCount > 1) {
+                        int nextMs = delayedCallbacks[1].callbackTime - delayedCallbacks[0].callbackTime;
+                        // Start the timer
+                        startTimer(delayedCallbacksTimer, nextMs, nullptr);
+                    }
+                }
+                for (int j = i; j < delayedCallbacksCount - 1; ++j) {
+                    delayedCallbacks[j] = delayedCallbacks[j+1];
+                }
+                delayedCallbacksCount--;
+                ret = true;
+                break;
             }
         }
         return ret;
