@@ -39,23 +39,29 @@ namespace Modules::BehaviorController
         // Do we have a hello goodbye condition
         auto bhv = DataSet::getBehavior();
 
-        // Iterate the rules and look for one!
-        for (int i = 0; i < bhv->rulesCount; ++i) {
-            auto rule = DataSet::getRule(bhv->rulesOffset + i);
-            auto condition = DataSet::getCondition(rule->condition);
-            if (condition->type == Behaviors::Condition_HelloGoodbye) {
-                // This is the right kind of condition, check it!
-                auto cond = static_cast<const Behaviors::ConditionHelloGoodbye*>(condition);
-                if (cond->checkTrigger(true)) {
-                    // Go on, do the thing!
-                    if (PowerManager::checkFromSysOff()) 
-                    {
-                        NRF_LOG_DEBUG("Skipping HelloGoodbye Condition");
-                    }
-                    else
-                    {
-                        NRF_LOG_DEBUG("Triggering a HelloGoodbye Condition");
-                        Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
+        // Trigger battery state rule
+        auto battState = BatteryController::getBatteryState();
+        if (battState == BatteryController::BatteryState_Charging) {
+            onBatteryStateChange(nullptr, battState);
+        } else {
+            // Iterate the rules and look for one!
+            for (int i = 0; i < bhv->rulesCount; ++i) {
+                auto rule = DataSet::getRule(bhv->rulesOffset + i);
+                auto condition = DataSet::getCondition(rule->condition);
+                if (condition->type == Behaviors::Condition_HelloGoodbye) {
+                    // This is the right kind of condition, check it!
+                    auto cond = static_cast<const Behaviors::ConditionHelloGoodbye*>(condition);
+                    if (cond->checkTrigger(true)) {
+                        // Go on, do the thing!
+                        if (PowerManager::checkFromSysOff()) 
+                        {
+                            NRF_LOG_DEBUG("Skipping HelloGoodbye Condition");
+                        }
+                        else
+                        {
+                            NRF_LOG_DEBUG("Triggering a HelloGoodbye Condition");
+                            Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
+                        }
                     }
                 }
             }

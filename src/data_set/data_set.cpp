@@ -31,6 +31,7 @@ using namespace Behaviors;
 namespace DataSet
 {
 	void ReceiveDataSetHandler(const Bluetooth::Message* msg);
+	void ProgramDefaultAnimSetHandler(const Message* msg);
 	uint32_t computeDataSetSize();
 	uint32_t computeDataSetHash();
 
@@ -79,6 +80,7 @@ namespace DataSet
 			hash = computeDataSetHash();
 
 			MessageService::RegisterMessageHandler(Message::MessageType_TransferAnimSet, ReceiveDataSetHandler);
+			MessageService::RegisterMessageHandler(Message::MessageType_ProgramDefaultAnimSet, ProgramDefaultAnimSetHandler);
 			NRF_LOG_INFO("DataSet init, size: 0x%x, hash: 0x%08x", size, hash);
 			auto callBackCopy = _callback;
 			_callback = nullptr;
@@ -280,6 +282,14 @@ namespace DataSet
 			ack.result = 0;
 			MessageService::SendMessage(&ack);
 		}
+	}
+
+	void ProgramDefaultAnimSetHandler(const Message* msg) {
+		// Reprogram the default dataset
+		ProgramDefaultDataSet(*SettingsManager::getSettings(), [](bool success) {
+			Bluetooth::MessageService::SendMessage(Message::MessageType_ProgramDefaultAnimSetFinished);
+		});
+
 	}
 
 	uint32_t computeDataSetDataSize(const Data* newData) {

@@ -332,14 +332,6 @@ struct MessageRequestTelemetry
 	MessageRequestTelemetry() : Message(Message::MessageType_RequestTelemetry) {}
 };
 
-struct MessageProgramDefaultAnimSet
-	: public Message
-{
-	uint32_t color;
-
-	MessageProgramDefaultAnimSet() : Message(Message::MessageType_ProgramDefaultAnimSet) {}
-};
-
 struct MessageBlink
 	: public Message
 {
