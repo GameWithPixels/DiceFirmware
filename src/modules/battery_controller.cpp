@@ -18,9 +18,9 @@ using namespace Utils;
 
 #define BATTERY_TIMER_MS 300	// ms
 #define BATTERY_TIMER_MS_SLOW 5000	// ms
-#define BATTERY_TIMER_MS_QUICK 100 //ms
+
 #define MAX_STATE_CLIENTS 2
-#define MAX_BATTERY_CLIENTS 3
+#define MAX_BATTERY_CLIENTS 4
 #define MAX_LEVEL_CLIENTS 2
 #define VCOIL_ON_THRESHOLD 300 //0.3V
 #define VCOIL_OFF_THRESHOLD 4000 //4.0V
@@ -30,7 +30,9 @@ using namespace Utils;
 #define BATTERY_LOW_PCT 10 // 10%
 #define BATTERY_ALMOST_FULL_PCT 99 // 99%
 #define TRANSITION_ON_TOO_LONG_DURATION_MS 1000 // 1s
+#define TRANSITION_ON_TOO_LONG_DURATION_SLOW_MS (BATTERY_TIMER_MS_SLOW + 100) // 5s
 #define TRANSITION_OFF_TOO_LONG_DURATION_MS 5000 // 5s
+#define TRANSITION_OFF_TOO_LONG_DURATION_SLOW_MS (BATTERY_TIMER_MS_SLOW + 100) // 5s
 #define TEMPERATURE_TOO_COLD_ENTER 0   // degrees C
 #define TEMPERATURE_TOO_COLD_LEAVE 500 // degrees C
 #define TEMPERATURE_TOO_HOT_ENTER 4500 // degrees C
@@ -38,6 +40,7 @@ using namespace Utils;
 #define LEVEL_SMOOTHING_RATIO 5
 #define MAX_V_MILLIS 10000
 #define MAX_CHARGE_START_TIME 3000 //ms
+#define MAX_CHARGE_START_TIME_SLOW (BATTERY_TIMER_MS_SLOW + 100) //ms
 #define VBAT_MEASUREMENT_THRESHOLD 50 //mV
 
 namespace Modules::BatteryController
@@ -52,6 +55,12 @@ namespace Modules::BatteryController
 
     void onEnableChargingHandler(const Message *msg);
     void onDisableChargingHandler(const Message *msg);
+
+    enum UpdateRate
+    {
+        UpdateRate_Normal,
+        UpdateRate_Slow
+    };
 
     enum CapacityState
     {
@@ -68,6 +77,7 @@ namespace Modules::BatteryController
         CoilState_High
     };
     
+    static UpdateRate currentUpdateRate = UpdateRate_Normal;
     static State currentState = State_Unknown;
     static uint32_t currentStateStartTime = 0; // Time when we switched to the current battery state
 
@@ -144,6 +154,8 @@ namespace Modules::BatteryController
             currentBatteryTempState = BatteryTemperatureState_Normal;
         }
         // Other values (voltage, vcoil) already displayed by Battery::init()
+
+        currentUpdateRate = UpdateRate_Normal;
 
         // Set initial battery state
         currentState = computeNewState();
@@ -260,16 +272,22 @@ namespace Modules::BatteryController
                             case CapacityState::CapacityState_Average:
                             default:
                                 // If we remain in this state too long, it's an error
-                                if (Timers::millis() - currentStateStartTime > MAX_CHARGE_START_TIME) {
-                                    // We should have started charging!!!
-                                    ret = State::State_Error;
-                                } else {
-                                    if (capacityState == CapacityState::CapacityState_Empty) {
-                                        ret = State::State_Empty;
-                                    } else if (capacityState == CapacityState::CapacityState_Low) {
-                                        ret = State::State_Low;
+                                {
+                                    uint32_t maxTransitionTime = MAX_CHARGE_START_TIME;
+                                    if (currentUpdateRate == UpdateRate_Slow) {
+                                        maxTransitionTime = MAX_CHARGE_START_TIME_SLOW;
+                                    }
+                                    if (Timers::millis() - currentStateStartTime > maxTransitionTime) {
+                                        // We should have started charging!!!
+                                        ret = State::State_Error;
                                     } else {
-                                        ret = State::State_Ok;
+                                        if (capacityState == CapacityState::CapacityState_Empty) {
+                                            ret = State::State_Empty;
+                                        } else if (capacityState == CapacityState::CapacityState_Low) {
+                                            ret = State::State_Low;
+                                        } else {
+                                            ret = State::State_Ok;
+                                        }
                                     }
                                 }
                                 break;
@@ -284,16 +302,28 @@ namespace Modules::BatteryController
                     // Partially on coil
                     switch (currentState) {
                         case State_TransitionOn:
-                            if (Timers::millis() - currentStateStartTime > TRANSITION_ON_TOO_LONG_DURATION_MS) {
-                                // "She's dead Jim!"
-                                ret = State::State_BadCharging;
-                            } // else it hasn't been long enough to know for sure
+                            {
+                                uint32_t maxTransitionTime = TRANSITION_ON_TOO_LONG_DURATION_MS;
+                                if (currentUpdateRate == UpdateRate_Slow) {
+                                    maxTransitionTime = TRANSITION_ON_TOO_LONG_DURATION_SLOW_MS;
+                                }
+                                if (Timers::millis() - currentStateStartTime > maxTransitionTime) {
+                                    // "She's dead Jim!"
+                                    ret = State::State_BadCharging;
+                                } // else it hasn't been long enough to know for sure
+                            }
                             break;
                         case State_TransitionOff:
-                            if (Timers::millis() - currentStateStartTime > TRANSITION_OFF_TOO_LONG_DURATION_MS) {
-                                // "She's dead Jim!"
-                                ret = State::State_BadCharging;
-                            } // else it hasn't been long enough to know for sure
+                            {
+                                uint32_t maxTransitionTime = TRANSITION_OFF_TOO_LONG_DURATION_MS;
+                                if (currentUpdateRate == UpdateRate_Slow) {
+                                    maxTransitionTime = TRANSITION_OFF_TOO_LONG_DURATION_SLOW_MS;
+                                }
+                                if (Timers::millis() - currentStateStartTime > maxTransitionTime) {
+                                    // "She's dead Jim!"
+                                    ret = State::State_BadCharging;
+                                } // else it hasn't been long enough to know for sure
+                            }
                             break;
 		                case State::State_Ok:
 		                case State::State_Low:
@@ -482,8 +512,10 @@ namespace Modules::BatteryController
 
     void slowMode(bool slow) {
         if (slow) {
+            currentUpdateRate = UpdateRate_Slow;
             batteryTimerMs = BATTERY_TIMER_MS_SLOW;
         } else {
+            currentUpdateRate = UpdateRate_Normal;
             batteryTimerMs = BATTERY_TIMER_MS;
         }
         // The new timer duration will kick in on the next reset of the battery timer.
@@ -500,13 +532,8 @@ namespace Modules::BatteryController
         } else {
             Timers::stopTimer(batteryControllerTimer);
 
-            // If it's been too long since we checked, check right away
-            uint32_t delay = batteryTimerMs;
-            if (DriversNRF::Timers::millis() - currentStateStartTime > batteryTimerMs) {
-                delay = BATTERY_TIMER_MS_QUICK;
-            }
             // Restart the timer
-		    Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(delay), NULL);
+		    Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(batteryTimerMs), NULL);
         }
     }
 

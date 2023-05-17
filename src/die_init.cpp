@@ -67,7 +67,7 @@ using namespace Modules;
 namespace Die
 {
     // Callback for calling PowerManager::feed to prevent sleep mode due to animations
-    void feed(void* token)  {
+    void feed(void* param, Accelerometer::RollState newState, int newFace)  {
         PowerManager::feed();
     }
 
@@ -214,7 +214,7 @@ namespace Die
                         const bool inValidation = ValidationManager::inValidation();
                         if (!inValidation) {
                             // Want to prevent sleep mode due to animations while not in validation
-                            AnimController::hook(feed, nullptr);
+                            Accelerometer::hookRollState(feed, nullptr);
                         }
 
                         // Behavior Controller relies on all the modules

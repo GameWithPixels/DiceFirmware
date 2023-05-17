@@ -34,6 +34,7 @@ using namespace Animations;
 using namespace DriversNRF;
 using namespace DriversHW;
 
+#define CHARGER_STATE_CHANGE_FADE_OUT_MS 250
 namespace Die
 {
     static TopLevelState currentTopLevelState = TopLevel_SoloPlay;
@@ -110,7 +111,7 @@ namespace Die
             case PowerManager::PowerManagerEvent_PrepareSleep:
                 //NRF_LOG_INFO("Going to Sleep");
                 Accelerometer::stop();
-                AnimController::stop();
+                //AnimController::stop();
                 BatteryController::slowMode(true);
                 Temperature::slowMode(true);
                 Stack::stopAdvertising();
@@ -132,7 +133,7 @@ namespace Die
             case PowerManager::PowerManagerEvent_WakingUpFromSleep:
                 //NRF_LOG_INFO("Resuming from Sleep");
                 Accelerometer::wakeUp();
-                AnimController::start();
+                //AnimController::start();
                 BatteryController::slowMode(false);
                 Temperature::slowMode(false);
                 Stack::startAdvertising();
@@ -166,7 +167,7 @@ namespace Die
                 BehaviorController::DisableAccelerometerRules();
 
                 // Kill any currently executing accelerometer-triggered animation
-                AnimController::fadeOutAnimsWithTag(Animations::AnimationTag_Accelerometer);
+                AnimController::fadeOutAnimsWithTag(Animations::AnimationTag_Accelerometer, CHARGER_STATE_CHANGE_FADE_OUT_MS);
                 break;
         }
     }    

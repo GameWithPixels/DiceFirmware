@@ -258,7 +258,7 @@ namespace Modules::AnimController
 		// Else the animation isn't playing
 	}
 
-	void fadeOutAnimsWithTag(Animations::AnimationTag tagToStop) {
+	void fadeOutAnimsWithTag(Animations::AnimationTag tagToStop, int fadeOutTimeMs) {
 
 		// Is there already an animation for this?
 		int ms = animControllerTicks * ANIM_FRAME_DURATION;
@@ -268,7 +268,7 @@ namespace Modules::AnimController
 			if (prevAnim->tag == tagToStop)
 			{
 				// Fade out the previous animation pretty quickly
-				prevAnim->forceFadeOut(ms + FORCE_FADE_OUT_DURATION_MS);
+				prevAnim->forceFadeOut(ms + fadeOutTimeMs);
 			}
 		}
 	}

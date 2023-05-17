@@ -113,8 +113,9 @@ namespace DataSet
             sizeof(ConditionFaceCompare) + 
             sizeof(ConditionBatteryState) +
             sizeof(ConditionBatteryState) +
+            sizeof(ConditionBatteryState) +
             sizeof(ConditionBatteryState);
-        int ruleCount = 7;
+        int ruleCount = 8;
         int behaviorCount = 1;
 
 		// Compute the size of the needed buffer to store all that data!
@@ -215,15 +216,15 @@ namespace DataSet
 		newData->tailMarker = ANIMATION_SET_VALID_KEY;
 
         // Cute way to create Red Green Blue colors in palette
-        writePalette[0] = 16;
+        writePalette[0] = 8;
         writePalette[1] = 0;
         writePalette[2] = 0;
         writePalette[3] = 0;
-        writePalette[4] = 16;
+        writePalette[4] = 8;
         writePalette[5] = 0;
         writePalette[6] = 0;
         writePalette[7] = 0;
-        writePalette[8] = 16;
+        writePalette[8] = 8;
 
 		// Create animations
 		for (int c = 0; c < 7; ++c) {
@@ -241,20 +242,19 @@ namespace DataSet
         writeSimpleAnimations[1].count = 10;
         writeSimpleAnimations[1].duration = 2000;
         writeSimpleAnimations[1].colorIndex = 0; // Red
-	    writeSimpleAnimations[1].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+	    writeSimpleAnimations[1].faceMask = ANIM_FACEMASK_ALL_LEDS;
 
         // 2 Low battery
         writeSimpleAnimations[2].count = 3;
         writeSimpleAnimations[2].duration = 1500;
         writeSimpleAnimations[2].colorIndex = 0; // Red
-	    writeSimpleAnimations[2].faceMask = ANIM_FACEMASK_ALL_LEDS;
+	    writeSimpleAnimations[2].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
 
         // 3 Fully charged
         writeSimpleAnimations[3].count = 1;
-        writeSimpleAnimations[3].duration = 5000;
+        writeSimpleAnimations[3].duration = 3000;
         writeSimpleAnimations[3].colorIndex = 1; // Green
 	    writeSimpleAnimations[3].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
-        writeSimpleAnimations[3].fade = 0;
 
         // 4 Connection
         writeSimpleAnimations[4].count = 2;
@@ -366,7 +366,7 @@ namespace DataSet
         ConditionBatteryState* charge_batt = reinterpret_cast<ConditionBatteryState*>(address);
         charge_batt->type = Condition_BatteryState;
         charge_batt->flags = ConditionBatteryState_Flags::ConditionBatteryState_Charging;
-        charge_batt->repeatPeriodMs = 5000; // 10s
+        charge_batt->repeatPeriodMs = 5000; //s
         writeConditionsOffsets[5] = offset;
         offset += sizeof(ConditionBatteryState);
         address += sizeof(ConditionBatteryState);
@@ -380,7 +380,7 @@ namespace DataSet
         ConditionBatteryState* done_charge = reinterpret_cast<ConditionBatteryState*>(address);
         done_charge->type = Condition_BatteryState;
         done_charge->flags = ConditionBatteryState_Done;
-        done_charge->repeatPeriodMs = 3000; // 10s
+        done_charge->repeatPeriodMs = 5000; //s
         writeConditionsOffsets[6] = offset;
         offset += sizeof(ConditionBatteryState);
         address += sizeof(ConditionBatteryState);
@@ -393,15 +393,14 @@ namespace DataSet
         // Add Bad charging condition (index 7)
         ConditionBatteryState* bad_charge = reinterpret_cast<ConditionBatteryState*>(address);
         bad_charge->type = Condition_BatteryState;
-        bad_charge->flags = ConditionBatteryState_Flags::ConditionBatteryState_BadCharging;
-        bad_charge->repeatPeriodMs = 2000;
+        bad_charge->flags = ConditionBatteryState_BadCharging;
         writeConditionsOffsets[7] = offset;
         offset += sizeof(ConditionBatteryState);
         address += sizeof(ConditionBatteryState);
         // And matching action
         writeActions[7].type = Action_PlayAnimation;
         writeActions[7].animIndex = 1; // face led red
-        writeActions[7].faceIndex = BoardManager::getBoard()->ledCount - 1;
+        writeActions[7].faceIndex = FACE_INDEX_CURRENT_FACE; // Doesn't actually matter
         writeActions[7].loopCount = 1;
 
         // Create action offsets
