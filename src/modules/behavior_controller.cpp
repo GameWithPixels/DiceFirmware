@@ -60,7 +60,7 @@ namespace Modules::BehaviorController
                         else
                         {
                             NRF_LOG_DEBUG("Triggering a HelloGoodbye Condition");
-                            Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
+                            Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_Status);
                         }
                     }
                 }
@@ -82,7 +82,7 @@ namespace Modules::BehaviorController
                 if (cond->checkTrigger(connected)) {
                     NRF_LOG_DEBUG("Triggering a Connection State Condition");
                     // Go on, do the thing!
-                    Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
+                    Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_BluetoothNotification);
 
                     // We're done!
                     break;
@@ -120,7 +120,7 @@ namespace Modules::BehaviorController
             }
 
             // Go on, do the thing!
-            Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
+            Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_BatteryNotification);
         }
         return ret;
     }
@@ -181,7 +181,7 @@ namespace Modules::BehaviorController
 
             if (conditionTriggered) {
                 // do the thing
-                Behaviors::triggerActions(rule->actionOffset, rule->actionCount);
+                Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_Accelerometer);
 
                 // We're done
                 break;

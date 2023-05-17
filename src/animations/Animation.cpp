@@ -43,10 +43,15 @@ namespace Animations
 	AnimationInstance::AnimationInstance(const Animation* preset, const AnimationBits* bits) 
 		: animationPreset(preset)
 		, animationBits(bits)
+		, tag(AnimationTag_Unknown)
 	{
 	}
 
 	AnimationInstance::~AnimationInstance() {
+	}
+
+	void AnimationInstance::setTag(AnimationTag _tag) {
+		tag = _tag;
 	}
 
 	void AnimationInstance::start(int _startTime, uint8_t _remapFace, bool _loop) {

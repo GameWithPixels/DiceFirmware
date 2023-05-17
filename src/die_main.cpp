@@ -17,6 +17,8 @@
 #include "modules/accelerometer.h"
 #include "modules/anim_controller.h"
 #include "modules/battery_controller.h"
+#include "modules/behavior_controller.h"
+#include "modules/charger_proximity.h"
 #include "modules/temperature.h"
 #include "modules/validation_manager.h"
 #include "data_set/data_set.h"
@@ -42,6 +44,7 @@ namespace Die
 
     void whoAreYouHandler(const Message *message);
     void onConnectionEvent(void *token, bool connected);
+    void onChargerStateChange(void* param, ChargerProximity::ChargerProximityState newState);
 
     void playLEDAnimHandler(const Message* msg);
     void stopLEDAnimHandler(const Message* msg);
@@ -67,6 +70,7 @@ namespace Die
 
     void initDieLogic() {
         MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, setTopLevelStateHandler);
+        ChargerProximity::hook(onChargerStateChange, nullptr);
 
         NRF_LOG_DEBUG("Die Logic init");
     }
@@ -151,27 +155,27 @@ namespace Die
         Notifications::Rssi::notifyConnectionEvent(connected);
     }
 
-    // void onBatteryStateChange(void* token, BatteryController::BatteryState newState) {
-    //     switch (newState) {
-    //         case BatteryController::BatteryState_Charging:
-    //             AnimController::play(AnimationEvent_ChargingStart);
-    //             break;
-    //         case BatteryController::BatteryState_Low:
-    //             AnimController::play(AnimationEvent_LowBattery);
-    //             break;
-    //         case BatteryController::BatteryState_Ok:
-    //             AnimController::play(AnimationEvent_ChargingDone);
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    // }
+    void onChargerStateChange(void* param, ChargerProximity::ChargerProximityState newState) {
+        switch (newState) {
+            case ChargerProximity::ChargerProximityState_Off:
+                // Re-enable accelerometer animations
+                BehaviorController::EnableAccelerometerRules();
+                break;
+            case ChargerProximity::ChargerProximityState_On:
+                // Disable accelerometer-based animations
+                BehaviorController::DisableAccelerometerRules();
+
+                // Kill any currently executing accelerometer-triggered animation
+                AnimController::fadeOutAnimsWithTag(Animations::AnimationTag_Accelerometer);
+                break;
+        }
+    }    
 
     void playLEDAnimHandler(const Message* msg) {
         auto playAnimMessage = (const MessagePlayAnim*)msg;
         NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
 		auto animationPreset = DataSet::getAnimation((int)playAnimMessage->animation);
-        AnimController::play(animationPreset, DataSet::getAnimationBits(), playAnimMessage->remapFace, playAnimMessage->loop);
+        AnimController::play(animationPreset, DataSet::getAnimationBits(), playAnimMessage->remapFace, playAnimMessage->loop, Animations::AnimationTag_BluetoothMessage);
     }
 
     void stopLEDAnimHandler(const Message* msg) {

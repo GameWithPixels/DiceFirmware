@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "animations/animation_tag.h"
 
 #pragma pack(push, 1)
 
@@ -49,7 +50,7 @@ namespace Behaviors
     };
 
     // This method will execute the passed in action from the dataset
-    void triggerActions(int actionOffset, int actionCount);
+    void triggerActions(int actionOffset, int actionCount, Animations::AnimationTag tag);
 }
 
 #pragma pack(pop)

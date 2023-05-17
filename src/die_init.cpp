@@ -41,6 +41,7 @@
 #include "modules/instant_anim_controller.h"
 #include "modules/battery_controller.h"
 #include "modules/behavior_controller.h"
+#include "modules/charger_proximity.h"
 #include "modules/hardware_test.h"
 #include "modules/temperature.h"
 #include "modules/validation_manager.h"
@@ -162,6 +163,9 @@ namespace Die
                 tempInitRet = tempInitRetParam;
                 // Battery controller relies on the battery driver
                 BatteryController::init();
+
+                // Charger proximity translates info from the battery controller
+                ChargerProximity::init();
 
                 // Lights depend on board info as well
                 LEDs::init([] (bool ledInitRet) {

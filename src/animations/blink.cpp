@@ -31,6 +31,6 @@ namespace Animations
 
         Modules::AnimController::stop(&blinkAnim);
         const auto remapFace = Config::BoardManager::getBoard()->ledCount - 1;
-        Modules::AnimController::play(&blinkAnim, &animBits, remapFace, loop);
+        Modules::AnimController::play(&blinkAnim, &animBits, remapFace, loop, Animations::AnimationTag_BluetoothMessage);
     }
 }

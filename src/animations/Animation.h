@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "animation_tag.h"
 
 #pragma pack(push, 1)
 
@@ -52,6 +53,7 @@ namespace Animations
 		int startTime; //ms
 		int forceFadeTime; //ms, used when fading out (because anim is being replaced), -1 otherwise
 		uint8_t remapFace;
+		AnimationTag tag; // used to identify where the animation came from / what system triggered it
 		bool loop;
 
 	protected:
@@ -67,6 +69,8 @@ namespace Animations
 		// return value of the method is the number of faces to turn on
 		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]) = 0;
 		virtual int stop(int retIndices[]) = 0;
+		// Set the animation source tag
+		void setTag(AnimationTag _tag);
 		// sets all of the LEDs that satisfy the face mask (eg: all LEDs on = 0x000FFFFF) to the given color and then stores this information in retIndices and retColors
 		int setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]);
 		// sets all indices that satisfy the facemask and stores the info in retIndices

@@ -167,6 +167,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/animation_preview.cpp \
 	$(PROJ_DIR)/src/modules/battery_controller.cpp \
 	$(PROJ_DIR)/src/modules/behavior_controller.cpp \
+	$(PROJ_DIR)/src/modules/charger_proximity.cpp \
 	$(PROJ_DIR)/src/modules/hardware_test.cpp \
 	$(PROJ_DIR)/src/modules/instant_anim_controller.cpp \
 	$(PROJ_DIR)/src/modules/led_color_tester.cpp \

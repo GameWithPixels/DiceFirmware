@@ -202,28 +202,8 @@ namespace Modules::AnimController
 		}
 	}
 
-	void play(const Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace, bool loop)
+	void play(const Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace, bool loop, Animations::AnimationTag tag)
 	{
-		#if (NRF_LOG_DEFAULT_LEVEL == 4)
-		NRF_LOG_DEBUG("Playing Anim!");
-		NRF_LOG_DEBUG("  Track count: %d", anim->trackCount);
-		for (int t = 0; t < anim->trackCount; ++t) {
-			auto& track = anim->GetTrack(t);
-			NRF_LOG_DEBUG("  Track %d:", t);
-			NRF_LOG_DEBUG("  Track Offset %d:", anim->tracksOffset + t);
-			NRF_LOG_DEBUG("  LED index %d:", track.ledIndex);
-			NRF_LOG_DEBUG("  RGB Track Offset %d:", track.trackOffset);
-			auto& rgbTrack = track.getLEDTrack();
-			NRF_LOG_DEBUG("  RGB Keyframe count: %d", rgbTrack.keyFrameCount);
-			for (int k = 0; k < rgbTrack.keyFrameCount; ++k) {
-				auto& keyframe = rgbTrack.getRGBKeyframe(k);
-				int time = keyframe.time();
-				uint32_t color = keyframe.color(0);
-				NRF_LOG_DEBUG("    Offset %d: %d -> %06x", (rgbTrack.keyframesOffset + k), time, color);
-			}
-		}
-		#endif
-
 		// Is there already an animation for this?
 		int prevAnimIndex = 0;
 		for (; prevAnimIndex < animationCount; ++prevAnimIndex)
@@ -246,6 +226,7 @@ namespace Modules::AnimController
 		{
 			// Add a new animation
 			animations[animationCount] = Animations::createAnimationInstance(animationPreset, animationBits);
+			animations[animationCount]->setTag(tag);
 			animations[animationCount]->start(ms, remapFace, loop);
 			animationCount++;
 		}
@@ -275,6 +256,21 @@ namespace Modules::AnimController
 			Animations::destroyAnimationInstance(prevAnimInstance);
 		}
 		// Else the animation isn't playing
+	}
+
+	void fadeOutAnimsWithTag(Animations::AnimationTag tagToStop) {
+
+		// Is there already an animation for this?
+		int ms = animControllerTicks * ANIM_FRAME_DURATION;
+		for (int prevAnimIndex = 0; prevAnimIndex < animationCount; ++prevAnimIndex)
+		{
+			auto prevAnim = animations[prevAnimIndex];
+			if (prevAnim->tag == tagToStop)
+			{
+				// Fade out the previous animation pretty quickly
+				prevAnim->forceFadeOut(ms + FORCE_FADE_OUT_DURATION_MS);
+			}
+		}
 	}
 
 	/// <summary>

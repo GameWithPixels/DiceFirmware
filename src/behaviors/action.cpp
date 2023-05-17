@@ -10,7 +10,7 @@ using namespace Bluetooth;
 
 namespace Behaviors
 {
-    void triggerActions(int actionOffset, int actionCount) {
+    void triggerActions(int actionOffset, int actionCount, Animations::AnimationTag tag) {
         for (int index = actionOffset; index < actionOffset + actionCount; ++index) {
             // Fetch the action from the dataset
             auto action = DataSet::getAction(index);
@@ -24,7 +24,7 @@ namespace Behaviors
                                 Accelerometer::currentFace() : playAnimAction->faceIndex;
                             NRF_LOG_INFO("Playing anim %d on face %d, animFaceIndex: %d", playAnimAction->animIndex, faceIndex, playAnimAction->faceIndex);
                             auto animationPreset = DataSet::getAnimation(playAnimAction->animIndex);
-                            AnimController::play(animationPreset, DataSet::getAnimationBits(), faceIndex, false); // FIXME, handle remapFace and loopCount properly
+                            AnimController::play(animationPreset, DataSet::getAnimationBits(), faceIndex, false, tag); // FIXME, handle remapFace and loopCount properly
                         } else {
                             NRF_LOG_ERROR("Invalid animation index %d", playAnimAction->animIndex);
                         }
