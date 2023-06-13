@@ -2,40 +2,37 @@
 
 #include "stdint.h"
 
-namespace Bluetooth
+namespace Bluetooth::Stack
 {
-    namespace Stack
+    void init();
+    void initAdvertising();
+    void updateCustomAdvertisingData(uint8_t* data, uint16_t size);
+    void disconnect();
+    void startAdvertising();
+    void disableAdvertisingOnDisconnect();
+    void enableAdvertisingOnDisconnect();
+    bool isConnected();
+    void resetOnDisconnect();
+
+    enum SendResult
     {
-        void init();
-        void initAdvertising();
-        void updateCustomAdvertisingData(uint8_t* data, uint16_t size);
-        void disconnect();
-        void startAdvertising();
-        void disableAdvertisingOnDisconnect();
-        void enableAdvertisingOnDisconnect();
-        bool canSend();
-        void resetOnDisconnect();
+        SendResult_Ok = 0,
+        SendResult_Busy,            // Should try again later
+        SendResult_NotConnected,    // No connection
+        SendResult_Error,           // Any other error
+    };
 
-        enum SendResult
-        {
-            SendResult_Ok = 0,
-            SendResult_Busy,            // Should try again later
-            SendResult_NotConnected,    // No connection
-            SendResult_Error,           // Any other error
-        };
+    bool isBusy();
+    SendResult send(uint16_t handle, const uint8_t* data, uint16_t len);
+    void slowAdvertising();
+    void stopAdvertising();
 
-        SendResult send(uint16_t handle, const uint8_t* data, uint16_t len);
-        void slowAdvertising();
-        void stopAdvertising();
-        bool isConnected();
+    typedef void(*ConnectionEventMethod)(void* param, bool connected);
+    void hook(ConnectionEventMethod method, void* param);
+    void unHook(ConnectionEventMethod client);
+    void unHookWithParam(void* param);
 
-        typedef void(*ConnectionEventMethod)(void* param, bool connected);
-        void hook(ConnectionEventMethod method, void* param);
-        void unHook(ConnectionEventMethod client);
-        void unHookWithParam(void* param);
-
-        typedef void(*RssiEventMethod)(void* param, int8_t rssi, uint8_t channelIndex);
-        void hookRssi(RssiEventMethod method, void* param);
-        void unHookRssi(RssiEventMethod client);
-    }
+    typedef void(*RssiEventMethod)(void* param, int8_t rssi, uint8_t channelIndex);
+    void hookRssi(RssiEventMethod method, void* param);
+    void unHookRssi(RssiEventMethod client);
 }

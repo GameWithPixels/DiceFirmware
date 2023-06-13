@@ -102,8 +102,8 @@ namespace Bluetooth::MessageService
         NRF_LOG_DEBUG("Message Service init");
     }
 
-    bool canSend() {
-        return Stack::canSend();
+    bool isConnected() {
+        return Stack::isConnected();
     }
 
     void scheduled_update(void * p_event_data, uint16_t event_size) {
@@ -130,7 +130,7 @@ namespace Bluetooth::MessageService
                 NRF_LOG_INFO("Disconnected, clearing messages send queue!");
                 SendQueue.clear();
             }
-            else if (canSend()) {
+            else if (!Stack::isBusy()) {
                 NRF_LOG_INFO("%d", SendQueue.count());
                 SendQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
                     auto ret = send((const uint8_t*)msg, msgSize) != Stack::SendResult_Busy;

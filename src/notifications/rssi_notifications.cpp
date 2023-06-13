@@ -18,6 +18,7 @@ namespace Notifications::Rssi
     void onRssi(void *token, int8_t rssi, uint8_t channelIndex);
 
     void init() {
+        // We send RSSI over Bluetooth when requested and connected
         Bluetooth::MessageService::RegisterMessageHandler(Bluetooth::Message::MessageType_RequestRssi, getRssiHandler);
 
         NRF_LOG_DEBUG("RSSI notifications init");
@@ -63,7 +64,7 @@ namespace Notifications::Rssi
         const uint32_t time = DriversNRF::Timers::millis();
         if (lastMessageMs == 0 ||
             (time - lastMessageMs >= minIntervalMs && rssi != lastRssi)) {
-            if (MessageService::canSend()) {
+            if (MessageService::isConnected()) {
                 lastMessageMs = time;
                 lastRssi = rssi;
                 if (requestMode == TelemetryRequestMode_Once) {
@@ -77,7 +78,7 @@ namespace Notifications::Rssi
                 retMsg.rssi = rssi;
                 MessageService::SendMessage(&retMsg);
             } else {
-                NRF_LOG_DEBUG("Couldn't send RSSI message");
+                NRF_LOG_DEBUG("Disconnected, skipped sending RSSI message");
             }
         }
     }

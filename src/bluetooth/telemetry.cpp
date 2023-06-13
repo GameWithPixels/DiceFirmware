@@ -57,7 +57,7 @@ namespace Bluetooth::Telemetry
         // Check time interval since we last send a telemetry message
         const uint32_t time = DriversNRF::Timers::millis();
         if (allInit && time - lastMessageMs >= minIntervalMs) {
-            if (MessageService::canSend()) {
+            if (MessageService::isConnected()) {
                 lastMessageMs = time;
                 if (requestMode == TelemetryRequestMode_Once) {
                     stop();
@@ -75,7 +75,7 @@ namespace Bluetooth::Telemetry
                 NRF_LOG_INFO("Sending telemetry");
                 MessageService::SendMessage(&teleMessage);
             } else {
-                NRF_LOG_INFO("Couldn't send telemetry message");
+                NRF_LOG_DEBUG("Disconnected, skipped sending telemetry message");
             }
         }
     }

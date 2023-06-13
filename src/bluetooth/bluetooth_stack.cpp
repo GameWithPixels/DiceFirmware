@@ -431,8 +431,8 @@ namespace Bluetooth::Stack
         resetOnDisconnectPending = true;
     }
 
-    bool canSend() {
-        return connected && !notificationPending;
+    bool isBusy() {
+        return notificationPending;
     }
 
     SendResult send(uint16_t handle, const uint8_t* data, uint16_t len) {

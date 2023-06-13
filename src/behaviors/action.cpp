@@ -33,17 +33,13 @@ namespace Behaviors
                 case Action_RunOnDevice:
                     {
                         auto runOnDeviceAction = static_cast<const ActionRunOnDevice*>(action);
-                        if (MessageService::canSend())
+                        NRF_LOG_INFO("Sending message for remote action %08x", runOnDeviceAction->actionId);
+                        MessageRemoteAction remoteAction;
+                        // remoteAction.remoteActionType = runOnDeviceAction->remoteActionType;
+                        remoteAction.actionId = runOnDeviceAction->actionId;
+                        if (!MessageService::SendMessage(&remoteAction))
                         {
-                            NRF_LOG_INFO("Sending message for remote action %08x", runOnDeviceAction->actionId);
-                            MessageRemoteAction remoteAction;
-                            // remoteAction.remoteActionType = runOnDeviceAction->remoteActionType;
-                            remoteAction.actionId = runOnDeviceAction->actionId;
-                            MessageService::SendMessage(&remoteAction);
-                        }
-                        else
-                        {
-                            NRF_LOG_INFO("(Ignored) Remote action %08x", runOnDeviceAction->actionId);
+                            NRF_LOG_WARNING("Remote action %08x not send!", runOnDeviceAction->actionId);
                         }
                     }
                     break;

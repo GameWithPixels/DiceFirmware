@@ -13,7 +13,7 @@ namespace Bluetooth::MessageService
     #define GENERIC_DATA_RX_CHARACTERISTIC 0x0002
 
     void init();
-    bool canSend();
+    bool isConnected();
 
     void update();
 

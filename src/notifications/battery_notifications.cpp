@@ -14,6 +14,7 @@ namespace Notifications::Battery
     void onBatteryLevelChange(void *param, uint8_t levelPercent);
 
     void init() {
+        // We always send battery events over Bluetooth when connected
         MessageService::RegisterMessageHandler(Message::MessageType_RequestBatteryLevel, requestBatteryLevelHandler);
         BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
         BatteryController::hookLevel(onBatteryLevelChange, nullptr);
@@ -21,11 +22,8 @@ namespace Notifications::Battery
         NRF_LOG_DEBUG("Battery notifications init");
     }
 
-    void notifyConnectionEvent(bool connected) {
-    }
-
     void sendBatteryLevel() {
-        if (MessageService::canSend()) {
+        if (MessageService::isConnected()) {
             const auto level = BatteryController::getLevelPercent();
             const auto state = BatteryController::getBatteryState();
             NRF_LOG_INFO("Sending battery level: %d%%, state: %d", level, state);
@@ -33,6 +31,8 @@ namespace Notifications::Battery
             batteryMsg.levelPercent = level;
             batteryMsg.state = state;
             MessageService::SendMessage(&batteryMsg);
+        } else {
+            NRF_LOG_DEBUG("Disconnected, skipped sending battery state message");
         }
     }
 
