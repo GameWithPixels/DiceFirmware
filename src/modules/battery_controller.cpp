@@ -35,7 +35,7 @@ using namespace Utils;
 #define TRANSITION_OFF_TOO_LONG_DURATION_SLOW_MS (BATTERY_TIMER_MS_SLOW + 100) // 5s
 #define TEMPERATURE_TOO_COLD_ENTER 0   // degrees C
 #define TEMPERATURE_TOO_COLD_LEAVE 500 // degrees C
-#define TEMPERATURE_TOO_HOT_ENTER 5000 // degrees C
+#define TEMPERATURE_TOO_HOT_ENTER 4500 // degrees C
 #define TEMPERATURE_TOO_HOT_LEAVE 4000 // degrees C
 #define LEVEL_SMOOTHING_RATIO 5
 #define MAX_V_MILLIS 10000
@@ -76,7 +76,7 @@ namespace Modules::BatteryController
         CoilState_Medium,
         CoilState_High
     };
-    
+
     static UpdateRate currentUpdateRate = UpdateRate_Normal;
     static State currentState = State_Unknown;
     static uint32_t currentStateStartTime = 0; // Time when we switched to the current battery state
