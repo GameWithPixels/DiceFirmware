@@ -154,13 +154,13 @@ namespace Modules::AnimationPreview
     void BlinkLEDsHandler(const Message* msg) 
     {
         auto *message = (const MessageBlink *)msg;
-        NRF_LOG_DEBUG("Received request to blink the LEDs %d times with duration of %d ms", message->flashCount, message->duration);
+        NRF_LOG_DEBUG("Received request to blink the LEDs %d times with duration of %d ms", message->count, message->duration);
 
         // Create and initialize animation data
         // We keep the data in a static variable so it stays valid after this call returns
         // Note: we keep the data in a static variable so it stays valid after this call returns
         static Blink blink;
-        blink.play(message->color, message->duration, message->flashCount, message->fade, message->faceMask, message->loop);
+        blink.play(message->color, message->duration, message->count, message->fade, message->faceMask, message->loop);
 
         MessageService::SendMessage(Message::MessageType_BlinkAck);
     }

@@ -133,7 +133,7 @@ struct MessageIAmADie
 
 	// Roll state
 	uint8_t rollState;
-	uint8_t rollFace;
+	uint8_t rollFace; // This is the current face index
 
 	// Battery level
 	uint8_t batteryLevelPercent;
@@ -149,7 +149,7 @@ struct MessageRollState
 	: public Message
 {
 	uint8_t state;
-	uint8_t face;
+	uint8_t face; // Current face index
 
 	MessageRollState() : Message(Message::MessageType_RollState) {}
 };
@@ -335,7 +335,7 @@ struct MessageRequestTelemetry
 struct MessageBlink
 	: public Message
 {
-	uint8_t flashCount;
+	uint8_t count;
 	uint16_t duration;
 	uint32_t color;
 	uint32_t faceMask;
