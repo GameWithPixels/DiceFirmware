@@ -247,8 +247,10 @@ namespace Die
                             ValidationManager::onPixelInitialized();
                         } else {
                             initDieLogic();
-                            BehaviorController::EnableAccelerometerRules();
                             BehaviorController::onPixelInitialized();
+                            Timers::setDelayedCallback([](void* ignore) {
+                                BehaviorController::EnableAccelerometerRules();
+                            }, nullptr, 1000);
                         }
 
                         NRF_LOG_INFO("----- Device initialized! -----");
