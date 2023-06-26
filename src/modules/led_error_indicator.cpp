@@ -73,7 +73,7 @@ namespace Modules::LEDErrorIndicator
     }
 
     void ShowErrorAndHalt(ErrorType error) {
-
+    /* Disable showing errors on pre-production dice
         // Before we do stuff we need to stop running modules that may be filling queues, such as the accelerometer
         Accelerometer::stop();
         AnimController::stop();
@@ -109,6 +109,6 @@ namespace Modules::LEDErrorIndicator
         }
         nrf_gpio_pin_clear(BoardManager::getBoard()->ledPowerPin);
         WatchdogSafeDelayMs(10);
-        PowerManager::goToSystemOff();
+        PowerManager::goToSystemOff(); */
     }
 }
