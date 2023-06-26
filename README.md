@@ -1,20 +1,24 @@
 # DiceFirmware
 
-Firmware for the Bluetooth Pixel dice, based on Nordic's nRF5 SDK (available
+Firmware for the Bluetooth Pixels dice, based on Nordic's nRF5 SDK (available
 [here](https://www.nordicsemi.com/Products/Development-software/nRF5-SDK/Download#infotabs)).
 
-## Programming a Pixel's electronic board via USB
+## Programming a Pixels electronic board via USB
 
 ### Hardware Setup
 
 We use a J-Link debug probe from Segger to connect a computer to a die's electronic board.
 
-![J-Link connected to a die electronic board with a flat ribbon cable](images/board+jlink.jpg "Let the light show begin!")
+![J-Link Connected To Pixels Electronic Board](images/board+jlink.jpg "Let the light show begin!")
+
+*J-Link connected to a die electronic board with a flat ribbon cable.*
 
 Plug one end of the flat ribbon cable into the J-Link and the other end into custom adapter.
 On the small side of the adapter, pull the black end of the connector away from the board to open it.
 
-![Custom Pixel adapter with a flat ribbon cable connector on one end and a tiny connector for the electronic board on the other end](images/connector.jpg)
+![Custom Pixels Adapter](images/connector.jpg)
+
+*Custom Pixels adapter with a flat ribbon cable connector on one end and a tiny connector for the electronic board on the other end.*
 
 Then insert the flexible dice board with the electric lines facing down, and close the connector.
 
@@ -49,47 +53,71 @@ and run the commands above from the directory where the .hex file was saved
 
 ## Device Firmware Upgrade (DFU)
 
-Nordic provides the tools to update the firmware through Bluetooth.
-This is the only way to update our electronic boards once encased in a Pixel die.
+Nordic provides the tools to update the firmware wirelessly using Bluetooth.
+The Pixels app will eventually support updating the Firmware automatically but at the moment
+it is best to use the Nordic tools.
 
-You may use Nordic's [nRF Toolbox](https://www.nordicsemi.com/Products/Development-tools/nRF-Toolbox)
-app to push a firmware update to a Pixel. Once the app is started, scroll down and tap on
-"Device Firmware Upgrade (DFU)" and then "Connect".
+The Nordic DFU app is available on the Apple [App Store](
+    https://apps.apple.com/us/app/nrf-device-firmware-update/id1624454660
+) and on [Google Play](
+    https://play.google.com/store/apps/details?id=no.nordicsemi.android.dfu
+).
 
-*Note*: the Bootloader DFU inactivity timeout is set to 1 second (as opposed to 3 seconds in older builds),
-which currently prevents the Android app to connect to the die for pushing an update.
-This is caused by delays introduced in the Android app code to support old phones.
-This [issue](https://github.com/NordicSemiconductor/Android-DFU-Library/issues/329)
-will be eventually fixed, please use an iOS device to do a DFU via Bluetooth until then.
+![Nordic DFU App](images/nordic-dfu-app.jpg)
 
-![Connect screen listing nearby Bluetooth devices](images/connect_screen.jpg)
+*Screenshot of the Nordic DFU app showing the three different steps to update a device: select DFU file, select device and upload.*
 
-This page shows the scanned Bluetooth Low Energy devices. The name of any nearby Pixel should appear.
-This name is advertised by the die firmware.
-But in order to proceed with a DFU update, we need to connect to the *bootloader*.
-The latter is run when the die is turned on and stay active for just 1 second.
-Then, if no DFU request was made during that time, the die transition to running the firmware.
+With this app updating your Pixels dice is done in three steps:
 
-Turn the dice off and back on and immediately tap on the circling arrow located on the top right corner
-of the app to refresh the list of Bluetooth devices.
+### Select Firmware File
 
-You should see a new entry named "DiceDfuTarg" which is the name that the *bootloader* is advertising.
-Upon selecting it, a list of available packages is displayed. Those are zip files containing the firmware
-and some settings.
+DFU files are packaged as zip files.
+We publish Pixels DFU files as part of our firmware releases [here](
+    https://github.com/GameWithPixels/DiceFirmware/releases
+).
 
-![Package screen listing available updates](images/package_screen.jpg)
+Always favor using the latest published Firmware as older versions might not be compatible
+with the latest Pixels software.
+To get to the DFU zip file, unfold the "Assets" list and click on the zip file which name
+starts with "firmware_" followed by a date.
 
-You must first import into the app the package containing the firmware update.
-Such packages are available on the releases
-[page](https://github.com/GameWithPixels/DiceFirmware/releases) of this repository.
-Once that done, select the package in the list and tap on the "Update" button located at the bottom of the screen.
+You will also find a "bootloader_" DFU zip file.
+We do not recommend to update the Bootloader unless you know what you are doing.
 
-At this point the die will most likely be done running the *bootloader* as it only stays active for 3 seconds.
-Turn the dice off and back on again to let the app connect to the *bootloader* and proceed with the update.
-Tap on "Retry" if you get a "Device failed to connect" error.
+Please note that the zip file which name starts with "firmware_hex_" won't work with the
+DFU app.
+The files in this zip are intended to be used with different tools and a Pixels electronic
+board that is physically connected to a computer.
+
+### Select Pixels Device
+
+After selecting the DFU file you may select your Pixels die.
+All nearby Bluetooth Low Energy device will be displayed in this list.
+
+When turned on the die name should also appear in the list.
+If not try to reset your Pixels die by placing it back into its box and covering it with the lid.
+Wait at least five seconds before removing the lid.
+
+Occasionally you may see a "PXL????????" or "Dfu?????" device (where the question marks
+may be letters or numbers).
+Those are the possible names that the die advertise while running the bootloader.
+The latter is a piece of software that is run on boot before executing the firmware.
+You should select one of those names only if your die name doesn't appear after a few seconds.
+
+### Uploading
+
+Upon pressing the "Start" button the app will attempt to update the firmware on the selected
+device.
+
+Usually the app will start showing the update progress almost immediately.
+However if the app appears to blocked in one the first update steps then try to reset the die
+by placing the die back into its box, covering it with the lid and wait at least five seconds
+before removing the lid.
 
 The update should then proceed and the app will let you know when it's done. The die automatically reboots
 at the end of the process and runs the updated firmware.
+
+*Note:* The update will fail is the selected device is not a Pixels die.
 
 ## Building The Firmware
 
@@ -116,7 +144,7 @@ The one that we want to program to the flash memory is the `.hex` file
 *Note:* you may need to update the SoftDevice to the version specified in the *Makefile*
 as Nordic doesn't always publish a new SDK when they release a SoftDevice update.
 
-## Programming a Pixel electronic board with *make*
+## Programming a Pixels electronic board with *make*
 
 Using the project's *Makefile* you may:
 
