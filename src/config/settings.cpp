@@ -174,11 +174,11 @@ namespace Config::SettingsManager
 		// Begin by resetting our new settings
 		setDefaults(settingsCopy);
 
-		// Copy over everything
-		memcpy(&settingsCopy, settings, sizeof(Settings));
+		// // Copy over everything
+		// memcpy(&settingsCopy, settings, sizeof(Settings));
 
-		// Change normals
-		setDefaultParameters(settingsCopy);
+		// // Change normals
+		// setDefaultParameters(settingsCopy);
 
 		// Reprogram settings
 		DataSet::ProgramDefaultDataSet(settingsCopy, callback);

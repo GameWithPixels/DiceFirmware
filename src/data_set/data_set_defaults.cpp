@@ -305,7 +305,7 @@ namespace DataSet
         // And matching action
         writeActions[0].type = Action_PlayAnimation;
         writeActions[0].animIndex = 7; // Rainbow
-        writeActions[0].faceIndex = BoardManager::getBoard()->ledCount - 1; // doesn't really matter
+        writeActions[0].faceIndex = FACE_INDEX_CURRENT_FACE; // doesn't really matter
         writeActions[0].loopCount = 1;
 
         // Add New Connection condition (index 1)
@@ -373,7 +373,7 @@ namespace DataSet
         // And matching action
         writeActions[5].type = Action_PlayAnimation;
         writeActions[5].animIndex = 0; // face led red
-        writeActions[5].faceIndex = BoardManager::getBoard()->ledCount - 1;
+        writeActions[5].faceIndex = DiceVariants::getLayout()->faceCount - 1;
         writeActions[5].loopCount = 1;
 
         // Add Done charging condition (index 6)
@@ -387,7 +387,7 @@ namespace DataSet
         // And matching action
         writeActions[6].type = Action_PlayAnimation;
         writeActions[6].animIndex = 3; // face led green
-        writeActions[6].faceIndex = BoardManager::getBoard()->ledCount - 1;
+        writeActions[6].faceIndex = DiceVariants::getLayout()->faceCount - 1;
         writeActions[6].loopCount = 1;
 
         // Add Bad charging condition (index 7)
