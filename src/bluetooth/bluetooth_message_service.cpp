@@ -131,7 +131,7 @@ namespace Bluetooth::MessageService
                 SendQueue.clear();
             }
             else if (!Stack::isBusy()) {
-                NRF_LOG_INFO("%d", SendQueue.count());
+                NRF_LOG_INFO("Message queue count: %d", SendQueue.count());
                 SendQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
                     auto ret = send((const uint8_t*)msg, msgSize) != Stack::SendResult_Busy;
                     if (ret) {
