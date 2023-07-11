@@ -3,6 +3,12 @@
 Firmware for the Bluetooth Pixels dice, based on Nordic's nRF5 SDK (available
 [here](https://www.nordicsemi.com/Products/Development-software/nRF5-SDK/Download#infotabs)).
 
+## Foreword
+
+Pixels are full of LEDs, smarts and no larger than regular dice, they can be
+customized to light up when and how you desire.
+Check our [website](https://gamewithpixels.com/) for more information.
+
 ## Programming a Pixels electronic board via USB
 
 ### Hardware Setup
