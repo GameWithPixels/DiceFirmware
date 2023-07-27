@@ -93,8 +93,9 @@ SRC_FILES += \
 	$(SDK_ROOT)/components/libraries/queue/nrf_queue.c \
 	$(SDK_ROOT)/components/libraries/ringbuf/nrf_ringbuf.c \
 	$(SDK_ROOT)/components/libraries/scheduler/app_scheduler.c \
+	$(SDK_ROOT)/components/libraries/sortlist/nrf_sortlist.c \
 	$(SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
-	$(SDK_ROOT)/components/libraries/timer/app_timer.c \
+	$(SDK_ROOT)/components/libraries/timer/drv_rtc.c \
 	$(SDK_ROOT)/components/libraries/util/app_util_platform.c \
 	$(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
 	$(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
@@ -151,6 +152,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/drivers_hw/ntc.cpp \
 	$(PROJ_DIR)/src/drivers_hw/kxtj3-1057.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/a2d.cpp \
+	$(PROJ_DIR)/src/drivers_nrf/app_timer2_custom.c \
 	$(PROJ_DIR)/src/drivers_nrf/dfu.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/flash.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/gpiote.cpp \
@@ -219,6 +221,7 @@ INC_FOLDERS += \
 	$(SDK_ROOT)/components/libraries/memobj \
 	$(SDK_ROOT)/components/libraries/ringbuf \
 	$(SDK_ROOT)/components/libraries/balloc \
+	$(SDK_ROOT)/components/libraries/sortlist \
 	$(SDK_ROOT)/components/libraries/strerror \
 	$(SDK_ROOT)/components/libraries/log \
 	$(SDK_ROOT)/components/libraries/log/src \
@@ -397,6 +400,11 @@ firmware_debug: firmware_d
 
 .PHONY: settings_debug
 settings_debug: settings_d
+
+# Flash the program
+.PHONY: flash_firmware_debug
+flash_firmware_debug: firmware_debug
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/firmware_d.hex --sectorerase --verify
 
 # Flash the program
 .PHONY: flash

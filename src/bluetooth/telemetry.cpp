@@ -16,10 +16,13 @@
 #include "drivers_hw/ntc.h"
 #include "drivers_hw/battery.h"
 #include "utils/utils.h"
+#include "config/board_config.h"
+#include "modules/leds.h"
 
 using namespace Modules;
 using namespace Bluetooth;
 using namespace Utils;
+using namespace Config;
 
 namespace Bluetooth::Telemetry
 {
@@ -52,7 +55,7 @@ namespace Bluetooth::Telemetry
     void trySend() {
         // Check that we got the acceleration, RSSI and temperature data
         //const bool allInit = teleMessage.accelFrame.time != 0 && teleMessage.rssi != 0 && teleMessage.mcuTempTimes100 != 0;
-        const bool allInit = teleMessage.accelFrame.time != 0 && teleMessage.rssi;
+        const bool allInit = teleMessage.time != 0 && teleMessage.rssi;
 
         // Check time interval since we last send a telemetry message
         const uint32_t time = DriversNRF::Timers::millis();
@@ -68,11 +71,14 @@ namespace Bluetooth::Telemetry
                 teleMessage.forceDisableChargingState = DriversHW::Battery::getDisableChargingOverride() ? 1 : 0;
                 teleMessage.batteryLevelPercent = BatteryController::getLevelPercent();
                 teleMessage.batteryState = BatteryController::getBatteryState();
+                teleMessage.batteryControllerState = BatteryController::getState();
                 teleMessage.voltageTimes50 = BatteryController::getVoltageMilli() / 20;
                 teleMessage.vCoilTimes50 = BatteryController::getCoilVoltageMilli() / 20;
 
+                teleMessage.ledCurrent = LEDs::computeCurrentEstimate();
+
                 // Send the message
-                NRF_LOG_INFO("Sending telemetry");
+                NRF_LOG_DEBUG("Sending telemetry: %d", teleMessage.time);
                 MessageService::SendMessage(&teleMessage);
             } else {
                 NRF_LOG_DEBUG("Disconnected, skipped sending telemetry message");
@@ -81,7 +87,11 @@ namespace Bluetooth::Telemetry
     }
 
     void onAccDataReceived(void* param, const Accelerometer::AccelFrame& frame) {
-        teleMessage.accelFrame = frame;
+        teleMessage.acc = frame.acc;
+        teleMessage.faceConfidence = frame.faceConfidence;
+        teleMessage.time = frame.time;
+        teleMessage.rollState = frame.rollState;
+        teleMessage.face = frame.face;
         trySend();
     }
 
@@ -122,7 +132,7 @@ namespace Bluetooth::Telemetry
 
             // Reset accel data, RSSI and temperature so we won't send
             // a message until they are all updated
-            teleMessage.accelFrame.time = 0;
+            teleMessage.time = 0;
             teleMessage.rssi = 0;
             teleMessage.mcuTempTimes100 = Temperature::getMCUTemperatureTimes100();
             teleMessage.batteryTempTimes100 = Temperature::getNTCTemperatureTimes100();

@@ -237,7 +237,7 @@ namespace Modules::LEDs
             // Give enough time for the LEDs to power up (5ms)
             Timers::setDelayedCallback(callback, parameter, 5);
         }
-   }
+    }
 
     void setPowerOff() {
         // Already off?
@@ -253,5 +253,27 @@ namespace Modules::LEDs
         for (int i = 0; i < ledPowerClients.Count(); ++i) {
             ledPowerClients[i].handler(ledPowerClients[i].token, false);
         }
-   }
+    }
+
+    uint8_t computeCurrentEstimate() {
+        uint32_t nanoAmps = 0; // We don't have anywhere near this precision, it just makes fixed-point computations easier
+        int ledOnCount = 0;
+        for (int i = 0; i < numLed; ++i) {
+            uint32_t color = pixels[i];
+            if (color != 0) {
+                ledOnCount++;
+                // Clamp intensity
+                uint8_t r = Utils::getRed(color);
+                uint8_t g = Utils::getGreen(color);
+                uint8_t b = Utils::getBlue(color);
+                nanoAmps += (uint32_t)247000 * 3 + 18200 * (r + g + b);
+            }
+        }
+        if (ledOnCount > 0) {
+            nanoAmps += 7100000;
+        }
+
+        return (uint8_t)(nanoAmps / 1000000);
+    }
+
 }

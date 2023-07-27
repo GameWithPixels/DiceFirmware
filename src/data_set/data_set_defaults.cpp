@@ -91,20 +91,20 @@ namespace DataSet
         static uint32_t bufferSize;
 		static Data* newData; 
 
-		int paletteCount = 3;
+		int paletteCount = 4;
         int paletteSize = Utils::roundUpTo4(paletteCount * 3);
 		int rgbKeyframeCount = 0;
         int rgbTrackCount = 0;
 		int keyframeCount = 0;
         int trackCount = 0;
-        int simpleAnimCount = 7;
+        int simpleAnimCount = 8;
 		int animCount = simpleAnimCount + 1;
         int animOffsetSize = Utils::roundUpTo4(animCount * sizeof(uint16_t));
         int animSize = sizeof(AnimationSimple) * simpleAnimCount + sizeof(AnimationRainbow);
-        int actionCount = 8;
+        int actionCount = 9;
         int actionOffsetSize = Utils::roundUpTo4(actionCount * sizeof(uint16_t));
         int actionSize = sizeof(ActionPlayAnimation) * actionCount;
-        int conditionCount = 8;
+        int conditionCount = 9;
         int conditionOffsetSize = Utils::roundUpTo4(conditionCount * sizeof(uint16_t));
         uint32_t conditionsSize =
             sizeof(ConditionHelloGoodbye) + 
@@ -114,8 +114,9 @@ namespace DataSet
             sizeof(ConditionBatteryState) +
             sizeof(ConditionBatteryState) +
             sizeof(ConditionBatteryState) +
+            sizeof(ConditionBatteryState) +
             sizeof(ConditionBatteryState);
-        int ruleCount = 8;
+        int ruleCount = 9;
         int behaviorCount = 1;
 
 		// Compute the size of the needed buffer to store all that data!
@@ -225,9 +226,12 @@ namespace DataSet
         writePalette[6] = 0;
         writePalette[7] = 0;
         writePalette[8] = 8;
+        writePalette[9] = 6;
+        writePalette[10] = 6;
+        writePalette[11] = 0;
 
 		// Create animations
-		for (int c = 0; c < 7; ++c) {
+		for (int c = 0; c < simpleAnimCount; ++c) {
             writeSimpleAnimations[c].type = Animation_Simple;
             writeSimpleAnimations[c].fade = 255;
 		}
@@ -274,7 +278,13 @@ namespace DataSet
         writeSimpleAnimations[6].colorIndex = PALETTE_COLOR_FROM_FACE; // We'll override based on face
 	    writeSimpleAnimations[6].faceMask = ANIM_FACEMASK_ALL_LEDS;
 
-        // 7 Rainbow
+        // 7 error while charging (temperature)
+        writeSimpleAnimations[7].count = 1;
+        writeSimpleAnimations[7].duration = 1000;
+        writeSimpleAnimations[7].colorIndex = 3; // yellow
+	    writeSimpleAnimations[7].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+
+        // 8 Rainbow
         writeRainbowAnimation->type = Animation_Rainbow;
 		writeRainbowAnimation->duration = 2000;
 		writeRainbowAnimation->faceMask = ANIM_FACEMASK_ALL_LEDS;
@@ -304,7 +314,7 @@ namespace DataSet
         address += sizeof(ConditionHelloGoodbye);
         // And matching action
         writeActions[0].type = Action_PlayAnimation;
-        writeActions[0].animIndex = 7; // Rainbow
+        writeActions[0].animIndex = 8; // Rainbow
         writeActions[0].faceIndex = FACE_INDEX_CURRENT_FACE; // doesn't really matter
         writeActions[0].loopCount = 1;
 
@@ -402,6 +412,20 @@ namespace DataSet
         writeActions[7].animIndex = 1; // face led red
         writeActions[7].faceIndex = FACE_INDEX_CURRENT_FACE; // Doesn't actually matter
         writeActions[7].loopCount = 1;
+
+        // Add error during charging (usually temperature) condition (index 8)
+        ConditionBatteryState* error_charge = reinterpret_cast<ConditionBatteryState*>(address);
+        error_charge->type = Condition_BatteryState;
+        error_charge->flags = ConditionBatteryState_Error;
+        error_charge->repeatPeriodMs = 1500; //s
+        writeConditionsOffsets[8] = offset;
+        offset += sizeof(ConditionBatteryState);
+        address += sizeof(ConditionBatteryState);
+        // And matching action
+        writeActions[8].type = Action_PlayAnimation;
+        writeActions[8].animIndex = 7; // face led red fast
+        writeActions[8].faceIndex = DiceVariants::getLayout()->faceCount - 1;
+        writeActions[8].loopCount = 1;
 
         // Create action offsets
 		for (int i = 0; i < actionCount; ++i) {

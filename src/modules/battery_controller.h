@@ -25,6 +25,8 @@ namespace Modules::BatteryController
 		State_Error,		// Charge state doesn't make sense (charging but no coil voltage detected for instance)
 		State_ChargingLow,	// Battery is currently recharging, but still really low
 		State_Charging,		// Battery is currently recharging
+		State_Cooldown,		// Battery is cooling down
+		State_Trickle,		// Battery is currently recharging, but it's pretty much full!
 		State_Done,			// Battery is full and finished charging
 		State_LowTemp,		// Battery is too cold
 		State_HighTemp,		// Battery is too hot

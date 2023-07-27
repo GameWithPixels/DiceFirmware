@@ -33,10 +33,10 @@ using namespace Utils;
 #define TRANSITION_ON_TOO_LONG_DURATION_SLOW_MS (BATTERY_TIMER_MS_SLOW + 100) // 5s
 #define TRANSITION_OFF_TOO_LONG_DURATION_MS 5000 // 5s
 #define TRANSITION_OFF_TOO_LONG_DURATION_SLOW_MS (BATTERY_TIMER_MS_SLOW + 100) // 5s
-#define TEMPERATURE_TOO_COLD_ENTER 0   // degrees C
-#define TEMPERATURE_TOO_COLD_LEAVE 500 // degrees C
-#define TEMPERATURE_TOO_HOT_ENTER 4500 // degrees C
-#define TEMPERATURE_TOO_HOT_LEAVE 4000 // degrees C
+#define TEMPERATURE_TOO_COLD 0   // degrees C
+#define TEMPERATURE_TOO_HOT 4500 // degrees C
+#define TEMPERATURE_COOLDOWN_ENTER 4100 // degrees C
+#define TEMPERATURE_COOLDOWN_LEAVE 3900 // degrees C
 #define LEVEL_SMOOTHING_RATIO 5
 #define MAX_V_MILLIS 10000
 #define MAX_CHARGE_START_TIME 3000 //ms
@@ -85,6 +85,7 @@ namespace Modules::BatteryController
     {
         BatteryTemperatureState_Disabled = 0,
         BatteryTemperatureState_Normal,
+        BatteryTemperatureState_Cooldown,
         BatteryTemperatureState_Low,
         BatteryTemperatureState_Hot,
     };
@@ -142,11 +143,11 @@ namespace Modules::BatteryController
         if (ntcTimes100 <= -2000 || ntcTimes100 >= 10000) {
             currentBatteryTempState = BatteryTemperatureState_Disabled;
             NRF_LOG_WARNING("  Battery ntc invalid, temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
-        } else if (ntcTimes100 < TEMPERATURE_TOO_COLD_ENTER) {
+        } else if (ntcTimes100 < TEMPERATURE_TOO_COLD) {
             currentBatteryTempState = BatteryTemperatureState_Low;
             Battery::setDisableChargingOverride(true);
             NRF_LOG_INFO("  Battery too cold! Temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
-        } else if (ntcTimes100 > TEMPERATURE_TOO_HOT_ENTER) {
+        } else if (ntcTimes100 > TEMPERATURE_TOO_HOT) {
             currentBatteryTempState = BatteryTemperatureState_Hot;
             Battery::setDisableChargingOverride(true);
             NRF_LOG_INFO("  Battery too hot! Temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
@@ -215,14 +216,25 @@ namespace Modules::BatteryController
         }
 
         CoilState coilState = CoilState::CoilState_Medium;
-        if (vCoilMilli < VCOIL_ON_THRESHOLD) {
-            coilState = CoilState::CoilState_Low;
-        } else if (vCoilMilli > VCOIL_OFF_THRESHOLD) {
-            coilState = CoilState::CoilState_High;
+        if (Battery::getDisableChargingOverride()) {
+            // Weird behavior from the circuit makes coil voltage ~2.0V even when off the coil
+            // So we can't really know that it's partially off
+            if (vCoilMilli < VCOIL_OFF_THRESHOLD) {
+                coilState = CoilState::CoilState_Low;
+            } else {
+                coilState = CoilState::CoilState_High;
+            }
+        } else {
+            if (vCoilMilli < VCOIL_ON_THRESHOLD) {
+                coilState = CoilState::CoilState_Low;
+            } else if (vCoilMilli > VCOIL_OFF_THRESHOLD) {
+                coilState = CoilState::CoilState_High;
+            }
         }
 
         switch (currentBatteryTempState) {
             case BatteryTemperatureState_Normal:
+            case BatteryTemperatureState_Cooldown:
             case BatteryTemperatureState_Disabled:
             default:
             switch (coilState) {
@@ -258,13 +270,18 @@ namespace Modules::BatteryController
                                 ret = State::State_ChargingLow;
                                 break;
                             case CapacityState::CapacityState_Full:
+                                ret = State::State_Trickle;
+                                break;
                             case CapacityState::CapacityState_Average:
                             default:
                                 ret = State::State_Charging;
                                 break;
                         }
                     } else {
-                        // On coil but not charging. It's not necessarily an error if charging hasn't started yet or is complete
+                        // On coil but not charging. It's not necessarily an error if:
+                        // - charging hasn't started yet
+                        // - charging is complete
+                        // - battery is in cooldown mode
                         // So check battery level now.
                         switch (capacityState) {
                             case CapacityState::CapacityState_Empty:
@@ -273,20 +290,25 @@ namespace Modules::BatteryController
                             default:
                                 // If we remain in this state too long, it's an error
                                 {
-                                    uint32_t maxTransitionTime = MAX_CHARGE_START_TIME;
-                                    if (currentUpdateRate == UpdateRate_Slow) {
-                                        maxTransitionTime = MAX_CHARGE_START_TIME_SLOW;
-                                    }
-                                    if (Timers::millis() - currentStateStartTime > maxTransitionTime) {
-                                        // We should have started charging!!!
-                                        ret = State::State_Error;
+                                    // Check temperature state
+                                    if (currentBatteryTempState == BatteryTemperatureState::BatteryTemperatureState_Cooldown) {
+                                        ret = State::State_Cooldown;
                                     } else {
-                                        if (capacityState == CapacityState::CapacityState_Empty) {
-                                            ret = State::State_Empty;
-                                        } else if (capacityState == CapacityState::CapacityState_Low) {
-                                            ret = State::State_Low;
+                                        uint32_t maxTransitionTime = MAX_CHARGE_START_TIME;
+                                        if (currentUpdateRate == UpdateRate_Slow) {
+                                            maxTransitionTime = MAX_CHARGE_START_TIME_SLOW;
+                                        }
+                                        if (Timers::millis() - currentStateStartTime > maxTransitionTime) {
+                                            // We should have started charging!!!
+                                            ret = State::State_Error;
                                         } else {
-                                            ret = State::State_Ok;
+                                            if (capacityState == CapacityState::CapacityState_Empty) {
+                                                ret = State::State_Empty;
+                                            } else if (capacityState == CapacityState::CapacityState_Low) {
+                                                ret = State::State_Low;
+                                            } else {
+                                                ret = State::State_Ok;
+                                            }
                                         }
                                     }
                                 }
@@ -333,6 +355,8 @@ namespace Modules::BatteryController
                             break;
 		                case State::State_ChargingLow:
 		                case State::State_Charging:
+		                case State::State_Trickle:
+		                case State::State_Cooldown:
 		                case State::State_Done:
                             // On coil but coming off
                             ret = State_TransitionOff;
@@ -386,8 +410,10 @@ namespace Modules::BatteryController
                 break;
             case State_ChargingLow:
             case State_Charging:
+            case State_Cooldown:
                 ret = BatteryState_Charging;
                 break;
+            case State_Trickle:
             case State_Done:
                 ret = BatteryState_Done;
                 break;
@@ -411,25 +437,41 @@ namespace Modules::BatteryController
                 // Don't do anything
                 break;
             case BatteryTemperatureState_Normal:
-                if (temperatureTimes100 > TEMPERATURE_TOO_HOT_ENTER) {
+                if (temperatureTimes100 > TEMPERATURE_TOO_HOT) {
                     currentBatteryTempState = BatteryTemperatureState_Hot;
                     Battery::setDisableChargingOverride(true);
                     NRF_LOG_INFO("Battery too hot, Preventing Charge");
-                } else if (temperatureTimes100 < TEMPERATURE_TOO_COLD_ENTER) {
+                } else if (temperatureTimes100 > TEMPERATURE_COOLDOWN_ENTER) {
+                    currentBatteryTempState = BatteryTemperatureState_Cooldown;
+                    Battery::setDisableChargingOverride(true);
+                    NRF_LOG_INFO("Battery hot, Preventing Charge to cooldown");
+                } else if (temperatureTimes100 < TEMPERATURE_TOO_COLD) {
                     currentBatteryTempState = BatteryTemperatureState_Low;
                     Battery::setDisableChargingOverride(true);
                     NRF_LOG_INFO("Battery too cold, Preventing Charge");
                 }
+                // Else stay in normal mode
+                break;
+            case BatteryTemperatureState_Cooldown:
+                if (temperatureTimes100 > TEMPERATURE_TOO_HOT) {
+                    currentBatteryTempState = BatteryTemperatureState_Hot;
+                    NRF_LOG_INFO("Battery still getting too hot");
+                } else if (temperatureTimes100 < TEMPERATURE_COOLDOWN_LEAVE) {
+                    currentBatteryTempState = BatteryTemperatureState_Normal;
+                    Battery::setDisableChargingOverride(false);
+                    NRF_LOG_INFO("Battery cooled down, Allowing Charge");
+                }
+                // Else stay in normal mode
                 break;
             case BatteryTemperatureState_Hot:
-                if (temperatureTimes100 < TEMPERATURE_TOO_HOT_LEAVE) {
+                if (temperatureTimes100 < TEMPERATURE_COOLDOWN_LEAVE) {
                     currentBatteryTempState = BatteryTemperatureState_Normal;
                     Battery::setDisableChargingOverride(false);
                     NRF_LOG_INFO("Battery cooled down, Allowing Charge");
                 }
                 break;
             case BatteryTemperatureState_Low:
-                if (temperatureTimes100 > TEMPERATURE_TOO_COLD_LEAVE) {
+                if (temperatureTimes100 > TEMPERATURE_TOO_COLD) {
                     currentBatteryTempState = BatteryTemperatureState_Normal;
                     Battery::setDisableChargingOverride(false);
                     NRF_LOG_INFO("Battery warmed up, Allowing Charge");
@@ -453,6 +495,12 @@ namespace Modules::BatteryController
                     break;
                 case State_Charging:
                     NRF_LOG_INFO("Battery is now Charging");
+                    break;
+                case State_Cooldown:
+                    NRF_LOG_INFO("Battery is now cooling");
+                    break;
+                case State_Trickle:
+                    NRF_LOG_INFO("Battery is now Trickle Charging");
                     break;
                 case State_TransitionOn:
                     NRF_LOG_INFO("Die is being moved on charger");

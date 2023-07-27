@@ -6,6 +6,8 @@
 #include "modules/accelerometer.h"
 #include "config/settings.h"
 #include "modules/battery_controller.h"
+#include "core/float3.h"
+#include "modules/accelerometer.h"
 
 #define MAX_DATA_SIZE 100
 
@@ -15,6 +17,8 @@ namespace Bluetooth
 {
 
 using BatteryState = Modules::BatteryController::BatteryState;
+using BatteryControllerState = Modules::BatteryController::State;
+using RollState = Modules::Accelerometer::RollState;
 
 /// <summary>
 ///  Base class for messages from the die to the app
@@ -90,6 +94,9 @@ struct Message
 		MessageType_Discharge,
 		MessageType_BlinkId,
 		MessageType_BlinkIdAck,
+		MessageType_TransferTest,
+		MessageType_TransferTestAck,
+		MessageType_TransferTestFinished,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -161,11 +168,16 @@ struct MessageTelemetry
 	: public Message
 {
 	// Accelerometer
-	Modules::Accelerometer::AccelFrame accelFrame;
+	Core::float3 acc;
+	float faceConfidence;
+	uint32_t time;
+	RollState rollState;
+	uint8_t face;
 
 	// Battery controller data
 	uint8_t batteryLevelPercent;
 	BatteryState batteryState;
+	BatteryControllerState batteryControllerState;
 	uint8_t voltageTimes50;
 	uint8_t vCoilTimes50;
 
@@ -180,6 +192,9 @@ struct MessageTelemetry
 	// Battery charger low level state
 	uint8_t internalChargeState;
 	uint8_t forceDisableChargingState;
+
+	// LEDs
+	uint8_t ledCurrent;
 
 	MessageTelemetry() : Message(Message::MessageType_Telemetry) {}
 };

@@ -6,6 +6,8 @@
 #include "nrf_delay.h"
 #include "nrf_gpio.h"
 #include "nrf_drv_clock.h"
+#include "app_timer2_custom.h"
+
 
 #define MAX_DELAYED_CALLS 8
 
@@ -94,7 +96,7 @@ namespace DriversNRF::Timers
 
 	int millis()
 	{
-		auto ticks = app_timer_cnt_get();
+		auto ticks = get_now();
 		return APP_TIMER_MS(ticks);
 	}
 
@@ -126,10 +128,11 @@ namespace DriversNRF::Timers
     bool setDelayedCallback(DelayedCallback callback, void* param, int periodMs) {
         
         bool ret = delayedCallbacksCount < MAX_DELAYED_CALLS;
+        int ms = millis();
         if (ret) {
             // Find where to insert this call
             int insertIndex = 0;
-            int callbackTime = millis() + periodMs;
+            int callbackTime = ms + periodMs;
             while (insertIndex < delayedCallbacksCount && callbackTime > delayedCallbacks[insertIndex].callbackTime) {
                 insertIndex++;
             }

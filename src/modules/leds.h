@@ -14,6 +14,7 @@ namespace Modules::LEDs
 	void setPixelColors(uint32_t* colors);
 	void setAll(uint32_t c);
 	void clear();
+	uint8_t computeCurrentEstimate();
 
 	typedef void(*LEDClientMethod)(void* param, bool powerOn);
 	void hookPowerState(LEDClientMethod method, void* param);
