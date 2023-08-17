@@ -35,6 +35,42 @@ namespace BoardManager
             .name = "PD6v3-BadR9",
         },
         {
+            .boardResistorValueInKOhms = 62, // 62.0k Resistor, at VCC = 3.1V, this means 3.1V * 62k / 162k = 1.18V
+            .ledDataPin = 1,
+            .ledPowerPin = 0,
+            .ledReturnPin = 10  ,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .ntcSensePin = NRF_SAADC_INPUT_AIN6,
+            .progPin = 0xFF,
+            .ledCount = 6,
+            .debugLedIndex = 3,
+            .model = D6BoardV6,
+            .name = "D6v6",
+        },
+        {
+            .boardResistorValueInKOhms = 80, // 80.0k Resistor, at VCC = 3.1V, this means 3.1V * 80k / 180k = 1.37V
+            .ledDataPin = 1,
+            .ledPowerPin = 0,
+            .ledReturnPin = 10,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .ntcSensePin = NRF_SAADC_INPUT_AIN6,
+            .progPin = 0xFF,
+            .ledCount = 21,
+            .debugLedIndex = 20,
+            .model = PD6BoardV5,
+            .name = "PD6v5",
+        },
+        {
             .boardResistorValueInKOhms = 100, // 100.0k Resistor, at VCC = 3.1V, this means 3.1V * 100k / 200k = 1.55V
             .ledDataPin = 6,
             .ledPowerPin = 0,
@@ -201,3 +237,4 @@ namespace BoardManager
 
 }
 }
+ 
