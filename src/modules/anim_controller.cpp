@@ -143,9 +143,15 @@ namespace Modules::AnimController
 
 					// Gamma correct and map face index to led index
 					//NRF_LOG_INFO("track_count = %d", animTrackCount);
-					for (int j = 0; j < animTrackCount; ++j) {
-						//colors[j] = Utils::gamma(colors[j]);
-                        ledIndices[j] = DiceVariants::animIndexToLEDIndex(canonIndices[j], anim->remapFace);
+					if (anim->animationPreset->traveling) {
+						// animation is working with led indices, not face indices
+						memcpy(ledIndices, canonIndices, animTrackCount * sizeof(int));
+					} else {
+						// Compute electrical indices from face indices
+						for (int j = 0; j < animTrackCount; ++j) {
+							//colors[j] = Utils::gamma(colors[j]);
+							ledIndices[j] = DiceVariants::animIndexToLEDIndex(canonIndices[j], anim->remapFace);
+						}
 					}
 
 					// Update color array

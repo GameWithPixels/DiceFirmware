@@ -37,7 +37,8 @@ namespace Animations
 	struct Animation
 	{
 		AnimationType type;
-		uint8_t paddingType; // to keep duration 16-bit aligned
+		uint8_t traveling;	// indicates that the indices used in the animation
+							// are electrical led indices, not face indices
 		uint16_t duration; // in ms
 	};
 

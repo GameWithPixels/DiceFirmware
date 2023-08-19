@@ -2,6 +2,7 @@
 #include "modules\anim_controller.h"
 #include "utils\Utils.h"
 #include "config/board_config.h"
+#include "config/dice_variants.h"
 
 namespace Animations
 {
@@ -30,7 +31,7 @@ namespace Animations
         blinkAnim.colorIndex = 0;
 
         Modules::AnimController::stop(&blinkAnim);
-        const auto remapFace = Config::BoardManager::getBoard()->ledCount - 1;
+        const auto remapFace = Config::DiceVariants::getLayout()->faceCount - 1;
         Modules::AnimController::play(&blinkAnim, &animBits, remapFace, loop, Animations::AnimationTag_BluetoothMessage);
     }
 }

@@ -34,7 +34,6 @@ namespace Config
             const uint8_t* canonicalIndexToElectricalIndexLookup;   // Because LEDs are organized in a daisy chain, but that daisy chain
                                                                     // doesn't necessarily follow the order of the faces, we need to be able
                                                                     // to remap from canonical (i.e. face) index to electrical (i.e. LED) index.
-            const uint8_t* electricalIndexToCanonicalIndexLookup;   // Reverse Lookup Table from previous, this is useful for 'traveling' animations
             uint8_t faceCount; // Face count isn't always equal to LED count (i.e. PD6, D4)
             uint8_t ledCount;
         };
@@ -42,6 +41,5 @@ namespace Config
         const Layout* getLayout();
 
         uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
-        uint8_t electricalToCanonicalIndex(int index);
    }
 }

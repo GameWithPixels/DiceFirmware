@@ -32,11 +32,6 @@ namespace DiceVariants
     };
 
 
-    const uint8_t sixSidedLedToFaceLookup[] = {
-        // Smooth LED order is 0, 5, 1, 4, 2, 3
-        0, 4, 3, 1, 2, 5
-    };
-
     const uint8_t twentySidedRemap[] = {
         19, 12, 15, 14, 17, 16, 13, 18, 9, 8, 11, 10, 1, 6, 3, 2, 5, 4, 7, 0, // remap for face at index 0 (= face with number 1)
         18, 17, 16, 13, 10, 7, 0, 11, 15, 14, 5, 4, 8, 19, 12, 9, 6, 3, 2, 1, // remap for face at index 1 (= face with number 2)
@@ -67,11 +62,6 @@ namespace DiceVariants
     // Old Molds:
     //   9, 13,  7, 19, 11, 16,  1,  5, 17,  4, 18,  3, 10, 15,  2,  6,  0, 12,  8, 14
     };
-
-    const uint8_t twentySidedLedToFaceLookup[] = {
-            4, 12, 10,  3, 17,  1, 11, 14,  6,  0, 18,  8,  5, 13, 19,  7,  9, 16,  2, 15,
-    };
-
 
     // LED number
     //  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
@@ -136,12 +126,6 @@ namespace DiceVariants
             3,  0, 10,  4,  8,  9,  1,  5,  7,  2, 11,  6 // Led Index
     };
 
-    const uint8_t twelveSidedLedToFaceLookup[] = {
-    //   0,  1,  2,  3,  4,  5,  6,  7.  8,  9, 10, 11  // Led Index
-    //   2,  7, 10,  1,  4,  8, 12,  9,  5,  6,  3, 11  // Face Number
-            1,  6,  9,  0,  3,  7, 11,  8,  4,  5,  2, 10, // Face Index
-    };
-
 
     const uint8_t tenSidedRemap[] = {
         9, 4, 3, 2, 1, 8, 7, 6, 5, 0,
@@ -174,13 +158,6 @@ namespace DiceVariants
     //   0,  1,  2,  3,  4,  5,  6,  7,  8,  9  // Face Index
             5, 0, 7, 3, 8, 4, 6, 1, 9, 2
     };
-
-    const uint8_t tenSidedLedToFaceLookup[] = {
-    //   0,  1,  2,  3,  4,  5,  6,  7,  8,  9  // Led Index
-    //   2,  8,  0,  4,  6,  1,  7,  3,  5,  9  // Face Number
-            1,  7,  9,  3,  5,  0,  6,  2,  4,  8  // Face Index (Face Number 0 is in fact 10)
-    };
-
 
     const uint8_t eightSidedRemap[] = {
         7, 2, 1, 4, 3, 6, 5, 0,
@@ -233,15 +210,10 @@ namespace DiceVariants
         0,	5,	6,	7,	8,	9,	1,	2,	3,	4,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
     };
 
-    const uint8_t pippedD6LedToFaceLookup[] = {
-        0,	6,	7,	8,	9,	1,	2,	3,	4,	5,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
-    };
-
     const Layout D20Layout = {
         .baseNormals = twentySidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = twentySidedRemap,
         .canonicalIndexToElectricalIndexLookup = twentySidedFaceToLedLookup,
-        .electricalIndexToCanonicalIndexLookup = twentySidedLedToFaceLookup,
         .faceCount = 20,
         .ledCount = 20,
     };
@@ -250,7 +222,6 @@ namespace DiceVariants
         .baseNormals = twelveSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = twelveSidedRemap,
         .canonicalIndexToElectricalIndexLookup = twelveSidedFaceToLedLookup,
-        .electricalIndexToCanonicalIndexLookup = twelveSidedLedToFaceLookup,
         .faceCount = 12,
         .ledCount = 12,
     };
@@ -259,7 +230,6 @@ namespace DiceVariants
         .baseNormals = tenSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = tenSidedRemap,
         .canonicalIndexToElectricalIndexLookup = tenSidedFaceToLedLookup,
-        .electricalIndexToCanonicalIndexLookup = tenSidedLedToFaceLookup,
         .faceCount = 10,
         .ledCount = 10,
     };
@@ -268,7 +238,6 @@ namespace DiceVariants
         .baseNormals = eightSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = eightSidedRemap,
         .canonicalIndexToElectricalIndexLookup = eightSidedFaceToLedLookup,
-        .electricalIndexToCanonicalIndexLookup = eightSidedLedToFaceLookup,
         .faceCount = 8,
         .ledCount = 8,
     };
@@ -277,7 +246,6 @@ namespace DiceVariants
         .baseNormals = sixSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
         .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
-        .electricalIndexToCanonicalIndexLookup = sixSidedLedToFaceLookup,
         .faceCount = 6,
         .ledCount = 6,
     };
@@ -287,7 +255,6 @@ namespace DiceVariants
         .baseNormals = sixSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
         .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
-        .electricalIndexToCanonicalIndexLookup = sixSidedLedToFaceLookup,
         .faceCount = 4,
         .ledCount = 4,
     };
@@ -297,7 +264,6 @@ namespace DiceVariants
         .baseNormals = sixSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = pippedD6Remap,
         .canonicalIndexToElectricalIndexLookup = pippedD6FaceToLedLookup,
-        .electricalIndexToCanonicalIndexLookup = pippedD6LedToFaceLookup,
         .faceCount = 6,
         .ledCount = 21,
     };
@@ -306,7 +272,6 @@ namespace DiceVariants
         .baseNormals = sixSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
         .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
-        .electricalIndexToCanonicalIndexLookup = sixSidedLedToFaceLookup,
         .faceCount = 6,
         .ledCount = 6,
     };
@@ -340,10 +305,5 @@ namespace DiceVariants
 		int rotatedAnimFaceIndex = getLayout()->canonicalIndexFaceToFaceRemapLookup[remapFace * getLayout()->ledCount + animLEDIndex];
 		return getLayout()->canonicalIndexToElectricalIndexLookup[rotatedAnimFaceIndex];
 	}
-
-    uint8_t electricalToCanonicalIndex(int index) {
-        return getLayout()->electricalIndexToCanonicalIndexLookup[index];
-    }
-
 }
 }

@@ -18,8 +18,6 @@ namespace Animations
 	{
 		uint16_t tracksOffset; // offset into a global buffer of tracks
 		uint16_t trackCount;
-		uint8_t flowOrder;
-		uint8_t paddingFlowOrder;
 	};
 
 	/// <summary>

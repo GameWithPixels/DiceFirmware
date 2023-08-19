@@ -10,7 +10,8 @@ MEMORY
   /* We have 192 KB Flash (0x30000), 24 KB RAM (0x6000) */
   /* https://www.nordicsemi.com/Products/nRF52810 */
   /* Softdevice uses pages from 0x0 to 0x18000 included */
-  FLASH (rx) : ORIGIN = 0x19000, LENGTH = 0x14000 /* Total = 0x2C000 => max available memory in debug */
+  /* In release, bootloader starts at 0x28000 */
+  FLASH (rx) : ORIGIN = 0x19000, LENGTH = 0x00017000
   RAM (rwx) :  ORIGIN = 0x20001EB8, LENGTH = 0x4148
   uicr_bootloader_start_address (r) : ORIGIN = 0x10001014, LENGTH = 0x4
 }
