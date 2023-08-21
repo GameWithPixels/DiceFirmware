@@ -181,7 +181,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/notifications/roll_notifications.cpp \
 	$(PROJ_DIR)/src/notifications/rssi_notifications.cpp \
 	$(PROJ_DIR)/src/utils/abi.cpp \
-	$(PROJ_DIR)/src/utils/float3_utils.cpp \
+	$(PROJ_DIR)/src/utils/int3_utils.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \
 	$(PROJ_DIR)/src/utils/utils.cpp
 
@@ -256,14 +256,14 @@ COMMON_FLAGS = -DBL_SETTINGS_ACCESS_ONLY
 COMMON_FLAGS += -DNRF52_SERIES
 COMMON_FLAGS += -DBOARD_CUSTOM
 #COMMON_FLAGS += -DCONFIG_GPIO_AS_PINRESET
-COMMON_FLAGS += -DFLOAT_ABI_SOFT
+#COMMON_FLAGS += -DFLOAT_ABI_SOFT
 COMMON_FLAGS += -DNRF52810_XXAA
 COMMON_FLAGS += -DS112
 COMMON_FLAGS += -DSOFTDEVICE_PRESENT
 COMMON_FLAGS += -DSWI_DISABLE0
 COMMON_FLAGS += -mcpu=cortex-m4
 COMMON_FLAGS += -mthumb -mabi=aapcs
-COMMON_FLAGS += -mfloat-abi=soft
+#COMMON_FLAGS += -mfloat-abi=soft
 COMMON_FLAGS += -DNRF52_PAN_74
 COMMON_FLAGS += -DNRF_DFU_SVCI_ENABLED
 COMMON_FLAGS += -DNRF_DFU_TRANSPORT_BLE=1

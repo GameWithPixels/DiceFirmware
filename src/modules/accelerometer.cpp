@@ -1,7 +1,7 @@
 #include "accelerometer.h"
 
 #include "drivers_hw/accel_chip.h"
-#include "utils/float3_utils.h"
+#include "utils/int3_utils.h"
 #include "core/ring_buffer.h"
 #include "config/board_config.h"
 #include "config/settings.h"
@@ -20,6 +20,7 @@
 #include "drivers_nrf/scheduler.h"
 #include "leds.h"
 #include "validation_manager.h"
+#include "malloc.h"
 
 using namespace Modules;
 using namespace Core;
@@ -34,7 +35,7 @@ using namespace Bluetooth;
 
 namespace Modules::Accelerometer
 {
-    static float3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
+    static int3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
 
     // This stores our current Acceleration Data
     static AccelFrame currentFrame;
@@ -59,8 +60,8 @@ namespace Modules::Accelerometer
     void calibrateHandler(const Message *msg);
     void calibrateFaceHandler(const Message *msg);
     void onSettingsProgrammingEvent(void *context, Flash::ProgrammingEventType evt);
-    void readAccelerometer(float3 *acc);
-    void accHandler(const float3 &acc);
+    void readAccelerometer(int3 *acc);
+    void accHandler(const int3 &acc);
 
     void update(void *context);
 
@@ -79,10 +80,10 @@ namespace Modules::Accelerometer
         // Initialize the acceleration data
         readAccelerometer(&currentFrame.acc);
         currentFrame.face = 0;
-        currentFrame.faceConfidence = 0.0f;
+        currentFrame.faceConfidenceTimes1000 = 0;
         currentFrame.time = DriversNRF::Timers::millis();
-        currentFrame.jerk = float3::zero();
-        currentFrame.sigma = 0.0f;
+        currentFrame.jerk = int3::zero();
+        currentFrame.sigmaTimes1000 = 0;
         currentFrame.smoothAcc = currentFrame.acc;
 
         currentState = State_Off;
@@ -94,7 +95,7 @@ namespace Modules::Accelerometer
 
     void update(void *context)
     {
-        float3 acc;
+        int3 acc;
         readAccelerometer(&acc);
         accHandler(acc);
     }
@@ -104,72 +105,72 @@ namespace Modules::Accelerometer
     /// Will return the last value if it cannot determine the current face up
     /// </summary>
     /// <returns>The face number, starting at 0</returns>
-    int determineFace(float3 acc, float *outConfidence)
+    int determineFace(int3 acc, int16_t *outConfidence)
     {
         // Compare against face normals stored in board manager
         int faceCount = BoardManager::getBoard()->ledCount;
         auto settings = SettingsManager::getSettings();
         auto &normals = settings->faceNormals;
-        float accMag = acc.magnitude();
-        if (accMag < settings->fallingThreshold && accMag > 0)
+        int accMagTimes1000 = acc.magnitudeTimes1000();
+        if (accMagTimes1000 < settings->fallingThresholdTimes1000 && accMagTimes1000 > 0)
         {
             if (outConfidence != nullptr)
             {
-                *outConfidence = 0.0f;
+                *outConfidence = 0;
             }
             return currentFrame.face;
         }
         else
         {
-            float3 nacc = acc / accMag; // normalize
-            float bestDot = -1.1f;      // Should be -1 as we're comparing this value with the dot product
-                                        // of 2 normalized vectors, but is set a bit lower due to imprecision 
-                                        // of floating point operations, which may return a value lower than -1.
+            int3 nacc = acc * 1000 / accMagTimes1000; // normalize
+            int bestDotTimes1000 = -1100;       // Should be -1000 as we're comparing this value with the dot product
+                                                // of 2 normalized vectors, but is set a bit lower due to imprecision 
+                                                // of fixed point operations, which may return a value lower than -1000.
             int bestFace = currentFrame.face;
             for (int i = 0; i < faceCount; ++i)
             {
-                float dot = float3::dot(nacc, normals[i]);
-                if (dot > bestDot)
+                int dotTimes1000 = int3::dotTimes1000(nacc, normals[i]);
+                if (dotTimes1000 > bestDotTimes1000)
                 {
-                    bestDot = dot;
+                    bestDotTimes1000 = dotTimes1000;
                     bestFace = i;
                 }
             }
             if (outConfidence != nullptr)
             {
-                *outConfidence = bestDot;
+                *outConfidence = bestDotTimes1000;
             }
             return bestFace;
         }
     }
 
-    void accHandler(void *param, const float3 &acc)
+    void accHandler(void *param, const int3 &acc)
     {
         auto settings = SettingsManager::getSettings();
 
         uint32_t newTime = DriversNRF::Timers::millis();
-        Core::float3 newJerk = ((acc - currentFrame.acc) * 1000.0f) / (float)(newTime - currentFrame.time);
+        Core::int3 newJerk = ((acc - currentFrame.acc) * 1000) / (newTime - currentFrame.time); // 1000 is not fixed point scaling, just something to make the Jerk value a good range
         
         // If the time between the last and current time is zero, log it
         if(newTime - currentFrame.time == 0) {
             NRF_LOG_WARNING("Time diff between frames is 0, time: %d", newTime);
         }      
 
-        float jerkMag = newJerk.sqrMagnitude();
-        if (jerkMag > 10.f)
+        int sqrJerkMagTimes1000 = newJerk.sqrMagnitudeTimes1000();
+        if (sqrJerkMagTimes1000 > 10000)
         {
-            jerkMag = 10.f;
+            sqrJerkMagTimes1000 = 10000;
         }
-        float newSigma = currentFrame.sigma * settings->sigmaDecay + jerkMag * (1.0f - settings->sigmaDecay);
-        Core::float3 newSmoothAcc = currentFrame.smoothAcc * settings->accDecay + acc * (1.0f - settings->accDecay);
-        float newFaceConfidence = 0.0f;
-        uint8_t newFace = determineFace(acc, &newFaceConfidence);
+        int newSigmaTimes1000 = (currentFrame.sigmaTimes1000 * settings->sigmaDecayTimes1000 + sqrJerkMagTimes1000 * (1000 - settings->sigmaDecayTimes1000)) / 1000;
+        Core::int3 newSmoothAcc = (currentFrame.smoothAcc * settings->accDecayTimes1000 + acc * (1000 - settings->accDecayTimes1000)) / 1000;
+        int16_t newFaceConfidenceTimes1000 = 0;
+        uint8_t newFace = determineFace(acc, &newFaceConfidenceTimes1000);
 
-        bool startMoving = newSigma > settings->startMovingThreshold;
-        bool stopMoving = newSigma < settings->stopMovingThreshold;
-        bool onFace = newFaceConfidence > settings->faceThreshold;
-        bool zeroG = acc.sqrMagnitude() < (settings->fallingThreshold * settings->fallingThreshold);
-        bool shock = acc.sqrMagnitude() > (settings->shockThreshold * settings->shockThreshold);
+        bool startMoving = newSigmaTimes1000 > settings->startMovingThresholdTimes1000;
+        bool stopMoving = newSigmaTimes1000 < settings->stopMovingThresholdTimes1000;
+        bool onFace = newFaceConfidenceTimes1000 > settings->faceThresholdTimes1000;
+        bool zeroG = acc.sqrMagnitudeTimes1000() < (settings->fallingThresholdTimes1000 * settings->fallingThresholdTimes1000 / 1000);
+        bool shock = acc.sqrMagnitudeTimes1000() > (settings->shockThresholdTimes1000 * settings->shockThresholdTimes1000 / 1000);
 
         RollState newRollState = currentFrame.rollState;
         switch (newRollState)
@@ -188,7 +189,7 @@ namespace Modules::Accelerometer
         case RollState_Handling:
             // Did we move enough?
             {
-                bool rotatedEnough = float3::dot(acc.normalized(), handleStateNormal) < 0.5f;
+                bool rotatedEnough = int3::dotTimes1000(acc.normalized(), handleStateNormal) < 500;
                 if (shock || zeroG || rotatedEnough)
                 {
                     // Stuff is happening that we are most likely rolling now
@@ -261,11 +262,11 @@ namespace Modules::Accelerometer
         currentFrame.acc = acc;
         currentFrame.time = newTime;
         currentFrame.jerk = newJerk;
-        currentFrame.sigma = newSigma;
+        currentFrame.sigmaTimes1000 = newSigmaTimes1000;
         currentFrame.smoothAcc = newSmoothAcc;
         currentFrame.rollState = newRollState;
         currentFrame.face = newFace;
-        currentFrame.faceConfidence = newFaceConfidence;
+        currentFrame.faceConfidenceTimes1000 = newFaceConfidenceTimes1000;
 
         // Notify frame data clients
         for (int i = 0; i < frameDataClients.Count(); ++i)
@@ -289,13 +290,13 @@ namespace Modules::Accelerometer
                     readAccelerometer(&currentFrame.acc);
                     currentFrame.smoothAcc = currentFrame.acc;
                     currentFrame.time = Timers::millis();
-                    currentFrame.jerk = Core::float3::zero();
-                    currentFrame.sigma = 0.0f;
-                    currentFrame.face = determineFace(currentFrame.acc, &currentFrame.faceConfidence);
+                    currentFrame.jerk = Core::int3::zero();
+                    currentFrame.sigmaTimes1000 = 0;
+                    currentFrame.face = determineFace(currentFrame.acc, &currentFrame.faceConfidenceTimes1000);
 
                     // Determine what state we're in to begin with
                     auto settings = SettingsManager::getSettings();
-                    bool onFace = currentFrame.faceConfidence > settings->faceThreshold;
+                    bool onFace = currentFrame.faceConfidenceTimes1000 > settings->faceThresholdTimes1000;
                     if (onFace) {
                         currentFrame.rollState = RollState_OnFace;
                     } else {
@@ -375,9 +376,9 @@ namespace Modules::Accelerometer
         return currentFrame.face;
     }
 
-    float currentFaceConfidence()
+    int currentFaceConfidenceTimes1000()
     {
-        return currentFrame.faceConfidence;
+        return currentFrame.faceConfidenceTimes1000;
     }
 
     RollState currentRollState()
@@ -454,12 +455,10 @@ namespace Modules::Accelerometer
 
     struct CalibrationNormals
     {
-        float3 face1;
-        float3 face5;
-        float3 face10;
-        // float3 led0;
-        // float3 led1;
-        float confidence;
+        int3 face1;
+        int3 face5;
+        int3 face10;
+        int confidenceTimes1000;
 
         // Set to true if connection is lost to stop calibration
         bool calibrationInterrupted;
@@ -524,8 +523,8 @@ namespace Modules::Accelerometer
                                 // From the 3 measured normals we can calibrate the accelerometer
                                 auto b = BoardManager::getBoard();
 
-                                float3 newNormals[b->ledCount];
-                                measuredNormals->confidence = Utils::CalibrateNormals(
+                                int3 newNormals[b->ledCount];
+                                measuredNormals->confidenceTimes1000 = Utils::CalibrateNormals(
                                     0, measuredNormals->face1,
                                     4, measuredNormals->face5,
                                     9, measuredNormals->face10,
@@ -566,8 +565,8 @@ namespace Modules::Accelerometer
 
         // Copy current calibration data
         int normalCount = BoardManager::getBoard()->ledCount;
-        float3 calibratedNormalsCopy[normalCount];
-        memcpy(calibratedNormalsCopy, SettingsManager::getSettings()->faceNormals, normalCount * sizeof(float3));
+        int3 calibratedNormalsCopy[normalCount];
+        memcpy(calibratedNormalsCopy, SettingsManager::getSettings()->faceNormals, normalCount * sizeof(int3));
 
         // Replace the face's normal with what we measured
         readAccelerometer(&calibratedNormalsCopy[face]);
@@ -591,7 +590,7 @@ namespace Modules::Accelerometer
         }
     }
 
-    void readAccelerometer(float3 *acc)
+    void readAccelerometer(int3 *acc)
     {
         AccelChip::read(acc);
     }

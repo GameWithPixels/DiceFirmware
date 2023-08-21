@@ -1,7 +1,7 @@
 #include "accel_chip.h"
 #include "drivers_nrf/i2c.h"
 #include "nrf_log.h"
-#include "core/float3.h"
+#include "core/int3.h"
 #include "utils/Utils.h"
 #include "core/delegate_array.h"
 #include "nrf_gpio.h"
@@ -74,7 +74,7 @@ namespace AccelChip
 
     const uint8_t devAddress = 0x0F;
     const Scale fsr = SCALE_4G;
-    const float scaleMult = 4.0f;
+    const int scaleMult = 4;
     const DataRate dataRate = ODR_6_25;
     const uint16_t wakeUpThreshold = 32;
     const uint8_t wakeUpCount = 1;
@@ -101,7 +101,7 @@ namespace AccelChip
         return success;
     }
 
-    void read(Core::float3* outAccel) {
+    void read(Core::int3* outAccel) {
 
         // Read accelerometer data
         uint8_t accBuffer[6];
@@ -115,9 +115,9 @@ namespace AccelChip
         int16_t cz = (((int16_t)accBuffer[5] << 8) | accBuffer[4]) >> 4;
         if (cz & 0x0800) cz |= 0xF000;
 
-        outAccel->x = (float)cx / (float)(1 << 11) * scaleMult;
-        outAccel->y = (float)cy / (float)(1 << 11) * scaleMult;
-        outAccel->z = (float)cz / (float)(1 << 11) * scaleMult;
+        outAccel->xTimes1000 = cx * 1000 / (1 << 11) * scaleMult;
+        outAccel->yTimes1000 = cy * 1000 / (1 << 11) * scaleMult;
+        outAccel->zTimes1000 = cz * 1000 / (1 << 11) * scaleMult;
     }
 
     void standby()
@@ -219,18 +219,14 @@ namespace AccelChip
 	void dataInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
 
         //I2C::readRegister(devAddress, STATUS_REG);
-        Core::float3 acc;
+        Core::int3 acc;
         read(&acc);
 
         // Trigger the callbacks
-        Scheduler::push(&acc, sizeof(Core::float3), [](void* accCopyPtr, uint16_t event_size) {
+        Scheduler::push(&acc, sizeof(Core::int3), [](void* accCopyPtr, uint16_t event_size) {
 
             // Cast the param to the right type
-            Core::float3* accCopy = (Core::float3*)(accCopyPtr);
-
-            // NRF_LOG_INFO("x: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->x));
-            // NRF_LOG_INFO("y: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->y));
-            // NRF_LOG_INFO("z: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accCopy->z));
+            Core::int3* accCopy = (Core::int3*)(accCopyPtr);
 
             for (int i = 0; i < clients.Count(); ++i) {
                 clients[i].handler(clients[i].token, *accCopy);

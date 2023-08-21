@@ -88,7 +88,7 @@ namespace Bluetooth::Telemetry
 
     void onAccDataReceived(void* param, const Accelerometer::AccelFrame& frame) {
         teleMessage.acc = frame.acc;
-        teleMessage.faceConfidence = frame.faceConfidence;
+        teleMessage.faceConfidenceTimes1000 = frame.faceConfidenceTimes1000;
         teleMessage.time = frame.time;
         teleMessage.rollState = frame.rollState;
         teleMessage.face = frame.face;

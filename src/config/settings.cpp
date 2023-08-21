@@ -127,25 +127,20 @@ namespace Config::SettingsManager
 		}
 		outSettings.name[8 + sizeof(pixel)] = '\0';
 		outSettings.designAndColor = DiceVariants::DesignAndColor::DesignAndColor_Generic;
-		outSettings.jerkClamp = 10.f;
-		outSettings.sigmaDecay = 0.5f;
-		outSettings.startMovingThreshold = 5.0f;
-		outSettings.stopMovingThreshold = 0.5f;
-		outSettings.faceThreshold = 0.98f;
-		outSettings.fallingThreshold = 0.1f;
-		outSettings.shockThreshold = 7.5f;
-		outSettings.batteryLow = 3.0f;
-		outSettings.batteryHigh = 4.0f;
-		outSettings.accDecay = 0.9f;
-		outSettings.heatUpRate = 0.0004f;
-		outSettings.coolDownRate = 0.995f;
+		outSettings.sigmaDecayTimes1000 = 500;
+		outSettings.startMovingThresholdTimes1000 = 5000;
+		outSettings.stopMovingThresholdTimes1000 = 500;
+		outSettings.faceThresholdTimes1000 = 980;
+		outSettings.fallingThresholdTimes1000 = 100;
+		outSettings.shockThresholdTimes1000 = 7500;
+		outSettings.accDecayTimes1000 = 900;
 	}
 
 	void setDefaultCalibrationData(Settings& outSettings) {
 		// Copy normals from defaults
         auto layout = DiceVariants::getLayout();
 		int ledCount = layout->ledCount;
-		const Core::float3* defaultNormals = layout->baseNormals;
+		const Core::int3* defaultNormals = layout->baseNormals;
 		for (int i = 0; i < ledCount; ++i) {
 			outSettings.faceNormals[i] = defaultNormals[i];
 		}
@@ -184,7 +179,7 @@ namespace Config::SettingsManager
 		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 	}
 
-	void programCalibrationData(const Core::float3* newNormals, int count, SettingsWrittenCallback callback) {
+	void programCalibrationData(const Core::int3* newNormals, int count, SettingsWrittenCallback callback) {
 
 		// Grab current settings
 		Settings settingsCopy;
@@ -196,7 +191,7 @@ namespace Config::SettingsManager
 		memcpy(&settingsCopy, settings, sizeof(Settings));
 
 		// Change normals
-		memcpy(&(settingsCopy.faceNormals[0]), newNormals, count * sizeof(Core::float3));
+		memcpy(&(settingsCopy.faceNormals[0]), newNormals, count * sizeof(Core::int3));
 
 		// Reprogram settings
 		DataSet::ProgramDefaultDataSet(settingsCopy, callback);

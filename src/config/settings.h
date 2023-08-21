@@ -2,7 +2,7 @@
 
 #include "stdint.h"
 #include "stddef.h"
-#include "core/float3.h"
+#include "core/int3.h"
 #include "dice_variants.h"
 
 #define MAX_COUNT 22		// Max LED count so far is 21 (on PD6)
@@ -32,23 +32,16 @@ namespace Config
 		char name[MAX_NAME_LENGTH + 1]; // One extra byte for the zero terminator
 
 		// Face detector
-		float jerkClamp;
-		float sigmaDecay;
-		float startMovingThreshold;
-		float stopMovingThreshold;
-		float faceThreshold;
-		float fallingThreshold;
-		float shockThreshold;
-		float accDecay;
-		float heatUpRate;
-		float coolDownRate;
-
-		// Battery
-		float batteryLow;
-		float batteryHigh;
+		int sigmaDecayTimes1000;
+		int startMovingThresholdTimes1000;
+		int stopMovingThresholdTimes1000;
+		int faceThresholdTimes1000;
+		int fallingThresholdTimes1000;
+		int shockThresholdTimes1000;
+		int accDecayTimes1000;
 
 		// Calibration data
-		Core::float3 faceNormals[MAX_COUNT];
+		Core::int3 faceNormals[MAX_COUNT];
 
 		// Indicates whether there is valid data
 		uint32_t tailMarker;
@@ -66,7 +59,7 @@ namespace Config
 		void setDefaults(Settings& outSettings);
 		void programDefaults(SettingsWrittenCallback callback);
 		void programDefaultParameters(SettingsWrittenCallback callback);
-		void programCalibrationData(const Core::float3* newNormals, int count, SettingsWrittenCallback callback);
+		void programCalibrationData(const Core::int3* newNormals, int count, SettingsWrittenCallback callback);
 		void programDesignAndColor(DiceVariants::DesignAndColor design, SettingsWrittenCallback callback);
 		void programName(const char* newName, SettingsWrittenCallback callback);
 	}

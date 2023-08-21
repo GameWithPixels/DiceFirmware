@@ -278,4 +278,24 @@ for x in range(256):
 		const uint32_t c = 12345;
 		return ((a * prevRand + c) % m);
 	}
+
+
+    // sqrt_i32 computes the squrare root of a 32bit integer and returns
+    // a 32bit integer value. It requires that v is positive.
+    // Source: https://github.com/chmike/fpsqrt/tree/master
+    int32_t sqrt_i32(int32_t v) {
+        uint32_t b = 1<<30, q = 0, r = v;
+        while (b > r)
+            b >>= 2;
+        while( b > 0 ) {
+            uint32_t t = q + b;
+            q >>= 1;           
+            if( r >= t ) {     
+                r -= t;        
+                q += b;        
+            }
+            b >>= 2;
+        }
+        return q;
+    }
 }

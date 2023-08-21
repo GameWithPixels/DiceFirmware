@@ -1,12 +1,27 @@
 #pragma once
 
-#include "core/float3.h"
+#include "core/int3.h"
 #include "stdint.h"
 
 namespace Config
 {
     namespace DiceVariants
     {
+
+        enum DieType : uint8_t
+        {
+            DieType_Unknown = 0,
+            DieType_D4,
+            DieType_D6,
+            DieType_D8,
+            DieType_D10,
+            DieType_D00,
+            DieType_D12,
+            DieType_D20,
+            DieType_PD6,
+            DieType_FD6,
+        };
+
         // This enum describes what the dice looks like, so the App can use the appropriate 3D model/color
         enum DesignAndColor : uint8_t
         {
@@ -27,7 +42,7 @@ namespace Config
 
         struct Layout
         {
-            const Core::float3* baseNormals;
+            const Core::int3* baseNormals;
             const uint8_t* canonicalIndexFaceToFaceRemapLookup;     // This remaps LED indices to remap faces when re-targeting the "up" face
                                                                     // So if an animation pattern was authored with the 20 face up, we can
                                                                     // remap the LEDs to play the animation with any face being up.

@@ -39,7 +39,6 @@ namespace Rainbow
 	constexpr uint8_t paletteSize = 1 << paletteBits;
 
 	uint32_t palette(uint8_t index) {
-		uint32_t color = 0;
 		uint8_t intensity = 0;
 		uint8_t whiteness = 0;
 		uint8_t wheel = 0;

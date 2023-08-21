@@ -4,7 +4,7 @@
 
 namespace Core
 {
-    struct float3;
+    struct int3;
 }
 
 namespace DriversHW
@@ -15,7 +15,7 @@ namespace DriversHW
 	namespace AccelChip
 	{
 		bool init();
-		void read(Core::float3* outAccel);
+		void read(Core::int3* outAccel);
 
 		void enableInterrupt();
         void enableDataInterrupt();
@@ -26,7 +26,7 @@ namespace DriversHW
 		void lowPower();
 
 		// Notification management
-		typedef void(*AccelClientMethod)(void* param, const Core::float3& acceleration);
+		typedef void(*AccelClientMethod)(void* param, const Core::int3& acceleration);
 		void hook(AccelClientMethod method, void* param);
 		void unHook(AccelClientMethod client);
 		void unHookWithParam(void* param);

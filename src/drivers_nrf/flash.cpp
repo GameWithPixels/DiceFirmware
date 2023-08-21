@@ -14,6 +14,7 @@
 #include "data_set/data_set.h"
 #include "data_set/data_set_data.h"
 #include "behaviors/behavior.h"
+#include "malloc.h"
 
 using namespace DriversNRF;
 using namespace Config;

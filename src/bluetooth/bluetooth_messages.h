@@ -6,7 +6,7 @@
 #include "modules/accelerometer.h"
 #include "config/settings.h"
 #include "modules/battery_controller.h"
-#include "core/float3.h"
+#include "core/int3.h"
 #include "modules/accelerometer.h"
 
 #define MAX_DATA_SIZE 100
@@ -168,8 +168,8 @@ struct MessageTelemetry
 	: public Message
 {
 	// Accelerometer
-	Core::float3 acc;
-	float faceConfidence;
+	Core::int3 acc;
+	int faceConfidenceTimes1000;
 	uint32_t time;
 	RollState rollState;
 	uint8_t face;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/ring_buffer.h"
-#include "core/float3.h"
+#include "core/int3.h"
 #include "core/delegate_array.h"
 
 /// <summary>
@@ -10,7 +10,7 @@
 /// </summary>
 namespace Modules::Accelerometer
 {
-	using Core::float3;
+	using Core::int3;
 	enum RollState : uint8_t
 	{
 		RollState_Unknown = 0,
@@ -30,11 +30,11 @@ namespace Modules::Accelerometer
 	/// </summary>
 	struct AccelFrame
 	{
-		float3 acc;
-		float3 jerk;
-		float3 smoothAcc;
-		float sigma;
-		float faceConfidence;
+		int3 acc;
+		int3 jerk;
+		int3 smoothAcc;
+		int16_t sigmaTimes1000;
+		int16_t faceConfidenceTimes1000;
 		uint32_t time;
 		RollState rollState;
 		uint8_t face;
@@ -49,13 +49,13 @@ namespace Modules::Accelerometer
 	void wakeUp();
 
 	int currentFace();
-	float currentFaceConfidence();
+	int currentFaceConfidenceTimes1000();
 	RollState currentRollState();
 
 	// Returns empty string in release builds so to save space
 	const char *getRollStateString(RollState state);
 
-	void readAccelerometer(float3* acc);
+	void readAccelerometer(int3* acc);
 
 	typedef void(*AccelerometerInterruptMethod)(void* param);
 	void enableInterrupt(AccelerometerInterruptMethod callback, void* param);
