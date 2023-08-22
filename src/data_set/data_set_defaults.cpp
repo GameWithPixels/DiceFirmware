@@ -233,7 +233,7 @@ namespace DataSet
 		// Create animations
 		for (int c = 0; c < simpleAnimCount; ++c) {
             writeSimpleAnimations[c].type = Animation_Simple;
-            writeSimpleAnimations[c].traveling = 0;
+            writeSimpleAnimations[c].animFlags = 0;
             writeSimpleAnimations[c].fade = 255;
 		}
 
@@ -287,12 +287,11 @@ namespace DataSet
 
         // 8 Rainbow
         writeRainbowAnimation->type = Animation_Rainbow;
-        writeRainbowAnimation->traveling = 1;
-		writeRainbowAnimation->duration = 2000;
+        writeRainbowAnimation->animFlags = AnimationFlags_Traveling;
+        writeRainbowAnimation->duration = 2000;
 		writeRainbowAnimation->faceMask = ANIM_FACEMASK_ALL_LEDS;
         writeRainbowAnimation->count = 2;
         writeRainbowAnimation->fade = 200;
-		writeRainbowAnimation->traveling = 1;
         writeRainbowAnimation->intensity = 0x80;
 
 		// Create offsets

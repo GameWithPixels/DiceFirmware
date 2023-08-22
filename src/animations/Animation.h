@@ -31,14 +31,23 @@ namespace Animations
 	};
 
 	/// <summary>
+	/// Flags for the animations, they can be combined.
+	/// </summary>
+	enum AnimationFlags : uint8_t
+	{
+		AnimationFlags_None,
+		AnimationFlags_Traveling = 1,
+		AnimationFlags_UseLedIndices = 2,
+	};
+
+	/// <summary>
 	/// Base struct for animation presets. All presets have a few properties in common.
 	/// Presets are stored in flash, so do not have methods or vtables or anything like that.
 	/// </summary>
 	struct Animation
 	{
 		AnimationType type;
-		uint8_t traveling;	// indicates that the indices used in the animation
-							// are electrical led indices, not face indices
+		uint8_t animFlags; // Combination of AnimationFlags
 		uint16_t duration; // in ms
 	};
 

@@ -143,7 +143,7 @@ namespace Modules::AnimController
 
 					// Gamma correct and map face index to led index
 					//NRF_LOG_INFO("track_count = %d", animTrackCount);
-					if (anim->animationPreset->traveling) {
+					if (anim->animationPreset->animFlags & AnimationFlags_UseLedIndices) {
 						// animation is working with led indices, not face indices
 						memcpy(ledIndices, canonIndices, animTrackCount * sizeof(int));
 					} else {
