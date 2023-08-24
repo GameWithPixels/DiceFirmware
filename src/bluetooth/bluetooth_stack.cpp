@@ -456,7 +456,9 @@ namespace Bluetooth::Stack
 
                     // Reset flag, since we won't be getting an event back
                     notificationPending = false;
-                    return SendResult_Error;
+                    // We get this sys_attr_missing when trying to send a message right after the connect event
+                    // There might be other errors we would get before the stack is ready to send messages...
+                    return err_code == BLE_ERROR_GATTS_SYS_ATTR_MISSING ? SendResult_NotReady : SendResult_Error;
                 }
             } else {
                 return SendResult_Busy;

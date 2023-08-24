@@ -19,6 +19,7 @@ namespace Bluetooth::Stack
         SendResult_Ok = 0,
         SendResult_Busy,            // Should try again later
         SendResult_NotConnected,    // No connection
+        SendResult_NotReady,        // Connected but still initializing
         SendResult_Error,           // Any other error
     };
 

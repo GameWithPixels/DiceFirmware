@@ -208,20 +208,26 @@ namespace Bluetooth::MessageService
                         }
                         // Otherwise update() is already scheduled
                     } else {
-                        NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (Queue full)", msg->type, msgSize);
+                        NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (%s)", msg->type, msgSize, "Queue full");
                     }
                 }
                 break;
             case Stack::SendResult_Error:
                 // Any other error, don't know what to do, forget the message
-                NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (Unknown Error)", msg->type, msgSize);
+                NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (%s)", msg->type, msgSize, "Unknown Error");
+                break;
             case Stack::SendResult_NotConnected:
                 // Not connected, forget the message
-                NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (Not Connected)", msg->type, msgSize);
-            default:
-                ret = false;
+                NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (%s)", msg->type, msgSize, "Not Connected");
                 break;
-        }
+            case Stack::SendResult_NotReady:
+                // Connected but not yet ready to send messages
+                NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (%s)", msg->type, msgSize, "Not ready");
+                break;
+            default:
+                // Unhandled result, shouldn not happen
+                NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (%s)", msg->type, msgSize, "UNEXPECTED RESULT");
+            }
         return ret;
     }
 
