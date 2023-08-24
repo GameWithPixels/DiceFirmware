@@ -22,6 +22,9 @@ namespace DriversNRF::Scheduler
     bool push(const void* eventData, uint16_t size, app_sched_event_handler_t handler) {
         ASSERT(size <= SCHED_MAX_EVENT_DATA_SIZE);
         ret_code_t ret = app_sched_event_put((void*)eventData, size, handler);
+        if (ret != NRF_SUCCESS) {
+            NRF_LOG_ERROR("Scheduler push failed, error %s(0x%x)", NRF_LOG_ERROR_STRING_GET(ret), ret);
+        }
         return ret == NRF_SUCCESS;
     }
 }
