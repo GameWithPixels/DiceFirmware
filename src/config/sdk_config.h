@@ -1,6 +1,9 @@
 #ifndef SDK_CONFIG_H
 #define SDK_CONFIG_H
 
+// Use Nordic's hardfault handler
+#define HARDFAULT_HANDLER_ENABLED 1
+
 //==========================================================
 // BLE DFU Service
 //==========================================================
