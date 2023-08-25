@@ -106,10 +106,6 @@ namespace Bluetooth::MessageService
         return Stack::isConnected();
     }
 
-    void scheduled_update(void * p_event_data, uint16_t event_size) {
-        update();
-    }
-
     void update() {
         // Process received messages if possible
         while (ReceiveQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
@@ -142,11 +138,6 @@ namespace Bluetooth::MessageService
                     return ret;
                 });
             }
-        }
-
-        // If either queues aren't empty, reschedule update() call.
-        if (SendQueue.count() > 0 || ReceiveQueue.count() > 0) {
-            Scheduler::push(nullptr, 0, scheduled_update);
         }
     }
 
@@ -198,15 +189,10 @@ namespace Bluetooth::MessageService
             case Stack::SendResult_Busy:
                 {
                     // Couldn't send right away, try to schedule it for later
-                    bool schedule = SendQueue.count() == 0 && ReceiveQueue.count() == 0;
                     ret = SendQueue.tryEnqueue(msg, msgSize);
                     if (ret) {
                         NRF_LOG_DEBUG("Message of type %d of size %d QUEUED (Queue=%d)", msg->type, msgSize, SendQueue.count());
-                        if (schedule) {
-                            Scheduler::push(nullptr, 0, scheduled_update);
-                            NRF_LOG_DEBUG("Update Scheduled");
-                        }
-                        // Otherwise update() is already scheduled
+                        // update() will be called on the next frame
                     } else {
                         NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (%s)", msg->type, msgSize, "Queue full");
                     }
@@ -254,7 +240,7 @@ namespace Bluetooth::MessageService
                 if (!ReceiveQueue.tryEnqueue(msg, len)) {
                     NRF_LOG_ERROR("Message of type %d NOT HANDLED (Scheduler full)", msg->type);
                 } else {
-                    Scheduler::push(nullptr, 0, scheduled_update);
+                    // update() will be called on the next frame
                 }
             } else {
                 NRF_LOG_ERROR("Bad message type %d", msg->type);
