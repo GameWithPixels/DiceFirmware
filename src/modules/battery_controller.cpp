@@ -428,7 +428,7 @@ namespace Modules::BatteryController
 
         // Measure new values
         readBatteryValues();
-        uint8_t prevLevel = levelPercent;
+        const uint8_t prevLevel = levelPercent;
         updateLevelPercent();
 
         int temperatureTimes100 = Temperature::getNTCTemperatureTimes100();
@@ -479,8 +479,9 @@ namespace Modules::BatteryController
                 break;
         }
 
-        auto newState = computeNewState();
-        if (newState != currentState) {
+        const auto newState = computeNewState();
+        const bool stateChanged = newState != currentState;
+        if (stateChanged) {
             // Update current state time
             currentStateStartTime = DriversNRF::Timers::millis();
             switch (newState) {
@@ -536,9 +537,6 @@ namespace Modules::BatteryController
             NRF_LOG_DEBUG("    level: %d%%", levelPercent);
 
             currentState = newState;
-            for (int i = 0; i < clients.Count(); ++i) {
-    			clients[i].handler(clients[i].token, newState);
-            }
         }
 
         auto newBatteryState = computeNewBatteryState();
@@ -552,6 +550,14 @@ namespace Modules::BatteryController
         if (prevLevel != levelPercent) {
             for (int i = 0; i < levelClients.Count(); ++i) {
                 levelClients[i].handler(levelClients[i].token, levelPercent);
+            }
+        }
+
+        if (stateChanged) {
+            // And lastly notify of controller state change so notified clients
+            // can also read the up-to-date battery state and level
+            for (int i = 0; i < clients.Count(); ++i) {
+    			clients[i].handler(clients[i].token, newState);
             }
         }
 
