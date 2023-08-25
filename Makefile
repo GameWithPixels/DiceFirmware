@@ -285,7 +285,7 @@ FSTORAGE_ADDR = 0x26000 # 0x19000 + 0xD000 (max app size = 53248 bytes = 52 kB)
 # Debug builds are bigger, but the bootloader is not present so we can use higher addresses
 firmware_debug: FSTORAGE_ADDR = 0x2E000
 
-COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR)
+COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR) -Wstack-usage=300
 
 # Debug flags
 DEBUG_FLAGS = -DNRF_LOG_ENABLED=0

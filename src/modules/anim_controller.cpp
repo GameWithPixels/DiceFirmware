@@ -75,6 +75,9 @@ namespace Modules::AnimController
 		start();
 	}
 
+#pragma GCC diagnostic push "-Wstack-usage="
+#pragma GCC diagnostic ignored "-Wstack-usage="
+
 	/// <summary>
 	/// Update all currently running animations, and performing housekeeping when necessary
 	/// </summary>
@@ -174,6 +177,8 @@ namespace Modules::AnimController
 			LEDs::setPixelColors(allColors);
 		}
 	}
+
+#pragma GCC diagnostic pop "-Wstack-usage="
 
 	/// <summary>
 	/// Stop updating animations
