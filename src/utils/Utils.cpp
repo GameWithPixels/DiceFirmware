@@ -40,6 +40,50 @@ namespace Utils
 		return toColor(scaledRed / scaler, scaledGreen / scaler, scaledBlue / scaler);
 	}
 
+	uint16_t getEaseParam(uint16_t param, EasingType easing) {
+		switch (easing) {
+			case Utils::EasingType::EasingType_Unknown:
+			default:
+				NRF_LOG_ERROR("Unknown Easing Type");
+				// Voluntary fall through
+			case Utils::EasingType::EasingType_Step:
+				return (param < 0x7FFF) ? 0 : 0xFFFF;
+			case Utils::EasingType::EasingType_Linear:
+				return param;
+			case Utils::EasingType::EasingType_EaseIn:
+				// We use x*x
+				return (uint32_t)param * param / 0xFFFF;
+			case Utils::EasingType::EasingType_EaseOut:
+				// We use 1 - (1 - x) * (1 - x);
+				return (uint32_t)0xFFFF - (uint32_t)(0xFFFF - param) * (0xFFFF - param) / 0xFFFF;
+			case Utils::EasingType::EasingType_EaseInEaseOut:
+				if (param <= 0x7FFF) {
+					param *= 2;
+					return (uint32_t)param * param / 0x1FFFE;
+				} else {
+					param = (param - 0x8000);
+					param *= 2;
+					return (uint32_t)0xFFFF - (uint32_t)(0xFFFF - param) * (0xFFFF - param) / 0x1FFFE;
+				}
+		}
+	}
+
+	uint16_t interpolate(uint16_t start, uint16_t end, uint16_t param, EasingType easing) {
+		uint16_t easeParam = getEaseParam(param, easing);
+		return (uint16_t)(((uint32_t)start * (0xFFFF - easeParam) + (uint32_t)end * easeParam) / 0xFFFF);
+	}
+
+	uint32_t interpolateColors(uint32_t start, uint32_t end, uint16_t param, EasingType easing) {
+		uint16_t easeParam = getEaseParam(param, easing);
+		auto rs = getRed(start);	auto re = getRed(end);
+		auto gs = getGreen(start);	auto ge = getGreen(end);
+		auto bs = getBlue(start);	auto be = getBlue(end);
+		uint8_t r = (uint8_t)(((uint32_t)rs * (0xFFFF - easeParam) + (uint32_t)re * easeParam) / 0xFFFF);
+		uint8_t g = (uint8_t)(((uint32_t)gs * (0xFFFF - easeParam) + (uint32_t)ge * easeParam) / 0xFFFF);
+		uint8_t b = (uint8_t)(((uint32_t)bs * (0xFFFF - easeParam) + (uint32_t)be * easeParam) / 0xFFFF);
+		return toColor(r,g,b);
+	}
+
 	// Helper method to convert register readings to signed integers
 	short twosComplement(uint8_t registerValue) {
 		// If a positive value, return it

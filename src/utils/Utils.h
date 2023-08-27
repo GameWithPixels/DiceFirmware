@@ -26,6 +26,22 @@ namespace Utils
 
 	uint32_t scaleColor(uint32_t color, uint32_t scaleTimes1000);
 	uint32_t interpolateColors(uint32_t color1, uint32_t time1, uint32_t color2, uint32_t time2, uint32_t time);
+
+    enum EasingType : uint8_t
+    {
+        EasingType_Unknown = 0,
+        EasingType_Step,
+        EasingType_Linear,
+        EasingType_EaseIn,
+        EasingType_EaseOut,
+        EasingType_EaseInEaseOut, // S curve
+        // Etc...
+    };
+
+	uint16_t getEaseParam(uint16_t param, EasingType easing);
+	uint16_t interpolate(uint16_t start, uint16_t end, uint16_t param, EasingType easing);
+	uint32_t interpolateColors(uint16_t start, uint16_t end, uint16_t param, EasingType easing);
+			
 	uint8_t sine8(uint8_t x);
 	uint8_t gamma8(uint8_t x);
 	uint32_t gamma(uint32_t color);
