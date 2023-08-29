@@ -2,6 +2,7 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "app_error.h"
+#include "hardfault/hardfault.h"
 
 #if !defined(BUILD_TIMESTAMP)
     #warning Build timestamp not defined
@@ -29,6 +30,11 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info) {
 
 void app_error_handler_bare(ret_code_t error_code) {
     NRF_LOG_ERROR("Received an error: 0x%08x!", error_code);
+    on_error();
+}
+
+void HardFault_process(HardFault_stack_t *p_stack) {
+    // Error already logged in default implementation of HardFault_c_handler
     on_error();
 }
 

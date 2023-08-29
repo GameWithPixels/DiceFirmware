@@ -297,7 +297,7 @@ struct MessagePlayAnim
 	: public Message
 {
 	uint8_t animation;
-	uint8_t remapFace;  // Assumes that an animation was made for face 20
+	uint8_t remapFace;	// The animations are designed assuming that the higher face value is up
 	uint8_t loop; 		// 1 == loop, 0 == once
 
 	MessagePlayAnim() : Message(Message::MessageType_PlayAnim) {}

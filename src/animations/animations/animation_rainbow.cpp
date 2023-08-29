@@ -44,7 +44,7 @@ namespace Animations
 
 		// Fill the indices and colors for the anim controller to know how to update leds
 		int retCount = 0;
-        if (preset->traveling != 0) {
+        if (preset->animFlags & AnimationFlags_Traveling) {
 			for (int i = 0; i < c; ++i) {
 				if ((preset->faceMask & (1 << i)) != 0)
 				{

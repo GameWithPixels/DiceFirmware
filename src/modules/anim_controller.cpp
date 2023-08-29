@@ -80,6 +80,9 @@ namespace Modules::AnimController
 		start();
 	}
 
+#pragma GCC diagnostic push "-Wstack-usage="
+#pragma GCC diagnostic ignored "-Wstack-usage="
+
 	/// <summary>
 	/// Update all currently running animations, and performing housekeeping when necessary
 	/// </summary>
@@ -152,7 +155,7 @@ namespace Modules::AnimController
 
 					// Gamma correct and map face index to led index
 					//NRF_LOG_INFO("track_count = %d", animTrackCount);
-					if (anim->animationPreset->traveling) {
+					if (anim->animationPreset->animFlags & AnimationFlags_UseLedIndices) {
 						// animation is working with led indices, not face indices
 						memcpy(ledIndices, canonIndices, animTrackCount * sizeof(int));
 					} else {
@@ -183,6 +186,8 @@ namespace Modules::AnimController
 			LEDs::setPixelColors(allColors);
 		}
 	}
+
+#pragma GCC diagnostic pop "-Wstack-usage="
 
 	/// <summary>
 	/// Stop updating animations

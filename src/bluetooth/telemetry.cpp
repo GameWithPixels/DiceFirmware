@@ -31,9 +31,7 @@ namespace Bluetooth::Telemetry
     static uint32_t minIntervalMs = 0;
     static uint32_t lastMessageMs = 0;
 
-    void onConnectionEvent(void* param, bool connected);
     void onRequestTelemetryHandler(const Message* message);
-    void onTemperatureRead(void* param, int temperatureTimes100);
 
     void init() {
         // Init our reuseable telemetry message
@@ -54,7 +52,6 @@ namespace Bluetooth::Telemetry
 
     void trySend() {
         // Check that we got the acceleration, RSSI and temperature data
-        //const bool allInit = teleMessage.accelFrame.time != 0 && teleMessage.rssi != 0 && teleMessage.mcuTempTimes100 != 0;
         const bool allInit = teleMessage.time != 0 && teleMessage.rssi;
 
         // Check time interval since we last send a telemetry message
@@ -72,9 +69,10 @@ namespace Bluetooth::Telemetry
                 teleMessage.batteryLevelPercent = BatteryController::getLevelPercent();
                 teleMessage.batteryState = BatteryController::getBatteryState();
                 teleMessage.batteryControllerState = BatteryController::getState();
+
+                // Voltage and current
                 teleMessage.voltageTimes50 = BatteryController::getVoltageMilli() / 20;
                 teleMessage.vCoilTimes50 = BatteryController::getCoilVoltageMilli() / 20;
-
                 teleMessage.ledCurrent = LEDs::computeCurrentEstimate();
 
                 // Send the message
@@ -110,6 +108,10 @@ namespace Bluetooth::Telemetry
         }
     }
 
+    void onBatteryChanged(void* param, BatteryController::State newState) {
+        trySend();
+    }
+
     void onRequestTelemetryHandler(const Message* message) {
         auto reqTelem = static_cast<const MessageRequestTelemetry *>(message);
         NRF_LOG_DEBUG("Received Telemetry Request, mode = %d, minInterval = %d", reqTelem->requestMode, reqTelem->minInterval);
@@ -130,10 +132,11 @@ namespace Bluetooth::Telemetry
             NRF_LOG_INFO("Starting Telemetry");
             requestMode = repeat ? TelemetryRequestMode_Repeat : TelemetryRequestMode_Once;
 
-            // Reset accel data, RSSI and temperature so we won't send
-            // a message until they are all updated
+            // Reset accel data and RSSI so we won't send a message until they are updated
             teleMessage.time = 0;
             teleMessage.rssi = 0;
+
+            // Update temperature to have some valid values until the temp callback is called
             teleMessage.mcuTempTimes100 = Temperature::getMCUTemperatureTimes100();
             teleMessage.batteryTempTimes100 = Temperature::getNTCTemperatureTimes100();
 
@@ -147,8 +150,11 @@ namespace Bluetooth::Telemetry
             // RSSI
             Stack::hookRssi(onRssiChanged, nullptr);
 
-            // Request temperature update
+            // Temperature changes
             Temperature::hookTemperatureChange(onTemperatureChanged, nullptr);
+
+            // Battery controller state
+            Modules::BatteryController::hookControllerState(onBatteryChanged, nullptr);
         }
     }
 
@@ -162,6 +168,7 @@ namespace Bluetooth::Telemetry
             Accelerometer::unHookFrameData(onAccDataReceived);
             Stack::unHookRssi(onRssiChanged);
             Temperature::unHookTemperatureChange(onTemperatureChanged);
+            Modules::BatteryController::unHookControllerState(onBatteryChanged);
         }
     }
 }

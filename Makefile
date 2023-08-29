@@ -119,6 +119,8 @@ SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_timer.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
+	$(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
+	$(SDK_ROOT)/components/libraries/hardfault/nrf52/handler/hardfault_handler_gcc.c \
 	$(PROJ_DIR)/src/pixel.cpp \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \
@@ -286,7 +288,7 @@ FSTORAGE_ADDR = 0x26000 # 0x19000 + 0xD000 (max app size = 53248 bytes = 52 kB)
 # Debug builds are bigger, but the bootloader is not present so we can use higher addresses
 firmware_debug: FSTORAGE_ADDR = 0x2E000
 
-COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR)
+COMMON_FLAGS += -DFSTORAGE_START=$(FSTORAGE_ADDR) -Wstack-usage=300
 
 # Debug flags
 DEBUG_FLAGS = -DNRF_LOG_ENABLED=0

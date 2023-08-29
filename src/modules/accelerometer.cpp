@@ -490,6 +490,9 @@ namespace Modules::Accelerometer
         // Start calibration!
         measuredNormals = (CalibrationNormals *)malloc(sizeof(CalibrationNormals));
 
+#pragma GCC diagnostic push "-Wstack-usage="
+#pragma GCC diagnostic ignored "-Wstack-usage="
+
         // Ask user to place die on face 1
         MessageService::NotifyUser("Place face 1 up", true, true, 30, [](bool okCancel)
         {
@@ -575,6 +578,8 @@ namespace Modules::Accelerometer
         SettingsManager::programCalibrationData(calibratedNormalsCopy, normalCount, [](bool result)
                                                 { MessageService::NotifyUser("Face calibrated", true, false, 5, nullptr); });
     }
+
+#pragma GCC diagnostic pop "-Wstack-usage="
 
     void onSettingsProgrammingEvent(void *context, Flash::ProgrammingEventType evt)
     {
