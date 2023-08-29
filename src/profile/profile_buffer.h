@@ -30,7 +30,7 @@ namespace Profile
         T const * const get(BufferDescriptor buffer) const { return reinterpret_cast<const T*>(buffer.start + offset); }
         Pointer() : offset(0) {}
         explicit Pointer(uint16_t off) : offset(off) {}
-        template <typename U> Pointer(const Pointer<U>& u) : offset(u.offset) { const T* check = (const U*)nullptr; }
+        template <typename U> Pointer(const Pointer<U>& u) : offset(u.offset) { (void)(static_cast<const T*>((const U*)nullptr)); } 
 
         static constexpr Pointer nullPtr() { return Pointer();};
     };
@@ -48,7 +48,7 @@ namespace Profile
         T const * const getAt(BufferDescriptor buffer, uint8_t index) const { return reinterpret_cast<const T*>(buffer.start + offset + sizeof(T) * index); }
         Array() : offset(0) , length(0) {}
         explicit Array(uint16_t off, uint8_t l) : offset(off) , length(l) {}
-        template <typename U> Array(const Array<U>& u) : offset(u.offset) , length(u.length) { const T* check = (const U*)nullptr; }
+        template <typename U> Array(const Array<U>& u) : offset(u.offset) , length(u.length) { (void)(static_cast<const T*>((const U*)nullptr)); }
 
         static constexpr Array emptyArray() { return Array();};
     };

@@ -21,10 +21,10 @@
 #include "modules/charger_proximity.h"
 #include "modules/temperature.h"
 #include "modules/validation_manager.h"
-#include "data_set/data_set.h"
 #include "notifications/battery.h"
 #include "notifications/roll.h"
 #include "notifications/rssi.h"
+#include "profile/profile_static.h"
 
 using namespace Modules;
 using namespace Bluetooth;
@@ -81,9 +81,9 @@ namespace Die
         Bluetooth::MessageIAmADie identityMessage;
         identityMessage.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
         identityMessage.designAndColor = SettingsManager::getSettings()->designAndColor;
-        identityMessage.dataSetHash = DataSet::dataHash();
+        identityMessage.dataSetHash = Profile::Static::getHash();
         identityMessage.pixelId = Pixel::getDeviceID();
-        identityMessage.availableFlash = DataSet::availableDataSize();
+        identityMessage.availableFlash = Profile::Static::availableDataSize();
         identityMessage.buildTimestamp = Pixel::getBuildTimestamp();
         identityMessage.rollState = Accelerometer::currentRollState();
         identityMessage.rollFace = Accelerometer::currentFace();
@@ -175,15 +175,19 @@ namespace Die
     void playLEDAnimHandler(const Message* msg) {
         auto playAnimMessage = (const MessagePlayAnim*)msg;
         NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
-		auto animationPreset = DataSet::getAnimation((int)playAnimMessage->animation);
-        AnimController::play(animationPreset, DataSet::getAnimationBits(), playAnimMessage->remapFace, playAnimMessage->loop, Animations::AnimationTag_BluetoothMessage);
+		auto animationPreset = Profile::Static::getData()->getAnimation((int)playAnimMessage->animation);
+        AnimController::PlayAnimationParameters params;
+        params.remapFace = playAnimMessage->remapFace;
+        params.loop = playAnimMessage->loop;
+        params.tag = Animations::AnimationTag_BluetoothMessage;
+        AnimController::play(animationPreset, params);
     }
 
     void stopLEDAnimHandler(const Message* msg) {
         auto stopAnimMessage = (const MessageStopAnim*)msg;
         NRF_LOG_DEBUG("Stopping animation %d", stopAnimMessage->animation);
 		// Find the preset for this animation Index
-		auto animationPreset = DataSet::getAnimation((int)stopAnimMessage->animation);
+		auto animationPreset = Profile::Static::getData()->getAnimation((int)stopAnimMessage->animation);
         AnimController::stop(animationPreset, stopAnimMessage->remapFace);
     }
 

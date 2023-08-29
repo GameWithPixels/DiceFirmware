@@ -3,9 +3,14 @@
 #include <stdint.h>
 #include <stddef.h>
 
-namespace DataSet
+namespace Config
 {
-    struct Data;
+    struct Settings;
+}
+
+namespace Profile
+{
+    struct Profile;
 }
 
 namespace Config
@@ -33,22 +38,24 @@ namespace DriversNRF
         uint32_t getPageSize();
         uint32_t bytesToPages(uint32_t size);
         uint32_t getFlashByteSize(uint32_t totalDataByteSize);
+        uint32_t getProgramSize(uint32_t dataSize);
 
-        uint32_t getDataSetAddress();
-        uint32_t getDataSetDataAddress();
+        uint32_t getProfileAddress();
         uint32_t getSettingsStartAddress();
         uint32_t getSettingsEndAddress();
 
         typedef void (*ProgramFlashNotification)(bool result);
         typedef void (*ProgramFlashFuncCallback)(void* context, bool result, uint32_t address, uint16_t size);
-        typedef void (*ProgramFlashFunc)(ProgramFlashFuncCallback callback);
+        typedef void (*ProgramSettingsFunc)(ProgramFlashFuncCallback callback);
+        typedef void (*ProgramProfileFunc)(ProgramFlashFuncCallback callback);
 
-        bool programFlash(
-            const DataSet::Data& newData,
+        bool programSettings(
             const Config::Settings& newSettings,
-            ProgramFlashFunc programFlashFunc,
             ProgramFlashNotification onProgramFinished);
-
+        bool programProfile(
+            uint16_t profileSize,
+            ProgramProfileFunc programProfileFunc,
+            ProgramFlashNotification onProgramFinished);
 
         enum ProgrammingEventType
         {

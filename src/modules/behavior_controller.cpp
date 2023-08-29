@@ -2,11 +2,10 @@
 #include "bluetooth/bluetooth_stack.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/power_manager.h"
-#include "data_set/data_set.h"
 #include "modules/battery_controller.h"
 #include "modules/accelerometer.h"
-#include "data_set/data_set.h"
 #include "config/settings.h"
+#include "profile/profile_static.h"
 #include "nrf_log.h"
 #include "die.h"
 #include "nrf_assert.h"
@@ -15,7 +14,7 @@ using namespace Bluetooth;
 using namespace Animations;
 using namespace Config;
 using namespace DriversNRF;
-using namespace DataSet;
+using namespace Profile;
 
 #define CONDITION_RECHECK_MAX 8
 #define BATT_TOO_LOW_LEVEL 50 // 50%
@@ -36,8 +35,7 @@ namespace Modules::BehaviorController
 
     void onPixelInitialized() {
 
-        // Do we have a hello goodbye condition
-        auto bhv = DataSet::getBehavior();
+        auto data = Profile::Static::getData();
 
         // Trigger battery state rule
         auto battState = BatteryController::getBatteryState();
@@ -45,9 +43,9 @@ namespace Modules::BehaviorController
             onBatteryStateChange(nullptr, battState);
         } else {
             // Iterate the rules and look for one!
-            for (int i = 0; i < bhv->rulesCount; ++i) {
-                auto rule = DataSet::getRule(bhv->rulesOffset + i);
-                auto condition = DataSet::getCondition(rule->condition);
+            for (int i = 0; i < data->getRuleCount(); ++i) {
+                auto rule = data->getRule(i);
+                auto condition = data->getCondition(rule->condition);
                 if (condition->type == Behaviors::Condition_HelloGoodbye) {
                     // This is the right kind of condition, check it!
                     auto cond = static_cast<const Behaviors::ConditionHelloGoodbye*>(condition);
@@ -60,7 +58,7 @@ namespace Modules::BehaviorController
                         else
                         {
                             NRF_LOG_DEBUG("Triggering a HelloGoodbye Condition");
-                            Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_Status);
+                            data->TriggerActions(rule->actions, Animations::AnimationTag_Status);
                         }
                     }
                 }
@@ -69,21 +67,18 @@ namespace Modules::BehaviorController
     }
 
 	void onConnectionEvent(void* param, bool connected) {
-        // Do we have a connection event condition?
-        auto bhv = DataSet::getBehavior();
-
+        auto data = Profile::Static::getData();
         // Iterate the rules and look for one!
-        for (int i = 0; i < bhv->rulesCount; ++i) {
-            auto rule = DataSet::getRule(bhv->rulesOffset + i);
-            auto condition = DataSet::getCondition(rule->condition);
+        for (int i = 0; i < data->getRuleCount(); ++i) {
+            auto rule = data->getRule(i);
+            auto condition = data->getCondition(rule->condition);
             if (condition->type == Behaviors::Condition_ConnectionState) {
                 // This is the right kind of condition, check it!
                 auto cond = static_cast<const Behaviors::ConditionConnectionState*>(condition);
                 if (cond->checkTrigger(connected)) {
                     NRF_LOG_DEBUG("Triggering a Connection State Condition");
                     // Go on, do the thing!
-                    Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_BluetoothNotification);
-
+                    data->TriggerActions(rule->actions, Animations::AnimationTag_BluetoothNotification);
                     // We're done!
                     break;
                 }
@@ -100,8 +95,9 @@ namespace Modules::BehaviorController
     }
 
     bool processBatteryStateRule(int ruleIndex, BatteryController::BatteryState newState) {
-        auto rule = DataSet::getRule(ruleIndex);
-        auto condition = DataSet::getCondition(rule->condition);
+        auto data = Profile::Static::getData();
+        auto rule = data->getRule(ruleIndex);
+        auto condition = data->getCondition(rule->condition);
         ASSERT(condition->type == Behaviors::Condition_BatteryState);
 
         // This is the right kind of condition, check it!
@@ -120,19 +116,18 @@ namespace Modules::BehaviorController
             }
 
             // Go on, do the thing!
-            Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_BatteryNotification);
+            data->TriggerActions(rule->actions, Animations::AnimationTag_BatteryNotification);
         }
         return ret;
     }
 
     void onBatteryStateChange(void* param, BatteryController::BatteryState newState) {
+        auto data = Profile::Static::getData();
         // Do we have a battery event condition?
-        auto bhv = DataSet::getBehavior();
-
         // Iterate the rules and look for one!
-        for (int i = 0; i < bhv->rulesCount; ++i) {
-            auto rule = DataSet::getRule(bhv->rulesOffset + i);
-            auto condition = DataSet::getCondition(rule->condition);
+        for (int i = 0; i < data->getRuleCount(); ++i) {
+            auto rule = data->getRule(i);
+            auto condition = data->getCondition(rule->condition);
             if (condition->type == Behaviors::Condition_BatteryState) {
 
                 if (processBatteryStateRule(i, newState)) {
@@ -152,13 +147,12 @@ namespace Modules::BehaviorController
 
     void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace) {
 
+        auto data = Profile::Static::getData();
         // Do we have a roll state event condition?
-        auto bhv = DataSet::getBehavior();
-
         // Iterate the rules and look for one!
-        for (int i = 0; i < bhv->rulesCount; ++i) {
-            auto rule = DataSet::getRule(bhv->rulesOffset + i);
-            auto condition = DataSet::getCondition(rule->condition);
+        for (int i = 0; i < data->getRuleCount(); ++i) {
+            auto rule = data->getRule(i);
+            auto condition = data->getCondition(rule->condition);
 
             // This is the right kind of condition, check it!
             bool conditionTriggered = false;
@@ -181,7 +175,7 @@ namespace Modules::BehaviorController
 
             if (conditionTriggered) {
                 // do the thing
-                Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_Accelerometer);
+                data->TriggerActions(rule->actions, Animations::AnimationTag_Accelerometer);
 
                 // We're done
                 break;

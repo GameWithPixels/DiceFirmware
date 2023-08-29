@@ -1,6 +1,6 @@
 #pragma once
 
-#include "animations/Animation.h"
+#include "animations/animation.h"
 
 #pragma pack(push, 1)
 
@@ -13,7 +13,7 @@ namespace Animations
 		: public Animation
 	{
 		uint32_t faceMask;
-        uint16_t colorIndex;
+        DColorPtr color;
         uint8_t count;
         uint8_t fade;
 	};
@@ -21,16 +21,10 @@ namespace Animations
 	/// <summary>
 	/// Procedural on off animation instance data
 	/// </summary>
-	class AnimationInstanceSimple
+	struct AnimationSimpleInstance
 		: public AnimationInstance
 	{
 	private:
-		uint32_t rgb; // The color is determined at the beginning of the animation
-	public:
-		AnimationInstanceSimple(const AnimationSimple* preset, const DataSet::AnimationBits* bits);
-		virtual ~AnimationInstanceSimple();
-		virtual int animationSize() const;
-
 		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
 		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
 		virtual int stop(int retIndices[]);

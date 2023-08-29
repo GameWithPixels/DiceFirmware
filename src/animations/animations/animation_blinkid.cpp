@@ -1,6 +1,6 @@
 #include "animation_blinkid.h"
-#include "modules/anim_controller.h"
 #include "pixel.h"
+#include "modules/anim_controller.h"
 
 #define HEADER_BITS_COUNT 3
 #define DEVICE_BITS_COUNT (8 * sizeof(Pixel::getDeviceID()))
@@ -21,16 +21,7 @@ namespace Animations
         duration = preambleDuration + ANIM_FRAME_DURATION * framesPerBlink * (HEADER_BITS_COUNT + DEVICE_BITS_COUNT);
     }
 
-    /// <summary>
-    /// constructor for simple animations
-    /// Needs to have an associated preset passed in
-    /// </summary>
-    AnimationInstanceBlinkId::AnimationInstanceBlinkId(const AnimationBlinkId *preset, const DataSet::AnimationBits *bits)
-        : AnimationInstance(preset, bits), message(AnimationInstanceBlinkId::getMessage())
-    {
-    }
-
-    uint64_t AnimationInstanceBlinkId::getMessage()
+    uint64_t AnimationBlinkIdInstance::getMessage()
     {
         // 3-bit CRC
         // https://en.wikipedia.org/wiki/Cyclic_redundancy_check#Computation
@@ -51,25 +42,10 @@ namespace Animations
         return (shiftedValue | crc) << HEADER_BITS_COUNT; // Shift the results to add the initial "RGB" header
     }
 
-    /// <summary>
-	/// destructor
-	/// </summary>
-	AnimationInstanceBlinkId::~AnimationInstanceBlinkId()
-    {
-	}
-
-	/// <summary>
-	/// Small helper to return the expected size of the preset data
-	/// </summary>
-	int AnimationInstanceBlinkId::animationSize() const
-    {
-		return sizeof(AnimationBlinkId);
-	}
-
 	/// <summary>
 	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
 	/// </summary>
-	void AnimationInstanceBlinkId::start(int _startTime, uint8_t _remapFace, bool _loop)
+	void AnimationBlinkIdInstance::start(int _startTime, uint8_t _remapFace, bool _loop)
     {
 		AnimationInstance::start(_startTime, _remapFace, _loop);
     }
@@ -81,7 +57,7 @@ namespace Animations
 	/// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
 	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
 	/// <returns>The number of leds/intensities added to the return array</returns>
-	int AnimationInstanceBlinkId::updateLEDs(int ms, int retIndices[], uint32_t retColors[])
+	int AnimationBlinkIdInstance::updateLEDs(int ms, int retIndices[], uint32_t retColors[])
     {
         auto preset = getPreset();
 
@@ -127,12 +103,12 @@ namespace Animations
 	/// <summary>
 	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
 	/// </summary>
-	int AnimationInstanceBlinkId::stop(int retIndices[])
+	int AnimationBlinkIdInstance::stop(int retIndices[])
     {
         return setIndices(ANIM_FACEMASK_ALL_LEDS, retIndices);
     }
 
-	const AnimationBlinkId* AnimationInstanceBlinkId::getPreset() const
+	const AnimationBlinkId* AnimationBlinkIdInstance::getPreset() const
     {
         return static_cast<const AnimationBlinkId*>(animationPreset);
     }

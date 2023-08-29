@@ -2,69 +2,55 @@
 
 #include <stdint.h>
 #include "animation_tag.h"
+#include "animation_context.h"
+#include "profile/profile_buffer.h"
 
 #pragma pack(push, 1)
-
-namespace DataSet
-{
-	struct AnimationBits;
-}
 
 #define ANIM_FACEMASK_ALL_LEDS 0xFFFFFFFF
 
 namespace Animations
 {
-	/// <summary>
-	/// Defines the types of Animation Presets we have/support
-	/// </summary>
-	enum AnimationType : uint8_t
-	{
-		Animation_Unknown = 0,
-		Animation_Simple,
-		Animation_Rainbow,
-		Animation_Keyframed,
-		Animation_GradientPattern,
-		Animation_Gradient,
-		Animation_Noise,
-		Animation_Cycle,
-		Animation_BlinkId,
-	};
+    enum AnimationType : uint8_t
+    {
+        AnimationType_Unknown = 0,
+		AnimationType_Simple,
+        AnimationType_Rainbow,
+        AnimationType_BlinkID,
+        AnimationType_Pattern,
+        AnimationType_Sequence,
+        // etc...
+    };
 
-	/// <summary>
-	/// Base struct for animation presets. All presets have a few properties in common.
-	/// Presets are stored in flash, so do not have methods or vtables or anything like that.
-	/// </summary>
-	struct Animation
-	{
-		AnimationType type;
-		uint8_t traveling;	// indicates that the indices used in the animation
-							// are electrical led indices, not face indices
+    // The top-level struct is the Animation struct, this is a polymorphic type
+    struct Animation
+    {
+        AnimationType type;
+		uint8_t traveling;
 		uint16_t duration; // in ms
-	};
+    };
+    typedef Profile::Pointer<Animation> AnimationPtr;
 
 	/// <summary>
 	/// Animation instance data, refers to an animation preset but stores the instance data and
 	/// (derived classes) implements logic for displaying the animation.
 	/// </summary>
-	class AnimationInstance
-	{
-	public:
-		Animation const * animationPreset;
-		const DataSet::AnimationBits* animationBits;
+    struct AnimationInstance
+    {
+        // Setup byt the context at creation time
+        Animation const * animationPreset;
+		AnimationContext* context;
+
+        // Instance-specific data
+        uint8_t remapFace;
+        AnimationTag tag; // used to identify where the animation came from / what system triggered it
+        bool loop;
 		int startTime; //ms
 		int forceFadeTime; //ms, used when fading out (because anim is being replaced), -1 otherwise
-		uint8_t remapFace;
-		AnimationTag tag; // used to identify where the animation came from / what system triggered it
-		bool loop;
-
-	protected:
-		AnimationInstance(const Animation* preset, const DataSet::AnimationBits* bits);
 
 	public:
-		virtual ~AnimationInstance();
 		// starts the animation, with the option of repeating it if _loop is set
 		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
-		virtual int animationSize() const = 0;
 		// method used to set which faces to turn on as well as the color of their LEDs
 		// retIndices is one to one with retColors and keeps track of which face to turn on as well as its corresponding color
 		// return value of the method is the number of faces to turn on
@@ -78,10 +64,6 @@ namespace Animations
 		int setIndices(uint32_t faceMask, int retIndices[]);
 		void forceFadeOut(int fadeOutTime);
 	};
-
-	Animations::AnimationInstance* createAnimationInstance(const Animations::Animation* preset, const DataSet::AnimationBits* bits);
-	void destroyAnimationInstance(Animations::AnimationInstance* animationInstance);
-
 }
 
 #pragma pack(pop)

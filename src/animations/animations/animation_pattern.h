@@ -1,0 +1,45 @@
+#pragma once
+
+#include "animations/animation.h"
+#include "animations/ledpattern.h"
+
+#pragma pack(push, 1)
+
+namespace Animations
+{
+	/// <summary>
+	/// Procedural rainbow animation data
+	/// </summary>
+    // Animation implementation that uses an LED Design and color / intensity overrides
+    // This should be the most common animation
+    struct AnimationPattern
+        : public Animation
+    {
+        // The design is what indicates when the LEDs should turn on or off
+        Profile::Pointer<LEDPattern> pattern;
+
+        // Then the color and intensity curves define the specifics of how the LEDs turn on
+        DGradientPtr colorOverTime;     // Works best if one of these two colors is white
+        DGradientPtr colorOverBlink;    // and the other is the actual curve, but you can use both.
+                                        // The colors will be multiplied together
+        DCurvePtr intensityOverTime;    // Works best if one of these two curves is constant 1 (or 255)
+        DCurvePtr intensityOverBlink;   // the two curves will be multiplied together
+    };
+    // size: 11 bytes + design
+
+
+	/// <summary>
+	/// </summary>
+    struct AnimationPatternInstance
+        : public AnimationInstance
+    {
+        LEDPatternInstance* patternInstance;
+        // Pattern Instance data
+
+		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
+		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
+		virtual int stop(int retIndices[]);
+    };
+}
+
+#pragma pack(pop)

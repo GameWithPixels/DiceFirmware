@@ -1,6 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include "profile/profile_buffer.h"
+#include "condition.h"
+#include "action.h"
 
 #pragma pack(push, 1)
 
@@ -13,10 +16,8 @@ namespace Behaviors
     /// </summary>
     struct Rule
     {
-        uint16_t condition;
-        uint16_t actionOffset;
-        uint16_t actionCount;
-        uint16_t actionCountPadding;
+        Profile::Pointer<Condition> condition;
+        Profile::Array<Profile::Pointer<Action> > actions;
     };
 
     /// <summary>
@@ -24,8 +25,7 @@ namespace Behaviors
     /// </summary>
     struct Behavior
     {
-        uint16_t rulesOffset;
-        uint16_t rulesCount;
+        Profile::Array<Rule> rules;
     };
 }
 

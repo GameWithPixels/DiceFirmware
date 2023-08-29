@@ -11,7 +11,6 @@
 #include "malloc.h"
 #include "config/dice_variants.h"
 #include "utils/utils.h"
-#include "data_set/data_set.h"
 #include "pixel.h"
 #include "app_error.h"
 
@@ -23,7 +22,7 @@ using namespace DriversNRF;
 using namespace Bluetooth;
 using namespace Config;
 using namespace Modules;
-using namespace DataSet;
+using namespace Profile;
 
 namespace Config::SettingsManager
 {
@@ -158,7 +157,7 @@ namespace Config::SettingsManager
 	void programDefaults(SettingsWrittenCallback callback) {
 		Settings defaults;
 		setDefaults(defaults);
-		DataSet::ProgramDefaultDataSet(defaults, callback);
+		Flash::programSettings(defaults, callback);
 	}
 
 	void programDefaultParameters(SettingsWrittenCallback callback) {
@@ -169,14 +168,14 @@ namespace Config::SettingsManager
 		// Begin by resetting our new settings
 		setDefaults(settingsCopy);
 
-		// // Copy over everything
-		// memcpy(&settingsCopy, settings, sizeof(Settings));
+		// Copy over everything
+		memcpy(&settingsCopy, settings, sizeof(Settings));
 
-		// // Change normals
-		// setDefaultParameters(settingsCopy);
+		// Change normals
+		setDefaultParameters(settingsCopy);
 
 		// Reprogram settings
-		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
+		Flash::programSettings(settingsCopy, callback);
 	}
 
 	void programCalibrationData(const Core::int3* newNormals, int count, SettingsWrittenCallback callback) {
@@ -194,7 +193,7 @@ namespace Config::SettingsManager
 		memcpy(&(settingsCopy.faceNormals[0]), newNormals, count * sizeof(Core::int3));
 
 		// Reprogram settings
-		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
+		Flash::programSettings(settingsCopy, callback);
 	}
 
 	void programDesignAndColor(DiceVariants::DesignAndColor design, SettingsWrittenCallback callback) {
@@ -209,7 +208,7 @@ namespace Config::SettingsManager
 			settingsCopy.designAndColor = design;
 
 			// Reprogram settings
-			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
+			Flash::programSettings(settingsCopy, callback);
 		}
 		else {
 			NRF_LOG_DEBUG("DesignAndColor already set to %s", design);
@@ -233,7 +232,7 @@ namespace Config::SettingsManager
 			// Reprogram settings
 			static SettingsWrittenCallback programNameCallback = nullptr;
 			programNameCallback = callback;
-			DataSet::ProgramDefaultDataSet(settingsCopy, [] (bool success) {
+			Flash::programSettings(settingsCopy, [] (bool success) {
 				// We want to reset once disconnected so to apply the name change
 				Bluetooth::Stack::resetOnDisconnect();
 				auto callback = programNameCallback;

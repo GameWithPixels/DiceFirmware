@@ -11,14 +11,13 @@
 #include "scheduler.h"
 #include "core/delegate_array.h"
 #include "config/settings.h"
-#include "data_set/data_set.h"
-#include "data_set/data_set_data.h"
+#include "profile/profile_static.h"
 #include "behaviors/behavior.h"
 #include "malloc.h"
 
 using namespace DriversNRF;
 using namespace Config;
-using namespace DataSet;
+using namespace Profile;
 using namespace Behaviors;
 
 #define MAX_PROG_CLIENTS 8
@@ -33,6 +32,13 @@ namespace DriversNRF::Flash
     void* context;
 
     DelegateArray<ProgrammingEventMethod, MAX_PROG_CLIENTS> programmingClients;
+
+
+    bool programFlash(
+        uint16_t profileSize,
+        ProgramSettingsFunc programSettingsFunc,
+        ProgramProfileFunc programProfileFunc,
+        ProgramFlashNotification onProgramFinished);
 
     /**@brief   Helper function to obtain the last address on the last page of the on-chip flash that
      *          can be used to write user data.
@@ -198,61 +204,149 @@ namespace DriversNRF::Flash
 		return pageSize * ((totalDataByteSize + pageSize - 1) / pageSize);
 	}
 
+    uint32_t getProgramSize(uint32_t dataSize) {
+        auto unitSize = fstorage.p_flash_info->program_unit;
+        return unitSize * ((dataSize + unitSize - 1) / unitSize);
+    }
 
-	bool programFlash(
-		const Data& newData,
-		const Settings& newSettings,
-		ProgramFlashFunc programFlashFunc,
-		ProgramFlashNotification onProgramFinished) {
+    bool programSettings(
+        const Settings& newSettings,
+        ProgramFlashNotification onProgramFinished) {
 
-		static Data* _newData = nullptr;
-		static Settings* _newSettings = nullptr;
-		static ProgramFlashFunc _programDataFunc;
+		static ProgramFlashNotification _onProgramFinished;
+        static uint8_t* settingsCopy;
+        static uint8_t* profileCopy;
+        static uint32_t profileSize;
+        
+		static auto programSettings = [](Flash::ProgramFlashFuncCallback callback) {
+            // Write the settings
+			write(nullptr, getSettingsStartAddress(), settingsCopy, sizeof(Settings), callback);
+		};
+
+        static auto programProfile = [](Flash::ProgramFlashFuncCallback callback) {
+            // Write the profile
+            write(nullptr, getProfileAddress(), profileCopy, profileSize, callback);
+        };
+
+        _onProgramFinished = onProgramFinished;
+        static auto freeProfile = []() {
+            free(profileCopy);
+            profileCopy = nullptr;
+            profileSize = 0;
+        };
+        static auto freeDefaultProfile = []() {
+            Profile::Data::DestroyDefaultProfile(profileCopy);
+            profileCopy = nullptr;
+            profileSize = 0;
+        };
+        static void (*_freeProfile)();
+
+        _freeProfile = freeProfile;
+        static auto _thisProgrammingFinished = [](bool result) {
+            free(settingsCopy);
+            settingsCopy = nullptr;
+
+            _freeProfile();
+
+            // Check the profile
+            if (result) {
+                result = Profile::Static::refreshData();
+            }
+
+            _onProgramFinished(result);
+        };
+
+        // Make a copy of settings so it sticks around while we're programming flash
+        settingsCopy = (uint8_t*)malloc(sizeof(Settings));
+        if (settingsCopy == nullptr) {
+            NRF_LOG_ERROR("Not enough space to copy settings to ram");
+            return false;
+        }
+        memcpy(settingsCopy, &newSettings, sizeof(Settings));
+
+        // Make a copy of the profile, if possible
+        if (Profile::Static::CheckValid()) {
+            profileSize = Profile::Static::getSize();
+            profileCopy = (uint8_t*)malloc(profileSize);
+            if (profileCopy == nullptr) {
+                NRF_LOG_WARNING("Not enough space to copy current profile, will reset to default");
+                profileCopy = Profile::Data::CreateDefaultProfile(&profileSize);
+                _freeProfile = freeDefaultProfile;
+            }
+        } else {
+            NRF_LOG_WARNING("Profile also invalid, will reset to default");
+            profileCopy = Profile::Data::CreateDefaultProfile(&profileSize);
+            _freeProfile = freeDefaultProfile;
+        }
+
+        return programFlash(profileSize, programSettings, programProfile, _thisProgrammingFinished);
+    }
+
+    bool programProfile(
+        uint16_t profileSize,
+        ProgramProfileFunc programProfileFunc,
+        ProgramFlashNotification onProgramFinished) {
+
+		static ProgramFlashNotification _onProgramFinished;
+        static uint8_t* settingsCopy;
+        
+		static auto programSettings = [](Flash::ProgramFlashFuncCallback callback) {
+            // Write the settings
+			write(nullptr, getSettingsStartAddress(), settingsCopy, sizeof(Settings), callback);
+		};
+
+        _onProgramFinished = onProgramFinished;
+        static auto _thisProgrammingFinished = [](bool result) {
+            free(settingsCopy);
+            settingsCopy = nullptr;
+            _onProgramFinished(result);
+        };
+
+        // Make a copy of settings to ram
+        settingsCopy = (uint8_t*)malloc(sizeof(Settings));
+        if (settingsCopy == nullptr) {
+            NRF_LOG_ERROR("Not enough space to copy settings to ram");
+            return false;
+        }
+        memcpy(settingsCopy, SettingsManager::getSettings(), sizeof(Settings));
+
+        // Program flash
+        return programFlash(profileSize, programSettings, programProfileFunc, _thisProgrammingFinished);
+    }
+
+    bool programFlash(
+        uint16_t profileSize,
+        ProgramSettingsFunc programSettingsFunc,
+        ProgramProfileFunc programProfileFunc,
+        ProgramFlashNotification onProgramFinished) {
+
+        // Copy the current settings, since we'll be deleting them
+		static ProgramSettingsFunc _programSettingsFunc;
+		static ProgramProfileFunc _programProfileFunc;
 		static ProgramFlashNotification _onProgramFinished;
 
 		static auto beginProgramming = []() {
 			// Notify clients
-			for (int i = 0; i < programmingClients.Count(); ++i)
-			{
+			for (int i = 0; i < programmingClients.Count(); ++i) {
 				programmingClients[i].handler(programmingClients[i].token, ProgrammingEventType_Begin);
 			}
 		};
 
 		static auto finishProgramming = []() {
-            free(_newSettings);
-                _newSettings = nullptr;
-            free(_newData);
-                _newData = nullptr;
-
 			// Notify clients
-			for (int i = 0; i < programmingClients.Count(); ++i)
-			{
+			for (int i = 0; i < programmingClients.Count(); ++i) {
 				programmingClients[i].handler(programmingClients[i].token, ProgrammingEventType_End);
 			}
 		};
 
-        _newData = (Data*)malloc(sizeof(Data));
-        if (_newData == nullptr) {
-            NRF_LOG_ERROR("Not enough ram to allocate copy of new data");
-            return false;
-        }
-        _newSettings = (Settings*)malloc(sizeof(Settings));
-        if (_newSettings == nullptr) {
-            NRF_LOG_ERROR("Not enough ram to allocate copy of new settings");
-            free(_newData);
-            _newData = nullptr;
-            return false;
-        }
-        memcpy(_newData, &newData, sizeof(Data));
-        memcpy(_newSettings, &newSettings, sizeof(Settings));
-        _programDataFunc = programFlashFunc;
+        _programSettingsFunc = programSettingsFunc;
+        _programProfileFunc = programProfileFunc;
         _onProgramFinished = onProgramFinished;
 
-		uint32_t bufferSize = DataSet::computeDataSetDataSize(_newData);
-		if (availableDataSize() > bufferSize) {
+		if (getUsableBytes() > profileSize) {
 			beginProgramming();
 
-			uint32_t totalSize = bufferSize + sizeof(Data) + sizeof(Settings);
+			uint32_t totalSize = profileSize + sizeof(Settings);
 			uint32_t flashSize = Flash::getFlashByteSize(totalSize);
 			uint32_t pageAddress = Flash::getFlashStartAddress();
 			uint32_t pageCount = Flash::bytesToPages(flashSize);
@@ -262,36 +356,25 @@ namespace DriversNRF::Flash
 				NRF_LOG_INFO("Done erasing %d page", data_size);
 				if (result) {
 					// Program settings
-					Flash::write(nullptr, getSettingsStartAddress(), _newSettings, sizeof(Settings), [](void* context, bool result, uint32_t address, uint16_t data_size) {
+                    _programSettingsFunc([](void* context, bool result, uint32_t address, uint16_t data_size) {
 						if (result) {
-							NRF_LOG_INFO("Finished flashing settings, flashing dataset data");
+							NRF_LOG_INFO("Finished flashing settings, flashing profile");
 							// Receive all the buffers directly to flash
-							_programDataFunc([](void* context, bool result, uint32_t address, uint16_t data_size) {
+							_programProfileFunc([](void* context, bool result, uint32_t address, uint16_t data_size) {
 								if (result) {
-									// Program the animation set itself
-    								NRF_LOG_INFO("Finished flashing dataset data, flashing dataset itself");
-									Flash::write(nullptr, getDataSetAddress(), _newData, sizeof(Data),
-										[](void* context, bool result, uint32_t address, uint16_t data_size) {
-											if (result) {
-												NRF_LOG_INFO("Data Set written to flash!");
-											} else {
-												NRF_LOG_ERROR("Error programming dataset to flash");
-											}
-											finishProgramming();
-											_onProgramFinished(result);
-									});
+                                    NRF_LOG_INFO("Profile written to flash!");
 								} else {
-									NRF_LOG_ERROR("Error transfering animation data");
-									finishProgramming();
-									_onProgramFinished(false);
+									NRF_LOG_ERROR("Error writing profile");
 								}
+                                finishProgramming();
+                                _onProgramFinished(result);
 							});
 						} else {
 							NRF_LOG_ERROR("Error writing settings");
 							finishProgramming();
 							_onProgramFinished(false);
 						}
-					});
+                    });
 				} else {
 					NRF_LOG_ERROR("Error erasing flash");
 					finishProgramming();
@@ -305,12 +388,8 @@ namespace DriversNRF::Flash
 		}
 	}
 
-	uint32_t getDataSetAddress() {
+	uint32_t getProfileAddress() {
 		return getSettingsEndAddress();
-	}
-
-	uint32_t getDataSetDataAddress() {
-		return getDataSetAddress() + sizeof(Data);
 	}
 
 	uint32_t getSettingsStartAddress() {

@@ -9,6 +9,7 @@
 namespace Animations
 {
     struct DGradient;
+    struct DCurve;
 
     // Scalar types
     enum ScalarType : uint8_t
@@ -16,6 +17,8 @@ namespace Animations
         ScalarType_Unknown = 0,
         ScalarType_UInt8_t,     // 8-bit value
         ScalarType_UInt16_t,    // 16-bit value
+        ScalarType_Global,
+        ScalarType_Lookup,
 
         // After this are Curve types
         CurveType_TwoUInt8,     // simple interpolation between two 8 bit values
@@ -31,7 +34,9 @@ namespace Animations
         ColorType_Unknown = 0,
         ColorType_Palette,      // uses the global palette
         ColorType_RGB,          // stores actual rgb values
+        ColorType_Lookup,       // uses a scalar to lookup the color in a gradient
         // After this are gradient types
+        GradientType_Rainbow,   // basic programmatic rainbow gradient
         GradientType_TwoColors, // simple two-color gradient
         GradientType_Keyframes, // gradient with a few keyframes
 
@@ -69,6 +74,22 @@ namespace Animations
     };
     // size: 3 bytes
 
+    enum GlobalType : uint8_t
+    {
+        GlobalType_Unknown = 0,
+        GlobalType_NormalizedCurrentFace,
+    };
+
+    struct DScalarGlobal : public DScalar
+    {
+        GlobalType globalType;
+    };
+
+    struct DScalarLookup : public DScalar
+    {
+        Profile::Pointer<DCurve> lookupCurve;
+        Profile::Pointer<DScalar> parameter;
+    };
 
     // Base curve struct
     struct DCurve
@@ -146,6 +167,12 @@ namespace Animations
     };
     // size: 4 bytes
 
+    struct DColorLookup : public DColor
+    {
+        Profile::Pointer<DGradient> lookupGradient;
+        Profile::Pointer<DScalar> parameter;
+    };
+
     // Etc...
     struct DGradient
     : public DColor
@@ -153,6 +180,12 @@ namespace Animations
         // Base class for gradients doesn't have any additional data
         // because we re-use the type identifier from DGradient
     };
+
+    struct DGradientRainbow : public DGradient
+    {
+        // No data for now
+    };
+    // size: 1 bytes
 
     struct DGradientTwoColors : public DGradient
     {
@@ -178,20 +211,6 @@ namespace Animations
     typedef Profile::Pointer<DCurve> DCurvePtr;
     typedef Profile::Pointer<DColor> DColorPtr;
     typedef Profile::Pointer<DGradient> DGradientPtr;
-
-    // Evaluate component values
-    uint16_t getScalarValue(const DScalar* scalar, Profile::BufferDescriptor buf);
-    uint32_t getColorValue(const DColor* color, Profile::BufferDescriptor buf);
-    
-    uint16_t getCurveValue(const DScalar* curve, uint16_t param, Profile::BufferDescriptor buf);
-    uint32_t getGradientValue(const DColor* color, uint16_t param, Profile::BufferDescriptor buf);
-
-    // Helpers
-    inline uint16_t getScalarValue(DScalarPtr scalar, Profile::BufferDescriptor buf) { return getScalarValue(scalar.get(buf), buf); }
-    inline uint32_t getColorValue(DColorPtr color, Profile::BufferDescriptor buf) { return getColorValue(color.get(buf), buf); }
-    
-    inline uint16_t getCurveValue(DScalarPtr curve, uint16_t param, Profile::BufferDescriptor buf) { return getCurveValue(curve.get(buf), param, buf); }
-    inline uint32_t getGradientValue(DColorPtr color, uint16_t param, Profile::BufferDescriptor buf) { return getGradientValue(color.get(buf), param, buf); }
 
     uint16_t getScalarSize(const DScalar* scalar, Profile::BufferDescriptor buf);
     uint16_t getColorSize(const DColor* color, Profile::BufferDescriptor buf);

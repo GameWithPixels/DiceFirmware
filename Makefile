@@ -123,16 +123,18 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \
 	$(PROJ_DIR)/src/animations/animation.cpp \
-	$(PROJ_DIR)/src/animations/animation_simple.cpp \
-	$(PROJ_DIR)/src/animations/animation_gradient.cpp \
-	$(PROJ_DIR)/src/animations/animation_keyframed.cpp \
-	$(PROJ_DIR)/src/animations/animation_rainbow.cpp \
-	$(PROJ_DIR)/src/animations/animation_gradientpattern.cpp \
-	$(PROJ_DIR)/src/animations/animation_noise.cpp \
-	$(PROJ_DIR)/src/animations/animation_cycle.cpp \
-	$(PROJ_DIR)/src/animations/animation_blinkid.cpp \
+	$(PROJ_DIR)/src/animations/animation_context.cpp \
+	$(PROJ_DIR)/src/animations/animation_instance_allocator.cpp \
+	$(PROJ_DIR)/src/animations/animation_parameters.cpp \
+	$(PROJ_DIR)/src/animations/animations/animation_simple.cpp \
+	$(PROJ_DIR)/src/animations/animations/animation_pattern.cpp \
+	$(PROJ_DIR)/src/animations/animations/animation_rainbow.cpp \
+	$(PROJ_DIR)/src/animations/animations/animation_blinkid.cpp \
+	$(PROJ_DIR)/src/animations/animations/animation_sequence.cpp \
+	$(PROJ_DIR)/src/animations/animations/animation_sequence.cpp \
+	$(PROJ_DIR)/src/animations/animations/animation_sequence.cpp \
 	$(PROJ_DIR)/src/animations/blink.cpp \
-	$(PROJ_DIR)/src/animations/keyframes.cpp \
+	$(PROJ_DIR)/src/animations/ledpattern.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \
 	$(PROJ_DIR)/src/behaviors/condition.cpp \
 	$(PROJ_DIR)/src/bluetooth/bluetooth_custom_advertising_data.cpp \
@@ -144,9 +146,6 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/config/board_config.cpp \
 	$(PROJ_DIR)/src/config/settings.cpp \
 	$(PROJ_DIR)/src/config/dice_variants.cpp \
-	$(PROJ_DIR)/src/data_set/data_animation_bits.cpp \
-	$(PROJ_DIR)/src/data_set/data_set.cpp \
-	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
 	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
 	$(PROJ_DIR)/src/drivers_hw/ntc.cpp \
@@ -171,10 +170,14 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/behavior_controller.cpp \
 	$(PROJ_DIR)/src/modules/charger_proximity.cpp \
 	$(PROJ_DIR)/src/modules/hardware_test.cpp \
-	$(PROJ_DIR)/src/modules/instant_anim_controller.cpp \
 	$(PROJ_DIR)/src/modules/led_color_tester.cpp \
 	$(PROJ_DIR)/src/modules/led_error_indicator.cpp \
 	$(PROJ_DIR)/src/modules/leds.cpp \
+	$(PROJ_DIR)/src/profile/profile_buffer.cpp \
+	$(PROJ_DIR)/src/profile/profile_data.cpp \
+	$(PROJ_DIR)/src/profile/profile_data_default.cpp \
+	$(PROJ_DIR)/src/profile/profile_instant.cpp \
+	$(PROJ_DIR)/src/profile/profile_static.cpp \
 	$(PROJ_DIR)/src/modules/temperature.cpp \
 	$(PROJ_DIR)/src/modules/validation_manager.cpp \
 	$(PROJ_DIR)/src/notifications/battery_notifications.cpp \

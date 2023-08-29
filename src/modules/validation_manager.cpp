@@ -4,12 +4,11 @@
 #include "nrf_log.h"
 #include "animations/animation.h"
 #include "modules/anim_controller.h"
-#include "animations/animation_blinkid.h"
+#include "animations/animations/animation_blinkid.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
 #include "drivers_nrf/power_manager.h"
-#include "data_set/data_set.h"
 #include "nrf_nvmc.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_hw/battery.h"
@@ -41,7 +40,7 @@ namespace Modules::ValidationManager
         isPlaying = false;
 
         // Name animation object
-        nameAnim.type = Animation_BlinkId;
+        nameAnim.type = AnimationType_BlinkID;
         nameAnim.framesPerBlink = 3; // 3 animation frames per blink
         nameAnim.setDuration(1000);
         nameAnim.brightness = 0x10;
@@ -81,7 +80,10 @@ namespace Modules::ValidationManager
     void startNameAnim()
     {
         NRF_LOG_DEBUG("Starting name animation");
-        AnimController::play(&nameAnim, nullptr, 0, true); // Loop forever! (until timeout)
+        AnimController::PlayAnimationParameters params;
+        params.remapFace = 0;
+        params.loop = true; // Loop forever! (until timeout)
+        AnimController::play(&nameAnim, params);
         isPlaying = true;
     }
 
