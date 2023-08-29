@@ -27,12 +27,21 @@ namespace Profile
         uint16_t offset;
 
         // The offset is always relative to a buffer, so we *have* to pass the buffer in when dereferencing the pointer
-        T const * const get(BufferDescriptor buffer) const { return reinterpret_cast<const T*>(buffer.start + offset); }
+        T const * const get(BufferDescriptor buffer) const {
+            if (offset < buffer.size) {
+                return reinterpret_cast<const T*>(buffer.start + offset);
+            } else {
+                return nullptr;
+            }
+        }
         Pointer() : offset(0) {}
         explicit Pointer(uint16_t off) : offset(off) {}
-        template <typename U> Pointer(const Pointer<U>& u) : offset(u.offset) { (void)(static_cast<const T*>((const U*)nullptr)); } 
+        template <typename U> Pointer(const Pointer<U>& u) : offset(u.offset) {
+            // Check that the types are compatible
+            (void)(static_cast<const T*>((const U*)nullptr));
+        } 
 
-        static constexpr Pointer nullPtr() { return Pointer();};
+        static const Pointer nullPtr() { return Pointer();};
     };
     // size: 2 bytes
 
@@ -45,10 +54,19 @@ namespace Profile
         // The size of the array, in item count
         uint8_t length;
         // The offset is always relative to a buffer, so we *have* to pass the buffer in when dereferencing the pointer
-        T const * const getAt(BufferDescriptor buffer, uint8_t index) const { return reinterpret_cast<const T*>(buffer.start + offset + sizeof(T) * index); }
+        T const * const getAt(BufferDescriptor buffer, uint8_t index) const {
+            if (index < length && offset + index < buffer.size) {
+                return reinterpret_cast<const T*>(buffer.start + offset + sizeof(T) * index);
+            } else {
+                return nullptr;
+            }
+        }
         Array() : offset(0) , length(0) {}
         explicit Array(uint16_t off, uint8_t l) : offset(off) , length(l) {}
-        template <typename U> Array(const Array<U>& u) : offset(u.offset) , length(u.length) { (void)(static_cast<const T*>((const U*)nullptr)); }
+        template <typename U> Array(const Array<U>& u) : offset(u.offset) , length(u.length) {
+            // Check that the types are compatible
+            (void)(static_cast<const T*>((const U*)nullptr));
+        }
 
         static constexpr Array emptyArray() { return Array();};
     };

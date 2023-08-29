@@ -28,7 +28,7 @@ using namespace Modules;
 using namespace Animations;
 using namespace Behaviors;
 
-#define INSTANT_PROFILE_ALLOC_SIZE 1024
+#define INSTANT_PROFILE_ALLOC_SIZE 200
 
 namespace Profile::Instant
 {

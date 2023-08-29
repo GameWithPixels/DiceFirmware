@@ -16,6 +16,10 @@ namespace Animations
         uint16_t overrideIndex;  // Index in override buffer
     };
 
+    // Encompasses all information needed by an animation instance to compute led color values
+    // This includes the animation buffer used to store colors and gradients pointed to by the
+    // animation preset, as well as overrides to those values if applicable, and global values
+    // such as current face index or battery level.
     struct AnimationContext
     {
         // Globals, such as current face, accelerometer, etc..

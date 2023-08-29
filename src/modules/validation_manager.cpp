@@ -6,7 +6,7 @@
 #include "animations/animation.h"
 #include "modules/anim_controller.h"
 #include "modules/behavior_controller.h"
-#include "animations/animations/animation_blinkid.h"
+#include "animations/animation_blinkid.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"

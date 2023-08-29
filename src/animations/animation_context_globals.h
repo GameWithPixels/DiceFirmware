@@ -8,6 +8,8 @@
 
 namespace Animations
 {
+    // Simple storage for global values useful to the animation system
+    // This will be used in the animation context
     struct AnimationContextGlobals
     {
         uint16_t normalizedFace;

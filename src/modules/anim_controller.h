@@ -26,6 +26,7 @@ namespace Modules::AnimController
 
     struct PlayAnimationParameters
     {
+        Profile::BufferDescriptor buffer;
         Profile::BufferDescriptor overrideBuffer;
         Profile::Array<Animations::ParameterOverride> overrides;
         Animations::AnimationTag tag;

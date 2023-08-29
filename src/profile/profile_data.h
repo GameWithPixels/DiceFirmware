@@ -9,12 +9,11 @@
 #include "animations/animation_parameters.h"
 
 #define PROFILE_VALID_KEY (0x600DF00D) // Good Food ;)
-#define PROFILE_VERSION 4
-
+#define PROFILE_VERSION 5
 
 namespace Profile
 {
-    // The dataset data is actually dynamically sized
+    // The profile data is actually dynamically sized
     // This class sits at the beginning of the profile and 
     // lets us know where to fetch the list of rules and animations
     struct Header
@@ -38,7 +37,7 @@ namespace Profile
         // and hash value
     };
 
-    // This is the entire profile data, header + buffer (which is variable size)
+    // This describes the entire profile, header + buffer (which is variable size) + hash
     struct Data
     {
     //private:

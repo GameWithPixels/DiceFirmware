@@ -118,7 +118,7 @@ namespace Animations
                     auto pi = instanceBufferAllocate<AnimationPatternInstance>();
                     ret = pi;
 
-                    // Allocate the pattern
+                    // then "allocate" the led pattern instance
                     auto animPattern = (AnimationPattern const*)animation;
                     auto dp = CreateLEDPatternInstance(context->getParameter(animPattern->pattern));
                     if (dp == nullptr) {
@@ -158,7 +158,9 @@ namespace Animations
     {
     }
 
-    AnimationInstanceAllocator::AnimationInstanceAllocator(const AnimationContextGlobals* theGlobals, Profile::BufferDescriptor theBuffer)
+    AnimationInstanceAllocator::AnimationInstanceAllocator(
+        const AnimationContextGlobals* theGlobals,
+        Profile::BufferDescriptor theBuffer)
         : globals(theGlobals)
         , contextBuffer(theBuffer)
         , contextOverrideBuffer(Profile::BufferDescriptor::nullDescriptor)
@@ -176,11 +178,13 @@ namespace Animations
 
         // Create temporary context to compute necessary memory size
         AnimationContext computeSizeContext(globals, contextBuffer, contextOverrideBuffer, contextOverrides);
+        // Temporarily set the stored context to this local variable while we determine the memory necessary
         context = &computeSizeContext;
         uint16_t animationInstanceSize = getAnimationInstanceSize(animation);
-        instanceBufferSize = animationInstanceSize + sizeof(AnimationContext);
+        context = nullptr;
 
         // Allocate enough memory for the instance and associated context
+        instanceBufferSize = animationInstanceSize + sizeof(AnimationContext);
         instanceBuffer = (uint8_t*)malloc(instanceBufferSize);
         if (instanceBuffer != nullptr) {
             // Initialize the context part of this buffer

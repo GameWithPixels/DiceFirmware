@@ -8,7 +8,7 @@
 namespace Animations
 {
     /// <summary>
-    /// Procedural rainbow animation data
+    /// Procedural pattern animation data
     /// </summary>
     // Animation implementation that uses an LED Design and color / intensity overrides
     // This should be the most common animation
@@ -27,9 +27,7 @@ namespace Animations
     };
     // size: 11 bytes + design
 
-
-    /// <summary>
-    /// </summary>
+    // Instance data for a pattern-based animation
     struct AnimationPatternInstance
         : public AnimationInstance
     {

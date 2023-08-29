@@ -160,6 +160,7 @@ namespace Die
         NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
         auto animationPreset = Profile::Static::getData()->getAnimation((int)playAnimMessage->animation);
         AnimController::PlayAnimationParameters params;
+        params.buffer = Profile::Static::getData()->getBuffer();
         params.remapFace = playAnimMessage->remapFace;
         params.loopCount = playAnimMessage->loopCount;
         params.tag = Animations::AnimationTag_BluetoothMessage;

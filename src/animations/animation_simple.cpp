@@ -10,6 +10,12 @@ namespace Animations
     /// </summary>
     void AnimationSimpleInstance::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
         AnimationInstance::start(_startTime, _remapFace, _loopCount);
+
+        // If applicable, capture the color once
+        auto preset = getPreset();
+        if ((preset->colorFlags & AnimationSimpleFlags_CaptureColor) != 0) {
+            capturedColor = context->evaluateColor(preset->color);
+        }
     }
 
     /// <summary>
@@ -26,7 +32,12 @@ namespace Animations
         // Compute color
         uint32_t black = 0;
         uint32_t color = 0;
-        uint32_t presetColor = context->evaluateColor(preset->color);
+        uint32_t presetColor = 0;
+        if ((preset->colorFlags & AnimationSimpleFlags_CaptureColor) != 0) {
+            presetColor = capturedColor;
+        } else {
+            presetColor = context->evaluateColor(preset->color);
+        }
         int period = preset->duration / preset->count;
         int fadeTime = period * preset->fade / (255 * 2);
         int onOffTime = (period - fadeTime * 2) / 2;

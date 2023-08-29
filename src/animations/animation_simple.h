@@ -6,12 +6,18 @@
 
 namespace Animations
 {
+    enum AnimationSimpleFlags : uint8_t
+    {
+        AnimationSimpleFlags_CaptureColor = 1 << 0,
+    };
+
     /// <summary>
     /// Procedural on off animation
     /// </summary>
     struct AnimationSimple
         : public Animation
     {
+        uint8_t colorFlags;
         uint32_t faceMask;
         DColorPtr color;
         uint8_t count;
@@ -31,6 +37,8 @@ namespace Animations
 
     private:
         const AnimationSimple* getPreset() const;
+
+        uint32_t capturedColor;
     };
 }
 

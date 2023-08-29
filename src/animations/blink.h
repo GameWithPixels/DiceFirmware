@@ -7,7 +7,6 @@ namespace Animations
     // Helper class to make all LEDs to blink some color
     struct Blink
     {
-        Blink();
         void play(
             uint32_t color,
             uint16_t durationMs,

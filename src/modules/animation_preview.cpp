@@ -1,7 +1,7 @@
 #include "animation_preview.h"
 #include "animations/animation.h"
 #include "animations/blink.h"
-#include "animations/animations/animation_blinkid.h"
+#include "animations/animation_blinkid.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bulk_data_transfer.h"
@@ -37,6 +37,7 @@ namespace Modules::AnimationPreview
                 NRF_LOG_DEBUG("Playing instant animation %d", animIndex);
                 auto animationPreset = Profile::Instant::getData()->getAnimation(animIndex);
                 AnimController::PlayAnimationParameters params;
+                params.buffer = Profile::Instant::getData()->getBuffer();
                 params.remapFace = playAnimMessage->faceIndex;
                 params.loopCount = playAnimMessage->loopCount;
                 params.tag = Animations::AnimationTag_BluetoothMessage;
