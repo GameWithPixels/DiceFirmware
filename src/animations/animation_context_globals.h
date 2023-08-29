@@ -13,3 +13,5 @@ namespace Animations
         uint16_t normalizedFace;
     };
 }
+
+#pragma pack(pop)
