@@ -5,7 +5,6 @@
 #include "nrf_log.h"
 #include "modules/anim_controller.h"
 #include "animations/animation.h"
-#include "data_set/data_set.h"
 #include "config/board_config.h"
 #include "config/settings.h"
 #include "config/dice_variants.h"
@@ -64,7 +63,7 @@ namespace Modules::LEDColorTester
         NRF_LOG_INFO("Light Up Face: face: %d, remapFace: %d, color: %08x", lufmsg->face, lufmsg->opt_remapFace, lufmsg->color);
 
         int remapFace = lufmsg->opt_remapFace;
-        if (remapFace == FACE_INDEX_CURRENT_FACE) {
+        if (remapFace == 0xFF) {
             remapFace = Accelerometer::currentFace();
         }
 

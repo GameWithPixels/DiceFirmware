@@ -6,12 +6,11 @@
 #include "animations/animation.h"
 #include "modules/anim_controller.h"
 #include "modules/behavior_controller.h"
-#include "animations/animation_blinkid.h"
+#include "animations/animations/animation_blinkid.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
 #include "drivers_nrf/power_manager.h"
-#include "data_set/data_set.h"
 #include "nrf_nvmc.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_hw/battery.h"
@@ -30,8 +29,8 @@ namespace Modules::ValidationManager
     static AnimationBlinkId blinkId;
     static bool isPlaying = false;
 
-    void stopNameAnim();
-    void startNameAnim();
+    void stopBlinkId();
+    void startBlinkId();
     void onConnectionEvent(void *token, bool connected);
     void exitValidationModeHandler(const Message *msg);
 
@@ -45,7 +44,7 @@ namespace Modules::ValidationManager
             ValueStore::readValue(ValueStore::ValueType_ValidationTimestampBoard) != 0xFFFFFFFF;
 
         // Name animation object
-        blinkId.type = Animation_BlinkId;
+        blinkId.type = AnimationType_BlinkID;
         blinkId.framesPerBlink = 3; // blink duration = 3 x 33 ms
         blinkId.setDuration(1000);
         blinkId.brightness = isCastedDie ? 0x80 : 0x10; // Higher brightness for casted dice
@@ -66,11 +65,11 @@ namespace Modules::ValidationManager
         Timers::setDelayedCallback(GoToSysOffCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
 
         // Play preamble/name animation
-        startNameAnim();
+        startBlinkId();
     }
 
     // Stop playing name animation
-    void stopNameAnim()
+    void stopBlinkId()
     {
         NRF_LOG_DEBUG("Stopping name animation");
         AnimController::stopAll();
@@ -78,11 +77,13 @@ namespace Modules::ValidationManager
     }
 
     // Start playing name animation
-    void startNameAnim()
+    void startBlinkId()
     {
         NRF_LOG_DEBUG("Starting name animation");
          // Loop animation for as long as we can
-        AnimController::play(&blinkId, nullptr, 0, 0xff);
+        AnimController::PlayAnimationParameters params;
+        params.loopCount = 0xff;
+        AnimController::play(&blinkId, params);
         isPlaying = true;
     }
 
@@ -91,7 +92,7 @@ namespace Modules::ValidationManager
     {
         if (connected)
         {
-            stopNameAnim(); // Stop animation on connect
+            stopBlinkId(); // Stop animation on connect
             BehaviorController::forceCheckBatteryState();
             Timers::cancelDelayedCallback(GoToSysOffCallback, nullptr);
         }
@@ -99,7 +100,7 @@ namespace Modules::ValidationManager
         {
             Timers::setDelayedCallback(GoToSysOffCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
             if (!isPlaying)
-                startNameAnim(); // Resume animation on disconnect
+                startBlinkId(); // Resume animation on disconnect
         }
     }
 

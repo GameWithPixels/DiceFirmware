@@ -41,7 +41,7 @@ namespace Utils
 
     uint16_t getEaseParam(uint16_t param, EasingType easing);
     uint16_t interpolate(uint16_t start, uint16_t end, uint16_t param, EasingType easing);
-    uint32_t interpolateColors(uint16_t start, uint16_t end, uint16_t param, EasingType easing);
+    uint32_t interpolateColors(uint32_t start, uint32_t end, uint16_t param, EasingType easing);
 
     uint8_t sine8(uint8_t x);
     uint8_t gamma8(uint8_t x);

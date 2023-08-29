@@ -31,15 +31,11 @@
 #include "bluetooth/bulk_data_transfer.h"
 #include "bluetooth/telemetry.h"
 
-#include "animations/animation_cycle.h"
-#include "data_set/data_set.h"
-
 #include "modules/led_color_tester.h"
 #include "modules/leds.h"
 #include "modules/accelerometer.h"
 #include "modules/anim_controller.h"
 #include "modules/animation_preview.h"
-#include "modules/instant_anim_controller.h"
 #include "modules/battery_controller.h"
 #include "modules/behavior_controller.h"
 #include "modules/charger_proximity.h"
@@ -49,6 +45,9 @@
 #include "modules/led_error_indicator.h"
 
 #include "utils/Utils.h"
+
+#include "profile/profile_static.h"
+#include "profile/profile_instant.h"
 
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
@@ -206,7 +205,7 @@ namespace Die
                     }
 
                     // Animation set needs flash and board info
-                    DataSet::init([] () {
+                    Profile::Static::init([] () {
 
                     #if defined(DEBUG)
                         // Useful for development
@@ -238,11 +237,11 @@ namespace Die
                         // Behavior Controller relies on all the modules
                         BehaviorController::init();
 
+                        // Instant Profile
+                        Profile::Instant::init();
+
                         // Animation Preview depends on bluetooth
                         AnimationPreview::init();
-
-                        // Instant Animation Controller preview depends on bluetooth
-                        InstantAnimationController::init();
 
                         // Get ready for handling hardware test messages
                         HardwareTest::init();

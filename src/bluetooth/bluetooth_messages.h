@@ -47,30 +47,30 @@ struct Message
         MessageType_BulkSetupAck,
         MessageType_BulkData,
         MessageType_BulkDataAck,
-        MessageType_TransferAnimSet,
-        MessageType_TransferAnimSetAck,
-        MessageType_TransferAnimSetFinished,
-        MessageType_TransferSettings,
-        MessageType_TransferSettingsAck,
-        MessageType_TransferSettingsFinished,
-        MessageType_TransferTestAnimSet,
-        MessageType_TransferTestAnimSetAck,
-        MessageType_TransferTestAnimSetFinished,
+        MessageType_TransferProfile,
+        MessageType_TransferProfileAck,
+        MessageType_TransferProfileFinished,
+        MessageType_Unused_001,
+        MessageType_Unused_002,
+        MessageType_Unused_003,
+        MessageType_TransferInstantProfile,
+        MessageType_TransferInstantProfileAck,
+        MessageType_TransferInstantProfileFinished,
         MessageType_DebugLog,
         MessageType_PlayAnim,
-        MessageType_PlayAnimEvent,
+        MessageType_Unused_004,
         MessageType_StopAnim,
         MessageType_RemoteAction,
         MessageType_RequestRollState,
         MessageType_RequestAnimSet,
         MessageType_RequestSettings,
         MessageType_RequestTelemetry,
-        MessageType_ProgramDefaultAnimSet,
-        MessageType_ProgramDefaultAnimSetFinished,
+        MessageType_ProgramDefaultProfile,
+        MessageType_ProgramDefaultProfileFinished,
         MessageType_Blink,
         MessageType_BlinkAck,
-        MessageType_RequestDefaultAnimSetColor,
-        MessageType_DefaultAnimSetColor,
+        MessageType_Unused_005,
+        MessageType_Unused_006,
         MessageType_RequestBatteryLevel,
         MessageType_BatteryLevel,
         MessageType_RequestRssi,
@@ -87,15 +87,15 @@ struct Message
         MessageType_ProgramDefaultParametersFinished,
         MessageType_SetDesignAndColor,
         MessageType_SetDesignAndColorAck,
-        MessageType_SetCurrentBehavior,
-        MessageType_SetCurrentBehaviorAck,
+        MessageType_Unused_007,
+        MessageType_Unused_008,
         MessageType_SetName,
         MessageType_SetNameAck,
         MessageType_PowerOperation,
         MessageType_ExitValidation,
-        MessageType_TransferInstantAnimSet,
-        MessageType_TransferInstantAnimSetAck,
-        MessageType_TransferInstantAnimSetFinished,
+        MessageType_Unused_009,
+        MessageType_Unused_010,
+        MessageType_Unused_011,
         MessageType_PlayInstantAnim,
         MessageType_StopAllAnims,
         MessageType_RequestTemperature,
@@ -128,9 +128,6 @@ struct Message
     MessageType type;
 
     Message(MessageType msgType) : type(msgType) {}
-
-    // Returns empty string in release builds so to save space
-    static const char *GetMessageTypeString(MessageType msgType);
 
 protected:
     Message() : type(MessageType_None) {}
@@ -312,67 +309,67 @@ struct MessageBulkDataAck
     MessageBulkDataAck() : Message(Message::MessageType_BulkDataAck) {}
 };
 
-struct MessageTransferAnimSet
+struct MessageTransferProfile
     : Message
 {
-    uint16_t paletteSize;
-    uint16_t rgbKeyFrameCount;
-    uint16_t rgbTrackCount;
-    uint16_t keyFrameCount;
-    uint16_t trackCount;
+    uint16_t profileSize;
+    uint32_t profileHash;
 
-    uint16_t animationCount;
-    uint16_t animationSize;
-
-    uint16_t conditionCount;
-    uint16_t conditionSize;
-    uint16_t actionCount;
-    uint16_t actionSize;
-    uint16_t ruleCount;
-
-    uint8_t brightness;
-
-    MessageTransferAnimSet() : Message(Message::MessageType_TransferAnimSet) {}
+    MessageTransferProfile() : Message(Message::MessageType_TransferProfile) {}
 };
 
-struct MessageTransferAnimSetAck
+enum TransferProfileAckType : uint8_t
+{
+    TransferProfileAck_Download = 0,
+    TransferProfileAck_UpToDate,
+    TransferProfileAck_NoMemory,
+};
+
+struct MessageTransferProfileAck
     : Message
 {
     uint8_t result;
 
-    MessageTransferAnimSetAck() : Message(Message::MessageType_TransferAnimSetAck) {}
+    MessageTransferProfileAck() : Message(Message::MessageType_TransferProfileAck) {}
 };
 
-struct MessageTransferTestAnimSet
+enum TransferProfileFinishedType : uint8_t
+{
+    TransferProfileFinished_Success = 0,
+    TransferProfileFinished_Error,
+};
+
+struct MessageTransferProfileFinished
     : Message
 {
-    uint16_t paletteSize;
-    uint16_t rgbKeyFrameCount;
-    uint16_t rgbTrackCount;
-    uint16_t keyFrameCount;
-    uint16_t trackCount;
+    TransferProfileFinishedType result;
 
-    uint16_t animationCount;
-    uint16_t animationSize;
-
-    uint32_t hash;
-
-    MessageTransferTestAnimSet() : Message(Message::MessageType_TransferTestAnimSet) {}
+    MessageTransferProfileFinished() : Message(Message::MessageType_TransferProfileFinished) {}
 };
 
-enum TransferInstantAnimSetAckType : uint8_t
-{
-    TransferInstantAnimSetAck_Download = 0,
-    TransferInstantAnimSetAck_UpToDate,
-    TransferInstantAnimSetAck_NoMemory
-};
-
-struct MessageTransferTestAnimSetAck
+struct MessageTransferInstantProfile
     : Message
 {
-    TransferInstantAnimSetAckType ackType;
+    uint16_t profileSize;
+    uint32_t profileHash;
 
-    MessageTransferTestAnimSetAck() : Message(Message::MessageType_TransferTestAnimSetAck) {}
+    MessageTransferInstantProfile() : Message(Message::MessageType_TransferInstantProfile) {}
+};
+
+struct MessageTransferInstantProfileAck
+    : Message
+{
+    TransferProfileAckType result;
+
+    MessageTransferInstantProfileAck() : Message(Message::MessageType_TransferInstantProfileAck) {}
+};
+
+struct MessageTransferInstantProfileFinished
+    : Message
+{
+    TransferProfileFinishedType result;
+
+    MessageTransferInstantProfileFinished() : Message(Message::MessageType_TransferInstantProfileFinished) {}
 };
 
 struct MessageDebugLog
@@ -400,16 +397,6 @@ struct MessageRemoteAction
     uint16_t actionId;
 
     MessageRemoteAction() : Message(Message::MessageType_RemoteAction) {}
-};
-
-struct MessagePlayAnimEvent
-    : Message
-{
-    uint8_t evt;
-    uint8_t remapFace;
-    uint8_t loopCount;
-
-    MessagePlayAnimEvent() : Message(Message::MessageType_PlayAnimEvent) {}
 };
 
 struct MessageStopAnim
@@ -448,14 +435,6 @@ struct MessageBlink
     uint8_t loopCount;
 
     MessageBlink() : Message(Message::MessageType_Blink) {}
-};
-
-struct MessageDefaultAnimSetColor
-    : Message
-{
-    uint32_t color;
-
-    MessageDefaultAnimSetColor() : Message(Message::MessageType_DefaultAnimSetColor) {}
 };
 
 struct MessageSetAllLEDsToColor
@@ -499,14 +478,6 @@ struct MessageSetDesignAndColor
     Colorway colorway;
 
     MessageSetDesignAndColor() : Message(Message::MessageType_SetDesignAndColor) {}
-};
-
-struct MessageSetCurrentBehavior
-    : Message
-{
-    uint8_t currentBehavior;
-
-    MessageSetCurrentBehavior() : Message(Message::MessageType_SetCurrentBehavior) {}
 };
 
 struct MessageSetName
@@ -626,31 +597,6 @@ struct MessageSetLEDToColor
     uint8_t ledIndex; // Starts at 0
     uint32_t color;
     MessageSetLEDToColor() : Message(Message::MessageType_SetLEDToColor) {}
-};
-
-struct MessageTransferInstantAnimSet
-    : Message
-{
-    uint16_t paletteSize;
-    uint16_t rgbKeyFrameCount;
-    uint16_t rgbTrackCount;
-    uint16_t keyFrameCount;
-    uint16_t trackCount;
-
-    uint16_t animationCount;
-    uint16_t animationSize;
-
-    uint32_t hash;
-
-    MessageTransferInstantAnimSet() : Message(Message::MessageType_TransferInstantAnimSet) {}
-};
-
-struct MessageTransferInstantAnimSetAck
-    : Message
-{
-    TransferInstantAnimSetAckType ackType;
-
-    MessageTransferInstantAnimSetAck() : Message(Message::MessageType_TransferInstantAnimSetAck) {}
 };
 
 struct MessagePlayInstantAnim

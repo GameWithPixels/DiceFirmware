@@ -7,7 +7,6 @@
 #include "utils/rainbow.h"
 #include "config/board_config.h"
 #include "config/settings.h"
-#include "data_set/data_set.h"
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "nrf_log.h"
@@ -16,6 +15,9 @@
 #include "leds.h"
 #include "drivers_nrf/scheduler.h"
 #include "core/delegate_array.h"
+#include "animations/animation_instance_allocator.h"
+#include "profile/profile_static.h"
+#include "accelerometer.h"
 
 using namespace Animations;
 using namespace Modules;
@@ -43,9 +45,11 @@ namespace Modules::AnimController
     };
     State currentState = State_Unknown;
 
+    // Our animation globals used by animation instances
+    AnimationContextGlobals globals;
+
     // Some local functions
     void update(int ms);
-    uint32_t getColorForAnim(void* token, uint32_t colorIndex);
     void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
     void printAnimControllerStateHandler(const Message *msg);
 
@@ -86,7 +90,11 @@ namespace Modules::AnimController
     void update(int ms)
     {
         auto b = BoardManager::getBoard();
+        auto l = DiceVariants::getLayout();
         int c = b->ledCount;
+
+        // Update our globals
+        globals.normalizedFace = Accelerometer::currentFace() * 255 / l->faceCount;
 
         if (animationCount > 0) {
             // Notify clients for feeding or not feeding PowerManager
@@ -122,7 +130,7 @@ namespace Modules::AnimController
                 if (ms > endTime)
                 {
                     // The animation is over, get rid of it!
-                    Animations::destroyAnimationInstance(anim);
+                    AnimationInstanceAllocator::DestroyInstance(anim);
 
                     // Shift the other animations
                     for (int j = i; j < animationCount - 1; ++j)
@@ -175,7 +183,7 @@ namespace Modules::AnimController
             }
             
             // And light up!
-            uint8_t brightness = DataSet::getBrightness();
+            uint8_t brightness = Profile::Static::getData()->getBrightness();
             for (int j = 0; j < c; ++j) {
                 allColors[j] = Utils::modulateColor(allColors[j], brightness);
             }
@@ -218,14 +226,22 @@ namespace Modules::AnimController
         }
     }
 
-    void play(const Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace, uint8_t loopCount, Animations::AnimationTag tag)
+    PlayAnimationParameters::PlayAnimationParameters()
+        : overrideBuffer(Profile::BufferDescriptor::nullDescriptor)
+        , overrides(Profile::Array<Animations::ParameterOverride>::emptyArray())
+        , tag(Animations::AnimationTag_Unknown)
+        , remapFace(0)
+        , loopCount(1)
     {
+    }
+
+    void play(const Animations::Animation* animationPreset, const PlayAnimationParameters& parameters) {
         // Is there already an animation for this?
         int prevAnimIndex = 0;
         for (; prevAnimIndex < animationCount; ++prevAnimIndex)
         {
             auto prevAnim = animations[prevAnimIndex];
-            if (prevAnim->animationPreset == animationPreset && prevAnim->remapFace == remapFace)
+            if (prevAnim->animationPreset == animationPreset && prevAnim->remapFace == parameters.remapFace)
             {
                 break;
             }
@@ -240,16 +256,23 @@ namespace Modules::AnimController
         
         if (animationCount < MAX_ANIMS)
         {
-            const auto anim = Animations::createAnimationInstance(animationPreset, animationBits);
+            AnimationInstanceAllocator allocator(&globals, Profile::Static::getData()->getBuffer(), parameters.overrideBuffer, parameters.overrides);
+            const auto anim = animations[animationCount] = allocator.CreateInstance(animationPreset);
             if (anim) {
                 // Add a new animation
                 animations[animationCount] = anim;
-                animations[animationCount]->setTag(tag);
-                animations[animationCount]->start(ms, remapFace, loopCount);
+                animations[animationCount]->setTag(parameters.tag);
+                animations[animationCount]->start(ms, parameters.remapFace, parameters.loopCount);
                 animationCount++;
             }
         }
         // Else there is no more room
+    }
+
+    void play(const Animation * animationPreset, uint8_t remapFace) {
+        PlayAnimationParameters params;
+        params.remapFace = remapFace;
+        play(animationPreset, params);
     }
 
     void stop(const Animation* animationPreset, uint8_t remapFace) {
@@ -272,7 +295,7 @@ namespace Modules::AnimController
             removeAtIndex(prevAnimIndex);
 
             // Delete the instance
-            Animations::destroyAnimationInstance(prevAnimInstance);
+            AnimationInstanceAllocator::DestroyInstance(prevAnimInstance);
         }
         // Else the animation isn't playing
     }
@@ -300,7 +323,7 @@ namespace Modules::AnimController
         for (int i = 0; i < animationCount; ++i)
         {
             // Delete the instance
-            Animations::destroyAnimationInstance(animations[i]);
+            AnimationInstanceAllocator::DestroyInstance(animations[i]);
         }
         animationCount = 0;
         LEDs::clear();

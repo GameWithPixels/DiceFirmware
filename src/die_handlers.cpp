@@ -19,7 +19,7 @@
 #include "notifications/battery.h"
 #include "notifications/roll.h"
 #include "notifications/rssi.h"
-#include "data_set/data_set.h"
+#include "profile/profile_static.h"
 
 #define CHARGER_STATE_CHANGE_FADE_OUT_MS 250
 
@@ -37,9 +37,9 @@ namespace Die
 #if LEGACY_IMADIE_MESSAGE
         msg.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
         msg.colorway = SettingsManager::getColorway();
-        msg.dataSetHash = DataSet::dataHash();
+        msg.dataSetHash = Profile::Static::getHash();
         msg.pixelId = Pixel::getDeviceID();
-        msg.availableFlash = DataSet::availableDataSize();
+        msg.availableFlash = Profile::Static::availableDataSize();
         msg.buildTimestamp = Pixel::getBuildTimestamp();
         msg.rollState = Accelerometer::currentRollState();
         msg.rollFace = Accelerometer::currentFace();
@@ -60,8 +60,8 @@ namespace Die
         strncpy(msg.dieName.name, settings->name, sizeof(msg.dieName.name)); // No need to add the null terminator
 
         // Settings info
-        msg.settingsInfo.profileDataHash = DataSet::dataHash();
-        msg.settingsInfo.availableFlash = DataSet::availableDataSize();
+        msg.settingsInfo.profileDataHash = Profile::Static::getHash();
+        msg.settingsInfo.availableFlash = Profile::Static::availableDataSize();
         msg.settingsInfo.totalUsableFlash = Flash::getUsableBytes();
 
         // Status info
@@ -158,20 +158,19 @@ namespace Die
     void playLEDAnimHandler(const Message* msg) {
         auto playAnimMessage = (const MessagePlayAnim*)msg;
         NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
-        auto animationPreset = DataSet::getAnimation((int)playAnimMessage->animation);
-        AnimController::play(
-            animationPreset,
-            DataSet::getAnimationBits(),
-            playAnimMessage->remapFace,
-            playAnimMessage->loopCount,
-            Animations::AnimationTag_BluetoothMessage);
+        auto animationPreset = Profile::Static::getData()->getAnimation((int)playAnimMessage->animation);
+        AnimController::PlayAnimationParameters params;
+        params.remapFace = playAnimMessage->remapFace;
+        params.loopCount = playAnimMessage->loopCount;
+        params.tag = Animations::AnimationTag_BluetoothMessage;
+        AnimController::play(animationPreset, params);
     }
 
     void stopLEDAnimHandler(const Message* msg) {
         auto stopAnimMessage = (const MessageStopAnim*)msg;
         NRF_LOG_DEBUG("Stopping animation %d", stopAnimMessage->animation);
         // Find the preset for this animation Index
-        auto animationPreset = DataSet::getAnimation((int)stopAnimMessage->animation);
+        auto animationPreset = Profile::Static::getData()->getAnimation((int)stopAnimMessage->animation);
         AnimController::stop(animationPreset, stopAnimMessage->remapFace);
     }
 

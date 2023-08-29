@@ -81,9 +81,26 @@
 #define NRF_LOG_BACKEND_UART_ENABLED 1
 
 #define NRF_LOG_BACKEND_UART_TX_PIN 16
- 
-#define NRF_LOG_BACKEND_UART_BAUDRATE 30924800 //115200bps
- 
+
+// 323584 - 1200 baud
+// 643072 - 2400 baud
+// 1290240 - 4800 baud
+// 2576384 - 9600 baud
+// 3862528 - 14400 baud
+// 5152768 - 19200 baud
+// 7716864 - 28800 baud
+// 10289152 - 38400 baud
+// 15400960 - 57600 baud
+// 20615168 - 76800 baud
+// 30801920 - 115200 baud (nRF52 family only)
+// 30924800 - 115200 baud (nRF51 family only)
+// 61865984 - 230400 baud
+// 67108864 - 250000 baud
+// 121634816 - 460800 baud
+// 251658240 - 921600 baud
+// 268435456 - 57600 baud
+#define NRF_LOG_BACKEND_UART_BAUDRATE 30924800
+
 #define NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE 256
 
 // //==========================================================

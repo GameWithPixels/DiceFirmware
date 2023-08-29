@@ -7,30 +7,9 @@ using namespace Config;
 namespace Animations
 {
     /// <summary>
-    /// constructor for rainbow animations
-    /// Needs to have an associated preset passed in
-    /// </summary>
-    AnimationInstanceRainbow::AnimationInstanceRainbow(const AnimationRainbow* preset, const DataSet::AnimationBits* bits)
-        : AnimationInstance(preset, bits) {
-    }
-
-    /// <summary>
-    /// destructor
-    /// </summary>
-    AnimationInstanceRainbow::~AnimationInstanceRainbow() {
-    }
-
-    /// <summary>
-    /// Small helper to return the expected size of the preset data
-    /// </summary>
-    int AnimationInstanceRainbow::animationSize() const {
-        return sizeof(AnimationRainbow);
-    }
-
-    /// <summary>
     /// (re)Initializes the instance to animate leds. This can be called on a reused instance.
     /// </summary>
-    void AnimationInstanceRainbow::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
+    void AnimationRainbowInstance::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
         AnimationInstance::start(_startTime, _remapFace, _loopCount);
     }
 
@@ -41,7 +20,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceRainbow::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+    int AnimationRainbowInstance::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
         auto l = DiceVariants::getLayout();
         int c = l->ledCount;
 
@@ -84,12 +63,12 @@ namespace Animations
     /// <summary>
     /// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
     /// </summary>
-    int AnimationInstanceRainbow::stop(int retIndices[]) {
+    int AnimationRainbowInstance::stop(int retIndices[]) {
         auto preset = getPreset();
         return setIndices(preset->faceMask, retIndices);
     }
 
-    const AnimationRainbow* AnimationInstanceRainbow::getPreset() const {
+    const AnimationRainbow* AnimationRainbowInstance::getPreset() const {
         return static_cast<const AnimationRainbow*>(animationPreset);
     }
 }

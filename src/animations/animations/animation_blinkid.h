@@ -1,6 +1,7 @@
 #pragma once
 
-#include "animations/Animation.h"
+#include "stdint.h"
+#include "animations/animation.h"
 
 #pragma pack(push, 1)
 
@@ -25,22 +26,15 @@ namespace Animations
     /// <summary>
     /// Procedural on off animation instance data
     /// </summary>
-    class AnimationInstanceBlinkId
+    struct AnimationBlinkIdInstance
         : public AnimationInstance
     {
-    public:
-        AnimationInstanceBlinkId(const AnimationBlinkId* preset, const DataSet::AnimationBits* bits);
-        virtual ~AnimationInstanceBlinkId();
-        virtual int animationSize() const;
-
         virtual void start(int _startTime, uint8_t _remapFace, uint8_t _loopCount);
         virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
         virtual int stop(int retIndices[]);
 
     private:
         const AnimationBlinkId* getPreset() const;
-        static uint64_t getMessage();
-        const uint64_t message;
     };
 }
 

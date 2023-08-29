@@ -1,7 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include "animations/animation.h"
+#include "animations/animation_parameters.h"
 #include "animations/animation_tag.h"
+#include "profile/profile_buffer.h"
 
 #pragma pack(push, 1)
 
@@ -27,6 +30,7 @@ namespace Behaviors
     {
         ActionType type;
     };
+    typedef Profile::Pointer<Action> ActionPtr;
 
     /// <summary>
     /// Action to play an animation, really! 
@@ -34,9 +38,11 @@ namespace Behaviors
     struct ActionPlayAnimation
         : Action
     {
-        uint8_t animIndex;
+        uint8_t paddingType;
         uint8_t faceIndex;
         uint8_t loopCount;
+        Profile::Pointer<Animations::Animation> animation;
+        Profile::Array<Animations::ParameterOverride> overrides;
     };
 
     /// <summary>
@@ -49,8 +55,7 @@ namespace Behaviors
         uint16_t actionId;        // The id of the remote action
     };
 
-    // This method will execute the passed in action from the dataset
-    void triggerActions(int actionOffset, int actionCount, Animations::AnimationTag tag);
+    void triggerAction(Profile::BufferDescriptor buffer, ActionPtr action, Animations::AnimationTag tag);
 }
 
 #pragma pack(pop)

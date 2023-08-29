@@ -1,7 +1,6 @@
 #pragma once
 
 #include "animations/animation_simple.h"
-#include "data_set/data_animation_bits.h"
 
 namespace Animations
 {
@@ -19,7 +18,5 @@ namespace Animations
 
     private:
         AnimationSimple blinkAnim;
-        uint8_t animPalette[3];
-        DataSet::AnimationBits animBits;
     };
 }
