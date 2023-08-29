@@ -94,7 +94,7 @@ namespace Modules::AnimController
 		int c = b->ledCount;
 
 		// Update our globals
-		globals.normalizedFace = Accelerometer::currentFace() * 255 / l->faceCount;
+		globals.normalizedFace = Accelerometer::currentFace() * 0xFFFF / l->faceCount;
 
 		if (animationCount > 0) {
 			// Notify clients for feeding or not feeding PowerManager
@@ -223,7 +223,8 @@ namespace Modules::AnimController
 	}
 
 	PlayAnimationParameters::PlayAnimationParameters()
-		: overrideBuffer(Profile::BufferDescriptor::nullDescriptor)
+		: buffer(Profile::Static::getData()->getBuffer())
+		, overrideBuffer(Profile::BufferDescriptor::nullDescriptor)
 		, overrides(Profile::Array<Animations::ParameterOverride>::emptyArray())
 		, tag(Animations::AnimationTag_Unknown)
 		, remapFace(0)
@@ -253,7 +254,7 @@ namespace Modules::AnimController
 		if (animationCount < MAX_ANIMS)
 		{
 			// Add a new animation
-			AnimationInstanceAllocator allocator(&globals, Profile::Static::getData()->getBuffer(), parameters.overrideBuffer, parameters.overrides);
+			AnimationInstanceAllocator allocator(&globals, parameters.buffer, parameters.overrideBuffer, parameters.overrides);
 			animations[animationCount] = allocator.CreateInstance(animationPreset);
 			animations[animationCount]->setTag(parameters.tag);
 			animations[animationCount]->start(ms, parameters.remapFace, parameters.loop);

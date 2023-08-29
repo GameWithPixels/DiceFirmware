@@ -7,30 +7,29 @@
 namespace Animations
 {
 	/// <summary>
-	/// Procedural on off animation
+	/// Procedural rainbow animation data
 	/// </summary>
-	struct AnimationSimple
+	struct AnimationRainbow
 		: public Animation
 	{
 		uint32_t faceMask;
-        DColorPtr color;
         uint8_t count;
         uint8_t fade;
+		uint8_t intensity;
 	};
 
 	/// <summary>
-	/// Procedural on off animation instance data
+	/// Procedural rainbow animation instance data
 	/// </summary>
-	struct AnimationSimpleInstance
+	struct AnimationRainbowInstance
 		: public AnimationInstance
 	{
-	private:
 		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
 		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
 		virtual int stop(int retIndices[]);
 
 	private:
-		const AnimationSimple* getPreset() const;
+		const AnimationRainbow* getPreset() const;
 	};
 }
 

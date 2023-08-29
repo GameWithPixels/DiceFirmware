@@ -40,7 +40,6 @@ namespace Behaviors
     struct ConditionIdle
         : public Condition
     {
-        uint8_t padding1;
         uint16_t repeatPeriodMs;
         // No stored parameter for now
         bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
@@ -52,9 +51,6 @@ namespace Behaviors
     struct ConditionHandling
         : public Condition
     {
-        uint8_t padding1;
-        uint8_t padding2;
-        uint8_t padding3;
         // No stored parameter for now
         bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
     };
@@ -65,7 +61,6 @@ namespace Behaviors
     struct ConditionRolling
         : public Condition
     {
-        uint8_t padding1;
         uint16_t repeatPeriodMs; // 0 means do NOT repeat
         // No parameter for now
         bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
@@ -77,9 +72,6 @@ namespace Behaviors
     struct ConditionCrooked
         : public Condition
     {
-        uint8_t padding1;
-        uint8_t padding2;
-        uint8_t padding3;
         // No parameter for now
         bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
     };
@@ -103,7 +95,6 @@ namespace Behaviors
     {
         uint8_t faceIndex;
         uint8_t flags; // ConditionFaceCompare_Flags
-        uint8_t paddingFlags;
         bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
     };
 
@@ -123,8 +114,6 @@ namespace Behaviors
         : public Condition
     {
         uint8_t flags; // ConditionHelloGoodbye_Flags
-        uint8_t padding1;
-        uint8_t padding2;
         bool checkTrigger(bool isHello) const;
     };
 
@@ -144,8 +133,6 @@ namespace Behaviors
         : public Condition
     {
         uint8_t flags; // ConditionConnectionState_Flags
-        uint8_t padding1;
-        uint8_t padding2;
         bool checkTrigger(bool connected) const;
     };
 

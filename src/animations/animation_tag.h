@@ -4,6 +4,8 @@
 
 namespace Animations
 {
+	// Animation Tag is used to indicate what triggered an animation, in case we want to
+	// prioritize certain animations over others, or cancel animations, etc...
 	enum AnimationTag : uint8_t
 	{
 		AnimationTag_Unknown = 0,

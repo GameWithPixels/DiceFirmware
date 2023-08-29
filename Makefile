@@ -128,13 +128,13 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_context.cpp \
 	$(PROJ_DIR)/src/animations/animation_instance_allocator.cpp \
 	$(PROJ_DIR)/src/animations/animation_parameters.cpp \
-	$(PROJ_DIR)/src/animations/animations/animation_simple.cpp \
-	$(PROJ_DIR)/src/animations/animations/animation_pattern.cpp \
-	$(PROJ_DIR)/src/animations/animations/animation_rainbow.cpp \
-	$(PROJ_DIR)/src/animations/animations/animation_blinkid.cpp \
-	$(PROJ_DIR)/src/animations/animations/animation_sequence.cpp \
-	$(PROJ_DIR)/src/animations/animations/animation_sequence.cpp \
-	$(PROJ_DIR)/src/animations/animations/animation_sequence.cpp \
+	$(PROJ_DIR)/src/animations/animation_simple.cpp \
+	$(PROJ_DIR)/src/animations/animation_pattern.cpp \
+	$(PROJ_DIR)/src/animations/animation_rainbow.cpp \
+	$(PROJ_DIR)/src/animations/animation_blinkid.cpp \
+	$(PROJ_DIR)/src/animations/animation_sequence.cpp \
+	$(PROJ_DIR)/src/animations/animation_sequence.cpp \
+	$(PROJ_DIR)/src/animations/animation_sequence.cpp \
 	$(PROJ_DIR)/src/animations/blink.cpp \
 	$(PROJ_DIR)/src/animations/ledpattern.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \

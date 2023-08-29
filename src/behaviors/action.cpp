@@ -23,6 +23,7 @@ namespace Behaviors
                     NRF_LOG_INFO("Playing anim %d on face %d, animFaceIndex: %d", playAnimAction->animation.offset, faceIndex, playAnimAction->faceIndex);
                     // Play the animation with overrides
                     AnimController::PlayAnimationParameters params;
+                    params.buffer = buffer;
                     params.overrideBuffer = buffer;
                     params.overrides = playAnimAction->overrides;
                     params.remapFace = faceIndex;

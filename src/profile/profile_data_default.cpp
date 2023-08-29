@@ -5,11 +5,12 @@
 #include "nrf_log.h"
 #include "config/settings.h"
 
-#include "animations/animations/animation_rainbow.h"
-#include "animations/animations/animation_simple.h"
+#include "animations/animation_rainbow.h"
+#include "animations/animation_simple.h"
 #include "behaviors/condition.h"
 #include "behaviors/action.h"
 #include "behaviors/behavior.h"
+#include "drivers_nrf/watchdog.h"
 
 using namespace DriversNRF;
 using namespace Config;
@@ -21,53 +22,29 @@ using namespace Behaviors;
 namespace Profile
 {
     #if USE_BINARY_BUFFER_IMAGE
-    uint8_t defaultBytes[] =
-    {
-        0x0D, 0xF0, 0x0D, 0x60, 0x04, 0x00, 0x00, 0x00,
-        0x42, 0x01, 0x7C, 0x00, 0x09, 0x15, 0x01, 0x09,
-        0x0D, 0xF0, 0x0D, 0x60, 0x02, 0x01, 0xB8, 0x0B,
-        0xFF, 0xFF, 0xFF, 0xFF, 0x03, 0x40, 0x80, 0x00,
-        0x01, 0x00, 0xB8, 0x0B, 0x00, 0x00, 0x10, 0x00,
-        0x00, 0x00, 0x08, 0x00, 0x01, 0xFF, 0x01, 0x00,
-        0xDC, 0x05, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00,
-        0x08, 0x00, 0x03, 0xFF, 0x01, 0x00, 0xD0, 0x07,
-        0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x08, 0x00,
-        0x0A, 0xFF, 0x01, 0x00, 0x10, 0x27, 0x00, 0x00,
-        0x10, 0x00, 0x00, 0x08, 0x00, 0x00, 0x01, 0x20,
-        0x01, 0x00, 0xE8, 0x03, 0xFF, 0xFF, 0xFF, 0xFF,
-        0x08, 0x00, 0x00, 0x00, 0x01, 0xFF, 0x01, 0x00,
-        0x64, 0x00, 0x00, 0x00, 0x10, 0x00, 0x08, 0x08,
-        0x08, 0x00, 0x01, 0x00, 0x01, 0x00, 0xB8, 0x0B,
-        0xFF, 0xFF, 0xFF, 0xFF, 0x08, 0x08, 0x08, 0x00,
-        0x01, 0x00, 0x01, 0x00, 0xE8, 0x03, 0x00, 0x00,
-        0x10, 0x00, 0x00, 0x06, 0x06, 0x00, 0x03, 0xFF,
-        0x6E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x01, 0x01, 0x00, 0x00, 0x06, 0x03,
-        0x00, 0x00, 0x03, 0x00, 0xF4, 0x01, 0x04, 0x00,
-        0x06, 0x00, 0x07, 0x02, 0x30, 0x75, 0x07, 0x04,
-        0x88, 0x13, 0x07, 0x08, 0x88, 0x13, 0x07, 0x10,
-        0x00, 0x00, 0x07, 0x20, 0xDC, 0x05, 0x01, 0x00,
-        0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0xB2,
-        0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0xBD, 0x00, 0x01, 0x00, 0x00, 0x01,
-        0x52, 0x00, 0x00, 0x00, 0x00, 0xC8, 0x00, 0x01,
-        0x00, 0x00, 0x01, 0x60, 0x00, 0x00, 0x00, 0x00,
-        0xD3, 0x00, 0x01, 0x00, 0x00, 0x01, 0x1A, 0x00,
-        0x00, 0x00, 0x00, 0xDE, 0x00, 0x01, 0x00, 0x00,
-        0x01, 0x0C, 0x00, 0x00, 0x00, 0x00, 0xE9, 0x00,
-        0x01, 0x00, 0x00, 0x01, 0x36, 0x00, 0x00, 0x00,
-        0x00, 0xF4, 0x00, 0x01, 0x00, 0x00, 0x01, 0x28,
-        0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x01, 0x00,
-        0x00, 0x01, 0x6E, 0x00, 0x00, 0x00, 0x00, 0x0A,
-        0x01, 0x8E, 0x00, 0xBB, 0x00, 0x01, 0x96, 0x00,
-        0xD1, 0x00, 0x01, 0x9A, 0x00, 0xDC, 0x00, 0x01,
-        0xA2, 0x00, 0xF2, 0x00, 0x01, 0xAA, 0x00, 0x08,
-        0x01, 0x01, 0x9E, 0x00, 0xE7, 0x00, 0x01, 0xA6,
-        0x00, 0xFD, 0x00, 0x01, 0x92, 0x00, 0xC6, 0x00,
-        0x01, 0xAE, 0x00, 0x13, 0x01, 0x01, 0xE9, 0x21,
-        0xFC, 0xE0, 0xF1, 0xA0
-    };
+uint8_t defaultBytes[] = {
+        0x0D,0xF0,0x0D,0x60,0x05,0x00,0x00,0x00,0x3A,0x01,0x83,0x00,0x09,0x0D,0x01,0x09,
+        0x0D,0xF0,0x0D,0x60,0x03,0x01,0x04,0x03,0x02,0x00,0x00,0x00,0x02,0x08,0x00,0x00,
+        0x02,0x00,0x08,0x00,0x02,0x00,0x08,0x00,0x02,0x06,0x06,0x00,0x02,0x03,0xB8,0x0B,
+        0xFF,0xFF,0xFF,0xFF,0x03,0x40,0x80,0x01,0x00,0xB8,0x0B,0x00,0x00,0x08,0x00,0x08,
+        0x00,0x01,0xFF,0x01,0x00,0xDC,0x05,0xFF,0xFF,0xFF,0xFF,0x08,0x00,0x03,0xFF,0x01,
+        0x00,0xD0,0x07,0x00,0x00,0x08,0x00,0x08,0x00,0x0A,0xFF,0x01,0x00,0x10,0x27,0x00,
+        0x00,0x08,0x00,0x0C,0x00,0x01,0x20,0x01,0x00,0xE8,0x03,0xFF,0xFF,0xFF,0xFF,0x10,
+        0x00,0x01,0xFF,0x01,0x00,0xF4,0x01,0x00,0x00,0x08,0x00,0x03,0x00,0x01,0x00,0x01,
+        0x00,0xB8,0x0B,0xFF,0xFF,0xFF,0xFF,0x03,0x00,0x01,0x00,0x01,0x00,0xE8,0x03,0x00,
+        0x00,0x08,0x00,0x14,0x00,0x03,0xFF,0x18,0x00,0x23,0x00,0x2F,0x00,0x3B,0x00,0x47,
+        0x00,0x53,0x00,0x5F,0x00,0x6B,0x00,0x77,0x00,0x01,0x01,0x06,0x03,0x03,0xF4,0x01,
+        0x04,0x00,0x06,0x07,0x02,0x30,0x75,0x07,0x04,0x88,0x13,0x07,0x08,0x88,0x13,0x07,
+        0x10,0x00,0x00,0x07,0x20,0xDC,0x05,0x01,0x13,0x01,0x18,0x00,0x00,0x00,0x00,0xB3,
+        0x00,0x01,0x13,0x01,0x53,0x00,0x00,0x00,0x00,0xBD,0x00,0x01,0xFF,0x01,0x5F,0x00,
+        0x00,0x00,0x00,0xC7,0x00,0x01,0x13,0x01,0x6B,0x00,0x00,0x00,0x00,0xD1,0x00,0x01,
+        0x13,0x01,0x2F,0x00,0x00,0x00,0x00,0xDB,0x00,0x01,0x13,0x01,0x23,0x00,0x00,0x00,
+        0x00,0xE5,0x00,0x01,0x13,0x01,0x47,0x00,0x00,0x00,0x00,0xEF,0x00,0x01,0x13,0x01,
+        0x3B,0x00,0x00,0x00,0x00,0xF9,0x00,0x01,0x13,0x01,0x77,0x00,0x00,0x00,0x00,0x03,
+        0x01,0x95,0x00,0xBB,0x00,0x01,0x99,0x00,0xCF,0x00,0x01,0x9C,0x00,0xD9,0x00,0x01,
+        0xA3,0x00,0xED,0x00,0x01,0xAB,0x00,0x01,0x01,0x01,0x9F,0x00,0xE3,0x00,0x01,0xA7,
+        0x00,0xF7,0x00,0x01,0x97,0x00,0xC5,0x00,0x01,0xAF,0x00,0x0B,0x01,0x01,0xE1,0x39,
+        0x5D,0x56,0x00,0x00,};
 
     uint8_t* Data::CreateDefaultProfile(uint32_t* outSize) {
         *outSize = sizeof(defaultBytes);
@@ -152,6 +129,142 @@ namespace Profile
             }
             return ret;
         }
+
+        Pointer<DScalarGlobal> addGlobal(GlobalType type) {
+            auto ret = allocatePtr<DScalarGlobal>();
+            auto g = get(ret);
+            g->type = ScalarType_Global;
+            g->globalType = type;
+            return ret;
+        }
+
+        // Create the gradient that we will lookup into
+        Pointer<DGradientRainbow> addRainbow() {
+            auto rainbowGradientPtr = allocatePtr<DGradientRainbow>();
+            auto rainbowGradient = get(rainbowGradientPtr);
+            rainbowGradient->type = GradientType_Rainbow;
+            return rainbowGradientPtr;
+        }
+        
+        Pointer<DColorLookup> addLookup(DGradientPtr g, DScalarPtr p) {
+            auto lookupGradientFromFacePtr = allocatePtr<DColorLookup>();
+            auto lookupGradientFromFace = get(lookupGradientFromFacePtr);
+            lookupGradientFromFace->type = ColorType_Lookup;
+            lookupGradientFromFace->lookupGradient = g;
+            lookupGradientFromFace->parameter = p;
+            return lookupGradientFromFacePtr;
+        }
+
+        // Create red color
+        Pointer<DColorRGB> addRGB(uint8_t r, uint8_t g, uint8_t b) {
+            auto redColorPtr = allocatePtr<DColorRGB>();
+            auto redColor = get(redColorPtr);
+            redColor->type = ColorType_RGB;
+            redColor->rValue = r;
+            redColor->gValue = g;
+            redColor->bValue = b;
+            return redColorPtr;
+        }
+
+        Pointer<AnimationRainbow> addAnimRainbow(uint8_t count, uint16_t duration) {
+            auto animationRainbowPtr = allocatePtr<AnimationRainbow>();
+            auto animationRainbow = get(animationRainbowPtr);
+            animationRainbow->type = AnimationType_Rainbow;
+            animationRainbow->animFlags = AnimationFlags_Traveling | AnimationFlags_UseLedIndices;
+            animationRainbow->count = count;
+            animationRainbow->duration = duration;
+            animationRainbow->faceMask = 0xFFFFFFFF;
+            animationRainbow->fade = 128;
+            animationRainbow->intensity = 128;
+            return animationRainbowPtr;
+        }
+
+        Pointer<AnimationSimple> addAnimSimple(uint8_t count, uint16_t duration, DColorPtr color, uint8_t colorFlags, uint8_t fade, uint32_t mask) {
+            auto animationChargingPtr = allocatePtr<AnimationSimple>();
+            auto animationCharging = get(animationChargingPtr);
+            animationCharging->type = AnimationType_Simple;
+            animationCharging->animFlags = 0;
+            animationCharging->duration = duration;
+            animationCharging->color = color;
+            animationCharging->count = count;
+            animationCharging->colorFlags = colorFlags;
+            animationCharging->fade = fade;
+            animationCharging->faceMask = mask;
+            return animationChargingPtr;
+        }
+
+        // Allocate a condition
+        Pointer<ConditionHelloGoodbye> addCondHello(uint8_t flags) {
+            auto conditionHelloPtr = allocatePtr<ConditionHelloGoodbye>();
+            auto conditionHello = get(conditionHelloPtr);
+            conditionHello->type = Condition_HelloGoodbye;
+            conditionHello->flags = flags;
+            return conditionHelloPtr;
+        }
+
+        Pointer<ConditionConnectionState> addCondConn(uint8_t flags) {
+            auto conditionConnectionPtr = allocatePtr<ConditionConnectionState>();
+            auto connected = get(conditionConnectionPtr);
+            connected->type = Condition_ConnectionState;
+            connected->flags = flags;
+            return conditionConnectionPtr;
+        }
+
+        Pointer<ConditionHandling> addCondHandling() {
+            auto handlingPtr = allocatePtr<ConditionHandling>();
+            auto handling = get(handlingPtr);
+            handling->type = Condition_Handling;
+            return handlingPtr;
+        }
+
+        Pointer<ConditionRolling> addCondRolling(uint16_t repeatPeriod) {
+            auto rollingPtr = allocatePtr<ConditionRolling>();
+            auto rolling = get(rollingPtr);
+            rolling->type = Condition_Rolling;
+            rolling->repeatPeriodMs = repeatPeriod;
+            return rollingPtr;
+        }
+
+        Pointer<ConditionFaceCompare> addCondFace(uint8_t flags, uint8_t index) {
+            auto facePtr = allocatePtr<ConditionFaceCompare>();
+            auto face = get(facePtr);
+            face->type = Condition_FaceCompare;
+            face->flags = flags;
+            face->faceIndex = index;
+            return facePtr;
+        }
+
+        // Add Low Battery condition
+        Pointer<ConditionBatteryState> addCondBatt(uint8_t flags, uint16_t repeat) {
+            auto low_battPtr = allocatePtr<ConditionBatteryState>();
+            auto low_batt = get(low_battPtr);
+            low_batt->type = Condition_BatteryState;
+            low_batt->flags = flags;
+            low_batt->repeatPeriodMs = repeat;
+            return low_battPtr;
+        }
+
+        Array<ActionPtr> addPlayAnimActionAsArray(AnimationPtr animation, uint8_t face) {
+            // And matching action
+            auto playHelloPtr = allocatePtr<ActionPlayAnimation>();
+            auto playHello = get(playHelloPtr);
+            playHello->type = Action_PlayAnimation;
+            playHello->animation = animation;
+            playHello->faceIndex = face;
+            playHello->loopCount = 1;
+            playHello->overrides = Array<ParameterOverride>::emptyArray();
+            // Allocate action array
+            auto playHelloArrayPtr = allocateArray<ActionPtr>(1);
+            setAt(playHelloArrayPtr, 0, (ActionPtr)playHelloPtr);
+            return playHelloArrayPtr;
+        }
+
+        void setRuleAt(Array<Rule> rules, uint8_t index, Pointer<Condition> condition, Array<ActionPtr> actions) {
+            Rule r;
+            r.condition = condition;
+            r.actions = actions;
+            setAt(rules, index, r);
+        }
     };
 
 	uint8_t* Data::CreateDefaultProfile(uint32_t* outSize) {
@@ -166,374 +279,71 @@ namespace Profile
         uint32_t topLedMask = 1 << (BoardManager::getBoard()->ledCount - 1);
 
         // Create the global that indicates the current face
-        auto currentFaceScalarPtr = allocator.allocatePtr<DScalarGlobal>();
-        auto currentFaceScalar = allocator.get(currentFaceScalarPtr);
-        currentFaceScalar->type = ScalarType_Global;
-        currentFaceScalar->globalType = GlobalType_NormalizedCurrentFace;
-
-        // Create the gradient that we will lookup into
-        auto rainbowGradientPtr = allocator.allocatePtr<DGradientRainbow>();
-        auto rainbowGradient = allocator.get(rainbowGradientPtr);
-        rainbowGradient->type = GradientType_Rainbow;
-        
-        // Create the lookup color
-        auto lookupGradientFromFacePtr = allocator.allocatePtr<DColorLookup>();
-        auto lookupGradientFromFace = allocator.get(lookupGradientFromFacePtr);
-        lookupGradientFromFace->type = ColorType_Lookup;
-        lookupGradientFromFace->lookupGradient = rainbowGradientPtr;
-        lookupGradientFromFace->parameter = currentFaceScalarPtr;
-
-        // Create red color
-        auto redColorPtr = allocator.allocatePtr<DColorRGB>();
-        auto redColor = allocator.get(redColorPtr);
-        redColor->type = ColorType_RGB;
-        redColor->rValue = 8;
-        redColor->gValue = 0;
-        redColor->bValue = 0;
-
-        // Create green color
-        auto greenColorPtr = allocator.allocatePtr<DColorRGB>();
-        auto greenColor = allocator.get(greenColorPtr);
-        greenColor->type = ColorType_RGB;
-        greenColor->rValue = 0;
-        greenColor->gValue = 8;
-        greenColor->bValue = 0;
-
-        // Create blue color
-        auto blueColorPtr = allocator.allocatePtr<DColorRGB>();
-        auto blueColor = allocator.get(blueColorPtr);
-        blueColor->type = ColorType_RGB;
-        blueColor->rValue = 0;
-        blueColor->gValue = 8;
-        blueColor->bValue = 0;
-
-        // Create yellow color
-        auto yellowColorPtr = allocator.allocatePtr<DColorRGB>();
-        auto yellowColor = allocator.get(yellowColorPtr);
-        yellowColor->type = ColorType_RGB;
-        yellowColor->rValue = 6;
-        yellowColor->gValue = 6;
-        yellowColor->bValue = 0;
+        auto currentFaceScalarPtr = allocator.addGlobal(GlobalType_NormalizedCurrentFace);
+        auto rainbowGradientPtr = allocator.addRainbow();
+        auto lookupGradientFromFacePtr = allocator.addLookup(rainbowGradientPtr, currentFaceScalarPtr);
+        auto redColorPtr = allocator.addRGB(8,0,0);
+        auto greenColorPtr = allocator.addRGB(0,8,0);
+        auto blueColorPtr = allocator.addRGB(0,0,16);
+        auto yellowColorPtr = allocator.addRGB(6,6,0);
 
         // Allocate our Hello animation
-        auto animationRainbowPtr = allocator.allocatePtr<AnimationRainbow>();
-        auto animationRainbow = allocator.get(animationRainbowPtr);
-        animationRainbow->type = AnimationType_Rainbow;
-        animationRainbow->traveling = 1;
-        animationRainbow->count = 3;
-        animationRainbow->duration = 3000;
-        animationRainbow->faceMask = allLedMask;
-        animationRainbow->fade = 64;
-        animationRainbow->intensity = 128;
-
-        // Charging
-        auto animationChargingPtr = allocator.allocatePtr<AnimationSimple>();
-        auto animationCharging = allocator.get(animationChargingPtr);
-        animationCharging->type = AnimationType_Simple;
-        animationCharging->traveling = 0;
-        animationCharging->duration = 3000;
-        animationCharging->color = redColorPtr;
-        animationCharging->count = 1;
-        animationCharging->fade = 255;
-        animationCharging->faceMask = topLedMask;
-
-        // Low battery
-        auto animationLowBatteryPtr = allocator.allocatePtr<AnimationSimple>();
-        auto animationLowBattery = allocator.get(animationLowBatteryPtr);
-        animationLowBattery->type = AnimationType_Simple;
-        animationLowBattery->traveling = 0;
-        animationLowBattery->duration = 1500;
-        animationLowBattery->color = redColorPtr;
-        animationLowBattery->count = 3;
-        animationLowBattery->fade = 255;
-        animationLowBattery->faceMask = allLedMask;
-
-        // Charging Problem
-        auto animationChargingProblemPtr = allocator.allocatePtr<AnimationSimple>();
-        auto animationChargingProblem = allocator.get(animationChargingProblemPtr);
-        animationChargingProblem->type = AnimationType_Simple;
-        animationChargingProblem->traveling = 0;
-        animationChargingProblem->duration = 2000;
-        animationChargingProblem->color = redColorPtr;
-        animationChargingProblem->count = 10;
-        animationChargingProblem->fade = 255;
-        animationChargingProblem->faceMask = topLedMask;
-
-        // Fully charged
-        auto animationFullyChargedPtr = allocator.allocatePtr<AnimationSimple>();
-        auto animationFullyCharged = allocator.get(animationFullyChargedPtr);
-        animationFullyCharged->type = AnimationType_Simple;
-        animationFullyCharged->traveling = 0;
-        animationFullyCharged->duration = 10000;
-        animationFullyCharged->color = greenColorPtr;
-        animationFullyCharged->count = 1;
-        animationFullyCharged->fade = 32;
-        animationFullyCharged->faceMask = topLedMask;
-
-        // Connection
-        auto animationConnectionPtr = allocator.allocatePtr<AnimationSimple>();
-        auto animationConnection = allocator.get(animationConnectionPtr);
-        animationConnection->type = AnimationType_Simple;
-        animationConnection->traveling = 0;
-        animationConnection->duration = 1000;
-        animationConnection->color = blueColorPtr;
-        animationConnection->count = 1;
-        animationConnection->fade = 255;
-        animationConnection->faceMask = allLedMask;
-
-        // Rolling
-        auto animationRollingPtr = allocator.allocatePtr<AnimationSimple>();
-        auto animationRolling = allocator.get(animationRollingPtr);
-        animationRolling->type = AnimationType_Simple;
-        animationRolling->traveling = 0;
-        animationRolling->duration = 500;
-        animationRolling->color = lookupGradientFromFacePtr;
-        animationRolling->count = 1;
-        animationRolling->fade = 0;
-        animationRolling->faceMask = topLedMask;
-
-        // On Face
-        auto animationOnFacePtr = allocator.allocatePtr<AnimationSimple>();
-        auto animationOnFace = allocator.get(animationOnFacePtr);
-        animationOnFace->type = AnimationType_Simple;
-        animationOnFace->traveling = 0;
-        animationOnFace->duration = 3000;
-        animationOnFace->color = lookupGradientFromFacePtr;
-        animationOnFace->count = 1;
-        animationOnFace->fade = 0;
-        animationOnFace->faceMask = allLedMask;
-
-        // Error while charging (temperature)
-        auto animationTempErrorPtr = allocator.allocatePtr<AnimationSimple>();
-        auto animationTempError = allocator.get(animationTempErrorPtr);
-        animationTempError->type = AnimationType_Simple;
-        animationTempError->traveling = 0;
-        animationTempError->duration = 1000;
-        animationTempError->color = yellowColorPtr;
-        animationTempError->count = 3;
-        animationTempError->fade = 255;
-        animationTempError->faceMask = topLedMask;
+        auto animationRainbowPtr = allocator.addAnimRainbow(3, 3000);
+        auto animationChargingPtr = allocator.addAnimSimple(1, 3000, redColorPtr, 0, 255, topLedMask);
+        auto animationLowBatteryPtr = allocator.addAnimSimple(3, 1500, redColorPtr, 0, 255, allLedMask);
+        auto animationChargingProblemPtr = allocator.addAnimSimple(10, 2000, redColorPtr, 0, 255, topLedMask);
+        auto animationFullyChargedPtr = allocator.addAnimSimple(1, 10000, greenColorPtr, 0, 32, topLedMask);
+        auto animationConnectionPtr = allocator.addAnimSimple(1, 1000, blueColorPtr, 0, 255, allLedMask);
+        auto animationHandlingPtr = allocator.addAnimSimple(1, 1000, lookupGradientFromFacePtr, AnimationSimpleFlags_CaptureColor, 255, topLedMask);
+        auto animationRollingPtr = allocator.addAnimSimple(1, 500, lookupGradientFromFacePtr, AnimationSimpleFlags_CaptureColor, 255, topLedMask);
+        auto animationOnFacePtr = allocator.addAnimSimple(1, 3000, lookupGradientFromFacePtr, AnimationSimpleFlags_CaptureColor, 255, allLedMask);
+        auto animationTempErrorPtr = allocator.addAnimSimple(3, 1000, yellowColorPtr, 0, 255, topLedMask);
 
         // Allocate the array
-        auto animationArrayPtr = allocator.allocateArray<AnimationPtr>(9);
+        auto animationArrayPtr = allocator.allocateArray<AnimationPtr>(10);
         allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationRainbowPtr);
-        allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationChargingPtr);
-        allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationLowBatteryPtr);
-        allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationChargingProblemPtr);
-        allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationFullyChargedPtr);
-        allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationConnectionPtr);
-        allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationRollingPtr);
-        allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationOnFacePtr);
-        allocator.setAt(animationArrayPtr, 0, (AnimationPtr)animationTempErrorPtr);
-
-        // Allocate a condition
-        auto conditionHelloPtr = allocator.allocatePtr<ConditionHelloGoodbye>();
-        auto conditionHello = allocator.get(conditionHelloPtr);
-        conditionHello->type = Condition_HelloGoodbye;
-        conditionHello->flags = ConditionHelloGoodbye_Hello;
-
-        // Add New Connection condition (index 1)
-        auto conditionConnectionPtr = allocator.allocatePtr<ConditionConnectionState>();
-        auto connected = allocator.get(conditionConnectionPtr);
-        connected->type = Condition_ConnectionState;
-        connected->flags = ConditionConnectionState_Connected | ConditionConnectionState_Disconnected;
-
-        // Add Rolling condition (index 2)
-        auto rollingPtr = allocator.allocatePtr<ConditionRolling>();
-        auto rolling = allocator.get(rollingPtr);
-        rolling->type = Condition_Rolling;
-        rolling->repeatPeriodMs = 500;
-
-        // Add OnFace condition (index 3)
-        auto facePtr = allocator.allocatePtr<ConditionFaceCompare>();
-        auto face = allocator.get(facePtr);
-        face->type = Condition_FaceCompare;
-        face->flags = ConditionFaceCompare_Equal | ConditionFaceCompare_Greater;
-        face->faceIndex = 0;
-
-        // Add Low Battery condition (index 4)
-        auto low_battPtr = allocator.allocatePtr<ConditionBatteryState>();
-        auto low_batt = allocator.get(low_battPtr);
-        low_batt->type = Condition_BatteryState;
-        low_batt->flags = ConditionBatteryState_Flags::ConditionBatteryState_Low;
-        low_batt->repeatPeriodMs = 30000; // 30s
-
-        // Add Charging condition (index 5)
-        auto charge_battPtr = allocator.allocatePtr<ConditionBatteryState>();
-        auto charge_batt = allocator.get(charge_battPtr);
-        charge_batt->type = Condition_BatteryState;
-        charge_batt->flags = ConditionBatteryState_Flags::ConditionBatteryState_Charging;
-        charge_batt->repeatPeriodMs = 5000; //s
-
-        // Add Done charging condition (index 6)
-        auto done_chargePtr = allocator.allocatePtr<ConditionBatteryState>();
-        auto done_charge = allocator.get(done_chargePtr);
-        done_charge->type = Condition_BatteryState;
-        done_charge->flags = ConditionBatteryState_Done;
-        done_charge->repeatPeriodMs = 5000; //s
-
-        // Add Bad charging condition (index 7)
-        auto bad_chargePtr = allocator.allocatePtr<ConditionBatteryState>();
-        auto bad_charge = allocator.get(bad_chargePtr);
-        bad_charge->type = Condition_BatteryState;
-        bad_charge->flags = ConditionBatteryState_BadCharging;
-
-        // Add error during charging (usually temperature) condition (index 8)
-        auto error_chargePtr = allocator.allocatePtr<ConditionBatteryState>();
-        auto error_charge = allocator.get(error_chargePtr);
-        error_charge->type = Condition_BatteryState;
-        error_charge->flags = ConditionBatteryState_Error;
-        error_charge->repeatPeriodMs = 1500; //s
-
-
-        // And matching action
-        auto playHelloPtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playHello = allocator.get(playHelloPtr);
-        playHello->type = Action_PlayAnimation;
-        playHello->animation = animationRainbowPtr;
-        playHello->faceIndex = topFaceIndex;
-        playHello->loopCount = 1;
-        playHello->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playHelloArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playHelloArrayPtr, 0, (ActionPtr)playHelloPtr);
-
-        auto playConnectedPtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playConnected = allocator.get(playConnectedPtr);
-        playConnected->type = Action_PlayAnimation;
-        playConnected->animation = animationConnectionPtr;
-        playConnected->faceIndex = topFaceIndex;
-        playConnected->loopCount = 1;
-        playConnected->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playConnectedArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playConnectedArrayPtr, 0, (ActionPtr)playConnectedPtr);
-
-        auto playRollingPtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playRolling = allocator.get(playRollingPtr);
-        playRolling->type = Action_PlayAnimation;
-        playRolling->animation = animationRollingPtr;
-        playRolling->faceIndex = FACE_INDEX_CURRENT_FACE;
-        playRolling->loopCount = 1;
-        playRolling->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playRollingArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playRollingArrayPtr, 0, (ActionPtr)playRollingPtr);
-
-        auto playFacePtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playFace = allocator.get(playFacePtr);
-        playFace->type = Action_PlayAnimation;
-        playFace->animation = animationOnFacePtr;
-        playFace->faceIndex = topFaceIndex;
-        playFace->loopCount = 1;
-        playFace->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playFaceArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playFaceArrayPtr, 0, (ActionPtr)playFacePtr);
-
-        auto playLow_battPtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playLow_batt = allocator.get(playLow_battPtr);
-        playLow_batt->type = Action_PlayAnimation;
-        playLow_batt->animation = animationLowBatteryPtr;
-        playLow_batt->faceIndex = topFaceIndex;
-        playLow_batt->loopCount = 1;
-        playLow_batt->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playLow_battArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playLow_battArrayPtr, 0, (ActionPtr)playLow_battPtr);
-
-        auto playCharge_battPtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playCharge_batt = allocator.get(playCharge_battPtr);
-        playCharge_batt->type = Action_PlayAnimation;
-        playCharge_batt->animation = animationChargingPtr;
-        playCharge_batt->faceIndex = topFaceIndex;
-        playCharge_batt->loopCount = 1;
-        playCharge_batt->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playCharge_battArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playCharge_battArrayPtr, 0, (ActionPtr)playCharge_battPtr);
-
-        auto playDone_charge_battPtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playDone_charge_batt = allocator.get(playDone_charge_battPtr);
-        playDone_charge_batt->type = Action_PlayAnimation;
-        playDone_charge_batt->animation = animationFullyChargedPtr;
-        playDone_charge_batt->faceIndex = topFaceIndex;
-        playDone_charge_batt->loopCount = 1;
-        playDone_charge_batt->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playDone_charge_battArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playDone_charge_battArrayPtr, 0, (ActionPtr)playDone_charge_battPtr);
-
-        auto playBad_charge_battPtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playBad_charge_batt = allocator.get(playBad_charge_battPtr);
-        playBad_charge_batt->type = Action_PlayAnimation;
-        playBad_charge_batt->animation = animationChargingProblemPtr;
-        playBad_charge_batt->faceIndex = topFaceIndex;
-        playBad_charge_batt->loopCount = 1;
-        playBad_charge_batt->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playBad_charge_battArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playBad_charge_battArrayPtr, 0, (ActionPtr)playBad_charge_battPtr);
-
-        auto playError_charge_battPtr = allocator.allocatePtr<ActionPlayAnimation>();
-        auto playError_charge_batt = allocator.get(playError_charge_battPtr);
-        playError_charge_batt->type = Action_PlayAnimation;
-        playError_charge_batt->animation = animationTempErrorPtr;
-        playError_charge_batt->faceIndex = topFaceIndex;
-        playError_charge_batt->loopCount = 1;
-        playError_charge_batt->overrides = Array<ParameterOverride>::emptyArray();
-        // Allocate action array
-        auto playError_charge_battArrayPtr = allocator.allocateArray<ActionPtr>(1);
-        allocator.setAt(playError_charge_battArrayPtr, 0, (ActionPtr)playError_charge_battPtr);
-
-        // Create the rule
-        Rule helloRule;
-        helloRule.condition = conditionHelloPtr;
-        helloRule.actions = playHelloArrayPtr;
-
-        Rule rollingRule;
-        rollingRule.condition = rollingPtr;
-        rollingRule.actions = playRollingArrayPtr;
-
-        Rule onFaceRule;
-        onFaceRule.condition = facePtr;
-        onFaceRule.actions = playFaceArrayPtr;
-
-        Rule chargingRule;
-        chargingRule.condition = charge_battPtr;
-        chargingRule.actions = playCharge_battArrayPtr;
-
-        Rule badChargingRule;
-        badChargingRule.condition = bad_chargePtr;
-        badChargingRule.actions = playBad_charge_battArrayPtr;
-
-        Rule lowBattRule;
-        lowBattRule.condition = low_battPtr;
-        lowBattRule.actions = playLow_battArrayPtr;
-
-        Rule chargingDoneRule;
-        chargingDoneRule.condition = done_chargePtr;
-        chargingDoneRule.actions = playDone_charge_battArrayPtr;
-
-        Rule connectedRule;
-        connectedRule.condition = conditionConnectionPtr;
-        connectedRule.actions = playConnectedArrayPtr;
-
-        Rule tempRule;
-        tempRule.condition = error_chargePtr;
-        tempRule.actions = playError_charge_battArrayPtr;
+        allocator.setAt(animationArrayPtr, 1, (AnimationPtr)animationChargingPtr);
+        allocator.setAt(animationArrayPtr, 2, (AnimationPtr)animationLowBatteryPtr);
+        allocator.setAt(animationArrayPtr, 3, (AnimationPtr)animationChargingProblemPtr);
+        allocator.setAt(animationArrayPtr, 4, (AnimationPtr)animationFullyChargedPtr);
+        allocator.setAt(animationArrayPtr, 5, (AnimationPtr)animationConnectionPtr);
+        allocator.setAt(animationArrayPtr, 6, (AnimationPtr)animationHandlingPtr);
+        allocator.setAt(animationArrayPtr, 7, (AnimationPtr)animationRollingPtr);
+        allocator.setAt(animationArrayPtr, 8, (AnimationPtr)animationOnFacePtr);
+        allocator.setAt(animationArrayPtr, 9, (AnimationPtr)animationTempErrorPtr);
 
         // Allocate rule array
-        auto ruleArrayPtr = allocator.allocateArray<Rule>(9);
-        allocator.setAt(ruleArrayPtr, 0, helloRule);
-        allocator.setAt(ruleArrayPtr, 1, rollingRule);
-        allocator.setAt(ruleArrayPtr, 2, onFaceRule);
-        allocator.setAt(ruleArrayPtr, 3, chargingRule);
-        allocator.setAt(ruleArrayPtr, 4, badChargingRule);
-        allocator.setAt(ruleArrayPtr, 5, lowBattRule);
-        allocator.setAt(ruleArrayPtr, 6, chargingDoneRule);
-        allocator.setAt(ruleArrayPtr, 7, connectedRule);
-        allocator.setAt(ruleArrayPtr, 8, tempRule);
+        auto ruleArrayPtr = allocator.allocateArray<Rule>(10);
+        allocator.setRuleAt(ruleArrayPtr, 0, 
+            allocator.addCondHello(ConditionHelloGoodbye_Hello),
+            allocator.addPlayAnimActionAsArray(animationRainbowPtr, topFaceIndex));
+        allocator.setRuleAt(ruleArrayPtr, 1,
+            allocator.addCondHandling(),
+            allocator.addPlayAnimActionAsArray(animationHandlingPtr, FACE_INDEX_CURRENT_FACE));
+        allocator.setRuleAt(ruleArrayPtr, 2,
+            allocator.addCondRolling(500),
+            allocator.addPlayAnimActionAsArray(animationRollingPtr,FACE_INDEX_CURRENT_FACE));
+        allocator.setRuleAt(ruleArrayPtr, 3,
+            allocator.addCondFace(ConditionFaceCompare_Equal | ConditionFaceCompare_Greater, 0),
+            allocator.addPlayAnimActionAsArray(animationOnFacePtr, topFaceIndex));
+        allocator.setRuleAt(ruleArrayPtr, 4,
+            allocator.addCondBatt(ConditionBatteryState_Flags::ConditionBatteryState_Charging, 5000),
+            allocator.addPlayAnimActionAsArray(animationChargingPtr, topFaceIndex));
+        allocator.setRuleAt(ruleArrayPtr, 5,
+            allocator.addCondBatt(ConditionBatteryState_BadCharging, 0),
+            allocator.addPlayAnimActionAsArray(animationChargingProblemPtr, topFaceIndex));
+        allocator.setRuleAt(ruleArrayPtr, 6,
+            allocator.addCondBatt(ConditionBatteryState_Flags::ConditionBatteryState_Low, 30000),
+            allocator.addPlayAnimActionAsArray(animationLowBatteryPtr, topFaceIndex));
+        allocator.setRuleAt(ruleArrayPtr, 7,
+            allocator.addCondBatt(ConditionBatteryState_Done, 5000),
+            allocator.addPlayAnimActionAsArray(animationFullyChargedPtr, topFaceIndex));
+        allocator.setRuleAt(ruleArrayPtr, 8,
+            allocator.addCondConn(ConditionConnectionState_Connected | ConditionConnectionState_Disconnected),
+            allocator.addPlayAnimActionAsArray(animationConnectionPtr, topFaceIndex));
+        allocator.setRuleAt(ruleArrayPtr, 9,
+            allocator.addCondBatt(ConditionBatteryState_Error, 1500),
+            allocator.addPlayAnimActionAsArray(animationTempErrorPtr, topFaceIndex));
 
         // Compute total size including hash and rounding to proper multiple
         uint16_t bufferSize = allocator.currentSize();
@@ -554,7 +364,18 @@ namespace Profile
         *((uint32_t*)hashAddr) = hash;
 
         NRF_LOG_INFO("Generated Default Profile, size=%d, hash=0x%08x", profileSize, hash);
-        //NRF_LOG_HEXDUMP_INFO(ret, 32);
+
+        NRF_LOG_RAW_INFO("uint8_t defaultBytes[] = {\r\n");
+        NRF_LOG_RAW_INFO("\t");
+        uint32_t offset = 0;
+        for (; offset < *outSize; offset++) {
+            NRF_LOG_RAW_INFO("0x%02x,", ret[offset]);
+            if ((offset % 16) == 15) {
+                Watchdog::feed();
+                NRF_LOG_RAW_INFO("\r\n\t")
+            }
+        }
+        NRF_LOG_RAW_INFO("};\r\n");
 
         return ret;
 	}

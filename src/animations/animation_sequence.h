@@ -16,7 +16,9 @@ namespace Animations
         // etc...
     };
 
-    // Stores a list of animations and blends them together
+    /// <summary>
+    /// Stores a list of animations and blends them together
+    /// </summary>
     struct AnimationSequence
         : public Animation
     {
@@ -32,6 +34,9 @@ namespace Animations
         Profile::Array<AnimationOccurence> layers;
     };
 
+    /// <summary>
+    /// instance data for a sequence animation
+    /// </summary>
     struct AnimationSequenceInstance
         : public AnimationInstance
     {

@@ -38,7 +38,6 @@ namespace Behaviors
     struct ActionPlayAnimation
         : Action
     {
-        uint8_t paddingType;
         uint8_t faceIndex;
         uint8_t loopCount;
         Profile::Pointer<Animations::Animation> animation;

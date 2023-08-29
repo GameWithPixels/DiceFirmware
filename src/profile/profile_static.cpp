@@ -68,7 +68,6 @@ namespace Profile::Static
 			MessageService::RegisterMessageHandler(Message::MessageType_TransferProfile, ReceiveProfileHandler);
 			MessageService::RegisterMessageHandler(Message::MessageType_ProgramDefaultProfile, ProgramDefaultProfileHandler);
 			NRF_LOG_INFO("Profile init, size: %d, hash: 0x%08x", getSize(), getHash());
-//        	NRF_LOG_HEXDUMP_INFO(staticProfileData.header, 32);
 
 			auto callBackCopy = _callback;
 			_callback = nullptr;
@@ -115,10 +114,8 @@ namespace Profile::Static
 			};
 
 			static auto onProgramFinished = [](bool result) {
-				uint32_t headerAddress = Flash::getProfileAddress();
-				auto header = reinterpret_cast<Header const *>(headerAddress);
 				if (result) {
-					result = staticProfileData.init(header);
+					result = refreshData();
 					if (result) {
 						NRF_LOG_INFO("Dataset size=0x%x, hash=0x%08x", getSize(), getHash());
 					} else {
@@ -156,6 +153,9 @@ namespace Profile::Static
 			Data::DestroyDefaultProfile(defaultProfile);
 			defaultProfile = nullptr;
 			defaultProfileSize = 0;
+			if (success) {
+				success = refreshData();
+			}
 			_callback(success);
 		});
 	}
