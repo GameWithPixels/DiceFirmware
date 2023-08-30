@@ -12,6 +12,7 @@ namespace Animations
     // This will be used in the animation context
     struct AnimationContextGlobals
     {
+        uint8_t currentFace;
         uint16_t normalizedFace;
     };
 }

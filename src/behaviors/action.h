@@ -8,7 +8,8 @@
 
 #pragma pack(push, 1)
 
-#define FACE_INDEX_CURRENT_FACE 0xff
+#define FACE_INDEX_CURRENT_FACE 0xFF
+#define FACE_INDEX_HIGHEST_FACE 0xFE
 
 namespace Behaviors
 {

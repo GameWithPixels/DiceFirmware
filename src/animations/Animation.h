@@ -28,8 +28,9 @@ namespace Animations
 	enum AnimationFlags : uint8_t
 	{
 		AnimationFlags_None,
-		AnimationFlags_Traveling = 1,
-		AnimationFlags_UseLedIndices = 2,
+		AnimationFlags_Traveling		= 1 << 0,
+		AnimationFlags_UseLedIndices	= 1 << 1,
+		AnimationFlags_HighestLED		= 1 << 2
 	};
 
 	/// <summary>
