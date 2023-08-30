@@ -33,15 +33,19 @@ namespace Animations
     enum AnimationFlags : uint8_t
     {
         AnimationFlags_None,
-        AnimationFlags_Traveling = 1,     // Make the animation travel around the dice, only available for the Rainbow animation
-        AnimationFlags_UseLedIndices = 2, // Play animation is using LED indices, not face indices
+        AnimationFlags_Traveling		= 1 << 0, // Make the animation travel around the dice, only available for the Rainbow animation
+        AnimationFlags_UseLedIndices	= 1 << 1, // Play animation is using LED indices, not face indices
+        AnimationFlags_HighestLED		= 1 << 2
     };
 
-    // The top-level struct is the Animation struct, this is a polymorphic type
+    /// <summary>
+    /// Base struct for animation presets. All presets have a few properties in common.
+    /// Presets are stored in flash, so do not have methods or vtables or anything like that.
+    /// </summary>
     struct Animation
     {
         AnimationType type;
-        uint8_t animFlags;
+        uint8_t animFlags; // Combination of AnimationFlags
         uint16_t duration; // in ms
     };
 

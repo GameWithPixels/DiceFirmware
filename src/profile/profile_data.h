@@ -9,7 +9,7 @@
 #include "animations/animation_parameters.h"
 
 #define PROFILE_VALID_KEY (0x600DF00D) // Good Food ;)
-#define PROFILE_VERSION 5
+#define PROFILE_VERSION 8
 
 namespace Profile
 {

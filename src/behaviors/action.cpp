@@ -19,7 +19,7 @@ namespace Behaviors
                     auto playAnimAction = static_cast<const ActionPlayAnimation*>(baseAction);
                     auto animationPreset = playAnimAction->animation.get(buffer);
                     // if faceIndex is getAnimationCount, ignore the value and get it from accelerometer, otherwise keep it
-                    uint8_t faceIndex = playAnimAction->faceIndex == FACE_INDEX_CURRENT_FACE ? Accelerometer::currentFace() : playAnimAction->faceIndex;
+                    uint8_t faceIndex = playAnimAction->faceIndex;
                     NRF_LOG_INFO("Playing anim %d on face %d, animFaceIndex: %d", playAnimAction->animation.offset, faceIndex, playAnimAction->faceIndex);
                     // Play the animation with overrides
                     AnimController::PlayAnimationParameters params;

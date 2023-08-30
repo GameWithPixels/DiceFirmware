@@ -94,7 +94,8 @@ namespace Modules::AnimController
         int c = b->ledCount;
 
         // Update our globals
-        globals.normalizedFace = Accelerometer::currentFace() * 0xFFFF / l->faceCount;
+        globals.currentFace = Accelerometer::currentFace();
+        globals.normalizedFace = globals.currentFace * 0xFFFF / l->faceCount;
 
         if (animationCount > 0) {
             // Notify clients for feeding or not feeding PowerManager
@@ -152,6 +153,14 @@ namespace Modules::AnimController
 
                     // Update the leds
                     int animTrackCount = anim->updateLEDs(ms, canonIndices, colors);
+
+                    // This is a little bit of a hack, but to keep one single default profile
+                    // for all dice types, filter the LEDs here to only keep one and make it the top face.
+                    if (animTrackCount > 0 && anim->animationPreset->animFlags & AnimationFlags_HighestLED) {
+                        // Override the faces so there is only the highest led color
+                        animTrackCount = 1;
+                        canonIndices[0] = l->faceCount - 1;
+                    }
 
                     // Gamma correct and map face index to led index
                     //NRF_LOG_INFO("track_count = %d", animTrackCount);
@@ -237,12 +246,27 @@ namespace Modules::AnimController
     }
 
     void play(const Animations::Animation* animationPreset, const PlayAnimationParameters& parameters) {
+
+        // Determine face
+        uint8_t remapFace = 0;
+        switch (parameters.remapFace) {
+            case FACE_INDEX_CURRENT_FACE:
+                remapFace = globals.currentFace;
+                break;
+            case FACE_INDEX_HIGHEST_FACE:
+                remapFace = DiceVariants::getLayout()->faceCount-1;
+                break;
+            default:
+                remapFace = parameters.remapFace;
+                break;
+        }
+
         // Is there already an animation for this?
         int prevAnimIndex = 0;
         for (; prevAnimIndex < animationCount; ++prevAnimIndex)
         {
             auto prevAnim = animations[prevAnimIndex];
-            if (prevAnim->animationPreset == animationPreset && prevAnim->remapFace == parameters.remapFace)
+            if (prevAnim->animationPreset == animationPreset && prevAnim->remapFace == remapFace)
             {
                 break;
             }
@@ -258,12 +282,12 @@ namespace Modules::AnimController
         if (animationCount < MAX_ANIMS)
         {
             AnimationInstanceAllocator allocator(&globals, parameters.buffer, parameters.overrideBuffer, parameters.overrides);
-            const auto anim = animations[animationCount] = allocator.CreateInstance(animationPreset);
+            const auto anim = allocator.CreateInstance(animationPreset);
             if (anim) {
                 // Add a new animation
                 animations[animationCount] = anim;
                 animations[animationCount]->setTag(parameters.tag);
-                animations[animationCount]->start(ms, parameters.remapFace, parameters.loopCount);
+                animations[animationCount]->start(ms, remapFace, parameters.loopCount);
                 animationCount++;
             }
         }

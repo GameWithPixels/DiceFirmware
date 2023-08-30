@@ -8,7 +8,8 @@ namespace Animations
 {
     enum AnimationSimpleFlags : uint8_t
     {
-        AnimationSimpleFlags_CaptureColor = 1 << 0,
+        AnimationSimpleFlags_None			= 0,
+        AnimationSimpleFlags_CaptureColor	= 1 << 0,
     };
 
     /// <summary>
