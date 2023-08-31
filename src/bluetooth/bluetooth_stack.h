@@ -13,6 +13,7 @@ namespace Bluetooth::Stack
     void enableAdvertisingOnDisconnect();
     bool isConnected();
     void resetOnDisconnect();
+    void sleepOnDisconnect();
 
     enum SendResult
     {

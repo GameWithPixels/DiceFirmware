@@ -80,7 +80,7 @@ struct Message
 		MessageType_SetCurrentBehaviorAck,
 		MessageType_SetName,
 		MessageType_SetNameAck,
-		MessageType_Sleep,
+		MessageType_PowerOperation,
 		MessageType_ExitValidation,
 		MessageType_TransferInstantAnimSet,
 		MessageType_TransferInstantAnimSetAck,
@@ -331,7 +331,7 @@ struct MessageStopAnim
 	MessageStopAnim() : Message(Message::MessageType_StopAnim) {}
 };
 
-enum TelemetryRequestMode
+enum TelemetryRequestMode : uint8_t
 {
 	TelemetryRequestMode_Off = 0,
 	TelemetryRequestMode_Once = 1,
@@ -432,6 +432,21 @@ struct MessageSetName
 	char name[MAX_NAME_LENGTH + 1];
 
 	MessageSetName() : Message(Message::MessageType_SetName) {}
+};
+
+enum PowerOperation : uint8_t
+{
+	PowerMode_TurnOff = 0,
+	PowerMode_Reset = 1,
+	PowerOperation_Sleep = 2,
+};
+
+struct MessagePowerOperation
+	: public Message
+{
+	PowerOperation operation;
+
+	MessagePowerOperation() : Message(Message::MessageType_PowerOperation) {}
 };
 
 struct MessageNotifyUser

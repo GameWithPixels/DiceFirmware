@@ -47,13 +47,43 @@ namespace Bluetooth
 			return "Blink";
 		case MessageType_RequestDefaultAnimSetColor:
 			return "RequestDefaultAnimSetColor";
-		case MessageType_Sleep:
-			return "Sleep";
-        case MessageType_ExitValidation:
+		case MessageType_PowerOperation:
+			return "PowerOperation";
+		case MessageType_ExitValidation:
 			return "ExitValidation";
+		case MessageType_TransferInstantAnimSet:
+			return "TransferInstantAnimSet";
+		case MessageType_TransferInstantAnimSetAck:
+			return "TransferInstantAnimSetAck";
+		case MessageType_TransferInstantAnimSetFinished:
+			return "TransferInstantAnimSetFinished";
+		case MessageType_PlayInstantAnim:
+			return "PlayInstantAnim";
+		case MessageType_StopAllAnims:
+			return "StopAllAnims";
+		case MessageType_RequestTemperature:
+			return "RequestTemperature";
+		case MessageType_Temperature:
+			return "Temperature";
+		case MessageType_EnableCharging:
+			return "EnableCharging";
+		case MessageType_DisableCharging:
+			return "DisableCharging";
+		case MessageType_Discharge:
+			return "Discharge";
+		case MessageType_BlinkId:
+			return "BlinkId";
+		case MessageType_BlinkIdAck:
+			return "BlinkIdAck";
+		case MessageType_TransferTest:
+			return "TransferTest";
+		case MessageType_TransferTestAck:
+			return "TransferTestAck";
+		case MessageType_TransferTestFinished:
+			return "TransferTestFinished";
 		default:
 			return "<missing>";
-		}
+	}
 	#else
 		return "";
 	#endif

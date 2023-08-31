@@ -70,6 +70,7 @@ namespace Bluetooth::Stack
 
     static bool connected = false;
     static bool resetOnDisconnectPending = false;
+    static bool sleepOnDisconnectPending = false;
 
     /**< Universally unique service identifiers. */
     static ble_uuid_t advertisedUuids[] = {
@@ -130,7 +131,11 @@ namespace Bluetooth::Stack
                 }
 
                 if (resetOnDisconnectPending) {
+                    resetOnDisconnectPending = false;
                     PowerManager::reset();
+                } else if (sleepOnDisconnectPending) {
+                    sleepOnDisconnectPending = false;
+                    PowerManager::goToSleep();
                 }
 
                 break;
@@ -438,6 +443,10 @@ namespace Bluetooth::Stack
 
     void resetOnDisconnect() {
         resetOnDisconnectPending = true;
+    }
+
+    void sleepOnDisconnect() {
+        sleepOnDisconnectPending = true;
     }
 
     SendResult send(uint16_t handle, const uint8_t* data, uint16_t len) {

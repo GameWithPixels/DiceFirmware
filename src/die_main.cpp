@@ -51,14 +51,14 @@ namespace Die
     void stopLEDAnimHandler(const Message* msg);
     void stopAllLEDAnimsHandler(const Message* msg);
     void setTopLevelStateHandler(const Message* msg);
-    void enterSleepModeHandler(const Message* message);
+    void powerOperationHandler(const Message* message);
 
     void initMainLogic() {
         MessageService::RegisterMessageHandler(Message::MessageType_WhoAreYou, whoAreYouHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, playLEDAnimHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
-        MessageService::RegisterMessageHandler(Message::MessageType_Sleep, enterSleepModeHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_PowerOperation, powerOperationHandler);
 
         Stack::hook(onConnectionEvent, nullptr);
 
@@ -273,10 +273,22 @@ namespace Die
                 break;
        }
     }
-
     
-    void enterSleepModeHandler(const Message* msg) {
-        PowerManager::goToDeepSleep();
+    void powerOperationHandler(const Message* msg) {
+        auto powerMsg = (const MessagePowerOperation *)msg;
+        switch (powerMsg->operation)
+        {
+            case PowerMode_TurnOff:
+                PowerManager::goToSystemOff();
+                break;
+            case PowerMode_Reset:
+                PowerManager::reset();
+                break;
+            case PowerOperation_Sleep:
+                Stack::sleepOnDisconnect();
+                Stack::disconnect();
+                break;
+        }
     }
 
     // Main loop!
