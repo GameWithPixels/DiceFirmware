@@ -60,6 +60,7 @@ namespace Bluetooth::Stack
     #define MAX_RSSI_CLIENTS 2
 
     #define RSSI_THRESHOLD_DBM 1
+    #define RSSI_NOTIFY_MIN_INTERVAL 1000 // In ms
 
     static uint16_t connectionHandle = BLE_CONN_HANDLE_INVALID;                     /**< Handle of the current connection. */
     //NRF_BLE_QWR_DEF(nrfQwr);                                                        /**< Context for the Queued Write module.*/
@@ -67,7 +68,6 @@ namespace Bluetooth::Stack
 
     BLE_ADVERTISING_DEF(advertisingModule);                                         /**< Advertising module instance. */
 
-    static bool notificationPending = false;
     static bool connected = false;
     static bool resetOnDisconnectPending = false;
 
@@ -165,7 +165,7 @@ namespace Bluetooth::Stack
                 // No more often than once a second
                 const uint32_t time = DriversNRF::Timers::millis();
                 if (nextUpdate <= time) {
-                    nextUpdate = time + 1000;
+                    nextUpdate = time + RSSI_NOTIFY_MIN_INTERVAL;
                     auto rssi = p_ble_evt->evt.gap_evt.params.rssi_changed.rssi;
                     auto chIndex = p_ble_evt->evt.gap_evt.params.rssi_changed.ch_index;
                     for (int i = 0; i < rssiClients.Count(); ++i) {
@@ -208,13 +208,15 @@ namespace Bluetooth::Stack
             case BLE_GATTS_EVT_HVN_TX_COMPLETE:
                 // Last notification was cleared!
                 NRF_LOG_DEBUG("Notification Complete!");
-                notificationPending = false;
                 break;
 
             case BLE_GATTS_EVT_HVC:
                 // Last notification was cleared!
                 NRF_LOG_DEBUG("Confirmation Received!");
-                notificationPending = false;
+                break;
+
+            case BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST:
+                NRF_LOG_DEBUG("Exchange MTU request!");
                 break;
 
             default:
@@ -438,37 +440,29 @@ namespace Bluetooth::Stack
         resetOnDisconnectPending = true;
     }
 
-    bool isBusy() {
-        return notificationPending;
-    }
-
     SendResult send(uint16_t handle, const uint8_t* data, uint16_t len) {
         PowerManager::feed();
         if (connected) {
-            if (!notificationPending) {
-                ble_gatts_hvx_params_t hvx_params;
-                memset(&hvx_params, 0, sizeof(hvx_params));
-                hvx_params.handle = handle;
-                hvx_params.p_data = data;
-                hvx_params.p_len = &len;
-                hvx_params.type = BLE_GATT_HVX_NOTIFICATION;
-                notificationPending = true;
-                ret_code_t err_code = sd_ble_gatts_hvx(connectionHandle, &hvx_params);
-                if (err_code == NRF_SUCCESS) {
-                    // Message was sent!
-                    return SendResult_Ok;
-                } else {
-                    // Some other error happened
-                    NRF_LOG_ERROR("Could not send Notification for Message type %d of size %d, Error %s(0x%x)", data[0], len, NRF_LOG_ERROR_STRING_GET(err_code), err_code);
-
-                    // Reset flag, since we won't be getting an event back
-                    notificationPending = false;
-                    // We get this sys_attr_missing when trying to send a message right after the connect event
-                    // There might be other errors we would get before the stack is ready to send messages...
-                    return err_code == BLE_ERROR_GATTS_SYS_ATTR_MISSING ? SendResult_NotReady : SendResult_Error;
-                }
-            } else {
+            ble_gatts_hvx_params_t hvx_params;
+            memset(&hvx_params, 0, sizeof(hvx_params));
+            hvx_params.handle = handle;
+            hvx_params.p_data = data;
+            hvx_params.p_len = &len;
+            hvx_params.type = BLE_GATT_HVX_NOTIFICATION;
+            ret_code_t err_code = sd_ble_gatts_hvx(connectionHandle, &hvx_params);
+            if (err_code == NRF_SUCCESS) {
+                // Message was sent!
+                NRF_LOG_DEBUG("Send Message type %d of size %d", data[0], len);
+                return SendResult_Ok;
+            } else if (err_code == NRF_ERROR_BUSY || err_code == NRF_ERROR_RESOURCES) {
                 return SendResult_Busy;
+            } else {
+                // Some other error happened
+                NRF_LOG_ERROR("Could not send Notification for Message type %d of size %d, Error %s(0x%x)", data[0], len, NRF_LOG_ERROR_STRING_GET(err_code), err_code);
+
+                // We get this sys_attr_missing when trying to send a message right after the connect event
+                // There might be other errors we would get before the stack is ready to send messages...
+                return err_code == BLE_ERROR_GATTS_SYS_ATTR_MISSING ? SendResult_NotReady : SendResult_Error;
             }
         } else {
             return SendResult_NotConnected;

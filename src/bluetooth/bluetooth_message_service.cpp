@@ -125,8 +125,7 @@ namespace Bluetooth::MessageService
             if (!Stack::isConnected()) {
                 NRF_LOG_INFO("Disconnected, clearing messages send queue!");
                 SendQueue.clear();
-            }
-            else if (!Stack::isBusy()) {
+            } else {
                 NRF_LOG_INFO("Message queue count: %d", SendQueue.count());
                 SendQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
                     auto ret = send((const uint8_t*)msg, msgSize) != Stack::SendResult_Busy;
@@ -246,7 +245,7 @@ namespace Bluetooth::MessageService
                 NRF_LOG_ERROR("Bad message type %d", msg->type);
             }
         } else {
-            NRF_LOG_ERROR("Bad Message Length %d", len);
+            NRF_LOG_ERROR("Bad message length %d", len);
         }
     }
 

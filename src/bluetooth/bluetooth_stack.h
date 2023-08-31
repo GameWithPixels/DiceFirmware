@@ -23,7 +23,6 @@ namespace Bluetooth::Stack
         SendResult_Error,           // Any other error
     };
 
-    bool isBusy();
     SendResult send(uint16_t handle, const uint8_t* data, uint16_t len);
     void slowAdvertising();
     void stopAdvertising();
