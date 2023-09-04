@@ -26,18 +26,12 @@ namespace Config
         enum DesignAndColor : uint8_t
         {
             DesignAndColor_Unknown = 0,
-            DesignAndColor_Generic,
-            DesignAndColor_V3_Orange,
-            DesignAndColor_V4_BlackClear,
-            DesignAndColor_V4_WhiteClear,
-            DesignAndColor_V5_Grey,
-            DesignAndColor_V5_White,
-            DesignAndColor_V5_Black,
-            DesignAndColor_V5_Gold,
-            DesignAndColor_Onyx_Blmack,
+            DesignAndColor_Onyx_Black,
             DesignAndColor_Hematite_Grey,
             DesignAndColor_Midnight_Galaxy,
-            DesignAndColor_Aurora_Sky
+            DesignAndColor_Aurora_Sky,
+            DesignAndColor_Aurora_Clear,
+            DesignAndColor_Custom = 0xFF,
         };
 
         struct Layout
@@ -54,7 +48,7 @@ namespace Config
         };
 
         const Layout* getLayout();
-
+        DieType estimateDieTypeFromBoard();
         uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
    }
 }

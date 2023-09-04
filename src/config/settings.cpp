@@ -125,8 +125,11 @@ namespace Config::SettingsManager
 			const char value = (uniqueId >> ((7 - i) << 2)) & 0xf;
 			outSettings.name[i + sizeof(pixel) - 1] = value + (value < 10 ? '0' : 'a' - 10);
 		}
+		outSettings.settingsTimeStamp = Pixel::getBuildTimestamp();
+		outSettings.dieType = DiceVariants::estimateDieTypeFromBoard();
 		outSettings.name[8 + sizeof(pixel)] = '\0';
-		outSettings.designAndColor = DiceVariants::DesignAndColor::DesignAndColor_Generic;
+		outSettings.designAndColor = DiceVariants::DesignAndColor::DesignAndColor_Unknown;
+		outSettings.customDesignAndColorName[0] = '\0';
 		outSettings.sigmaDecayTimes1000 = 500;
 		outSettings.startMovingThresholdTimes1000 = 5000;
 		outSettings.stopMovingThresholdTimes1000 = 500;

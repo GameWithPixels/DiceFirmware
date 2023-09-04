@@ -7,8 +7,8 @@
 
 #define MAX_COUNT 22		// Max LED count so far is 21 (on PD6)
 							// but we want room for one more 'fake' LED to test LED return
-#define MAX_NAME_LENGTH 24
-
+#define MAX_NAME_LENGTH 31
+#define MAX_CUSTOM_DESIGN_COLOR_LENGTH 31
 namespace Config
 {
 	// Flags for various debugging options
@@ -26,9 +26,16 @@ namespace Config
 		uint32_t headMarker;
 		int version;
 
+		uint32_t settingsTimeStamp;
+		DiceVariants::DieType dieType;
+
 		// Physical Appearance
 		DiceVariants::DesignAndColor designAndColor;
+		
+		// When the design is set to custom, then store the name here
+		char customDesignAndColorName[MAX_CUSTOM_DESIGN_COLOR_LENGTH + 1]; // One extra byte for the zero terminator
 
+		// Die name
 		char name[MAX_NAME_LENGTH + 1]; // One extra byte for the zero terminator
 
 		// Face detector

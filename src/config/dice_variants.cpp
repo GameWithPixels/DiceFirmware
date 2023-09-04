@@ -295,6 +295,30 @@ namespace DiceVariants
         }
     }
 
+    DieType estimateDieTypeFromBoard() {
+        switch (BoardManager::getBoard()->model) {
+            case BoardModel::D20BoardV15:
+                return DieType_D20;
+            case BoardModel::D6BoardV4:
+            case BoardModel::D6BoardV6:
+                return DieType_D6;
+            case BoardModel::D12BoardV2:
+                return DieType_D12;
+            case BoardModel::PD6BoardV3:
+            case BoardModel::PD6BoardV5:
+                return DieType_PD6;
+            case BoardModel::D10BoardV2:
+                return DieType_D10;
+            case BoardModel::D8BoardV2:
+                return DieType_D8;
+            case BoardModel::Unsupported:
+            default:
+                return DieType_Unknown;
+                break;
+        }
+    }
+
+
 	uint8_t animIndexToLEDIndex(int animLEDIndex, int remapFace) {
 		// The transformation is:
 		// animFaceIndex (what face the animation says it wants to light up)

@@ -287,7 +287,7 @@ namespace DataSet
 
         // 8 Rainbow
         writeRainbowAnimation->type = Animation_Rainbow;
-        writeRainbowAnimation->animFlags = AnimationFlags_Traveling;
+        writeRainbowAnimation->animFlags = AnimationFlags_Traveling | AnimationFlags_UseLedIndices;
         writeRainbowAnimation->duration = 2000;
 		writeRainbowAnimation->faceMask = ANIM_FACEMASK_ALL_LEDS;
         writeRainbowAnimation->count = 2;
