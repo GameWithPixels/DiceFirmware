@@ -89,6 +89,7 @@ namespace Die
         identityMessage.rollFace = Accelerometer::currentFace();
         identityMessage.batteryLevelPercent = BatteryController::getLevelPercent();
         identityMessage.batteryState = BatteryController::getBatteryState();
+        identityMessage.dieType = SettingsManager::getSettings()->dieType;
         MessageService::SendMessage(&identityMessage);
     }
 

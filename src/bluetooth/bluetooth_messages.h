@@ -16,6 +16,7 @@
 namespace Bluetooth
 {
 
+using DieType = Config::DiceVariants::DieType;
 using BatteryState = Modules::BatteryController::BatteryState;
 using BatteryControllerState = Modules::BatteryController::State;
 using RollState = Modules::Accelerometer::RollState;
@@ -132,7 +133,7 @@ struct MessageIAmADie
 {
 	uint8_t ledCount; // Number of LEDs
 	Config::DiceVariants::DesignAndColor designAndColor; // Physical look
-	uint8_t padding;
+	DieType dieType;
 	uint32_t dataSetHash;
 	uint32_t pixelId; // A unique identifier
 	uint16_t availableFlash; // How much room available for data
