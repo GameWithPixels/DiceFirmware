@@ -238,7 +238,7 @@ namespace Bluetooth::Stack
         switch (ble_adv_evt)
         {
             case BLE_ADV_EVT_FAST: {
-                NRF_LOG_INFO("Fast advertising");
+                NRF_LOG_INFO("Fast adv.");
                 ret_code_t err_code = ble_advertising_advdata_update(&advertisingModule, &advertisementPacket, &scanResponsePacket);
                 APP_ERROR_CHECK(err_code);
                 CustomAdvertisingDataHandler::start();
@@ -246,7 +246,7 @@ namespace Bluetooth::Stack
             break;
 
             case BLE_ADV_EVT_IDLE:
-                NRF_LOG_INFO("Advertising Idle");
+                NRF_LOG_INFO("Adv. idle");
                 CustomAdvertisingDataHandler::stop();
                 break;
 
@@ -422,7 +422,7 @@ namespace Bluetooth::Stack
 
         err_code = ble_advertising_start(&advertisingModule, BLE_ADV_MODE_FAST);
         APP_ERROR_CHECK(err_code);
-        NRF_LOG_INFO("Starting advertising with name=%s and deviceId=0x%x", SettingsManager::getSettings()->name, customServiceData.deviceId);
+        NRF_LOG_INFO("Adv. with name=%s and deviceId=0x%x", SettingsManager::getSettings()->name, customServiceData.deviceId);
     }
 
     void disableAdvertisingOnDisconnect() {

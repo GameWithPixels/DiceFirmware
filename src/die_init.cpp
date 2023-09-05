@@ -52,7 +52,7 @@
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
 #include "nrf_fstorage_sd.h"
-
+#include "nrf_power.h"
 #include "nrf_drv_clock.h"
 
 using namespace DriversNRF;
@@ -86,6 +86,20 @@ namespace Die
 
         // Then the log system
         Log::init();
+
+        // Display reset reason bits
+        #if defined(NRF_LOG_ENABLED)
+        uint32_t resetReas = nrf_power_resetreas_get();
+        nrf_power_resetreas_clear(0xFFFFFFFF);
+        if (resetReas != 0) {
+            if ((resetReas & (1 << 0)) != 0) { NRF_LOG_WARNING("Reset Reason - PIN RESET"); }
+            if ((resetReas & (1 << 1)) != 0) { NRF_LOG_ERROR("Reset Reason - WATCHDOG"); }
+            if ((resetReas & (1 << 2)) != 0) { NRF_LOG_INFO("Reset Reason - SYSTEM REQUEST"); }
+            if ((resetReas & (1 << 3)) != 0) { NRF_LOG_ERROR("Reset Reason - LOCKUP"); }
+            if ((resetReas & (1 << 16)) != 0) { NRF_LOG_INFO("Reset Reason - WAKE FROM SYSOFF"); }
+            if ((resetReas & (1 << 18)) != 0) { NRF_LOG_INFO("Reset Reason - DEBUG"); }
+        }
+        #endif
 
         // Then the scheduler, so we can avoid executing big stuff inside callbacks or interrupt handlers
         Scheduler::init();
