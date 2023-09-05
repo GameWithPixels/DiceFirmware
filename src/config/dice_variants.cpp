@@ -153,11 +153,13 @@ namespace DiceVariants
         { 065, -996, -055}, 
     };
 
+    // 0  1  2  3  4  5  6  7  8  9 <-- LED
+    // 3  5  9  1  7  4  6  2  8  0 <-- Face / Index
     const uint8_t tenSidedFaceToLedLookup[] = {
-    //   1,  2,  3,  4,  5,  6,  7,  8,  9,  0  // Face Number
-    //   0,  1,  2,  3,  4,  5,  6,  7,  8,  9  // Face Index
-            5, 0, 7, 3, 8, 4, 6, 1, 9, 2
+         9, 3, 7, 0, 5, 1, 6, 4, 8, 2
     };
+
+    // Led
 
     const uint8_t eightSidedRemap[] = {
         7, 2, 1, 4, 3, 6, 5, 0,
@@ -281,10 +283,12 @@ namespace DiceVariants
         case BoardModel::D20BoardV15:
             return &D20Layout;
         case BoardModel::D6BoardV4:
+        case BoardModel::D6BoardV6:
             return &D6Layout;
         case BoardModel::D12BoardV2:
             return &D12Layout;
         case BoardModel::PD6BoardV3:
+        case BoardModel::PD6BoardV5:
             return &PD6Layout;
         case BoardModel::D10BoardV2:
             return &D10Layout;
