@@ -15,6 +15,7 @@ namespace Bluetooth::MessageService
     void init();
     bool isConnected();
 
+    bool needUpdate();
     void update();
 
     bool SendMessage(Message::MessageType msgType);

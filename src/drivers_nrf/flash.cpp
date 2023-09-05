@@ -281,7 +281,7 @@ namespace DriversNRF::Flash
 											_onProgramFinished(result);
 									});
 								} else {
-									NRF_LOG_ERROR("Error transfering animation data");
+									NRF_LOG_ERROR("Error transferring animation data");
 									finishProgramming();
 									_onProgramFinished(false);
 								}

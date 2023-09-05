@@ -296,8 +296,11 @@ namespace Die
 
         Scheduler::update();
         Watchdog::feed();
-        PowerManager::update();
         MessageService::update();
+        if (!MessageService::needUpdate()) {
+            // Skip calling power manager so the CPU doesn't go to sleep
+            PowerManager::update();
+        }
     }
 }
 

@@ -106,6 +106,10 @@ namespace Bluetooth::MessageService
         return Stack::isConnected();
     }
 
+    bool needUpdate() {
+        return ReceiveQueue.count() + SendQueue.count() > 0;
+    }
+
     void update() {
         // Process received messages if possible
         while (ReceiveQueue.tryDequeue([] (const Message* msg, uint16_t msgSize) {
@@ -190,7 +194,7 @@ namespace Bluetooth::MessageService
                     // Couldn't send right away, try to schedule it for later
                     ret = SendQueue.tryEnqueue(msg, msgSize);
                     if (ret) {
-                        NRF_LOG_DEBUG("Message of type %d of size %d QUEUED (Queue=%d)", msg->type, msgSize, SendQueue.count());
+                        NRF_LOG_INFO("Message of type %d of size %d QUEUED (Queue=%d)", msg->type, msgSize, SendQueue.count());
                         // update() will be called on the next frame
                     } else {
                         NRF_LOG_ERROR("Message of type %d of size %d NOT QUEUED (%s)", msg->type, msgSize, "Queue full");
