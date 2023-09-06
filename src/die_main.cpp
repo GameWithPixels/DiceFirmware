@@ -52,6 +52,7 @@ namespace Die
     void stopAllLEDAnimsHandler(const Message* msg);
     void setTopLevelStateHandler(const Message* msg);
     void powerOperationHandler(const Message* message);
+    void clearSettingsHandler(const Message* msg);
 
     void initMainLogic() {
         MessageService::RegisterMessageHandler(Message::MessageType_WhoAreYou, whoAreYouHandler);
@@ -59,6 +60,7 @@ namespace Die
         MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_PowerOperation, powerOperationHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_ClearSettings, clearSettingsHandler);
 
         Stack::hook(onConnectionEvent, nullptr);
 
@@ -290,6 +292,12 @@ namespace Die
                 Stack::disconnect();
                 break;
         }
+    }
+
+    void clearSettingsHandler(const Message* msg) {
+        SettingsManager::programDefaults([](bool ignore) {
+            MessageService::SendMessage(Bluetooth::Message::MessageType_ClearSettingsAck);
+        });
     }
 
     // Main loop!

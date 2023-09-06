@@ -98,6 +98,8 @@ struct Message
 		MessageType_TransferTest,
 		MessageType_TransferTestAck,
 		MessageType_TransferTestFinished,
+  		MessageType_ClearSettings,
+  		MessageType_ClearSettingsAck,
 
 		// TESTING
 		MessageType_TestBulkSend,
