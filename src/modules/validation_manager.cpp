@@ -4,6 +4,7 @@
 #include "nrf_log.h"
 #include "animations/animation.h"
 #include "modules/anim_controller.h"
+#include "modules/behavior_controller.h"
 #include "animations/animation_blinkid.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
@@ -91,6 +92,7 @@ namespace Modules::ValidationManager
         if (connected)
         {
             stopNameAnim(); // Stop animation on connect
+            BehaviorController::forceCheckBatteryState();
             Timers::cancelDelayedCallback(GoToSysOffCallback, nullptr);
         }
         else

@@ -39,11 +39,7 @@ namespace Modules::BehaviorController
         // Do we have a hello goodbye condition
         auto bhv = DataSet::getBehavior();
 
-        // Trigger battery state rule
-        auto battState = BatteryController::getBatteryState();
-        if (battState == BatteryController::BatteryState_Charging) {
-            onBatteryStateChange(nullptr, battState);
-        } else {
+        if (!forceCheckBatteryState()) {
             // Iterate the rules and look for one!
             for (int i = 0; i < bhv->rulesCount; ++i) {
                 auto rule = DataSet::getRule(bhv->rulesOffset + i);
@@ -66,6 +62,16 @@ namespace Modules::BehaviorController
                 }
             }
         }
+    }
+
+    bool forceCheckBatteryState() {
+        // Trigger battery state rule if applicable
+        auto battState = BatteryController::getBatteryState();
+        bool ret = battState == BatteryController::BatteryState_Charging;
+        if (ret) {
+            onBatteryStateChange(nullptr, battState);
+        }
+        return ret;
     }
 
 	void onConnectionEvent(void* param, bool connected) {

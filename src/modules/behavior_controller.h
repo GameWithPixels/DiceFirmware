@@ -7,6 +7,7 @@ namespace Modules::BehaviorController
 {
 	void init();
 	void onPixelInitialized();
+	bool forceCheckBatteryState();
 
 	void DisableAccelerometerRules();
 	void EnableAccelerometerRules();
