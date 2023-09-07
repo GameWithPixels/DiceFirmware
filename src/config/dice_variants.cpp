@@ -120,24 +120,24 @@ namespace DiceVariants
         { 446, -850,  276},     // 12
     };
 
+    // 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11 <-- Led Index
+    // 3,  7,  1,  0,  5,  2, 11,  6,  9,  4, 10,  8 <-- Face index
     const uint8_t twelveSidedFaceToLedLookup[] = {
-    //   1,  2,  3,  4,  5,  6,  7.  8,  9, 10, 11, 12  // Face Number
-    //   0,  1,  2,  3,  4,  5,  6,  7.  8,  9, 10, 11  // Face Index
-            3,  0, 10,  4,  8,  9,  1,  5,  7,  2, 11,  6 // Led Index
+        3, 2, 5, 0, 9, 4, 7, 1, 11, 8, 10, 6
     };
 
 
     const uint8_t tenSidedRemap[] = {
-        9, 4, 3, 2, 1, 8, 7, 6, 5, 0,
-        8, 7, 6, 5, 0, 9, 4, 3, 2, 1,
-        7, 8, 9, 4, 3, 6, 5, 8, 1, 2, 
-        6, 5, 0, 1, 2, 7, 8, 9, 4, 3, 
-        5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 
-        4, 9, 8, 7, 6, 3, 2, 1, 0, 5, 
-        3, 2, 1, 0, 5, 4, 9, 8, 7, 6, 
-        2, 3, 4, 9, 8, 1, 0, 5, 6, 7, 
-        1, 0, 5, 6, 7, 2, 3, 4, 9, 8, 
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 
+        1, 0, 5, 6, 7, 2, 3, 4, 9, 8, 
+        2, 3, 4, 9, 8, 1, 0, 5, 6, 7, 
+        3, 2, 1, 0, 5, 4, 9, 8, 7, 6, 
+        4, 9, 8, 7, 6, 3, 2, 1, 0, 5, 
+        5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 
+        6, 5, 0, 1, 2, 7, 8, 9, 4, 3, 
+        7, 8, 9, 4, 3, 6, 5, 8, 1, 2, 
+        8, 7, 6, 5, 0, 9, 4, 3, 2, 1,
+        9, 4, 3, 2, 1, 8, 7, 6, 5, 0,
     };
 
     const Core::int3 tenSidedNormals[] = {
@@ -333,5 +333,48 @@ namespace DiceVariants
 		int rotatedAnimFaceIndex = getLayout()->canonicalIndexFaceToFaceRemapLookup[remapFace * getLayout()->ledCount + animLEDIndex];
 		return getLayout()->canonicalIndexToElectricalIndexLookup[rotatedAnimFaceIndex];
 	}
+
+    uint32_t getTopFaceMask() {
+        switch (BoardManager::getBoard()->model) {
+            case BoardModel::D20BoardV15:
+                return 1 << 19;
+            case BoardModel::D6BoardV4:
+            case BoardModel::D6BoardV6:
+                return 1 << 5;
+            case BoardModel::D12BoardV2:
+                return 1 << 11;
+            case BoardModel::PD6BoardV3:
+            case BoardModel::PD6BoardV5:
+                return 0b111111 << 14;
+            case BoardModel::D10BoardV2:
+                return 1;
+            case BoardModel::D8BoardV2:
+                return 1 << 7;
+            default:
+                return 0xFFFFFFFF;
+        }
+   }
+
+    uint8_t getTopFace() {
+        switch (BoardManager::getBoard()->model) {
+            case BoardModel::D20BoardV15:
+                return 19;
+            case BoardModel::D6BoardV4:
+            case BoardModel::D6BoardV6:
+                return 5;
+            case BoardModel::D12BoardV2:
+                return 11;
+            case BoardModel::PD6BoardV3:
+            case BoardModel::PD6BoardV5:
+                return 5;
+            case BoardModel::D10BoardV2:
+                return 0;
+            case BoardModel::D8BoardV2:
+                return 7;
+            default:
+                return 0;
+        }
+    }
+
 }
 }

@@ -50,5 +50,7 @@ namespace Config
         const Layout* getLayout();
         DieType estimateDieTypeFromBoard();
         uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
+        uint32_t getTopFaceMask();
+        uint8_t getTopFace();
    }
 }
