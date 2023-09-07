@@ -241,7 +241,7 @@ namespace DataSet
         writeSimpleAnimations[0].count = 1;
         writeSimpleAnimations[0].duration = 3000;
         writeSimpleAnimations[0].colorIndex = 0; // Red
-	    writeSimpleAnimations[0].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+	    writeSimpleAnimations[0].faceMask = DiceVariants::getTopFaceMask();
 
         // 1 Charging Problem
         writeSimpleAnimations[1].count = 10;
@@ -253,13 +253,13 @@ namespace DataSet
         writeSimpleAnimations[2].count = 3;
         writeSimpleAnimations[2].duration = 1500;
         writeSimpleAnimations[2].colorIndex = 0; // Red
-	    writeSimpleAnimations[2].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+	    writeSimpleAnimations[2].faceMask = DiceVariants::getTopFaceMask();
 
         // 3 Fully charged
         writeSimpleAnimations[3].count = 1;
         writeSimpleAnimations[3].duration = 3000;
         writeSimpleAnimations[3].colorIndex = 1; // Green
-	    writeSimpleAnimations[3].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+	    writeSimpleAnimations[3].faceMask = DiceVariants::getTopFaceMask();
 
         // 4 Connection
         writeSimpleAnimations[4].count = 2;
@@ -271,7 +271,7 @@ namespace DataSet
         writeSimpleAnimations[5].count = 1;
         writeSimpleAnimations[5].duration = 100;
         writeSimpleAnimations[5].colorIndex = PALETTE_COLOR_FROM_FACE; // We'll override based on face
-	    writeSimpleAnimations[5].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+	    writeSimpleAnimations[5].faceMask = DiceVariants::getTopFaceMask();
 
         // 6 On Face
         writeSimpleAnimations[6].count = 1;
@@ -283,7 +283,7 @@ namespace DataSet
         writeSimpleAnimations[7].count = 1;
         writeSimpleAnimations[7].duration = 1000;
         writeSimpleAnimations[7].colorIndex = 3; // yellow
-	    writeSimpleAnimations[7].faceMask = 1 << (BoardManager::getBoard()->ledCount - 1);
+	    writeSimpleAnimations[7].faceMask = DiceVariants::getTopFaceMask();
 
         // 8 Rainbow
         writeRainbowAnimation->type = Animation_Rainbow;
@@ -384,7 +384,7 @@ namespace DataSet
         // And matching action
         writeActions[5].type = Action_PlayAnimation;
         writeActions[5].animIndex = 0; // face led red
-        writeActions[5].faceIndex = DiceVariants::getLayout()->faceCount - 1;
+        writeActions[5].faceIndex = DiceVariants::getTopFace();
         writeActions[5].loopCount = 1;
 
         // Add Done charging condition (index 6)
@@ -398,7 +398,7 @@ namespace DataSet
         // And matching action
         writeActions[6].type = Action_PlayAnimation;
         writeActions[6].animIndex = 3; // face led green
-        writeActions[6].faceIndex = DiceVariants::getLayout()->faceCount - 1;
+        writeActions[6].faceIndex = DiceVariants::getTopFace();
         writeActions[6].loopCount = 1;
 
         // Add Bad charging condition (index 7)
@@ -411,7 +411,7 @@ namespace DataSet
         // And matching action
         writeActions[7].type = Action_PlayAnimation;
         writeActions[7].animIndex = 1; // face led red
-        writeActions[7].faceIndex = FACE_INDEX_CURRENT_FACE; // Doesn't actually matter
+        writeActions[7].faceIndex = DiceVariants::getTopFace();
         writeActions[7].loopCount = 1;
 
         // Add error during charging (usually temperature) condition (index 8)
@@ -425,7 +425,7 @@ namespace DataSet
         // And matching action
         writeActions[8].type = Action_PlayAnimation;
         writeActions[8].animIndex = 7; // face led red fast
-        writeActions[8].faceIndex = DiceVariants::getLayout()->faceCount - 1;
+        writeActions[8].faceIndex = DiceVariants::getTopFace();
         writeActions[8].loopCount = 1;
 
         // Create action offsets
