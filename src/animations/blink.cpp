@@ -31,7 +31,7 @@ namespace Animations
         blinkAnim.colorIndex = 0;
 
         Modules::AnimController::stop(&blinkAnim);
-        const auto remapFace = Config::DiceVariants::getLayout()->faceCount - 1;
+        const auto remapFace = Config::DiceVariants::getTopFace();
         Modules::AnimController::play(&blinkAnim, &animBits, remapFace, loop, Animations::AnimationTag_BluetoothMessage);
     }
 }
