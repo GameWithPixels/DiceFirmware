@@ -5,10 +5,18 @@
 #include "config/dice_variants.h"
 #include "modules/accelerometer.h"
 #include "config/settings.h"
+#include "config/dice_variants.h"
 #include "modules/battery_controller.h"
 #include "core/int3.h"
 #include "modules/accelerometer.h"
 
+// Whether to use the legacy IAmADie message or the chunked one
+#define LEGACY_IMADIE_MESSAGE 1
+
+// FW version of last settings struct change
+#define SETTINGS_VERSION 0x100
+
+// Maximum size for messages (sort of)
 #define MAX_DATA_SIZE 100
 
 #pragma pack(push, 1)
@@ -127,13 +135,78 @@ protected:
 	Message() : type(MessageType_None) {}
 };
 
+// Supported chip models
+enum ChipModel : uint8_t
+{
+	ChipModel_Unknown = 0,
+	ChipModel_nRF52810
+};
+
+template <typename _T>
+struct Chunk
+{
+	uint8_t chunkSize = sizeof(_T);
+};
+
+struct VersionInfo : Chunk<VersionInfo>
+{
+	uint16_t firmwareVersion = FIRMWARE_VERSION; // From makefile
+	uint32_t buildTimestamp = BUILD_TIMESTAMP;	 // From makefile
+
+	// Version of the settings default data and data structure
+	uint16_t settingsVersion = SETTINGS_VERSION;
+
+	// API compatibility versions
+	uint16_t compatStandardApiVersion = 0x100; // WhoAreYou, IAmADie, RollState, BatteryLevel, RequestRssi, Rssi, Blink, BlinkAck
+	uint16_t compatExtendedApiVersion = 0x100; // Animations (including anim classes), profile
+	uint16_t compatManagementApiVersion = 0x100; // The rest
+};
+
+struct DieInfo : Chunk<DieInfo>
+{
+	uint32_t pixelId;  // A unique identifier
+	ChipModel chipModel;
+	DieType dieType;
+	uint8_t ledCount;  // Number of LEDs
+	Colorway colorway; // Physical look
+};
+
+struct CustomDesignAndColorName : Chunk<CustomDesignAndColorName>
+{
+	// Set only when designAndColor is custom
+	char name[MAX_CUSTOM_DESIGN_COLOR_LENGTH]; // No need to make room for null terminator
+};
+
+struct DieName : Chunk<DieName>
+{
+	char name[MAX_NAME_LENGTH]; // No need to make room for null terminator
+};
+
+struct SettingsInfo : Chunk<SettingsInfo>
+{
+	uint32_t profileDataHash;
+	uint32_t availableFlash;   // Amount of available flash to store data
+	uint32_t totalUsableFlash; // Total amount of flash that can be used to store data
+};
+
+struct StatusInfo : Chunk<StatusInfo>
+{
+	// Battery info
+	uint8_t batteryLevelPercent;
+	BatteryState batteryState;
+
+	// Roll info
+	uint8_t rollState;
+	uint8_t rollFace; // This is the current face index
+};
 
 /// <summary>
 /// Identifies the dice
 /// </summary>
 struct MessageIAmADie
-	: public Message
+	: Message
 {
+#if LEGACY_IMADIE_MESSAGE
 	uint8_t ledCount; // Number of LEDs
 	Colorway colorway; // Physical look
 	DieType dieType;
@@ -149,15 +222,23 @@ struct MessageIAmADie
 	// Battery level
 	uint8_t batteryLevelPercent;
 	BatteryState batteryState;
+#else
+	VersionInfo versionInfo;
+	DieInfo dieInfo;
+	CustomDesignAndColorName customDesignAndColorName;
+	DieName dieName;
+	SettingsInfo settingsInfo;
+	StatusInfo statusInfo;
+#endif
 
-	MessageIAmADie() : Message(Message::MessageType_IAmADie) {}
+	MessageIAmADie() : Message(Message::MessageType_IAmADie){}
 };
 
 /// <summary>
 /// Describes a state change detection message
 /// </summary>
 struct MessageRollState
-	: public Message
+	: Message
 {
 	uint8_t state;
 	uint8_t face; // Current face index
@@ -169,7 +250,7 @@ struct MessageRollState
 /// Describes an acceleration readings message (for telemetry)
 /// </summary>
 struct MessageTelemetry
-	: public Message
+	: Message
 {
 	// Accelerometer
 	Core::int3 acc;
@@ -290,7 +371,7 @@ struct MessageTransferTestAnimSetAck
 };
 
 struct MessageDebugLog
-	: public Message
+	: Message
 {
 	char text[MAX_DATA_SIZE];
 
@@ -298,7 +379,7 @@ struct MessageDebugLog
 };
 
 struct MessagePlayAnim
-	: public Message
+	: Message
 {
 	uint8_t animation;
 	uint8_t remapFace;	// The animations are designed assuming that the higher face value is up
@@ -308,7 +389,7 @@ struct MessagePlayAnim
 };
 
 struct MessageRemoteAction
-	: public Message
+	: Message
 {
 	// uint8_t remoteActionType;
 	uint16_t actionId;
@@ -317,7 +398,7 @@ struct MessageRemoteAction
 };
 
 struct MessagePlayAnimEvent
-	: public Message
+	: Message
 {
 	uint8_t evt;
 	uint8_t remapFace;
@@ -327,7 +408,7 @@ struct MessagePlayAnimEvent
 };
 
 struct MessageStopAnim
-	: public Message
+	: Message
 {
 	uint8_t animation;
 	uint8_t remapFace;  // Assumes that an animation was made for face 20
@@ -343,7 +424,7 @@ enum TelemetryRequestMode : uint8_t
 };
 
 struct MessageRequestTelemetry
-	: public Message
+	: Message
 {
 	TelemetryRequestMode requestMode;
 	uint16_t minInterval; // Milliseconds, 0 for no cap on rate
@@ -352,7 +433,7 @@ struct MessageRequestTelemetry
 };
 
 struct MessageBlink
-	: public Message
+	: Message
 {
 	uint8_t count;
 	uint16_t duration;
@@ -365,7 +446,7 @@ struct MessageBlink
 };
 
 struct MessageDefaultAnimSetColor
-	: public Message
+	: Message
 {
 	uint32_t color;
 
@@ -373,7 +454,7 @@ struct MessageDefaultAnimSetColor
 };
 
 struct MessageSetAllLEDsToColor
-	: public Message
+	: Message
 {
 	uint32_t color;
 
@@ -381,7 +462,7 @@ struct MessageSetAllLEDsToColor
 };
 
 struct MessageBatteryLevel
-	: public Message
+	: Message
 {
 	uint8_t levelPercent;
 	BatteryState state;
@@ -390,7 +471,7 @@ struct MessageBatteryLevel
 };
 
 struct MessageRequestRssi
-	: public Message
+	: Message
 {
 	TelemetryRequestMode requestMode;
 	uint16_t minInterval; // Milliseconds, 0 for no cap on rate
@@ -399,7 +480,7 @@ struct MessageRequestRssi
 };
 
 struct MessageRssi
-	: public Message
+	: Message
 {
 	int8_t rssi;
 
@@ -407,7 +488,7 @@ struct MessageRssi
 };
 
 struct MessageSetDesignAndColor
-	: public Message
+	: Message
 {
 	DieType dieType;
 	Colorway colorway;
@@ -416,7 +497,7 @@ struct MessageSetDesignAndColor
 };
 
 struct MessageSetCurrentBehavior
-	: public Message
+	: Message
 {
 	uint8_t currentBehavior;
 
@@ -424,7 +505,7 @@ struct MessageSetCurrentBehavior
 };
 
 struct MessageSetName
-	: public Message
+	: Message
 {
 	char name[MAX_NAME_LENGTH + 1];
 
@@ -439,7 +520,7 @@ enum PowerOperation : uint8_t
 };
 
 struct MessagePowerOperation
-	: public Message
+	: Message
 {
 	PowerOperation operation;
 
@@ -447,7 +528,7 @@ struct MessagePowerOperation
 };
 
 struct MessageNotifyUser
-	: public Message
+	: Message
 {
 	uint8_t timeout_s;
 	uint8_t ok; // Boolean
@@ -462,7 +543,7 @@ struct MessageNotifyUser
 };
 
 struct MessageNotifyUserAck
-	: public Message
+	: Message
 {
 	uint8_t okCancel; // Boolean
 
@@ -496,7 +577,7 @@ struct MessageStoreValueAck
 };
 
 struct MessageSetTopLevelState
-	: public Message
+	: Message
 {
 	uint8_t state; // See TopLevelState enum
 
@@ -504,7 +585,7 @@ struct MessageSetTopLevelState
 };
 
 struct MessageCalibrateFace
-	: public Message
+	: Message
 {
 	uint8_t face;
 
@@ -512,7 +593,7 @@ struct MessageCalibrateFace
 };
 
 struct MessagePrintNormals
-	: public Message
+	: Message
 {
 	uint8_t face;
 
@@ -520,7 +601,7 @@ struct MessagePrintNormals
 };
 
 struct MessageLightUpFace
-	: public Message
+	: Message
 {
 	uint8_t face; // face to light up
 	uint8_t opt_remapFace; // "up" face, 0 is default (no remapping), 0xFF to use current up face
@@ -535,7 +616,7 @@ struct MessageLightUpFace
 };
 
 struct MessageSetLEDToColor
-	: public Message
+	: Message
 {
 	uint8_t ledIndex; // Starts at 0
 	uint32_t color;
@@ -568,7 +649,7 @@ struct MessageTransferInstantAnimSetAck
 };
 
 struct MessagePlayInstantAnim
-	: public Message
+	: Message
 {
 	uint8_t animation;
 	uint8_t faceIndex;	// Assumes that an animation was made for face 20
@@ -578,7 +659,7 @@ struct MessagePlayInstantAnim
 };
 
 struct MessageTemperature
-	: public Message
+	: Message
 {
 	int16_t mcuTempTimes100;
 	int16_t batteryTempTimes100;
@@ -587,7 +668,7 @@ struct MessageTemperature
 };
 
 struct MessageDischarge
-	: public Message
+	: Message
 {
 	uint8_t currentMA; // Current in mA, rounded up to nearest 10mA, or 0 to reset
 
@@ -595,7 +676,7 @@ struct MessageDischarge
 };
 
 struct MessageBlinkId
-	: public Message
+	: Message
 {
 	uint8_t brightness;
 	uint8_t loop; // 1 == loop, 0 == once

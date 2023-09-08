@@ -259,7 +259,8 @@ namespace Bluetooth::MessageService
         notifyMsg.ok = ok ? 1 : 0;
         notifyMsg.cancel = cancel ? 1 : 0;
         notifyMsg.timeout_s = timeout_s;
-		strncpy(notifyMsg.text, text, MAX_DATA_SIZE - 4);
+        strncpy(notifyMsg.text, text, sizeof(notifyMsg.text) - 1);
+        notifyMsg.text[sizeof(notifyMsg.text) - 1] = '\0'; // Make sure we always have a null terminated string
         if ((ok || cancel) && callback != nullptr) {
 
             // This timer will trigger after the timeout period and unregister the event handler

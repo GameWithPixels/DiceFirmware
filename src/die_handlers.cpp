@@ -32,19 +32,44 @@ namespace Die
 {
     void whoAreYouHandler(const Message* message) {
         // Central asked for the die state, return it!
-        Bluetooth::MessageIAmADie identityMessage;
-        identityMessage.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
-        identityMessage.colorway = SettingsManager::getColorway();
-        identityMessage.dataSetHash = DataSet::dataHash();
-        identityMessage.pixelId = Pixel::getDeviceID();
-        identityMessage.availableFlash = DataSet::availableDataSize();
-        identityMessage.buildTimestamp = Pixel::getBuildTimestamp();
-        identityMessage.rollState = Accelerometer::currentRollState();
-        identityMessage.rollFace = Accelerometer::currentFace();
-        identityMessage.batteryLevelPercent = BatteryController::getLevelPercent();
-        identityMessage.batteryState = BatteryController::getBatteryState();
-        identityMessage.dieType = SettingsManager::getDieType();
-        MessageService::SendMessage(&identityMessage);
+        Bluetooth::MessageIAmADie msg;
+
+#if LEGACY_IMADIE_MESSAGE
+        msg.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
+        msg.colorway = SettingsManager::getColorway();
+        msg.dataSetHash = DataSet::dataHash();
+        msg.pixelId = Pixel::getDeviceID();
+        msg.availableFlash = DataSet::availableDataSize();
+        msg.buildTimestamp = Pixel::getBuildTimestamp();
+        msg.rollState = Accelerometer::currentRollState();
+        msg.rollFace = Accelerometer::currentFace();
+        msg.batteryLevelPercent = BatteryController::getLevelPercent();
+        msg.batteryState = BatteryController::getBatteryState();
+        msg.dieType = SettingsManager::getDieType();
+#else
+        // Die info
+        auto settings = SettingsManager::getSettings();
+        msg.dieInfo.pixelId = Pixel::getDeviceID();
+        msg.dieInfo.chipModel = ChipModel_nRF52810;
+        msg.dieInfo.dieType = SettingsManager::getDieType();
+        msg.dieInfo.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
+        msg.dieInfo.colorway = SettingsManager::getColorway();
+        memset(msg.customDesignAndColorName.name, 0, sizeof(msg.customDesignAndColorName.name));
+        memset(msg.dieName.name, 0, sizeof(msg.dieName.name));
+        strncpy(msg.dieName.name, settings->name, sizeof(msg.dieName.name)); // No need to add the null terminator
+
+        // Settings info
+        msg.settingsInfo.profileDataHash = DataSet::dataHash();
+        msg.settingsInfo.availableFlash = DataSet::availableDataSize();
+        msg.settingsInfo.totalUsableFlash = Flash::getUsableBytes();
+
+        // Status info
+        msg.statusInfo.batteryLevelPercent = BatteryController::getLevelPercent();
+        msg.statusInfo.batteryState = BatteryController::getBatteryState();
+        msg.statusInfo.rollState = Accelerometer::currentRollState();
+        msg.statusInfo.rollFace = Accelerometer::currentFace();
+#endif
+        MessageService::SendMessage(&msg);
     }
 
     void onPowerEvent(PowerManager::PowerManagerEvent event) {
@@ -122,7 +147,9 @@ namespace Die
                 BehaviorController::DisableAccelerometerRules();
 
                 // Kill any currently executing accelerometer-triggered animation
-                AnimController::fadeOutAnimsWithTag(Animations::AnimationTag_Accelerometer, CHARGER_STATE_CHANGE_FADE_OUT_MS);
+                AnimController::fadeOutAnimsWithTag(
+                    Animations::AnimationTag_Accelerometer,
+                    CHARGER_STATE_CHANGE_FADE_OUT_MS);
                 break;
         }
     }    
@@ -131,7 +158,12 @@ namespace Die
         auto playAnimMessage = (const MessagePlayAnim*)msg;
         NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
 		auto animationPreset = DataSet::getAnimation((int)playAnimMessage->animation);
-        AnimController::play(animationPreset, DataSet::getAnimationBits(), playAnimMessage->remapFace, playAnimMessage->loop, Animations::AnimationTag_BluetoothMessage);
+        AnimController::play(
+            animationPreset,
+            DataSet::getAnimationBits(),
+            playAnimMessage->remapFace,
+            playAnimMessage->loop,
+            Animations::AnimationTag_BluetoothMessage);
     }
 
     void stopLEDAnimHandler(const Message* msg) {

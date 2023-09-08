@@ -26,7 +26,7 @@ using namespace Bluetooth;
 #define VALIDATION_MIN_VBAT_TIMES_1000 3500 // millivolts
 namespace Modules::ValidationManager
 {
-    static AnimationBlinkId nameAnim;
+    static AnimationBlinkId blinkId;
     static bool isPlaying = false;
 
     void stopNameAnim();
@@ -40,10 +40,10 @@ namespace Modules::ValidationManager
     void init()
     {
         // Name animation object
-        nameAnim.type = Animation_BlinkId;
-        nameAnim.framesPerBlink = 3; // 3 animation frames per blink
-        nameAnim.setDuration(1000);
-        nameAnim.brightness = 0x10;
+        blinkId.type = Animation_BlinkId;
+        blinkId.framesPerBlink = 3; // blink duration = 3 x 33 ms
+        blinkId.setDuration(1000);
+        blinkId.brightness = 0x10;
 
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, exitValidationModeHandler);
 
@@ -80,7 +80,7 @@ namespace Modules::ValidationManager
     void startNameAnim()
     {
         NRF_LOG_DEBUG("Starting name animation");
-        AnimController::play(&nameAnim, nullptr, 0, true); // Loop forever! (until timeout)
+        AnimController::play(&blinkId, nullptr, 0, true); // Loop forever! (until timeout)
         isPlaying = true;
     }
 

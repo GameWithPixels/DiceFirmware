@@ -17,7 +17,6 @@
 #include "app_error.h"
 
 #define SETTINGS_VALID_KEY (0x15E77165) // 1SETTINGS in leet speak ;)
-#define SETTINGS_VERSION 3
 #define SETTINGS_PAGE_COUNT 1
 
 using namespace DriversNRF;
@@ -136,9 +135,9 @@ namespace Config::SettingsManager
 			const char value = (uniqueId >> ((7 - i) << 2)) & 0xf;
 			outSettings.name[i + sizeof(pixel) - 1] = value + (value < 10 ? '0' : 'a' - 10);
 		}
+		outSettings.name[8 + sizeof(pixel) - 1] = '\0';
 		outSettings.settingsTimeStamp = Pixel::getBuildTimestamp();
 		outSettings.dieType = DiceVariants::estimateDieTypeFromBoard();
-		outSettings.name[8 + sizeof(pixel)] = '\0';
 		outSettings.colorway = DiceVariants::Colorway::Colorway_Unknown;
 		outSettings.customColorwayName[0] = '\0';
 		outSettings.sigmaDecayTimes1000 = 500;
@@ -234,15 +233,15 @@ namespace Config::SettingsManager
 
 	void programName(const char* newName, SettingsWrittenCallback callback) {
 
-		if (strncmp(settings->name, newName, MAX_NAME_LENGTH)) {
+		if (strncmp(settings->name, newName, sizeof(settings->name) - 1)) {
 
 			// Grab current settings
 			Settings settingsCopy;
 			memcpy(&settingsCopy, settings, sizeof(Settings));
 
 			// Update name
-			strncpy(settingsCopy.name, newName, MAX_NAME_LENGTH);
-			settingsCopy.name[MAX_NAME_LENGTH] = 0; // Make sure we always have a null terminated string
+			strncpy(settingsCopy.name, newName, sizeof(settingsCopy.name) - 1);
+			settingsCopy.name[sizeof(settingsCopy.name) - 1] = '\0'; // Make sure we always have a null terminated string
 			NRF_LOG_INFO("Setting name to %s", settingsCopy.name);
 
 			// Reprogram settings
