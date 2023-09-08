@@ -293,6 +293,7 @@ namespace DataSet
         writeRainbowAnimation->count = 2;
         writeRainbowAnimation->fade = 200;
         writeRainbowAnimation->intensity = 0x80;
+        writeRainbowAnimation->cyclesTimes10 = 10;
 
 		// Create offsets
 		for (int i = 0; i < simpleAnimCount; ++i) {
