@@ -20,7 +20,7 @@ BUILD_DATE_TIME := $(shell python -c 'from datetime import datetime; \
 # To prevent downgrading the firmware, set NRF_DFU_APP_DOWNGRADE_PREVENTION to 1 in bootloader config.h
 # The bootloader can only be upgraded (applying an update with a higher version number).
 FW_VER := 0x100 # 1.0
-BL_VER := 0x202 # 2.2
+BL_VER := 0x203 # 2.3
   
 # SDK 17 path
 SDK_ROOT := C:/nRF5_SDK

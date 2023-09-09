@@ -25,10 +25,11 @@ namespace DiceVariants
         { 1000,  0000,  0000},
     };
 
+    // 0, 1, 2, 3, 4, 5 <-- Led index
+    // 1, 5, 2, 6, 4, 3 <-- face number
+    // 0, 4, 1, 5, 3, 2 <-- face index
     const uint8_t sixSidedFaceToLedLookup[] = {
-    //  1, 2, 3, 4, 5, 6    // Face Number
-    //  0, 1, 2, 3, 4, 5    // Face Index
-        0, 4, 2, 1, 5, 3,   // Led Index
+        0, 2, 5, 4, 1, 3,   // Led Index
     };
 
 
