@@ -255,9 +255,11 @@ namespace Die
                         // Initialize common logic
                         initMainLogic();
 
+                        // Always init validation manager so it handles the ExitValidation message
+                        ValidationManager::init();
+
                         // Entering the main loop! Play Hello! anim if in validation mode
                         if (inValidation) {
-                            ValidationManager::init();
                             ValidationManager::onPixelInitialized();
                         } else {
                             initDieLogic();

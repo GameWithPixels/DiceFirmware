@@ -27,7 +27,7 @@ using namespace Bluetooth;
 namespace Modules::ValidationManager
 {
     static AnimationBlinkId nameAnim;
-    static bool isPlaying;
+    static bool isPlaying = false;
 
     void stopNameAnim();
     void startNameAnim();
@@ -39,8 +39,6 @@ namespace Modules::ValidationManager
     // Initializes validation animation objects and hooks AnimController callback
     void init()
     {
-        isPlaying = false;
-
         // Name animation object
         nameAnim.type = Animation_BlinkId;
         nameAnim.framesPerBlink = 3; // 3 animation frames per blink
@@ -49,15 +47,15 @@ namespace Modules::ValidationManager
 
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, exitValidationModeHandler);
 
-        // Hook local connection function to BLE connection events
-        Bluetooth::Stack::hook(onConnectionEvent, nullptr);
-
         NRF_LOG_DEBUG("Validation Manager init");
     }
 
     // Function for playing validation animations
     void onPixelInitialized()
     {
+        // Hook local connection function to BLE connection events
+        Bluetooth::Stack::hook(onConnectionEvent, nullptr);
+
         // Trigger a callback to turn die off
         Timers::setDelayedCallback(GoToSysOffCallback, nullptr, VALIDATION_MODE_SLEEP_DELAY_MS);
 
