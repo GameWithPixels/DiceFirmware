@@ -12,23 +12,14 @@ using namespace Bluetooth;
 namespace Modules::HardwareTest
 {
     void HardwareTestHandler(const Message* msg);
-    void LedLoopbackHandler(const Message *msg);
     void DischargeHandler(const Message *msg);
 
-    static MessageLedLoopback messageLedLoopback;
-
     void init() {
-        MessageService::RegisterMessageHandler(Message::MessageType_TestLedLoopback, LedLoopbackHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Discharge, DischargeHandler);
         #if defined(DEBUG)
         //MessageService::RegisterMessageHandler(Message::MessageType_TestHardware, nullptr, HardwareTestHandler);
         #endif
         NRF_LOG_DEBUG("Hardware Test init");
-    }
-
-    void LedLoopbackHandler(const Message *msg) {
-        messageLedLoopback.value = 1;
-        MessageService::SendMessage(&messageLedLoopback);
     }
 
     void DischargeHandler(const Message *msg) {
