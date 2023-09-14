@@ -147,6 +147,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/config/board_config.cpp \
 	$(PROJ_DIR)/src/config/settings.cpp \
 	$(PROJ_DIR)/src/config/dice_variants.cpp \
+	$(PROJ_DIR)/src/config/value_store.cpp \
 	$(PROJ_DIR)/src/data_set/data_animation_bits.cpp \
 	$(PROJ_DIR)/src/data_set/data_set.cpp \
 	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \

@@ -478,8 +478,10 @@ struct MessageStoreValue
 enum StoreValueResult : uint8_t
 {
 	StoreValueResult_Success = 0,
+	StoreValueResult_UnknownError,
 	StoreValueResult_StoreFull,
 	StoreValueResult_InvalidRange,
+	StoreValueResult_NotPermitted,
 };
 
 struct MessageStoreValueAck

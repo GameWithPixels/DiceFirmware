@@ -10,6 +10,7 @@
 #include "bluetooth/bluetooth_stack.h"
 #include "config/settings.h"
 #include "config/board_config.h"
+#include "config/value_store.h"
 #include "modules/charger_proximity.h"
 #include "modules/anim_controller.h"
 #include "modules/behavior_controller.h"
@@ -19,7 +20,6 @@
 #include "notifications/roll.h"
 #include "notifications/rssi.h"
 #include "data_set/data_set.h"
-#include "nrf_nvmc.h"
 
 #define CHARGER_STATE_CHANGE_FADE_OUT_MS 250
 
@@ -191,25 +191,21 @@ namespace Die
         auto powerMsg = (const MessageStoreValue *)msg;
 
         MessageStoreValueAck ack;
-        ack.result = StoreValueResult_StoreFull;
+        ack.result = StoreValueResult_UnknownError;
         ack.index = -1;
 
         if (powerMsg->value) {
-            // Search for an empty slot in UICR registers.
-            // This works similarly to heap v.s. stack:
-            // - other setting stored in UICR are written to registers with low indices,
-            // - stored values are written to registers with high indices
-            // To write a new value, we search for the first empty register starting with
-            // highest index and going down. We don't write to the first register
-            // which is reserved for settings (even if empty).
-            for (int i = sizeof(NRF_UICR->CUSTOMER) / 4 - 1; i >= 1; --i) {
-                uint32_t *reg = (uint32_t *)&NRF_UICR->CUSTOMER[i];
-                NRF_LOG_DEBUG("Read UICR[%d] => %x", i, *reg);
-                if (*reg == 0xffffffff) {
-                    NRF_LOG_DEBUG("Writing %x to UICR[%d]", powerMsg->value, i);
-                    nrf_nvmc_write_word((uint32_t)&NRF_UICR->CUSTOMER[i], powerMsg->value);
-                    ack.result = StoreValueResult_Success;
-                    ack.index = i;
+            const auto result = ValueStore::writeValue(powerMsg->value);
+            if (result >= 0) {
+                ack.index = result;
+                ack.result = StoreValueResult_Success;
+            } else {
+                switch (result) {
+                case ValueStore::WriteValueError_StoreFull:
+                    ack.result = StoreValueResult_StoreFull;
+                    break;
+                case ValueStore::WriteValueError_NotPermited:
+                    ack.result = StoreValueResult_NotPermitted;
                     break;
                 }
             }
