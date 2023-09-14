@@ -124,6 +124,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/pixel.cpp \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \
+	$(PROJ_DIR)/src/die_handlers.cpp \
 	$(PROJ_DIR)/src/animations/animation.cpp \
 	$(PROJ_DIR)/src/animations/animation_simple.cpp \
 	$(PROJ_DIR)/src/animations/animation_gradient.cpp \

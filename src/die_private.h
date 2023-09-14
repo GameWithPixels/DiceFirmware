@@ -6,6 +6,8 @@ namespace Die
 {
 	void initMainLogic();
     void initDieLogic();
+    void initHandlers();
+    void initLogicHandlers();
     void onPowerEvent(DriversNRF::PowerManager::PowerManagerEvent event);
 
 	void enterStandardState();

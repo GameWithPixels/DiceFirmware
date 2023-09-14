@@ -70,8 +70,8 @@ struct Message
 		MessageType_NotifyUser,
 		MessageType_NotifyUserAck,
 		MessageType_TestHardware,
-		MessageType_Unused1,
-		MessageType_Unused2,
+		MessageType_StoreValue,
+		MessageType_StoreValueAck,
 		MessageType_SetTopLevelState,
 		MessageType_ProgramDefaultParameters,
 		MessageType_ProgramDefaultParametersFinished,
@@ -98,8 +98,8 @@ struct Message
 		MessageType_TransferTest,
 		MessageType_TransferTestAck,
 		MessageType_TransferTestFinished,
-  		MessageType_ClearSettings,
-  		MessageType_ClearSettingsAck,
+		MessageType_ClearSettings,
+		MessageType_ClearSettingsAck,
 
 		// TESTING
 		MessageType_TestBulkSend,
@@ -465,6 +465,30 @@ struct MessageNotifyUserAck
 	uint8_t okCancel; // Boolean
 
 	MessageNotifyUserAck() : Message(Message::MessageType_NotifyUserAck) {}
+};
+
+struct MessageStoreValue
+	: public Message
+{
+	uint32_t value;
+
+	MessageStoreValue() : Message(Message::MessageType_StoreValue) {}
+};
+
+enum StoreValueResult : uint8_t
+{
+	StoreValueResult_Success = 0,
+	StoreValueResult_StoreFull,
+	StoreValueResult_InvalidRange,
+};
+
+struct MessageStoreValueAck
+	: public Message
+{
+	StoreValueResult result;
+	uint8_t index;
+
+	MessageStoreValueAck() : Message(Message::MessageType_StoreValueAck) {}
 };
 
 struct MessageSetTopLevelState
