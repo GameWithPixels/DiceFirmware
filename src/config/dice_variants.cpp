@@ -346,7 +346,7 @@ namespace DiceVariants
                 return 1 << 11;
             case BoardModel::PD6BoardV3:
             case BoardModel::PD6BoardV5:
-                return 0b111111 << 14;
+                return 0b111111 << 15;
             case BoardModel::D10BoardV2:
                 return 1;
             case BoardModel::D8BoardV2:
