@@ -23,15 +23,15 @@ namespace Config
         };
 
         // This enum describes what the dice looks like, so the App can use the appropriate 3D model/color
-        enum DesignAndColor : uint8_t
+        enum Colorway : uint8_t
         {
-            DesignAndColor_Unknown = 0,
-            DesignAndColor_Onyx_Black,
-            DesignAndColor_Hematite_Grey,
-            DesignAndColor_Midnight_Galaxy,
-            DesignAndColor_Aurora_Sky,
-            DesignAndColor_Aurora_Clear,
-            DesignAndColor_Custom = 0xFF,
+            Colorway_Unknown = 0,
+            Colorway_Onyx_Black,
+            Colorway_Hematite_Grey,
+            Colorway_Midnight_Galaxy,
+            Colorway_Aurora_Sky,
+            Colorway_Aurora_Clear,
+            Colorway_Custom = 0xFF,
         };
 
         struct Layout

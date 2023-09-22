@@ -16,6 +16,7 @@
 namespace Bluetooth
 {
 
+using Colorway = Config::DiceVariants::Colorway;
 using DieType = Config::DiceVariants::DieType;
 using BatteryState = Modules::BatteryController::BatteryState;
 using BatteryControllerState = Modules::BatteryController::State;
@@ -134,7 +135,7 @@ struct MessageIAmADie
 	: public Message
 {
 	uint8_t ledCount; // Number of LEDs
-	Config::DiceVariants::DesignAndColor designAndColor; // Physical look
+	Colorway colorway; // Physical look
 	DieType dieType;
 	uint32_t dataSetHash;
 	uint32_t pixelId; // A unique identifier
@@ -408,7 +409,8 @@ struct MessageRssi
 struct MessageSetDesignAndColor
 	: public Message
 {
-	Config::DiceVariants::DesignAndColor designAndColor;
+	DieType dieType;
+	Colorway colorway;
 
 	MessageSetDesignAndColor() : Message(Message::MessageType_SetDesignAndColor) {}
 };

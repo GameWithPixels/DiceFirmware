@@ -4,8 +4,10 @@ namespace Config::ValueStore
 {
     enum ValueType : uint8_t
     {
-        ValueType_ColorAndDesign = 1,
-        ValueType_ValidationStartIndex = 0xA0, // Start index for validation value types, even value = timestamp, odd = geolocation
+        ValueType_DieType = 1,
+        ValueType_Colorway = 2,
+        ValueType_ValidationTimestampStart = 0xF0, // Start index for validation timestamps
+        ValueType_ValidationTimestampEnd = 0xFF,
     };
 
     enum WriteValueError

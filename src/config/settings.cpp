@@ -4,6 +4,7 @@
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "config/board_config.h"
+#include "config/value_store.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_stack.h"
 #include "bluetooth/bluetooth_message_service.h"
@@ -92,6 +93,16 @@ namespace Config::SettingsManager
 		}
 	}
 
+	DiceVariants::DieType getDieType() {
+		const int dieTypeFromStore = ValueStore::readValue(ValueStore::ValueType_DieType);
+		return dieTypeFromStore != -1 ? (DiceVariants::DieType)dieTypeFromStore : SettingsManager::getSettings()->dieType;
+	}
+
+	DiceVariants::Colorway getColorway() {
+		const int colorWayFromStore = ValueStore::readValue(ValueStore::ValueType_Colorway);
+		return colorWayFromStore != -1 ? (DiceVariants::Colorway)colorWayFromStore : SettingsManager::getSettings()->colorway;
+	}
+
 	void ProgramDefaultParametersHandler(const Message* msg) {
 		programDefaultParameters([] (bool result) {
 			// Ignore result for now
@@ -101,8 +112,8 @@ namespace Config::SettingsManager
 
 	void SetDesignTypeAndColorHandler(const Message* msg) {
 		auto designMsg = (const MessageSetDesignAndColor*)msg;
-		NRF_LOG_DEBUG("Received request to set design to %d", designMsg->designAndColor);
-		programDesignAndColor(designMsg->designAndColor, [](bool result) {
+		NRF_LOG_DEBUG("Received request to set die type to %d and colorway to %d", designMsg->dieType, designMsg->colorway);
+		programDesignAndColor(designMsg->dieType, designMsg->colorway, [](bool result) {
 			MessageService::SendMessage(Message::MessageType_SetDesignAndColorAck);
 		});
 	}
@@ -128,8 +139,8 @@ namespace Config::SettingsManager
 		outSettings.settingsTimeStamp = Pixel::getBuildTimestamp();
 		outSettings.dieType = DiceVariants::estimateDieTypeFromBoard();
 		outSettings.name[8 + sizeof(pixel)] = '\0';
-		outSettings.designAndColor = DiceVariants::DesignAndColor::DesignAndColor_Unknown;
-		outSettings.customDesignAndColorName[0] = '\0';
+		outSettings.colorway = DiceVariants::Colorway::Colorway_Unknown;
+		outSettings.customColorwayName[0] = '\0';
 		outSettings.sigmaDecayTimes1000 = 500;
 		outSettings.startMovingThresholdTimes1000 = 5000;
 		outSettings.stopMovingThresholdTimes1000 = 500;
@@ -200,22 +211,23 @@ namespace Config::SettingsManager
 		DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 	}
 
-	void programDesignAndColor(DiceVariants::DesignAndColor design, SettingsWrittenCallback callback) {
+	void programDesignAndColor(DiceVariants::DieType dieType, DiceVariants::Colorway colorway, SettingsWrittenCallback callback) {
 
-		if (settings->designAndColor != design) {
+		if (settings->dieType != dieType || settings->colorway != colorway) {
 
 			// Grab current settings
 			Settings settingsCopy;
 			memcpy(&settingsCopy, settings, sizeof(Settings));
 
 			// Update design and color
-			settingsCopy.designAndColor = design;
+			settingsCopy.dieType = dieType;
+			settingsCopy.colorway = colorway;
 
 			// Reprogram settings
 			DataSet::ProgramDefaultDataSet(settingsCopy, callback);
 		}
 		else {
-			NRF_LOG_DEBUG("DesignAndColor already set to %s", design);
+			NRF_LOG_DEBUG("DesignAndColor already set to dieType=%d and colorway=%d ", dieType, colorway);
 			callback(true);
 		}
 	}

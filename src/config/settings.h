@@ -30,10 +30,10 @@ namespace Config
 		DiceVariants::DieType dieType;
 
 		// Physical Appearance
-		DiceVariants::DesignAndColor designAndColor;
+		DiceVariants::Colorway colorway;
 		
 		// When the design is set to custom, then store the name here
-		char customDesignAndColorName[MAX_CUSTOM_DESIGN_COLOR_LENGTH + 1]; // One extra byte for the zero terminator
+		char customColorwayName[MAX_CUSTOM_DESIGN_COLOR_LENGTH + 1]; // One extra byte for the zero terminator
 
 		// Die name
 		char name[MAX_NAME_LENGTH + 1]; // One extra byte for the zero terminator
@@ -63,11 +63,14 @@ namespace Config
 		bool checkValid();
 		Config::Settings const * const getSettings();
 
+		DiceVariants::DieType getDieType();
+		DiceVariants::Colorway getColorway();
+
 		void setDefaults(Settings& outSettings);
 		void programDefaults(SettingsWrittenCallback callback);
 		void programDefaultParameters(SettingsWrittenCallback callback);
 		void programCalibrationData(const Core::int3* newNormals, int count, SettingsWrittenCallback callback);
-		void programDesignAndColor(DiceVariants::DesignAndColor design, SettingsWrittenCallback callback);
+		void programDesignAndColor(DiceVariants::DieType dieType, DiceVariants::Colorway colorway, SettingsWrittenCallback callback);
 		void programName(const char* newName, SettingsWrittenCallback callback);
 	}
 }

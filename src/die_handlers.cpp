@@ -34,7 +34,7 @@ namespace Die
         // Central asked for the die state, return it!
         Bluetooth::MessageIAmADie identityMessage;
         identityMessage.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
-        identityMessage.designAndColor = SettingsManager::getSettings()->designAndColor;
+        identityMessage.colorway = SettingsManager::getColorway();
         identityMessage.dataSetHash = DataSet::dataHash();
         identityMessage.pixelId = Pixel::getDeviceID();
         identityMessage.availableFlash = DataSet::availableDataSize();
@@ -43,7 +43,7 @@ namespace Die
         identityMessage.rollFace = Accelerometer::currentFace();
         identityMessage.batteryLevelPercent = BatteryController::getLevelPercent();
         identityMessage.batteryState = BatteryController::getBatteryState();
-        identityMessage.dieType = SettingsManager::getSettings()->dieType;
+        identityMessage.dieType = SettingsManager::getDieType();
         MessageService::SendMessage(&identityMessage);
     }
 

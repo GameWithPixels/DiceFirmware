@@ -48,7 +48,7 @@ namespace Bluetooth::CustomAdvertisingDataHandler
     void start() {
         // Initialize the custom advertising data
         customManufacturerData.ledCount = Config::BoardManager::getBoard()->ledCount;
-        customManufacturerData.designAndColor = Config::SettingsManager::getSettings()->designAndColor;
+        customManufacturerData.designAndColor = (SettingsManager::getDieType() << 4) | SettingsManager::getColorway();
         customManufacturerData.currentFace = Accelerometer::currentFace();
         customManufacturerData.rollState = Accelerometer::currentRollState();
         customManufacturerData.batteryLevelAndCharging =
