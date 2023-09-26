@@ -108,7 +108,7 @@ namespace Modules::Accelerometer
     int determineFace(int3 acc, int16_t *outConfidence)
     {
         // Compare against face normals stored in board manager
-        int faceCount = BoardManager::getBoard()->ledCount;
+        int faceCount = DiceVariants::getLayout()->faceCount;
         auto settings = SettingsManager::getSettings();
         auto &normals = settings->faceNormals;
         int accMagTimes1000 = acc.magnitudeTimes1000();
