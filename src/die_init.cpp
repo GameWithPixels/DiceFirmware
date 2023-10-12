@@ -243,12 +243,6 @@ namespace Die
                         // Get ready for handling hardware test messages
                         HardwareTest::init();
 
-                        // Before we turn the radio on, check the battery level in validation mode
-                        // We want to make sure the die is at least 50% charged!
-                        if (inValidation && !ValidationManager::checkMinVBat()) {
-                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_BatteryCharge);
-                        }
-
                         // Start advertising!
                         Stack::startAdvertising();
 
