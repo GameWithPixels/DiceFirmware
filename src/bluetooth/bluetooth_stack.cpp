@@ -132,6 +132,7 @@ namespace Bluetooth::Stack
 
                 if (resetOnDisconnectPending) {
                     resetOnDisconnectPending = false;
+                    sleepOnDisconnectPending = false;
                     PowerManager::reset();
                 } else if (sleepOnDisconnectPending) {
                     sleepOnDisconnectPending = false;
