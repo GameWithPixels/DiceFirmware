@@ -27,7 +27,7 @@ namespace Config::DiceVariants
         Colorway_Hematite_Grey,
         Colorway_Midnight_Galaxy,
         Colorway_Aurora_Sky,
-        Colorway_Aurora_Clear,
+        Colorway_Clear,
         Colorway_Custom = 0xFF,
     };
 
