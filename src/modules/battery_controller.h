@@ -49,7 +49,14 @@ namespace Modules::BatteryController
 	uint16_t getVoltageMilli();
 	uint16_t getCoilVoltageMilli();
 
-	void slowMode(bool slow);
+    enum UpdateRate
+    {
+        UpdateRate_Normal,
+        UpdateRate_Slow,
+        UpdateRate_Fast
+    };
+
+	void setUpdateRate(UpdateRate rate);
 
 	typedef void(*BatteryControllerStateChangeHandler)(void* param, State newState);
 	void hookControllerState(BatteryControllerStateChangeHandler method, void* param);

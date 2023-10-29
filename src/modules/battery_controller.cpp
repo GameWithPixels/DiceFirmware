@@ -16,8 +16,9 @@ using namespace Bluetooth;
 using namespace Config;
 using namespace Utils;
 
-#define BATTERY_TIMER_MS 300	// ms
+#define BATTERY_TIMER_MS 1000	// ms
 #define BATTERY_TIMER_MS_SLOW 5000	// ms
+#define BATTERY_TIMER_MS_FAST 300 // ms
 
 #define MAX_STATE_CLIENTS 2
 #define MAX_BATTERY_CLIENTS 4
@@ -56,11 +57,6 @@ namespace Modules::BatteryController
     void onEnableChargingHandler(const Message *msg);
     void onDisableChargingHandler(const Message *msg);
 
-    enum UpdateRate
-    {
-        UpdateRate_Normal,
-        UpdateRate_Slow
-    };
 
     enum CapacityState
     {
@@ -164,7 +160,7 @@ namespace Modules::BatteryController
         currentBatteryState = computeNewBatteryState();
         
 		Timers::createTimer(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
-		Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(batteryTimerMs), NULL);
+		Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
 
         MessageService::RegisterMessageHandler(Message::MessageType_EnableCharging, onEnableChargingHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_DisableCharging, onDisableChargingHandler);
@@ -428,6 +424,7 @@ namespace Modules::BatteryController
 
         // Measure new values
         readBatteryValues();
+        //NRF_LOG_INFO("vcoil " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoilMilli));
         const uint8_t prevLevel = levelPercent;
         updateLevelPercent();
 
@@ -561,18 +558,22 @@ namespace Modules::BatteryController
             }
         }
 
-        Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(batteryTimerMs), NULL);
+        Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
     }
 
-    void slowMode(bool slow) {
-        if (slow) {
-            currentUpdateRate = UpdateRate_Slow;
-            batteryTimerMs = BATTERY_TIMER_MS_SLOW;
-        } else {
-            currentUpdateRate = UpdateRate_Normal;
-            batteryTimerMs = BATTERY_TIMER_MS;
+	void setUpdateRate(UpdateRate rate) {
+        currentUpdateRate = rate;
+        switch (rate) {
+            case UpdateRate_Slow:
+                batteryTimerMs = BATTERY_TIMER_MS_SLOW;
+                break;
+            case UpdateRate_Normal:
+                batteryTimerMs = BATTERY_TIMER_MS;
+                break;
+            case UpdateRate_Fast:
+                batteryTimerMs = BATTERY_TIMER_MS_FAST;
+                break;
         }
-        // The new timer duration will kick in on the next reset of the battery timer.
     }
 
     void onBatteryEventHandler(void* context, Battery::ChargingEvent evt) {
@@ -587,7 +588,7 @@ namespace Modules::BatteryController
             Timers::stopTimer(batteryControllerTimer);
 
             // Restart the timer
-		    Timers::startTimer(batteryControllerTimer, APP_TIMER_TICKS(batteryTimerMs), NULL);
+		    Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
         }
     }
 

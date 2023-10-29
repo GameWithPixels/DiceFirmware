@@ -155,6 +155,7 @@ namespace Bluetooth::Telemetry
 
             // Battery controller state
             Modules::BatteryController::hookControllerState(onBatteryChanged, nullptr);
+            Modules::BatteryController::setUpdateRate(BatteryController::UpdateRate_Fast);
         }
     }
 
@@ -168,6 +169,7 @@ namespace Bluetooth::Telemetry
             Accelerometer::unHookFrameData(onAccDataReceived);
             Stack::unHookRssi(onRssiChanged);
             Temperature::unHookTemperatureChange(onTemperatureChanged);
+            Modules::BatteryController::setUpdateRate(BatteryController::UpdateRate_Normal);
             Modules::BatteryController::unHookControllerState(onBatteryChanged);
         }
     }

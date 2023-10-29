@@ -85,14 +85,14 @@ namespace Die
                 Accelerometer::stop();
                 Accelerometer::lowPower();
                 AnimController::stop();
-                BatteryController::slowMode(true);
+                BatteryController::setUpdateRate(BatteryController::UpdateRate_Slow);
                 Temperature::slowMode(true);
                 break;
             case PowerManager::PowerManagerEvent_PrepareSleep:
                 //NRF_LOG_INFO("Going to Sleep");
                 Accelerometer::stop();
                 //AnimController::stop();
-                BatteryController::slowMode(true);
+                BatteryController::setUpdateRate(BatteryController::UpdateRate_Slow);
                 Temperature::slowMode(true);
                 Stack::stopAdvertising();
 
@@ -114,7 +114,7 @@ namespace Die
                 //NRF_LOG_INFO("Resuming from Sleep");
                 Accelerometer::wakeUp();
                 //AnimController::start();
-                BatteryController::slowMode(false);
+                BatteryController::setUpdateRate(BatteryController::UpdateRate_Normal);
                 Temperature::slowMode(false);
                 Stack::startAdvertising();
                 break;
