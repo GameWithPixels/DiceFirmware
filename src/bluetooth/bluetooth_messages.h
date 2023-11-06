@@ -169,6 +169,7 @@ struct DieInfo : Chunk<DieInfo>
 	DieType dieType;
 	uint8_t ledCount;  // Number of LEDs
 	Colorway colorway; // Physical look
+	uint8_t inValidation; // Boolean
 };
 
 struct CustomDesignAndColorName : Chunk<CustomDesignAndColorName>
