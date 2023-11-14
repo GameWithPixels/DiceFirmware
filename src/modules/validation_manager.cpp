@@ -1,6 +1,7 @@
 #include "pixel.h"
 #include "validation_manager.h"
 #include "config/board_config.h"
+#include "config/value_store.h"
 #include "nrf_log.h"
 #include "animations/animation.h"
 #include "modules/anim_controller.h"
@@ -39,15 +40,20 @@ namespace Modules::ValidationManager
     // Initializes validation animation objects and hooks AnimController callback
     void init()
     {
+        // Has board been validated? If so this is probably a casted die
+        const bool isCastedDie =
+            ValueStore::readValue(ValueStore::ValueType_ValidationTimestampBoard) != 0xFFFFFFFF;
+
         // Name animation object
         blinkId.type = Animation_BlinkId;
         blinkId.framesPerBlink = 3; // blink duration = 3 x 33 ms
         blinkId.setDuration(1000);
-        blinkId.brightness = 0x10;
+        blinkId.brightness = isCastedDie ? 0x80 : 0x10; // Higher brightness for casted dice
 
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_ExitValidation, exitValidationModeHandler);
+        Bluetooth::MessageService::RegisterMessageHandler(
+            Message::MessageType_ExitValidation, exitValidationModeHandler);
 
-        NRF_LOG_DEBUG("Validation Manager init");
+        NRF_LOG_DEBUG("Validation Manager init for %s", isCastedDie ? "casted die" : "bare board");
     }
 
     // Function for playing validation animations

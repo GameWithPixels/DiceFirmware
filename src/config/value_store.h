@@ -6,7 +6,12 @@ namespace Config::ValueStore
     {
         ValueType_DieType = 1,
         ValueType_Colorway = 2,
-        ValueType_ValidationTimestampStart = 0xF0, // Start index for validation timestamps
+        ValueType_ValidationTimestampStart = 0xA0, // Start index for validation timestamps
+        ValueType_ValidationTimestampFirmware = ValueType_ValidationTimestampStart,
+        ValueType_ValidationTimestampBoardNoCoil,
+        ValueType_ValidationTimestampBoard,
+        ValueType_ValidationTimestampDie,
+        ValueType_ValidationTimestampDieFinal,
         ValueType_ValidationTimestampEnd = 0xFF,
     };
 
