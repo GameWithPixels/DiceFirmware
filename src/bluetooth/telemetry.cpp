@@ -65,7 +65,7 @@ namespace Bluetooth::Telemetry
 
                 // Update battery values
                 teleMessage.internalChargeState = DriversHW::Battery::checkCharging() ? 1 : 0;
-                teleMessage.forceDisableChargingState = DriversHW::Battery::getDisableChargingOverride() ? 1 : 0;
+                teleMessage.batteryControllerMode = BatteryController::getControllerOverrideMode();
                 teleMessage.batteryLevelPercent = BatteryController::getLevelPercent();
                 teleMessage.batteryState = BatteryController::getBatteryState();
                 teleMessage.batteryControllerState = BatteryController::getState();

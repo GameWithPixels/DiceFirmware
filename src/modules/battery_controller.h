@@ -58,6 +58,15 @@ namespace Modules::BatteryController
 
 	void setUpdateRate(UpdateRate rate);
 
+	enum ControllerOverrideMode : uint8_t
+	{
+		ControllerOverrideMode_Default = 0,
+		ControllerOverrideMode_ForceDisableCharging,
+		ControllerOverrideMode_ForceEnableCharging,
+	};
+	void setControllerOverrideMode(ControllerOverrideMode mode);
+	ControllerOverrideMode getControllerOverrideMode();
+
 	typedef void(*BatteryControllerStateChangeHandler)(void* param, State newState);
 	void hookControllerState(BatteryControllerStateChangeHandler method, void* param);
 	void unHookControllerState(BatteryControllerStateChangeHandler client);

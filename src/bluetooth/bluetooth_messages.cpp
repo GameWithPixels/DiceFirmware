@@ -65,10 +65,8 @@ namespace Bluetooth
 			return "RequestTemperature";
 		case MessageType_Temperature:
 			return "Temperature";
-		case MessageType_EnableCharging:
-			return "EnableCharging";
-		case MessageType_DisableCharging:
-			return "DisableCharging";
+		case MessageType_SetBatteryControllerMode:
+			return "SetBatteryControllerMode";
 		case MessageType_Discharge:
 			return "Discharge";
 		case MessageType_BlinkId:

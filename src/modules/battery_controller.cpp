@@ -54,9 +54,7 @@ namespace Modules::BatteryController
     State computeNewState();
     BatteryState computeNewBatteryState();
 
-    void onEnableChargingHandler(const Message *msg);
-    void onDisableChargingHandler(const Message *msg);
-
+    void onSetBatteryControllerModeHandler(const Message *msg);
 
     enum CapacityState
     {
@@ -99,6 +97,7 @@ namespace Modules::BatteryController
     static uint8_t levelPercent = 0;
     static bool charging = false;
     static uint16_t batteryTimerMs = BATTERY_TIMER_MS;
+    static ControllerOverrideMode overrideMode = ControllerOverrideMode_Default;
 
     APP_TIMER_DEF(batteryControllerTimer);
 
@@ -153,6 +152,7 @@ namespace Modules::BatteryController
         // Other values (voltage, vcoil) already displayed by Battery::init()
 
         currentUpdateRate = UpdateRate_Normal;
+        overrideMode = ControllerOverrideMode_Default;
 
         // Set initial battery state
         currentState = computeNewState();
@@ -162,8 +162,7 @@ namespace Modules::BatteryController
 		Timers::createTimer(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
 		Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
 
-        MessageService::RegisterMessageHandler(Message::MessageType_EnableCharging, onEnableChargingHandler);
-        MessageService::RegisterMessageHandler(Message::MessageType_DisableCharging, onDisableChargingHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_SetBatteryControllerMode, onSetBatteryControllerModeHandler);
 
         NRF_LOG_INFO("Battery Controller init: %d%%", levelPercent);
     }
@@ -428,52 +427,57 @@ namespace Modules::BatteryController
         const uint8_t prevLevel = levelPercent;
         updateLevelPercent();
 
-        int temperatureTimes100 = Temperature::getNTCTemperatureTimes100();
-        switch (currentBatteryTempState) {
-            case BatteryTemperatureState_Disabled:
-                // Don't do anything
-                break;
-            case BatteryTemperatureState_Normal:
-                if (temperatureTimes100 > TEMPERATURE_TOO_HOT) {
-                    currentBatteryTempState = BatteryTemperatureState_Hot;
-                    Battery::setDisableChargingOverride(true);
-                    NRF_LOG_INFO("Battery too hot, Preventing Charge");
-                } else if (temperatureTimes100 > TEMPERATURE_COOLDOWN_ENTER) {
-                    currentBatteryTempState = BatteryTemperatureState_Cooldown;
-                    Battery::setDisableChargingOverride(true);
-                    NRF_LOG_INFO("Battery hot, Preventing Charge to cooldown");
-                } else if (temperatureTimes100 < TEMPERATURE_TOO_COLD) {
-                    currentBatteryTempState = BatteryTemperatureState_Low;
-                    Battery::setDisableChargingOverride(true);
-                    NRF_LOG_INFO("Battery too cold, Preventing Charge");
-                }
-                // Else stay in normal mode
-                break;
-            case BatteryTemperatureState_Cooldown:
-                if (temperatureTimes100 > TEMPERATURE_TOO_HOT) {
-                    currentBatteryTempState = BatteryTemperatureState_Hot;
-                    NRF_LOG_INFO("Battery still getting too hot");
-                } else if (temperatureTimes100 < TEMPERATURE_COOLDOWN_LEAVE) {
-                    currentBatteryTempState = BatteryTemperatureState_Normal;
-                    Battery::setDisableChargingOverride(false);
-                    NRF_LOG_INFO("Battery cooled down, Allowing Charge");
-                }
-                // Else stay in normal mode
-                break;
-            case BatteryTemperatureState_Hot:
-                if (temperatureTimes100 < TEMPERATURE_COOLDOWN_LEAVE) {
-                    currentBatteryTempState = BatteryTemperatureState_Normal;
-                    Battery::setDisableChargingOverride(false);
-                    NRF_LOG_INFO("Battery cooled down, Allowing Charge");
-                }
-                break;
-            case BatteryTemperatureState_Low:
-                if (temperatureTimes100 > TEMPERATURE_TOO_COLD) {
-                    currentBatteryTempState = BatteryTemperatureState_Normal;
-                    Battery::setDisableChargingOverride(false);
-                    NRF_LOG_INFO("Battery warmed up, Allowing Charge");
-                }
-                break;
+        if (overrideMode == ControllerOverrideMode_ForceEnableCharging) {
+            // Override temperature state
+            currentBatteryTempState = BatteryTemperatureState_Normal;
+        } else {
+            int temperatureTimes100 = Temperature::getNTCTemperatureTimes100();
+            switch (currentBatteryTempState) {
+                case BatteryTemperatureState_Disabled:
+                    // Don't do anything
+                    break;
+                case BatteryTemperatureState_Normal:
+                    if (temperatureTimes100 > TEMPERATURE_TOO_HOT) {
+                        currentBatteryTempState = BatteryTemperatureState_Hot;
+                        Battery::setDisableChargingOverride(true);
+                        NRF_LOG_INFO("Battery too hot, Preventing Charge");
+                    } else if (temperatureTimes100 > TEMPERATURE_COOLDOWN_ENTER) {
+                        currentBatteryTempState = BatteryTemperatureState_Cooldown;
+                        Battery::setDisableChargingOverride(true);
+                        NRF_LOG_INFO("Battery hot, Preventing Charge to cooldown");
+                    } else if (temperatureTimes100 < TEMPERATURE_TOO_COLD) {
+                        currentBatteryTempState = BatteryTemperatureState_Low;
+                        Battery::setDisableChargingOverride(true);
+                        NRF_LOG_INFO("Battery too cold, Preventing Charge");
+                    }
+                    // Else stay in normal mode
+                    break;
+                case BatteryTemperatureState_Cooldown:
+                    if (temperatureTimes100 > TEMPERATURE_TOO_HOT) {
+                        currentBatteryTempState = BatteryTemperatureState_Hot;
+                        NRF_LOG_INFO("Battery still getting too hot");
+                    } else if (temperatureTimes100 < TEMPERATURE_COOLDOWN_LEAVE) {
+                        currentBatteryTempState = BatteryTemperatureState_Normal;
+                        Battery::setDisableChargingOverride(false);
+                        NRF_LOG_INFO("Battery cooled down, Allowing Charge");
+                    }
+                    // Else stay in normal mode
+                    break;
+                case BatteryTemperatureState_Hot:
+                    if (temperatureTimes100 < TEMPERATURE_COOLDOWN_LEAVE) {
+                        currentBatteryTempState = BatteryTemperatureState_Normal;
+                        Battery::setDisableChargingOverride(false);
+                        NRF_LOG_INFO("Battery cooled down, Allowing Charge");
+                    }
+                    break;
+                case BatteryTemperatureState_Low:
+                    if (temperatureTimes100 > TEMPERATURE_TOO_COLD) {
+                        currentBatteryTempState = BatteryTemperatureState_Normal;
+                        Battery::setDisableChargingOverride(false);
+                        NRF_LOG_INFO("Battery warmed up, Allowing Charge");
+                    }
+                    break;
+            }
         }
 
         const auto newState = computeNewState();
@@ -592,13 +596,29 @@ namespace Modules::BatteryController
         }
     }
 
-    void onEnableChargingHandler(const Message *msg) {
-        Battery::setDisableChargingOverride(false);
+    void onSetBatteryControllerModeHandler(const Message *msg) {
+        auto setModeMsg = (const MessageSetBatteryControllerMode* )msg;
+        setControllerOverrideMode(setModeMsg->mode);
     }
 
-    void onDisableChargingHandler(const Message *msg) {
-        Battery::setDisableChargingOverride(true);
+	void setControllerOverrideMode(ControllerOverrideMode mode) {
+        overrideMode = mode;
+        switch (mode) {
+            case ControllerOverrideMode_ForceDisableCharging:
+                Battery::setDisableChargingOverride(true);
+                break;
+            case ControllerOverrideMode_Default:
+            case ControllerOverrideMode_ForceEnableCharging:
+            default:
+                Battery::setDisableChargingOverride(false);
+                break;
+        }
     }
+
+	ControllerOverrideMode getControllerOverrideMode() {
+        return overrideMode;
+    }
+
 
 	/// <summary>
 	/// Method used by clients to request timer callbacks when accelerometer readings are in

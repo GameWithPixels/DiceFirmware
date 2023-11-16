@@ -29,6 +29,7 @@ using DieType = Config::DiceVariants::DieType;
 using BatteryState = Modules::BatteryController::BatteryState;
 using BatteryControllerState = Modules::BatteryController::State;
 using RollState = Modules::Accelerometer::RollState;
+using BatteryControllerMode = Modules::BatteryController::ControllerOverrideMode;
 
 /// <summary>
 ///  Base class for messages from the die to the app
@@ -99,8 +100,8 @@ struct Message
 		MessageType_StopAllAnims,
 		MessageType_RequestTemperature,
 		MessageType_Temperature,
-		MessageType_EnableCharging,
-		MessageType_DisableCharging,
+		MessageType_SetBatteryControllerMode,
+		MessageType_Unused,
 		MessageType_Discharge,
 		MessageType_BlinkId,
 		MessageType_BlinkIdAck,
@@ -277,7 +278,7 @@ struct MessageTelemetry
 
 	// Battery charger low level state
 	uint8_t internalChargeState;
-	uint8_t forceDisableChargingState;
+	BatteryControllerMode batteryControllerMode;
 
 	// LEDs
 	uint8_t ledCurrent;
@@ -666,6 +667,14 @@ struct MessageTemperature
 	int16_t batteryTempTimes100;
 
 	MessageTemperature() : Message(Message::MessageType_Temperature) {}
+};
+
+struct MessageSetBatteryControllerMode
+	: Message
+{
+	BatteryControllerMode mode;
+
+	MessageSetBatteryControllerMode() : Message(Message::MessageType_SetBatteryControllerMode) {}
 };
 
 struct MessageDischarge
