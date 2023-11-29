@@ -14,16 +14,11 @@ namespace Animations
 	struct AnimationNoise
 		: public Animation
 	{
-		uint16_t overallGradientTrackOffset;		
-			
+		uint16_t overallGradientTrackOffset;
 		uint16_t individualGradientTrackOffset;
-
-		uint16_t blinkCount;	
-
-		uint8_t blinkDuration;	
-
-		uint8_t fade;
-
+		uint16_t blinkFrequencyTimes1000; // per seconds
+		uint16_t blinkFrequencyVarTimes1000; // per seconds
+		uint16_t blinkDurationMs;
 	};
 
 	/// <summary>
@@ -44,11 +39,12 @@ namespace Animations
 	private:
 		
 		const AnimationNoise* getPreset() const;
-		int previousBlinkTime = 0;				// state keeping track of the last time we turned on a set of faces
-		int individualBlinkTimes[MAX_COUNT];// state that keeps track of the start of every individual blink so as to know how to fade it based on the time
-		uint16_t blinkDurations[MAX_COUNT]; // keeps track of the duration of each individual blink, so as to add a bit of variation 
-		uint16_t curRand;						// rand variable for generating new random variables using nextRand from Utils.h
-		int ledCount; 							// int that keeps track of how many led's the circuit board has
+		int nextBlinkTime;
+		int blinkStartTimes[MAX_COUNT];		// state that keeps track of the start of every individual blink so as to know how to fade it based on the time
+		int blinkDurations[MAX_COUNT];	// keeps track of the duration of each individual blink, so as to add a bit of variation 
+		int ledCount; 					// int that keeps track of how many led's the circuit board has
+		int blinkInterValMinMs;
+		int blinkInterValDeltaMs;
 	};
 }
 

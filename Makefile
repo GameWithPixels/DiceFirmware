@@ -103,20 +103,22 @@ SRC_FILES += \
 	$(SDK_ROOT)/external/fprintf/nrf_fprintf.c \
 	$(SDK_ROOT)/external/fprintf/nrf_fprintf_format.c \
 	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
+	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_ppi.c \
+	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_rng.c \
 	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_twi.c \
 	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
-	$(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_ppi.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_saadc.c \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_wdt.c \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_ppi.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_rng.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_saadc.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_temp.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_timer.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
+	$(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_wdt.c \
 	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
 	$(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
@@ -134,6 +136,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_noise.cpp \
 	$(PROJ_DIR)/src/animations/animation_cycle.cpp \
 	$(PROJ_DIR)/src/animations/animation_blinkid.cpp \
+	$(PROJ_DIR)/src/animations/animation_normals.cpp \
 	$(PROJ_DIR)/src/animations/blink.cpp \
 	$(PROJ_DIR)/src/animations/keyframes.cpp \
 	$(PROJ_DIR)/src/behaviors/action.cpp \
@@ -166,6 +169,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/drivers_nrf/power_manager.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/scheduler.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/mcu_temperature.cpp \
+	$(PROJ_DIR)/src/drivers_nrf/rng.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/timers.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/watchdog.cpp \
 	$(PROJ_DIR)/src/modules/accelerometer.cpp \
@@ -223,6 +227,7 @@ INC_FOLDERS += \
 	$(SDK_ROOT)/components/libraries/fds \
 	$(SDK_ROOT)/components/libraries/fstorage \
 	$(SDK_ROOT)/components/libraries/memobj \
+	$(SDK_ROOT)/components/libraries/queue \
 	$(SDK_ROOT)/components/libraries/ringbuf \
 	$(SDK_ROOT)/components/libraries/balloc \
 	$(SDK_ROOT)/components/libraries/sortlist \

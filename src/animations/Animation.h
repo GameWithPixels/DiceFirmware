@@ -28,6 +28,7 @@ namespace Animations
 		Animation_Noise,
 		Animation_Cycle,
 		Animation_BlinkId,
+		Animation_Normals,
 	};
 
 	/// <summary>

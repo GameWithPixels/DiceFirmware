@@ -13,6 +13,7 @@
 #include "animation_noise.h"
 #include "animation_cycle.h"
 #include "animation_blinkid.h"
+#include "animation_normals.h"
 #include "config/board_config.h"
 
 
@@ -124,6 +125,9 @@ namespace Animations
 				break;
 			case Animation_BlinkId:
 				ret = new AnimationInstanceBlinkId(static_cast<const AnimationBlinkId*>(preset), bits);
+				break;
+			case Animation_Normals:
+				ret = new AnimationInstanceNormals(static_cast<const AnimationNormals*>(preset), bits);
 				break;
 			default:
 				NRF_LOG_ERROR("Unknown animation preset type");
