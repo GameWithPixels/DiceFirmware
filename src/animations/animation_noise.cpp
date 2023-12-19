@@ -4,10 +4,28 @@
 #include "config/board_config.h"
 #include "nrf_log.h"
 #include "drivers_nrf/rng.h"
+#include "modules/accelerometer.h"
+#include "dice_variants.h"
+#include "utils/Rainbow.h"
 
 using namespace DriversNRF;
+using namespace Modules;
+
 namespace Animations
 {
+    int computeBaseParam(NoiseColorOverrideType type) {
+        switch (type) {
+            case NoiseColorOverrideType_FaceToGradient:
+        		return (Accelerometer::currentFace() * 1000) / Config::DiceVariants::getLayout()->faceCount;
+            case NoiseColorOverrideType_FaceToRainbowWheel:
+        		return (Accelerometer::currentFace() * 256) / Config::DiceVariants::getLayout()->faceCount;
+            case NoiseColorOverrideType_RandomFromGradient:
+            case NoiseColorOverrideType_None:
+            default:
+                return 0;
+        }
+    }
+
 	/// <summary>
 	/// constructor for rainbow animations
 	/// Needs to have an associated preset passed in
@@ -47,7 +65,7 @@ namespace Animations
 		}
 
 		nextBlinkTime = _startTime + blinkInterValMinMs + (RNG::randomUInt32() % blinkInterValDeltaMs);
-		NRF_LOG_INFO("ms: %d -> %d, %d, %d", _startTime, blinkInterValMinMs, blinkInterValDeltaMs, nextBlinkTime);
+		baseColorParam = computeBaseParam(preset->overallGradientColorType);
 	}
 
 	/// <summary>
@@ -61,25 +79,68 @@ namespace Animations
 		
         auto preset = getPreset();
 		int time = ms - startTime;
+		int fadeTime = preset->duration * preset->fade / (255 * 2);
 
 		// LEDs will pick an initial color from the overall gradient (generally black to white)
 		auto& gradientOverall = animationBits->getRGBTrack(preset->overallGradientTrackOffset); 			
 		// they will then fade according to the individual gradient
 		auto& gradientIndividual = animationBits->getRGBTrack(preset->individualGradientTrackOffset);	
 
-		// gradient time is an x-axis variable used to progress along a gradient and is normalized to range from 0-1000
-		// eg: if we have a gradient that goes r->g->b 
-        int gradientTime = time*1000/preset->duration;
-		uint32_t gradientColor = gradientOverall.evaluateColor(animationBits, gradientTime);
+		uint8_t intensity = 255;
+		if (time <= fadeTime) {
+			// Ramp up
+			intensity = (uint8_t)(time * 255 / fadeTime);
+		} else if (time >= (preset->duration - fadeTime)) {
+			// Ramp down
+			intensity = (uint8_t)((preset->duration - time) * 255 / fadeTime);
+		}
 
 		// Should we start a new blink instance?
 		if (ms >= nextBlinkTime) {
 			// Yes, pick an led!
 			int newLed = RNG::randomUInt32() % ledCount;
+
+			// Setup next blink
 			blinkDurations[newLed] = preset->blinkDurationMs;
 			blinkStartTimes[newLed] = ms;
 
-			// Setup next blink
+			uint32_t gradientColor = 0;
+			switch (preset->overallGradientColorType) {
+				case NoiseColorOverrideType_RandomFromGradient:
+					// Ignore instance gradient parameter, each blink gets a random value
+					gradientColor = gradientOverall.evaluateColor(animationBits, RNG::randomUInt32() % 1000);
+					break;
+				case NoiseColorOverrideType_FaceToGradient:
+					{
+						// use the current face (set at start()) + variance
+						int var = (int)(RNG::randomUInt32() % MAX(1, (2 * preset->overallGradientColorVar))) - preset->overallGradientColorVar;
+						int param = baseColorParam + var;
+						if (param < 0) {
+							param = 0;
+						} else if (param > 1000) {
+							param = 1000;
+						}
+						gradientColor = gradientOverall.evaluateColor(animationBits, param);
+					}
+					break;
+				case NoiseColorOverrideType_FaceToRainbowWheel:
+					{
+						// use the current face (set at start()) + variance
+						int var = (int)(RNG::randomUInt32() % MAX(1, (2 * preset->overallGradientColorVar))) - preset->overallGradientColorVar;
+						int param = baseColorParam + var * 255 / 1000;
+						gradientColor = Rainbow::wheel(param);
+					}
+					break;
+				case NoiseColorOverrideType_None:
+				default:
+					{
+					int gradientTime = time * 1000 / preset->duration;
+					gradientColor = gradientOverall.evaluateColor(animationBits, gradientTime);
+					}
+					break;
+			}
+
+			blinkColors[newLed] = gradientColor;
 			nextBlinkTime = ms + blinkInterValMinMs + (RNG::randomUInt32() % blinkInterValDeltaMs);
 		}
 
@@ -102,7 +163,7 @@ namespace Animations
 					int blinkGradientTime = blinkTime * 1000 / blinkDurations[i];
 					uint32_t blinkColor = gradientIndividual.evaluateColor(animationBits, blinkGradientTime);
 					retIndices[retCount] = i;
-					retColors[retCount] = Utils::mulColors(gradientColor, blinkColor);
+					retColors[retCount] = Utils::modulateColor(Utils::mulColors(blinkColors[i], blinkColor), intensity);
 					retCount++;
 				}
 			}

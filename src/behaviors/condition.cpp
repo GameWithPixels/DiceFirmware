@@ -53,6 +53,17 @@ namespace Behaviors
     }
 
     /// <summary>
+    /// Called by the Behavior Controller when a roll state event happens to see if this condition should trigger
+    /// </summary>
+    bool ConditionRolled::checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const {
+        bool ret = false;
+        if (newState == Modules::Accelerometer::RollState_OnFace) {
+            ret = (faceMask & (1 << newFaceIndex)) != 0;
+        }
+        return ret;
+    }
+
+    /// <summary>
     /// Called by the Behavior Controller when a life state event happens to see if this condition should trigger
     /// </summary>
     bool ConditionHelloGoodbye::checkTrigger(bool isHello) const {

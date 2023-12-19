@@ -89,9 +89,6 @@ namespace Modules::BehaviorController
                     NRF_LOG_DEBUG("Triggering a Connection State Condition");
                     // Go on, do the thing!
                     Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_BluetoothNotification);
-
-                    // We're done!
-                    break;
                 }
             }
         }
@@ -141,9 +138,7 @@ namespace Modules::BehaviorController
             auto condition = DataSet::getCondition(rule->condition);
             if (condition->type == Behaviors::Condition_BatteryState) {
 
-                if (processBatteryStateRule(i, newState)) {
-                    break;
-                }
+                processBatteryStateRule(i, newState);
             }
         }
     }
@@ -181,6 +176,9 @@ namespace Modules::BehaviorController
                 case Behaviors::Condition_FaceCompare:
                     conditionTriggered = static_cast<const Behaviors::ConditionFaceCompare*>(condition)->checkTrigger(newState, newFace);
                     break;
+                case Behaviors::Condition_Rolled:
+                    conditionTriggered = static_cast<const Behaviors::ConditionRolled*>(condition)->checkTrigger(newState, newFace);
+                    break;
                 default:
                     break;
             }
@@ -188,9 +186,6 @@ namespace Modules::BehaviorController
             if (conditionTriggered) {
                 // do the thing
                 Behaviors::triggerActions(rule->actionOffset, rule->actionCount, Animations::AnimationTag_Accelerometer);
-
-                // We're done
-                break;
             }
         }
     }

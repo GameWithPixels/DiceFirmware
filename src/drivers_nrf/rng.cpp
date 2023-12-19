@@ -7,7 +7,6 @@
 namespace DriversNRF::RNG
 {
     void init() {
-        ret_code_t err_code;
         NRF_LOG_DEBUG("RNG init");
     }
 

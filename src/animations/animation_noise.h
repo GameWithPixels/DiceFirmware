@@ -8,6 +8,14 @@
 
 namespace Animations
 {
+	enum NoiseColorOverrideType : uint8_t
+	{
+		NoiseColorOverrideType_None = 0,
+		NoiseColorOverrideType_RandomFromGradient,
+		NoiseColorOverrideType_FaceToGradient,
+		NoiseColorOverrideType_FaceToRainbowWheel,
+	};
+
 	/// <summary>
 	/// Procedural noise animation
 	/// </summary>
@@ -19,6 +27,9 @@ namespace Animations
 		uint16_t blinkFrequencyTimes1000; // per seconds
 		uint16_t blinkFrequencyVarTimes1000; // per seconds
 		uint16_t blinkDurationMs;
+		uint8_t fade; // 0 - 255
+		NoiseColorOverrideType overallGradientColorType; // boolean
+		uint16_t overallGradientColorVar; // 0 - 1000
 	};
 
 	/// <summary>
@@ -42,9 +53,11 @@ namespace Animations
 		int nextBlinkTime;
 		int blinkStartTimes[MAX_COUNT];		// state that keeps track of the start of every individual blink so as to know how to fade it based on the time
 		int blinkDurations[MAX_COUNT];	// keeps track of the duration of each individual blink, so as to add a bit of variation 
+		uint32_t blinkColors[MAX_COUNT];
 		int ledCount; 					// int that keeps track of how many led's the circuit board has
 		int blinkInterValMinMs;
 		int blinkInterValDeltaMs;
+		int baseColorParam;
 	};
 }
 

@@ -23,6 +23,7 @@ namespace Behaviors
         Condition_ConnectionState,
         Condition_BatteryState,
         Condition_Idle,
+        Condition_Rolled,
     };
 
     /// <summary>
@@ -104,6 +105,19 @@ namespace Behaviors
         uint8_t faceIndex;
         uint8_t flags; // ConditionFaceCompare_Flags
         uint8_t paddingFlags;
+        bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
+    };
+
+    /// <summary>
+    /// Condition that triggers when the die has landed on a face, using a bitfield to check the faces
+    /// </summary>
+    struct ConditionRolled
+        : public Condition
+    {
+        uint8_t padding1;
+        uint8_t padding2;
+        uint8_t padding3;
+        uint32_t faceMask;
         bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
     };
 

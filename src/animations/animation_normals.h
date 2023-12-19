@@ -7,17 +7,29 @@
 
 namespace Animations
 {
+	enum NormalsColorOverrideType : uint8_t
+	{
+		NormalsColorOverrideType_None = 0,
+		NormalsColorOverrideType_FaceToGradient,
+		NormalsColorOverrideType_FaceToRainbowWheel,
+	};
+
 	/// <summary>
 	/// Procedural gradient animation based on normals
 	/// </summary>
 	struct AnimationNormals
 		: public Animation
 	{
-		uint16_t gradient; // 0 - 1, over time
+		uint16_t gradientOverTime; // 0 - 1, over time
 		uint16_t gradientAlongAxis; // 0 = top, 1 = bottom
         uint16_t gradientAlongAngle; // 0 = -pi, 1 = pi
+		int16_t axisScaleTimes1000;
+		int16_t axisOffsetTimes1000;
         int16_t axisScrollSpeedTimes1000; // in cycles, can be negative
         int16_t angleScrollSpeedTimes1000; // in cycles, can be negative
+		uint8_t fade; // 0 - 255
+		NormalsColorOverrideType mainGradientColorType;
+		uint16_t mainGradientColorVar; // 0 - 1000, only applies for random and face-based color
 	};
 
 	/// <summary>
@@ -40,6 +52,7 @@ namespace Animations
         const Core::int3* normals;
         const Core::int3* faceNormal;
         Core::int3 backVector;
+		int baseColorParam;
 	};
 }
 

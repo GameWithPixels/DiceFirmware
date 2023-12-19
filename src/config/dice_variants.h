@@ -49,4 +49,5 @@ namespace Config::DiceVariants
     uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
     uint32_t getTopFaceMask();
     uint8_t getTopFace();
+    uint8_t getFaceForLEDIndex(int ledIndex);
 }

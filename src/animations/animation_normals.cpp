@@ -3,6 +3,13 @@
 #include "board_config.h"
 #include "dice_variants.h"
 #include "utils/Utils.h"
+#include "nrf_log.h"
+#include "utils/Rainbow.h"
+#include "modules/accelerometer.h"
+#include "drivers_nrf/rng.h"
+
+using namespace DriversNRF;
+using namespace Modules;
 
 namespace Animations
 {
@@ -36,10 +43,7 @@ namespace Animations
         normals = layout->baseNormals;
 
         // Grab the orientation normal, based on the current face
-        uint8_t face = _remapFace;
-        if (face == 0xFF) {
-            face = Config::DiceVariants::getTopFace();
-        }
+        uint8_t face = Config::DiceVariants::getTopFace();
         faceNormal = &normals[face];
         int backFaceOffset = 1;
         Core::int3 backVectorNormal = normals[(face + backFaceOffset) % layout->faceCount];
@@ -48,9 +52,25 @@ namespace Animations
             backVectorNormal = normals[(face + backFaceOffset) % layout->faceCount];
         }
         
+        // Compute our base vectors, up is aligned with current face, and
+        // a back is at 90 degrees from that.
         auto cross = Core::int3::cross(*faceNormal, backVectorNormal);
         cross.normalize();
         backVector = Core::int3::cross(cross, *faceNormal);
+
+        // For color override, precompute parameter
+        auto preset = getPreset();
+        switch (preset->mainGradientColorType) {
+            case NormalsColorOverrideType_FaceToGradient:
+        		baseColorParam = (Accelerometer::currentFace() * 1000) / Config::DiceVariants::getLayout()->faceCount;
+                break;
+            case NormalsColorOverrideType_FaceToRainbowWheel:
+        		baseColorParam = (Accelerometer::currentFace() * 256) / Config::DiceVariants::getLayout()->faceCount;
+                break;
+            case NormalsColorOverrideType_None:
+            default:
+                break;
+        }
 	}
 
 	/// <summary>
@@ -63,46 +83,105 @@ namespace Animations
 	int AnimationInstanceNormals::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
         int time = ms - startTime;
         auto preset = getPreset();
+		int fadeTime = preset->duration * preset->fade / (255 * 2);
+
+		uint8_t intensity = 255;
+		if (time <= fadeTime) {
+			// Ramp up
+			intensity = (uint8_t)(time * 255 / fadeTime);
+		} else if (time >= (preset->duration - fadeTime)) {
+			// Ramp down
+			intensity = (uint8_t)((preset->duration - time) * 255 / fadeTime);
+		}
 
         int axisScrollTime = time * preset->axisScrollSpeedTimes1000 / preset->duration;
         int angleScrollTime = time * preset->angleScrollSpeedTimes1000 / preset->duration;
         int gradientTime = time * 1000 / preset->duration;
 
         // Figure out the color from the gradient
-        auto& gradient = animationBits->getRGBTrack(preset->gradient);
+        auto& gradient = animationBits->getRGBTrack(preset->gradientOverTime);
         auto& axisGradient = animationBits->getRGBTrack(preset->gradientAlongAxis);
         auto& angleGradient = animationBits->getRGBTrack(preset->gradientAlongAngle);
         auto layout = Config::DiceVariants::getLayout();
-        for (int i = 0; i < layout->faceCount; ++i) {
-            // Compute color relative to up/down angle (angle to axis)
-            int dotAxisTimes1000 = Core::int3::dotTimes1000(*faceNormal, normals[i]);
-            int dotAxis8 = (dotAxisTimes1000 * 1275 + 1275000) / 10000;
+        for (int i = 0; i < layout->ledCount; ++i) {
+            int face = Config::DiceVariants::getFaceForLEDIndex(i);
+
+            // Compute color relative to up/down angle (based on the angle to axis)
+            // We'll extract the angle from the dot product of the face's normal and the axis
+            int dotAxisTimes1000 = Core::int3::dotTimes1000(*faceNormal, normals[face]);
+
+            // remap the [-1000, 1000] range to an 8 bit value usable by acos8
+            uint8_t dotAxis8 = (dotAxisTimes1000 * 1275 + 1275000) / 10000;
+
+            // Use lookup acos table
             int angleToAxis8 = Utils::acos8(dotAxis8);
+
+            // remap 8 bit value to [-1000, 1000] range
             int angleToAxisNormalized = (angleToAxis8 - 128) * 1000 / 128;
-            int axisGradientBaseTime = angleToAxisNormalized;
-            int axisGradientTime = (axisGradientBaseTime + axisScrollTime) % 1000;
+
+            // Scale / Offset the value so we can use a smaller subset of the gradient
+            int axisGradientBaseTime = angleToAxisNormalized * 1000 / preset->axisScaleTimes1000 + preset->axisOffsetTimes1000;
+
+            // Add motion
+            int axisGradientTime = axisGradientBaseTime + axisScrollTime;
+
+            // Compute color along axis
             uint32_t axisColor = axisGradient.evaluateColor(animationBits, axisGradientTime);
 
-            // Compute color relative to up/down angle (angle to axis)
-            int dotBackTimes1000 = Core::int3::dotTimes1000(backVector, normals[i]);
+            // Compute color relative to up/down angle (angle to axis), we'll use the dot product to the back vector
+
+            // Start by getting a properly normalized in-plane direction vector
+            Core::int3 inPlaneNormal = normals[face] - *faceNormal * dotAxisTimes1000;
+            inPlaneNormal.normalize();
+
+            // Compute dot product and extract angle
+            int dotBackTimes1000 = Core::int3::dotTimes1000(backVector, inPlaneNormal);
             int dotBack8 = (dotBackTimes1000 * 1275 + 1275000) / 10000;
             int angleToBack8 = Utils::acos8(dotBack8);
-            if (Core::int3::dotTimes1000(Core::int3::cross(backVector, normals[i]), *faceNormal) > 0) {
+
+            // Oops, we need full range so check cross product with axis to swap the sign as needed
+            if (Core::int3::dotTimes1000(Core::int3::cross(backVector, normals[face]), *faceNormal) < 0) {
                 // Negate the angle
                 angleToBack8 = 255 - angleToBack8;
             }
+
+            // Remap to proper range
             int angleToBackTimes1000 = (angleToBack8 - 128) * 1000 / 128;
-            int angleGradientBaseTime = (angleToBackTimes1000 + 1000) / 2;
-            int angleGradientTime = (angleGradientBaseTime + angleScrollTime) % 1000;
+            int angleGradientNormalized = (angleToBackTimes1000 + 1000) / 2;
+
+            // Angle is animated and wrapped around
+            int angleGradientTime = (angleGradientNormalized + angleScrollTime) % 1000;
+
+            // Compute color along angle
             uint32_t angleColor = angleGradient.evaluateColor(animationBits, angleGradientTime);
 
-            uint32_t gradientColor = gradient.evaluateColor(animationBits, gradientTime);
+            // Compute color over time
+			uint32_t gradientColor = 0;
+			switch (preset->mainGradientColorType) {
+				case NormalsColorOverrideType_FaceToGradient:
+                    {
+                        // use the current face (set at start()) + variance
+                        int gradientParam = baseColorParam + angleToAxisNormalized * preset->mainGradientColorVar / 1000;
+                        gradientColor = gradient.evaluateColor(animationBits, gradientParam);
+                    }
+					break;
+				case NormalsColorOverrideType_FaceToRainbowWheel:
+                    {
+                        // use the current face (set at start()) + variance
+                        int rainbowParam = (baseColorParam + angleToAxisNormalized * preset->mainGradientColorVar * 256 / 1000000) % 256;
+                        gradientColor = Rainbow::wheel(rainbowParam);
+                    }
+					break;
+				case NormalsColorOverrideType_None:
+				default:
+					gradientColor = gradient.evaluateColor(animationBits, gradientTime);
+					break;
+			}
 
-            //int gradientTime = (gradientBaseTime) % 1000;
             retIndices[i] = i;
-            retColors[i] = Utils::mulColors(gradientColor, Utils::mulColors(axisColor, angleColor));
+            retColors[i] = Utils::modulateColor(Utils::mulColors(gradientColor, Utils::mulColors(axisColor, angleColor)), intensity);
         }
-        return layout->faceCount;
+        return layout->ledCount;
 	}
 
 	/// <summary>
