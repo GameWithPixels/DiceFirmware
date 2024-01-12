@@ -40,8 +40,10 @@ namespace Config::DiceVariants
         const uint8_t* canonicalIndexToElectricalIndexLookup;   // Because LEDs are organized in a daisy chain, but that daisy chain
                                                                 // doesn't necessarily follow the order of the faces, we need to be able
                                                                 // to remap from canonical (i.e. face) index to electrical (i.e. LED) index.
+        const uint32_t* adjacencyMap;                           // Bitfield indicating which faces are adjacent to the current face
         uint8_t faceCount; // Face count isn't always equal to LED count (i.e. PD6, D4)
         uint8_t ledCount;
+        uint8_t adjacencyCount; // How many faces each face is adjacent to
     };
 
     const Layout* getLayout();

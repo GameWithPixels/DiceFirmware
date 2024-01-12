@@ -32,6 +32,14 @@ namespace DiceVariants
         0, 2, 5, 4, 1, 3,   // Led Index
     };
 
+    const uint32_t sixSidedAdjacency[] = {
+        1 << 1 | 1 << 2 | 1 << 3 | 1 << 4, // 1
+        1 << 0 | 1 << 2 | 1 << 3 | 1 << 5,
+        1 << 0 | 1 << 1 | 1 << 4 | 1 << 5,
+        1 << 0 | 1 << 1 | 1 << 4 | 1 << 5,
+        1 << 0 | 1 << 2 | 1 << 3 | 1 << 5,
+        1 << 1 | 1 << 2 | 1 << 3 | 1 << 4,
+    };
 
     const uint8_t twentySidedRemap[] = {
         19, 12, 15, 14, 17, 16, 13, 18, 9, 8, 11, 10, 1, 6, 3, 2, 5, 4, 7, 0, // remap for face at index 0 (= face with number 1)
@@ -91,6 +99,29 @@ namespace DiceVariants
         { 335, -937,   92},
     };
 
+    const uint32_t twentySidedAdjacency[] = {
+        1 <<  6 | 1 << 18 | 1 << 13, // 1
+        1 << 11 | 1 << 17 | 1 << 19,
+        1 << 15 | 1 << 16 | 1 << 18,
+        1 << 10 | 1 << 13 | 1 << 17,
+        1 << 12 | 1 << 14 | 1 << 17,
+        1 <<  8 | 1 << 13 | 1 << 15,
+        1 <<  0 | 1 << 14 | 1 << 16,
+        1 <<  9 | 1 << 15 | 1 << 19,
+        1 <<  5 | 1 << 10 | 1 << 18,
+        1 <<  7 | 1 << 11 | 1 << 16,
+        1 <<  3 | 1 <<  8 | 1 << 12,
+        1 <<  1 | 1 <<  9 | 1 << 14,
+        1 <<  0 | 1 <<  4 | 1 << 10,
+        1 <<  3 | 1 <<  5 | 1 << 19,
+        1 <<  4 | 1 <<  6 | 1 << 11,
+        1 <<  2 | 1 <<  5 | 1 <<  7,
+        1 <<  2 | 1 <<  6 | 1 <<  9,
+        1 <<  1 | 1 <<  3 | 1 <<  4,
+        1 <<  0 | 1 <<  2 | 1 <<  8,
+        1 <<  1 | 1 <<  7 | 1 << 13,
+    };
+
     const uint8_t twelveSidedRemap[] = {
         11, 7, 9, 6, 10, 8, 3, 1, 5, 2, 4, 0,
         10, 2, 6, 11, 4, 8, 3, 7, 0, 5, 9, 1,
@@ -127,6 +158,20 @@ namespace DiceVariants
         3, 2, 5, 0, 9, 4, 7, 1, 11, 8, 10, 6
     };
 
+    const uint32_t twelveSidedAdjacency[] = {
+        1 <<  1 | 1 <<  3 | 1 <<  4 | 1 <<  5 | 1 <<  9, // 1
+        1 <<  0 | 1 <<  3 | 1 <<  6 | 1 <<  7 | 1 <<  9,
+        1 <<  3 | 1 <<  5 | 1 <<  7 | 1 << 10 | 1 << 11,
+        1 <<  0 | 1 <<  1 | 1 <<  2 | 1 <<  5 | 1 <<  7,
+        1 <<  0 | 1 <<  5 | 1 <<  8 | 1 <<  9 | 1 << 10,
+        1 <<  0 | 1 <<  2 | 1 <<  3 | 1 <<  4 | 1 << 10,
+        1 <<  1 | 1 <<  7 | 1 <<  8 | 1 <<  9 | 1 << 11,
+        1 <<  1 | 1 <<  2 | 1 <<  3 | 1 <<  6 | 1 << 11,
+        1 <<  4 | 1 <<  6 | 1 <<  9 | 1 << 10 | 1 << 11,
+        1 <<  0 | 1 <<  1 | 1 <<  4 | 1 <<  6 | 1 <<  8,
+        1 <<  2 | 1 <<  4 | 1 <<  5 | 1 <<  8 | 1 << 11,
+        1 <<  2 | 1 <<  6 | 1 <<  7 | 1 <<  8 | 1 << 10,
+    };
 
     const uint8_t tenSidedRemap[] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 
@@ -160,7 +205,18 @@ namespace DiceVariants
          9, 3, 7, 0, 5, 1, 6, 4, 8, 2
     };
 
-    // Led
+    const uint32_t tenSidedAdjacency[] = {
+        1 << 3 | 1 << 4 | 1 << 7 | 1 << 8, // 0
+        1 << 4 | 1 << 6 | 1 << 7 | 1 << 9,
+        1 << 5 | 1 << 6 | 1 << 8 | 1 << 9,
+        1 << 0 | 1 << 5 | 1 << 7 | 1 << 8,
+        1 << 0 | 1 << 1 | 1 << 6 | 1 << 7,
+        1 << 2 | 1 << 3 | 1 << 8 | 1 << 9,
+        1 << 1 | 1 << 2 | 1 << 4 | 1 << 9,
+        1 << 0 | 1 << 1 | 1 << 3 | 1 << 4,
+        1 << 0 | 1 << 2 | 1 << 3 | 1 << 5,
+        1 << 1 | 1 << 2 | 1 << 5 | 1 << 6,
+    };
 
     const uint8_t eightSidedRemap[] = {
         7, 2, 1, 4, 3, 6, 5, 0,
@@ -196,6 +252,17 @@ namespace DiceVariants
         2, 0, 3, 1, 7, 5, 4, 6  // Face Index
     };
 
+    const uint32_t eightSidedAdjacency[] = {
+        1 << 2 | 1 << 3 | 1 << 6, // 1
+        1 << 2 | 1 << 3 | 1 << 7,
+        1 << 0 | 1 << 1 | 1 << 4,
+        1 << 0 | 1 << 1 | 1 << 5,
+        1 << 2 | 1 << 6 | 1 << 7,
+        1 << 3 | 1 << 6 | 1 << 7,
+        1 << 0 | 1 << 4 | 1 << 5,
+        1 << 1 | 1 << 4 | 1 << 5,
+    };
+
     const uint8_t pippedD6Remap[] = {
         // FIXME!!!
         0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // face 1
@@ -217,40 +284,50 @@ namespace DiceVariants
         .baseNormals = twentySidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = twentySidedRemap,
         .canonicalIndexToElectricalIndexLookup = twentySidedFaceToLedLookup,
+        .adjacencyMap = twentySidedAdjacency,
         .faceCount = 20,
         .ledCount = 20,
+        .adjacencyCount = 3,
     };
 
     const Layout D12Layout = {
         .baseNormals = twelveSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = twelveSidedRemap,
         .canonicalIndexToElectricalIndexLookup = twelveSidedFaceToLedLookup,
+        .adjacencyMap = twelveSidedAdjacency,
         .faceCount = 12,
         .ledCount = 12,
+        .adjacencyCount = 5,
     };
 
     const Layout D10Layout = {
         .baseNormals = tenSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = tenSidedRemap,
         .canonicalIndexToElectricalIndexLookup = tenSidedFaceToLedLookup,
+        .adjacencyMap = tenSidedAdjacency,
         .faceCount = 10,
         .ledCount = 10,
+        .adjacencyCount = 4,
     };
 
     const Layout D8Layout = {
         .baseNormals = eightSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = eightSidedRemap,
         .canonicalIndexToElectricalIndexLookup = eightSidedFaceToLedLookup,
+        .adjacencyMap = eightSidedAdjacency,
         .faceCount = 8,
         .ledCount = 8,
+        .adjacencyCount = 3,
     };
 
     const Layout D6Layout = {
         .baseNormals = sixSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
         .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
+        .adjacencyMap = sixSidedAdjacency,
         .faceCount = 6,
         .ledCount = 6,
+        .adjacencyCount = 4,
     };
 
     const Layout D4Layout = {
@@ -258,8 +335,10 @@ namespace DiceVariants
         .baseNormals = sixSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
         .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
+        .adjacencyMap = sixSidedAdjacency,
         .faceCount = 4,
         .ledCount = 4,
+        .adjacencyCount = 4,
     };
 
     // Die layout information
@@ -267,16 +346,20 @@ namespace DiceVariants
         .baseNormals = sixSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = pippedD6Remap,
         .canonicalIndexToElectricalIndexLookup = pippedD6FaceToLedLookup,
+        .adjacencyMap = sixSidedAdjacency,
         .faceCount = 6,
         .ledCount = 21,
+        .adjacencyCount = 4,
     };
 
     const Layout FateLayout = {
         .baseNormals = sixSidedNormals,
         .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
         .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
+        .adjacencyMap = sixSidedAdjacency,
         .faceCount = 6,
         .ledCount = 6,
+        .adjacencyCount = 4,
     };
 
     const Layout* getLayout() {
