@@ -26,11 +26,14 @@ namespace Modules::BehaviorController
     void onBatteryStateChange(void* param, BatteryController::BatteryState newState);
     void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace);
 
+    int lastRollStateTimestamp;
+
 	void init() {
 
 		// Hook up the behavior controller to all the events it needs to know about to do its job!
         Bluetooth::Stack::hook(onConnectionEvent, nullptr);
         BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
+        lastRollStateTimestamp = Timers::millis();
         NRF_LOG_DEBUG("Behavior Controller init");
     }
 
@@ -151,6 +154,7 @@ namespace Modules::BehaviorController
         Accelerometer::hookRollState(onRollStateChange, nullptr);
     }
 
+
     void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace) {
 
         // Do we have a roll state event condition?
@@ -168,7 +172,16 @@ namespace Modules::BehaviorController
                     conditionTriggered = static_cast<const Behaviors::ConditionHandling*>(condition)->checkTrigger(newState, newFace);
                     break;
                 case Behaviors::Condition_Rolling:
-                    conditionTriggered = static_cast<const Behaviors::ConditionRolling*>(condition)->checkTrigger(newState, newFace);
+                    {
+                        auto rollingCondition = static_cast<const Behaviors::ConditionRolling*>(condition);
+                        int timestamp = Timers::millis();
+                        if (timestamp - lastRollStateTimestamp > rollingCondition->repeatPeriodMs) {
+                            conditionTriggered = rollingCondition->checkTrigger(newState, newFace);
+                            if (conditionTriggered) {
+                                lastRollStateTimestamp = timestamp;
+                            }
+                        }
+                    }
                     break;
                 case Behaviors::Condition_Crooked:
                     conditionTriggered = static_cast<const Behaviors::ConditionCrooked*>(condition)->checkTrigger(newState, newFace);
