@@ -9,7 +9,7 @@ namespace Animations
 	/// <summary>
 	/// Procedural rainbow animation that cycle faces
 	/// </summary>
-	struct AnimationCycle
+	struct AnimationWorm
 		: public Animation
 	{
 		uint32_t faceMask;
@@ -23,12 +23,12 @@ namespace Animations
 	/// <summary>
 	/// Procedural rainbow animation instance data
 	/// </summary>
-	class AnimationInstanceCycle
+	class AnimationInstanceWorm
 		: public AnimationInstance
 	{
 	public:
-		AnimationInstanceCycle(const AnimationCycle *preset, const DataSet::AnimationBits *bits);
-		virtual ~AnimationInstanceCycle();
+		AnimationInstanceWorm(const AnimationWorm *preset, const DataSet::AnimationBits *bits);
+		virtual ~AnimationInstanceWorm();
 		virtual int animationSize() const;
 
 		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
@@ -36,7 +36,7 @@ namespace Animations
 		virtual int stop(int retIndices[]);
 
 	private:
-		const AnimationCycle *getPreset() const;
+		const AnimationWorm *getPreset() const;
 	};
 }
 

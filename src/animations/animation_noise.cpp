@@ -11,6 +11,7 @@
 using namespace DriversNRF;
 using namespace Modules;
 
+#define MAX_RETRIES 5
 namespace Animations
 {
     int computeBaseParam(NoiseColorOverrideType type) {
@@ -99,6 +100,9 @@ namespace Animations
 		if (ms >= nextBlinkTime) {
 			// Yes, pick an led!
 			int newLed = RNG::randomUInt32() % ledCount;
+			for (int retries = 0; blinkDurations[newLed] != 0 && retries < MAX_RETRIES; ++retries) {
+				newLed = RNG::randomUInt32() % ledCount;
+			}
 
 			// Setup next blink
 			blinkDurations[newLed] = preset->blinkDurationMs;
