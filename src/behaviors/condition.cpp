@@ -13,6 +13,7 @@ namespace Behaviors
     /// Called by the Behavior Controller when a roll state event happens to see if this condition should trigger
     /// </summary>
     bool ConditionHandling::checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const {
+        // Deprecated
         return newState == Modules::Accelerometer::RollState_Handling;
     }
 
@@ -20,7 +21,8 @@ namespace Behaviors
     /// Called by the Behavior Controller when a roll state event happens to see if this condition should trigger
     /// </summary>
     bool ConditionRolling::checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const {
-        return newState == Modules::Accelerometer::RollState_Rolling;
+        return newState == Modules::Accelerometer::RollState_Rolling ||
+               newState == Modules::Accelerometer::RollState_Handling;
     }
 
     /// <summary>

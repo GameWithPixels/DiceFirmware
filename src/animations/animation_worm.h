@@ -1,6 +1,7 @@
 #pragma once
 
 #include "animations/Animation.h"
+#include "config/settings.h"
 
 #pragma pack(push, 1)
 
@@ -31,12 +32,13 @@ namespace Animations
 		virtual ~AnimationInstanceWorm();
 		virtual int animationSize() const;
 
-		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
+		virtual void start(int _startTime, uint8_t _remapFace, uint8_t _loopCount);
 		virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
 		virtual int stop(int retIndices[]);
 
 	private:
 		const AnimationWorm *getPreset() const;
+		uint8_t indices[MAX_COUNT];
 	};
 }
 

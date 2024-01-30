@@ -485,5 +485,16 @@ namespace DiceVariants
         }
     }
 
+    uint8_t getAdjacentFaces(uint8_t face, uint8_t retFaces[]) {
+        uint32_t adj = getLayout()->adjacencyMap[face];
+        uint8_t count = 0;
+        for (int i = 0; i < getLayout()->faceCount; i++) {
+            if (adj & (1 << i)) {
+                retFaces[count++] = i;
+            }
+        }
+        return count;
+    }
+
 }
 }

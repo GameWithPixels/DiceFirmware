@@ -52,4 +52,5 @@ namespace Config::DiceVariants
     uint32_t getTopFaceMask();
     uint8_t getTopFace();
     uint8_t getFaceForLEDIndex(int ledIndex);
+    uint8_t getAdjacentFaces(uint8_t face, uint8_t retFaces[]);
 }

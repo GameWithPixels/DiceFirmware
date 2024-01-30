@@ -35,8 +35,8 @@ namespace Animations
 	/// <summary>
 	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
 	/// </summary>
-	void AnimationInstanceNormals::start(int _startTime, uint8_t _remapFace, bool _loop) {
-		AnimationInstance::start(_startTime, _remapFace, _loop);
+	void AnimationInstanceNormals::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
+		AnimationInstance::start(_startTime, _remapFace, _loopCount);
 
         // Grab the die normals
         auto layout = Config::DiceVariants::getLayout();

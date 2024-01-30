@@ -24,7 +24,7 @@ namespace Modules::AnimController
 	void stop();
 	void start();
 
-	void play(const Animations::Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace = 0, bool loop = false, Animations::AnimationTag tag = Animations::AnimationTag_Unknown);
+	void play(const Animations::Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace = 0, uint8_t loopCount = 1, Animations::AnimationTag tag = Animations::AnimationTag_Unknown);
 	void stop(const Animations::Animation* animationPreset, uint8_t remapFace = 0);
 	void fadeOutAnimsWithTag(Animations::AnimationTag tagToStop, int fadeOutTimeMs);
 	void stopAll();

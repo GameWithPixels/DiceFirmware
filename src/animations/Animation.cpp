@@ -56,11 +56,11 @@ namespace Animations
 		tag = _tag;
 	}
 
-	void AnimationInstance::start(int _startTime, uint8_t _remapFace, bool _loop) {
+	void AnimationInstance::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
 		startTime = _startTime;
 		remapFace = _remapFace;
 		forceFadeTime = -1;
-		loop = _loop;
+		loopCount = _loopCount;
 	}
 
 	int AnimationInstance::setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]) {
@@ -91,7 +91,7 @@ namespace Animations
 	}
 
 	void AnimationInstance::forceFadeOut(int fadeOutTime) {
-		loop = false;
+		loopCount = 1;
 		if (forceFadeTime < startTime + animationPreset->duration) {
 			forceFadeTime = fadeOutTime;
 		}

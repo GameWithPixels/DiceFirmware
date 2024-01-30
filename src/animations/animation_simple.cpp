@@ -29,8 +29,8 @@ namespace Animations
 	/// <summary>
 	/// (re)Initializes the instance to animate LEDs. This can be called on a reused instance.
 	/// </summary>
-	void AnimationInstanceSimple::start(int _startTime, uint8_t _remapFace, bool _loop) {
-		AnimationInstance::start(_startTime, _remapFace, _loop);
+	void AnimationInstanceSimple::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
+		AnimationInstance::start(_startTime, _remapFace, _loopCount);
         auto preset = getPreset();
         rgb = animationBits->getPaletteColor(preset->colorIndex);
 	}

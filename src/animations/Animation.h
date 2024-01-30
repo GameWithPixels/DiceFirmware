@@ -64,17 +64,18 @@ namespace Animations
 		const DataSet::AnimationBits* animationBits;
 		int startTime; //ms
 		int forceFadeTime; //ms, used when fading out (because anim is being replaced), -1 otherwise
-		uint8_t remapFace;
 		AnimationTag tag; // used to identify where the animation came from / what system triggered it
-		bool loop;
+		uint8_t remapFace;
+		uint8_t loopCount;
+		uint8_t paddingLoopCount;
 
 	protected:
 		AnimationInstance(const Animation* preset, const DataSet::AnimationBits* bits);
 
 	public:
 		virtual ~AnimationInstance();
-		// starts the animation, with the option of repeating it if _loop is set
-		virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
+		// starts the animation, with the option of repeating it if _loopCount > 1
+		virtual void start(int _startTime, uint8_t _remapFace, uint8_t _loopCount);
 		virtual int animationSize() const = 0;
 		// method used to set which faces to turn on as well as the color of their LEDs
 		// retIndices is one to one with retColors and keeps track of which face to turn on as well as its corresponding color

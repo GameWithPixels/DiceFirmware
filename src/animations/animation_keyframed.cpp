@@ -34,8 +34,8 @@ namespace Animations
 	/// <summary>
 	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
 	/// </summary>
-	void AnimationInstanceKeyframed::start(int _startTime, uint8_t _remapFace, bool _loop) {
-		AnimationInstance::start(_startTime, _remapFace, _loop);
+	void AnimationInstanceKeyframed::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
+		AnimationInstance::start(_startTime, _remapFace, _loopCount);
 	}
 
 	/// <summary>

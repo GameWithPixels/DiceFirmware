@@ -104,13 +104,13 @@ namespace Modules::AnimController
 			for (int i = 0; i < animationCount; ++i) {
 				auto anim = animations[i];
 
-				bool loop = anim->loop;
 				bool fade = anim->forceFadeTime != -1;
 
 				int endTime = anim->startTime + anim->animationPreset->duration;
 				uint32_t fadePercentTimes1000 = 1000;
-				if (loop && ms > endTime) {
+				if (anim->loopCount > 1 && ms > endTime) {
 					// Yes, update anim start time so next if statement updates the animation
+					anim->loopCount--;
 					anim->startTime += anim->animationPreset->duration;
 					endTime += anim->animationPreset->duration;
 				} else if (fade) {
@@ -213,7 +213,7 @@ namespace Modules::AnimController
 		}
 	}
 
-	void play(const Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace, bool loop, Animations::AnimationTag tag)
+	void play(const Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace, uint8_t loopCount, Animations::AnimationTag tag)
 	{
 		// Is there already an animation for this?
 		int prevAnimIndex = 0;
@@ -238,7 +238,7 @@ namespace Modules::AnimController
 			// Add a new animation
 			animations[animationCount] = Animations::createAnimationInstance(animationPreset, animationBits);
 			animations[animationCount]->setTag(tag);
-			animations[animationCount]->start(ms, remapFace, loop);
+			animations[animationCount]->start(ms, remapFace, loopCount);
 			animationCount++;
 		}
 		// Else there is no more room
@@ -346,7 +346,7 @@ namespace Modules::AnimController
 		for (int i = 0; i < animationCount; ++i) {
 			AnimationInstance* anim = animations[i];
 			NRF_LOG_DEBUG("Anim %d is of type %d, duration %d", i, anim->animationPreset->type, anim->animationPreset->duration);
-			NRF_LOG_DEBUG("StartTime %d, remapFace %d, loop %d", anim->startTime, anim->remapFace, anim->loop ? 1: 0);
+			NRF_LOG_DEBUG("StartTime %d, remapFace %d, loopCount %d", anim->startTime, anim->remapFace, anim->loopCount);
 		}
 	}
 
