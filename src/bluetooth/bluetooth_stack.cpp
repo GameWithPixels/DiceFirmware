@@ -462,15 +462,16 @@ namespace Bluetooth::Stack
             ret_code_t err_code = sd_ble_gatts_hvx(connectionHandle, &hvx_params);
             if (err_code == NRF_SUCCESS) {
                 // Message was sent!
-                NRF_LOG_DEBUG("Send Message type %d of size %d", data[0], len);
+                NRF_LOG_DEBUG("Send message type %d of size %d", data[0], len);
                 return SendResult_Ok;
             } else if (err_code == NRF_ERROR_BUSY || err_code == NRF_ERROR_RESOURCES) {
                 return SendResult_Busy;
             } else {
                 // Some other error happened
-                NRF_LOG_ERROR("Could not send Notification for Message type %d of size %d, Error %s(0x%x)", data[0], len, NRF_LOG_ERROR_STRING_GET(err_code), err_code);
+                NRF_LOG_ERROR("Could not send notification for message type %d of size %d, Error %s(0x%x)", data[0], len, NRF_LOG_ERROR_STRING_GET(err_code), err_code);
 
                 // We get this sys_attr_missing when trying to send a message right after the connect event
+                // but before the server has enabled characteristic notifications.
                 // There might be other errors we would get before the stack is ready to send messages...
                 return err_code == BLE_ERROR_GATTS_SYS_ATTR_MISSING ? SendResult_NotReady : SendResult_Error;
             }
