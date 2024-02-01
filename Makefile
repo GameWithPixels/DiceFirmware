@@ -137,6 +137,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_cycle.cpp \
 	$(PROJ_DIR)/src/animations/animation_blinkid.cpp \
 	$(PROJ_DIR)/src/animations/animation_normals.cpp \
+	$(PROJ_DIR)/src/animations/animation_sequence.cpp \
 	$(PROJ_DIR)/src/animations/animation_worm.cpp \
 	$(PROJ_DIR)/src/animations/blink.cpp \
 	$(PROJ_DIR)/src/animations/keyframes.cpp \

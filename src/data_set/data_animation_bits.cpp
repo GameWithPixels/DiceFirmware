@@ -80,6 +80,19 @@ namespace DataSet
 		return trackCount;
 	}
 
+	const Animation* AnimationBits::getAnimation(int animationIndex) const {
+		if (animationIndex >= 0 && (uint32_t)animationIndex < animationCount) {
+			// Grab the preset data
+			auto animationPtr = (const uint8_t *)animations + animationOffsets[animationIndex];
+			return (const Animation*)animationPtr;
+		}
+		return nullptr;
+	}
+
+	uint16_t AnimationBits::getAnimationCount() const {
+		return animationCount;
+	}
+
 	void AnimationBits::Clear() {
         palette = nullptr;
         paletteSize = 0;

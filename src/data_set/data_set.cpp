@@ -119,17 +119,13 @@ namespace DataSet
 	}
 
 	const Animation* getAnimation(int animationIndex) {
-		if (animationIndex >= 0 && (uint32_t)animationIndex < data->animationCount) {
-			// Grab the preset data
-			auto animationPtr = (const uint8_t *)data->animations + data->animationOffsets[animationIndex];
-			return (const Animation*)animationPtr;
-		}
-		return nullptr;
+		assert(CheckValid());
+		return data->animationBits.getAnimation(animationIndex);
 	}
 
 	uint16_t getAnimationCount() {
 		assert(CheckValid());
-		return data->animationCount;
+		return data->animationBits.getAnimationCount();
 	}
 
 	const Condition* getCondition(int conditionIndex) {
@@ -227,11 +223,11 @@ namespace DataSet
 		newData.animationBits.trackCount = message->trackCount;
 		address += message->trackCount * sizeof(Track);
 
-		newData.animationOffsets = (const uint16_t*)address;
-		newData.animationCount = message->animationCount;
+		newData.animationBits.animationOffsets = (const uint16_t*)address;
+		newData.animationBits.animationCount = message->animationCount;
 		address += Utils::roundUpTo4(message->animationCount * sizeof(uint16_t)); // round to multiple of 4
-		newData.animations = (const Animation*)address;
-		newData.animationsSize = message->animationSize;
+		newData.animationBits.animations = (const uint8_t*)address;
+		newData.animationBits.animationsSize = message->animationSize;
 		address += message->animationSize;
 
 		newData.conditionsOffsets = (const uint16_t*)address;
@@ -299,8 +295,8 @@ namespace DataSet
 			newData->animationBits.rgbTrackCount * sizeof(RGBTrack) +
 			newData->animationBits.keyFrameCount * sizeof(Keyframe) +
 			newData->animationBits.trackCount * sizeof(Track) +
-			Utils::roundUpTo4(sizeof(uint16_t) * newData->animationCount) + // round up to multiple of 4
-			newData->animationsSize +
+			Utils::roundUpTo4(sizeof(uint16_t) * newData->animationBits.animationCount) + // round up to multiple of 4
+			newData->animationBits.animationsSize +
 			Utils::roundUpTo4(sizeof(uint16_t) * newData->conditionCount) + // round up to multiple of 4
 			newData->conditionsSize +
 			Utils::roundUpTo4(sizeof(uint16_t) * newData->actionCount) + // round up to multiple of 4
@@ -317,8 +313,8 @@ namespace DataSet
 		NRF_LOG_DEBUG("RGB Tracks: %d * %d", data->animationBits.rgbTrackCount, sizeof(RGBTrack));
 		NRF_LOG_DEBUG("Keyframes: %d * %d", data->animationBits.keyFrameCount, sizeof(Keyframe));
 		NRF_LOG_DEBUG("Tracks: %d * %d", data->animationBits.trackCount, sizeof(Track));
-		NRF_LOG_DEBUG("Animation Offsets: %d * %d", data->animationCount, sizeof(uint16_t));
-		NRF_LOG_DEBUG("Animations: %d", data->animationsSize);
+		NRF_LOG_DEBUG("Animation Offsets: %d * %d", data->animationBits.animationCount, sizeof(uint16_t));
+		NRF_LOG_DEBUG("Animations: %d", data->animationBits.animationsSize);
 		NRF_LOG_DEBUG("Conditions Offsets: %d * %d", data->conditionCount, sizeof(uint16_t));
 		NRF_LOG_DEBUG("Conditions: %d", data->conditionsSize);
 		NRF_LOG_DEBUG("Actions Offsets: %d * %d", data->actionCount, sizeof(uint16_t));

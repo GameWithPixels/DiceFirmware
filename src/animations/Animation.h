@@ -29,6 +29,7 @@ namespace Animations
 		Animation_Cycle,
 		Animation_BlinkId,
 		Animation_Normals,
+		Animation_Sequence,
 		Animation_Worm,
 	};
 

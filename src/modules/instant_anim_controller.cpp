@@ -19,9 +19,6 @@ namespace Modules::InstantAnimationController
     static AnimationBits animationBits;
     static void *animationsData;
     static uint32_t animationsDataHash;
-    static const uint16_t *animationOffsets;
-    static const uint8_t *animations;
-    static uint32_t animationsCount;
 
     void ReceiveInstantAnimSetHandler(const Message *msg);
     void PlayInstantAnimHandler(const Message *msg);
@@ -30,9 +27,6 @@ namespace Modules::InstantAnimationController
         free(animationsData);
         animationsData = nullptr;
         animationsDataHash = 0;
-        animationOffsets = nullptr;
-        animations = nullptr;
-        animationsCount = 0;
     }
 
     void init()
@@ -52,9 +46,8 @@ namespace Modules::InstantAnimationController
 
         if (animationsData == nullptr || animationsDataHash != message->hash) {
             // Stop playing animations as we are about to delete their data
-            for (uint32_t i = 0; i < animationsCount; ++i) {
-                auto animationPtr = animations + animationOffsets[i];
-                AnimController::stop((const Animation *)animationPtr, 255);
+            for (uint32_t i = 0; i < animationBits.animationCount; ++i) {
+                AnimController::stop(animationBits.getAnimation(i), 255);
             }
 
             // We should download the data
@@ -108,11 +101,12 @@ namespace Modules::InstantAnimationController
                 animationBits.trackCount = message->trackCount;
                 address += message->trackCount * sizeof(Track);
 
-                animationOffsets = (const uint16_t*)address;
+                animationBits.animationOffsets = (const uint16_t*)address;
+                animationBits.animationCount = message->animationCount;
                 address += animationOffsetsBufferSize;
 
-                animations = (const uint8_t*)address;
-                animationsCount = message->animationCount;
+                animationBits.animations = (const uint8_t*)address;
+                animationBits.animationsSize = message->animationSize;
 
                 // Send Ack and receive data
                 MessageTransferInstantAnimSetAck ackMsg;
@@ -156,18 +150,18 @@ namespace Modules::InstantAnimationController
         const MessagePlayInstantAnim *message = (const MessagePlayInstantAnim *)msg;
         NRF_LOG_INFO("Received request to play instant animation %d", message->animation);
 
-        if (animationsData != nullptr && message->animation < animationsCount) {
+        if (animationsData != nullptr && message->animation < animationBits.getAnimationCount()) {
             // TODO may crash if we are still downloading an animation
-            auto animationPtr = animations + animationOffsets[message->animation];
+            auto animation = animationBits.getAnimation(message->animation);
             uint8_t faceIndex = message->faceIndex == FACE_INDEX_CURRENT_FACE
                 ? Accelerometer::currentFace() : message->faceIndex;
-            AnimController::play((const Animation *)animationPtr, &animationBits, faceIndex, message->loop > 0);
+            AnimController::play(animation, &animationBits, faceIndex, message->loop > 0);
         }
         else if (animationsData == nullptr) {
             NRF_LOG_DEBUG("No instant animation in memory");
         }
         else {
-            NRF_LOG_DEBUG("Animation index out of bounds %d >= %d", message->animation, animationsCount);
+            NRF_LOG_DEBUG("Animation index out of bounds %d >= %d", message->animation, animationBits.getAnimationCount());
         }
     }
 }

@@ -14,6 +14,7 @@
 #include "animation_cycle.h"
 #include "animation_blinkid.h"
 #include "animation_normals.h"
+#include "animation_sequence.h"
 #include "animation_worm.h"
 #include "config/board_config.h"
 
@@ -129,6 +130,9 @@ namespace Animations
 				break;
 			case Animation_Normals:
 				ret = new AnimationInstanceNormals(static_cast<const AnimationNormals*>(preset), bits);
+				break;
+			case Animation_Sequence:
+				ret = new AnimationInstanceSequence(static_cast<const AnimationSequence*>(preset), bits);
 				break;
 			case Animation_Worm:
 				ret = new AnimationInstanceWorm(static_cast<const AnimationWorm*>(preset), bits);

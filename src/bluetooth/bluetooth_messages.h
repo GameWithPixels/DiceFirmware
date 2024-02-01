@@ -350,6 +350,7 @@ struct MessageTransferTestAnimSet
 	uint16_t keyFrameCount;
 	uint16_t trackCount;
 
+	uint16_t animationCount;
 	uint16_t animationSize;
 
 	uint32_t hash;

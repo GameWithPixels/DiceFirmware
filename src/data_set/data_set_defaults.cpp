@@ -174,16 +174,16 @@ namespace DataSet
 		currentOffset += trackCount * sizeof(Track);
         newData->animationBits.trackCount = trackCount;
 
-		newData->animationOffsets = (const uint16_t*)(dataAddress + currentOffset);
+		newData->animationBits.animationOffsets = (const uint16_t*)(dataAddress + currentOffset);
         auto writeAnimationOffsets = (uint16_t*)(writeBufferAddress + currentOffset);
         currentOffset += animOffsetSize;
-		newData->animationCount = animCount;
+		newData->animationBits.animationCount = animCount;
 
-		newData->animations = (const Animation*)(dataAddress + currentOffset);
+		newData->animationBits.animations = (const uint8_t*)(dataAddress + currentOffset);
         auto writeSimpleAnimations = (AnimationSimple*)(writeBufferAddress + currentOffset);
         auto writeRainbowAnimation = (AnimationRainbow*)(writeBufferAddress + currentOffset + sizeof(AnimationSimple) * simpleAnimCount);
         currentOffset += animSize;
-		newData->animationsSize = animSize;
+		newData->animationBits.animationsSize = animSize;
 		
         newData->actionsOffsets = (const uint16_t*)(dataAddress + currentOffset);
         auto writeActionsOffsets = (uint16_t*)(writeBufferAddress + currentOffset);

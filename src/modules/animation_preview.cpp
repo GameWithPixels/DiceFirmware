@@ -18,7 +18,6 @@ using namespace DataSet;
 namespace Modules::AnimationPreview
 {
     static AnimationBits animationBits;
-    static const Animation* animation;
     static void* animationData;
     static uint32_t animationDataHash;
 
@@ -32,7 +31,6 @@ namespace Modules::AnimationPreview
         MessageService::RegisterMessageHandler(Message::MessageType_Blink, BlinkLEDsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_BlinkId, BlinkIdHandler);
         animationData = nullptr;
-        animation = nullptr;
         animationDataHash = 0;
 
         NRF_LOG_DEBUG("Animation Preview init");
@@ -46,23 +44,27 @@ namespace Modules::AnimationPreview
         if (animationData == nullptr || animationDataHash != message->hash) {
             // We should download the data
             if (animationData != nullptr) {
-                // Stop playing the current animation as we are about to delete its data
-                AnimController::stop(animation, 255);
+                // Stop playing animations as we are about to delete their data
+                for (uint32_t i = 0; i < animationBits.animationCount; ++i) {
+                    AnimController::stop(animationBits.getAnimation(i), 255);
+                }
 
                 free(animationData);
                 animationData = nullptr;
                 animationDataHash = 0;
             }
 
-            NRF_LOG_DEBUG("Animation Data to be received:");
-            NRF_LOG_DEBUG("Palette: %d * %d", message->paletteSize, sizeof(uint8_t));
-            NRF_LOG_DEBUG("RGB Keyframes: %d * %d", message->rgbKeyFrameCount, sizeof(RGBKeyframe));
-            NRF_LOG_DEBUG("RGB Tracks: %d * %d", message->rgbTrackCount, sizeof(RGBTrack));
-            NRF_LOG_DEBUG("Keyframes: %d * %d", message->keyFrameCount, sizeof(Keyframe));
-            NRF_LOG_DEBUG("Tracks: %d * %d", message->trackCount, sizeof(Track));
-            NRF_LOG_DEBUG("Animation: %d", message->animationSize);
+            NRF_LOG_INFO("Animation Data to be received:");
+            NRF_LOG_INFO("Palette: %d * %d", message->paletteSize, sizeof(uint8_t));
+            NRF_LOG_INFO("RGB Keyframes: %d * %d", message->rgbKeyFrameCount, sizeof(RGBKeyframe));
+            NRF_LOG_INFO("RGB Tracks: %d * %d", message->rgbTrackCount, sizeof(RGBTrack));
+            NRF_LOG_INFO("Keyframes: %d * %d", message->keyFrameCount, sizeof(Keyframe));
+            NRF_LOG_INFO("Tracks: %d * %d", message->trackCount, sizeof(Track));
+            NRF_LOG_INFO("Animations: %d", message->animationCount);
+            NRF_LOG_INFO("Hash: 0x%04x", message->hash);
 
             int paletteBufferSize = Utils::roundUpTo4(message->paletteSize);
+            int animationOffsetsBufferSize = Utils::roundUpTo4(message->animationCount * 2);
 
             int bufferSize =
                 paletteBufferSize +
@@ -98,7 +100,12 @@ namespace Modules::AnimationPreview
                 animationBits.trackCount = message->trackCount;
                 address += message->trackCount * sizeof(Track);
 
-                animation = (const Animation*)address;
+                animationBits.animationOffsets = (const uint16_t*)address;
+                animationBits.animationCount = message->animationCount;
+                address += animationOffsetsBufferSize;
+
+                animationBits.animations = (const uint8_t*)address;
+                animationBits.animationsSize = message->animationSize;
 
                 // Send Ack and receive data
                 MessageTransferTestAnimSetAck ackMsg;
@@ -119,20 +126,19 @@ namespace Modules::AnimationPreview
                 		MessageService::SendMessage(Message::MessageType_TransferTestAnimSetFinished);
 
                         // Play the ANIMATION NOW!!!
+                        auto animation = animationBits.getAnimation(0);
                         AnimController::play(animation, &animationBits, Accelerometer::currentFace());
                     } else {
                         NRF_LOG_ERROR("Failed to download temp animation");
                         free(animationData);
                         animationData = nullptr;
                         animationDataHash = 0;
-                        animation = nullptr;
                     }
                 });
             } else {
                 // No memory
                 animationData = nullptr;
                 animationDataHash = 0;
-                animation = nullptr;
                 MessageTransferTestAnimSetAck ackMsg;
                 ackMsg.ackType = TransferInstantAnimSetAck_NoMemory;
                 MessageService::SendMessage(&ackMsg);
@@ -143,10 +149,13 @@ namespace Modules::AnimationPreview
             ackMsg.ackType = TransferInstantAnimSetAck_UpToDate;
             MessageService::SendMessage(&ackMsg);
 
-            // Stop animation in case it's still playing
-            AnimController::stop(animation, 255);
+            // Stop playing animations as we are about to delete their data
+            for (uint32_t i = 0; i < animationBits.animationCount; ++i) {
+                AnimController::stop(animationBits.getAnimation(i), 255);
+            }
 
             // Play the ANIMATION NOW!!!
+            auto animation = animationBits.getAnimation(0);
             AnimController::play(animation, &animationBits, Accelerometer::currentFace());
         }
     }
