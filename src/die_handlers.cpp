@@ -163,7 +163,7 @@ namespace Die
             animationPreset,
             DataSet::getAnimationBits(),
             playAnimMessage->remapFace,
-            playAnimMessage->loop,
+            playAnimMessage->loopCount,
             Animations::AnimationTag_BluetoothMessage);
     }
 

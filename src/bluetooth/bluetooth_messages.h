@@ -386,7 +386,7 @@ struct MessagePlayAnim
 {
 	uint8_t animation;
 	uint8_t remapFace;	// The animations are designed assuming that the higher face value is up
-	uint8_t loop; 		// 1 == loop, 0 == once
+	uint8_t loopCount;
 
 	MessagePlayAnim() : Message(Message::MessageType_PlayAnim) {}
 };
@@ -405,7 +405,7 @@ struct MessagePlayAnimEvent
 {
 	uint8_t evt;
 	uint8_t remapFace;
-	uint8_t loop; // 1 == loop, 0 == once
+	uint8_t loopCount;
 
 	MessagePlayAnimEvent() : Message(Message::MessageType_PlayAnimEvent) {}
 };
@@ -443,7 +443,7 @@ struct MessageBlink
 	uint32_t color;
 	uint32_t faceMask;
 	uint8_t fade;
-	uint8_t loop; // 1 == loop, 0 == once
+	uint8_t loopCount;
 
 	MessageBlink() : Message(Message::MessageType_Blink) {}
 };
@@ -656,7 +656,7 @@ struct MessagePlayInstantAnim
 {
 	uint8_t animation;
 	uint8_t faceIndex;	// Assumes that an animation was made for face 20
-	uint8_t loop; 		// 1 == loop, 0 == once
+	uint8_t loopCount;
 
 	MessagePlayInstantAnim() : Message(Message::MessageType_PlayInstantAnim) {}
 };
@@ -690,7 +690,7 @@ struct MessageBlinkId
 	: Message
 {
 	uint8_t brightness;
-	uint8_t loop; // 1 == loop, 0 == once
+	uint8_t loopCount;
 
 	MessageBlinkId() : Message(Message::MessageType_BlinkId) {}
 };

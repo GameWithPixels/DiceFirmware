@@ -15,7 +15,7 @@ namespace Animations
             uint8_t flashCount = 1,
             uint8_t fade = 0,
             uint32_t faceMask = ANIM_FACEMASK_ALL_LEDS,
-            bool loop = false);
+            uint8_t loopCount = 1);
 
     private:
         AnimationSimple blinkAnim;

@@ -155,7 +155,7 @@ namespace Modules::InstantAnimationController
             auto animation = animationBits.getAnimation(message->animation);
             uint8_t faceIndex = message->faceIndex == FACE_INDEX_CURRENT_FACE
                 ? Accelerometer::currentFace() : message->faceIndex;
-            AnimController::play(animation, &animationBits, faceIndex, message->loop > 0);
+            AnimController::play(animation, &animationBits, faceIndex, message->loopCount);
         }
         else if (animationsData == nullptr) {
             NRF_LOG_DEBUG("No instant animation in memory");

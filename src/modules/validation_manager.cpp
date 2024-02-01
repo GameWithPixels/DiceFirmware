@@ -81,7 +81,8 @@ namespace Modules::ValidationManager
     void startNameAnim()
     {
         NRF_LOG_DEBUG("Starting name animation");
-        AnimController::play(&blinkId, nullptr, 0, true); // Loop forever! (until timeout)
+         // Loop animation for as long as we can
+        AnimController::play(&blinkId, nullptr, 0, 0xff);
         isPlaying = true;
     }
 

@@ -13,7 +13,7 @@ namespace Animations
         animBits.paletteSize = 3;
     }
 
-    void Blink::play(uint32_t color, uint16_t durationMs, uint8_t flashCount /*= 1*/, uint8_t fade /*= 0*/, uint32_t faceMask /*=ANIM_FACEMASK_ALL_LEDS*/, bool loop /*= false*/)
+    void Blink::play(uint32_t color, uint16_t durationMs, uint8_t flashCount /*= 1*/, uint8_t fade /*= 0*/, uint32_t faceMask /*=ANIM_FACEMASK_ALL_LEDS*/, uint8_t loopCount /*= 1*/)
     {
         // Store color in palette
         // Note: the color is stored at the same memory location on each call, the most recent call
@@ -32,6 +32,6 @@ namespace Animations
 
         Modules::AnimController::stop(&blinkAnim);
         const auto remapFace = Config::DiceVariants::getTopFace();
-        Modules::AnimController::play(&blinkAnim, &animBits, remapFace, loop, Animations::AnimationTag_BluetoothMessage);
+        Modules::AnimController::play(&blinkAnim, &animBits, remapFace, loopCount, Animations::AnimationTag_BluetoothMessage);
     }
 }
