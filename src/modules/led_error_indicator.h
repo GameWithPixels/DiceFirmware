@@ -4,7 +4,7 @@
 /// </summary>
 namespace Modules::LEDErrorIndicator
 {
-	enum ErrorType
+    enum ErrorType
     {
         ErrorType_None = 0,
         ErrorType_LEDs,

@@ -18,11 +18,11 @@ namespace DriversNRF::MCUTemperature
     }
 
     int32_t measure() {
-		if (nrfx_temp_measure() == NRFX_SUCCESS) {
-			uint32_t raw_temp = nrfx_temp_result_get();
-        	return nrfx_temp_calculate(raw_temp);
-		} else {
-			return 0;
-		}
+    if (nrfx_temp_measure() == NRFX_SUCCESS) {
+      uint32_t raw_temp = nrfx_temp_result_get();
+          return nrfx_temp_calculate(raw_temp);
+    } else {
+      return 0;
+    }
     }
 }

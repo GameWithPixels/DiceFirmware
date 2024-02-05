@@ -47,7 +47,7 @@ namespace Die
        }
     }
 
-	void enterLEDAnimState() {
+    void enterLEDAnimState() {
         switch (currentTopLevelState) {
             case TopLevel_Unknown:
             default:

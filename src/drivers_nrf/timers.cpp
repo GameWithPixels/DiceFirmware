@@ -92,13 +92,13 @@ namespace DriversNRF::Timers
         app_timer_resume();
     }
 
-	#define APP_TIMER_MS(TICKS) ((uint32_t)ROUNDED_DIV((TICKS) * 1000 * (APP_TIMER_CONFIG_RTC_FREQUENCY + 1), (uint64_t)APP_TIMER_CLOCK_FREQ))
+    #define APP_TIMER_MS(TICKS) ((uint32_t)ROUNDED_DIV((TICKS) * 1000 * (APP_TIMER_CONFIG_RTC_FREQUENCY + 1), (uint64_t)APP_TIMER_CLOCK_FREQ))
 
-	int millis()
-	{
-		auto ticks = get_now();
-		return APP_TIMER_MS(ticks);
-	}
+    int millis()
+    {
+        auto ticks = get_now();
+        return APP_TIMER_MS(ticks);
+    }
 
     void delayedCallbacksTimerCallback(void* ignore) {
         int time = millis();
@@ -277,7 +277,7 @@ namespace DriversNRF::Timers
             Log::process();
             PowerManager::update();
         }
-		Log::getKey();
+        Log::getKey();
         NRF_LOG_INFO("Stopping timer!");
         stopTimer(ticTocTimer);
         stopTimer(fastTimer);

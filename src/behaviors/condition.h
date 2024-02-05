@@ -17,9 +17,9 @@ namespace Behaviors
         Condition_Unknown = 0,
         Condition_HelloGoodbye,
         Condition_Handling,
-		Condition_Rolling,
-		Condition_FaceCompare,
-		Condition_Crooked,
+        Condition_Rolling,
+        Condition_FaceCompare,
+        Condition_Crooked,
         Condition_ConnectionState,
         Condition_BatteryState,
         Condition_Idle,
@@ -30,9 +30,9 @@ namespace Behaviors
     /// The base struct for all conditions, stores a type identifier so we can tell the actual
     /// type of the condition and fetch the condition parameters correctly.
     /// </summary>
-	struct Condition
-	{
-		ConditionType type;
+    struct Condition
+    {
+        ConditionType type;
     };
 
     /// <summary>
@@ -170,10 +170,10 @@ namespace Behaviors
     {
         ConditionBatteryState_Ok            = 1 << 0,
         ConditionBatteryState_Low           = 1 << 1,
-		ConditionBatteryState_Charging      = 1 << 2,
-		ConditionBatteryState_Done          = 1 << 3,
-		ConditionBatteryState_BadCharging   = 1 << 4,
-		ConditionBatteryState_Error         = 1 << 5,
+        ConditionBatteryState_Charging      = 1 << 2,
+        ConditionBatteryState_Done          = 1 << 3,
+        ConditionBatteryState_BadCharging   = 1 << 4,
+        ConditionBatteryState_Error         = 1 << 5,
     };
 
     /// <summary>

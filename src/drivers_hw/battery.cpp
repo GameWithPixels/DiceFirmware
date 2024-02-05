@@ -40,7 +40,7 @@ namespace Battery
     const int32_t vLEDMultTimes1000 = 1400; // Voltage divider 10M over 4M
     const int32_t vCoilMultTimes1000 = 2000; // Voltage divider 4M over 4M
 
-	DelegateArray<ClientMethod, MAX_BATTERY_CLIENTS> clients;
+    DelegateArray<ClientMethod, MAX_BATTERY_CLIENTS> clients;
 
     static const nrf_drv_timer_t battTimer = NRF_DRV_TIMER_INSTANCE(1);
     static nrf_ppi_channel_t m_ppi_channel1;
@@ -265,11 +265,11 @@ namespace Battery
                 break;
         }
 
-		// Notify clients
-		for (int i = 0; i < clients.Count(); ++i)
-		{
-			clients[i].handler(clients[i].token, *evt);
-		}
+        // Notify clients
+        for (int i = 0; i < clients.Count(); ++i)
+        {
+            clients[i].handler(clients[i].token, *evt);
+        }
     }
 
     void setDisableChargingOverride(bool disable) {
@@ -290,28 +290,28 @@ namespace Battery
     }
 
 
-	/// <summary>
-	/// Method used by clients to request callbacks when battery changes state
-	/// </summary>
-	void hook(ClientMethod callback, void* parameter) {
-		if (!clients.Register(parameter, callback))
-		{
-			NRF_LOG_ERROR("Too many battery hooks registered.");
-		}
-	}
+    /// <summary>
+    /// Method used by clients to request callbacks when battery changes state
+    /// </summary>
+    void hook(ClientMethod callback, void* parameter) {
+        if (!clients.Register(parameter, callback))
+        {
+            NRF_LOG_ERROR("Too many battery hooks registered.");
+        }
+    }
 
-	/// <summary>
-	/// Method used by clients to stop getting battery callbacks
-	/// </summary>
-	void unHook(ClientMethod callback) {
-		clients.UnregisterWithHandler(callback);
-	}
+    /// <summary>
+    /// Method used by clients to stop getting battery callbacks
+    /// </summary>
+    void unHook(ClientMethod callback) {
+        clients.UnregisterWithHandler(callback);
+    }
 
-	/// <summary>
-	/// Method used by clients to stop getting battery callbacks
-	/// </summary>
-	void unHookWithParam(void* param) {
-		clients.UnregisterWithToken(param);
-	}
+    /// <summary>
+    /// Method used by clients to stop getting battery callbacks
+    /// </summary>
+    void unHookWithParam(void* param) {
+        clients.UnregisterWithToken(param);
+    }
 }
 }

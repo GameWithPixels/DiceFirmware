@@ -11,10 +11,10 @@ namespace Modules::ChargerProximity
         ChargerProximityState_Off
     };
 
-	void init();
+    void init();
 
-	typedef void(*ChargerProximityHandler)(void* param, ChargerProximityState newState);
-	bool hook(ChargerProximityHandler method, void* param);
-	void unHook(ChargerProximityHandler client);
-	void unHookWithParam(void* param);
+    typedef void(*ChargerProximityHandler)(void* param, ChargerProximityState newState);
+    bool hook(ChargerProximityHandler method, void* param);
+    void unHook(ChargerProximityHandler client);
+    void unHookWithParam(void* param);
 }

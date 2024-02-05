@@ -11,9 +11,9 @@ namespace Modules::ChargerProximity
     static ChargerProximityState currentProximityState;
 
     ChargerProximityState computeProximityState(BatteryController::BatteryState state);
-	void onBatteryStateChange(void* param, BatteryController::BatteryState newState);
+    void onBatteryStateChange(void* param, BatteryController::BatteryState newState);
 
-	void init() {
+    void init() {
         currentProximityState = computeProximityState(BatteryController::getBatteryState());
         BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
     }
@@ -23,19 +23,19 @@ namespace Modules::ChargerProximity
         switch (state) {
         case BatteryController::BatteryState_Ok:
         case BatteryController::BatteryState_Low:
-		case BatteryController::BatteryState_Error:
+        case BatteryController::BatteryState_Error:
             ret = ChargerProximityState_Off;
             break;
-		case BatteryController::BatteryState_Charging:
-		case BatteryController::BatteryState_Done:
-		case BatteryController::BatteryState_BadCharging:
+        case BatteryController::BatteryState_Charging:
+        case BatteryController::BatteryState_Done:
+        case BatteryController::BatteryState_BadCharging:
             ret = ChargerProximityState_On;
             break;
         }
         return ret;
     }
 
-	void onBatteryStateChange(void* param, BatteryController::BatteryState newState) {
+    void onBatteryStateChange(void* param, BatteryController::BatteryState newState) {
         auto newProximityState = computeProximityState(newState);
         if (newProximityState != currentProximityState) {
             currentProximityState = newProximityState;
@@ -45,15 +45,15 @@ namespace Modules::ChargerProximity
         }
     }
 
-	bool hook(ChargerProximityHandler method, void* param) {
+    bool hook(ChargerProximityHandler method, void* param) {
         return clients.Register(param, method);
     }
 
-	void unHook(ChargerProximityHandler method) {
+    void unHook(ChargerProximityHandler method) {
         clients.UnregisterWithHandler(method);
     }
 
-	void unHookWithParam(void* param) {
+    void unHookWithParam(void* param) {
         clients.UnregisterWithToken(param);
     }
 }

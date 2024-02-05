@@ -77,46 +77,46 @@ namespace DriversNRF::I2C
         return err == NRF_SUCCESS;
     }
 
-	/// <summary>
-	/// WRITE A SINGLE REGISTER
-	/// Write a single uint8_t of data to a register in the MMA8452Q.
-	/// </summary>
-	void writeRegister(uint8_t device, uint8_t reg, uint8_t data)
-	{
-		uint8_t bytes[2];
-		bytes[0] = reg;
-		bytes[1] = data;
-		write(device, bytes, 2);
-	}
+    /// <summary>
+    /// WRITE A SINGLE REGISTER
+    /// Write a single uint8_t of data to a register in the MMA8452Q.
+    /// </summary>
+    void writeRegister(uint8_t device, uint8_t reg, uint8_t data)
+    {
+        uint8_t bytes[2];
+        bytes[0] = reg;
+        bytes[1] = data;
+        write(device, bytes, 2);
+    }
 
-	/// <summary>
-	/// READ A SINGLE REGISTER
-	///	Read a uint8_t from the device register "reg".
-	/// </summary>
-	uint8_t readRegister(uint8_t device, uint8_t reg)
-	{
-		write(device, reg, true);
-		uint8_t ret = 0;
-		read(device, &ret, 1);
-		return ret;
-	}
+    /// <summary>
+    /// READ A SINGLE REGISTER
+    ///	Read a uint8_t from the device register "reg".
+    /// </summary>
+    uint8_t readRegister(uint8_t device, uint8_t reg)
+    {
+        write(device, reg, true);
+        uint8_t ret = 0;
+        read(device, &ret, 1);
+        return ret;
+    }
 
-	/// <summary>
-	/// READ MULTIPLE REGISTERS
-	///	Read "len" bytes from the device, starting at register "reg". Bytes are stored
-	///	in "buffer" on exit.
-	/// </summary>
-	void readRegisters(uint8_t device, uint8_t reg, uint8_t *buffer, uint8_t len)
-	{
-		write(device, reg, true);
-		read(device, buffer, len);
-	}
+    /// <summary>
+    /// READ MULTIPLE REGISTERS
+    ///	Read "len" bytes from the device, starting at register "reg". Bytes are stored
+    ///	in "buffer" on exit.
+    /// </summary>
+    void readRegisters(uint8_t device, uint8_t reg, uint8_t *buffer, uint8_t len)
+    {
+        write(device, reg, true);
+        read(device, buffer, len);
+    }
 
-	/// <summary>
-	/// READ 16-bit register
-	///	Read "len" bytes from the device, starting at register "reg". Bytes are stored
-	///	in "buffer" on exit.
-	/// </summary>
+    /// <summary>
+    /// READ 16-bit register
+    ///	Read "len" bytes from the device, starting at register "reg". Bytes are stored
+    ///	in "buffer" on exit.
+    /// </summary>
     int16_t readRegisterInt16(uint8_t device, uint8_t reg)
     {
         //offset |= 0x80; //turn auto-increment bit on
@@ -126,11 +126,11 @@ namespace DriversNRF::I2C
         return output;
     }
 
-	/// <summary>
-	/// READ 16-bit register
-	///	Read "len" bytes from the device, starting at register "reg". Bytes are stored
-	///	in "buffer" on exit.
-	/// </summary>
+    /// <summary>
+    /// READ 16-bit register
+    ///	Read "len" bytes from the device, starting at register "reg". Bytes are stored
+    ///	in "buffer" on exit.
+    /// </summary>
     uint16_t readRegisterUInt16(uint8_t device, uint8_t reg)
     {
         //offset |= 0x80; //turn auto-increment bit on

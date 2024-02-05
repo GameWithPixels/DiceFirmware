@@ -52,12 +52,12 @@ namespace Modules::LEDColorTester
     }
 
     void LightUpFaceHandler(const Message* msg) {
-		// The transformation is:
-		// animFaceIndex
-		//	-> rotatedOutsideAnimFaceIndex (based on remapFace and remapping table, i.e. what actual face should light up to "retarget" the animation around the current up face)
-		//		-> ledIndex (based on pcb face to led mapping, i.e. to account for the fact that the LEDs are not accessed in the same order as the number of the faces)
+        // The transformation is:
+        // animFaceIndex
+        //	-> rotatedOutsideAnimFaceIndex (based on remapFace and remapping table, i.e. what actual face should light up to "retarget" the animation around the current up face)
+        //		-> ledIndex (based on pcb face to led mapping, i.e. to account for the fact that the LEDs are not accessed in the same order as the number of the faces)
 
-		auto l = DiceVariants::getLayout();
+        auto l = DiceVariants::getLayout();
 
         auto lufmsg = static_cast<const MessageLightUpFace*>(msg);
 
@@ -68,7 +68,7 @@ namespace Modules::LEDColorTester
             remapFace = Accelerometer::currentFace();
         }
 
-		uint16_t ledIndex = l->canonicalIndexToElectricalIndexLookup[remapFace];
+        uint16_t ledIndex = l->canonicalIndexToElectricalIndexLookup[remapFace];
 
         NRF_LOG_INFO(" -> LED Index: %d, color: %08x", ledIndex, lufmsg->color);
         BLE_LOG_INFO("ledIndex: %d", ledIndex);

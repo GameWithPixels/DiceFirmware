@@ -38,8 +38,8 @@ namespace Modules::AnimationPreview
 
     void ReceiveTestAnimSetHandler(const Message* msg)
     {
-		NRF_LOG_INFO("Received request to play test animation");
-		const MessageTransferTestAnimSet* message = (const MessageTransferTestAnimSet*)msg;
+        NRF_LOG_INFO("Received request to play test animation");
+        const MessageTransferTestAnimSet* message = (const MessageTransferTestAnimSet*)msg;
 
         if (animationData == nullptr || animationDataHash != message->hash) {
             // We should download the data
@@ -120,10 +120,10 @@ namespace Modules::AnimationPreview
                     },
                     [](void* context, bool result, uint8_t* data, uint16_t size) {
                     if (result) {
-		                animationDataHash = Utils::computeHash((uint8_t*)animationData, size);
-		                NRF_LOG_INFO("Temp animation dataset hash=0x%08x", animationDataHash);
+                        animationDataHash = Utils::computeHash((uint8_t*)animationData, size);
+                        NRF_LOG_INFO("Temp animation dataset hash=0x%08x", animationDataHash);
 
-                		MessageService::SendMessage(Message::MessageType_TransferTestAnimSetFinished);
+                        MessageService::SendMessage(Message::MessageType_TransferTestAnimSetFinished);
 
                         // Play the ANIMATION NOW!!!
                         auto animation = animationBits.getAnimation(0);

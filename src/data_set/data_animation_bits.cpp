@@ -11,89 +11,89 @@ using namespace Config;
 
 namespace DataSet
 {
-	uint32_t AnimationBits::getPaletteColor(uint16_t colorIndex) const {
-		if (colorIndex == PALETTE_COLOR_FROM_FACE) {
-			// Color is based on the face
-			return Rainbow::faceWheel(Accelerometer::currentFace(), BoardManager::getBoard()->ledCount);
-		}
-		else if (colorIndex == PALETTE_COLOR_FROM_RANDOM) {
-			// Not implemented
-			return 0xFFFFFFFF;
-		}
-		else if (colorIndex < (paletteSize / 3)) {
-			return Utils::toColor(
-					palette[colorIndex * 3 + 0],
-					palette[colorIndex * 3 + 1],
-					palette[colorIndex * 3 + 2]);
-		} else {
-			return 0xFFFFFFFF;
-		}
-	}
+    uint32_t AnimationBits::getPaletteColor(uint16_t colorIndex) const {
+        if (colorIndex == PALETTE_COLOR_FROM_FACE) {
+            // Color is based on the face
+            return Rainbow::faceWheel(Accelerometer::currentFace(), BoardManager::getBoard()->ledCount);
+        }
+        else if (colorIndex == PALETTE_COLOR_FROM_RANDOM) {
+            // Not implemented
+            return 0xFFFFFFFF;
+        }
+        else if (colorIndex < (paletteSize / 3)) {
+            return Utils::toColor(
+                    palette[colorIndex * 3 + 0],
+                    palette[colorIndex * 3 + 1],
+                    palette[colorIndex * 3 + 2]);
+        } else {
+            return 0xFFFFFFFF;
+        }
+    }
 
-	uint16_t AnimationBits::getPaletteSize() const {
-		return paletteSize;
-	}
+    uint16_t AnimationBits::getPaletteSize() const {
+        return paletteSize;
+    }
 
-	const RGBKeyframe& AnimationBits::getRGBKeyframe(uint16_t keyFrameIndex) const {
-		assert(keyFrameIndex < rgbKeyFrameCount);
-		return rgbKeyframes[keyFrameIndex];
-	}
+    const RGBKeyframe& AnimationBits::getRGBKeyframe(uint16_t keyFrameIndex) const {
+        assert(keyFrameIndex < rgbKeyFrameCount);
+        return rgbKeyframes[keyFrameIndex];
+    }
 
-	uint16_t AnimationBits::getRGBKeyframeCount() const {
-		return rgbKeyFrameCount;
-	}
+    uint16_t AnimationBits::getRGBKeyframeCount() const {
+        return rgbKeyFrameCount;
+    }
 
-	const RGBTrack& AnimationBits::getRGBTrack(uint16_t trackIndex) const {
-		assert(trackIndex < rgbTrackCount);
-		return rgbTracks[trackIndex];
-	}
+    const RGBTrack& AnimationBits::getRGBTrack(uint16_t trackIndex) const {
+        assert(trackIndex < rgbTrackCount);
+        return rgbTracks[trackIndex];
+    }
 
-	RGBTrack const * const AnimationBits::getRGBTracks(uint16_t tracksStartIndex)const  {
-		assert(tracksStartIndex < rgbTrackCount);
-		return &(rgbTracks[tracksStartIndex]);
-	}
+    RGBTrack const * const AnimationBits::getRGBTracks(uint16_t tracksStartIndex)const  {
+        assert(tracksStartIndex < rgbTrackCount);
+        return &(rgbTracks[tracksStartIndex]);
+    }
 
-	uint16_t AnimationBits::getRGBTrackCount() const {
-		return rgbTrackCount;
-	}
+    uint16_t AnimationBits::getRGBTrackCount() const {
+        return rgbTrackCount;
+    }
 
-	const Keyframe& AnimationBits::getKeyframe(uint16_t keyFrameIndex) const {
-		assert(keyFrameIndex < keyFrameCount);
-		return keyframes[keyFrameIndex];
-	}
+    const Keyframe& AnimationBits::getKeyframe(uint16_t keyFrameIndex) const {
+        assert(keyFrameIndex < keyFrameCount);
+        return keyframes[keyFrameIndex];
+    }
 
-	uint16_t AnimationBits::getKeyframeCount() const {
-		return keyFrameCount;
-	}
+    uint16_t AnimationBits::getKeyframeCount() const {
+        return keyFrameCount;
+    }
 
-	const Track& AnimationBits::getTrack(uint16_t trackIndex) const {
-		assert(trackIndex < trackCount);
-		return tracks[trackIndex];
-	}
+    const Track& AnimationBits::getTrack(uint16_t trackIndex) const {
+        assert(trackIndex < trackCount);
+        return tracks[trackIndex];
+    }
 
-	Track const * const AnimationBits::getTracks(uint16_t tracksStartIndex) const {
-		assert(tracksStartIndex < trackCount);
-		return &(tracks[tracksStartIndex]);
-	}
+    Track const * const AnimationBits::getTracks(uint16_t tracksStartIndex) const {
+        assert(tracksStartIndex < trackCount);
+        return &(tracks[tracksStartIndex]);
+    }
 
-	uint16_t AnimationBits::getTrackCount() const {
-		return trackCount;
-	}
+    uint16_t AnimationBits::getTrackCount() const {
+        return trackCount;
+    }
 
-	const Animation* AnimationBits::getAnimation(int animationIndex) const {
-		if (animationIndex >= 0 && (uint32_t)animationIndex < animationCount) {
-			// Grab the preset data
-			auto animationPtr = (const uint8_t *)animations + animationOffsets[animationIndex];
-			return (const Animation*)animationPtr;
-		}
-		return nullptr;
-	}
+    const Animation* AnimationBits::getAnimation(int animationIndex) const {
+        if (animationIndex >= 0 && (uint32_t)animationIndex < animationCount) {
+            // Grab the preset data
+            auto animationPtr = (const uint8_t *)animations + animationOffsets[animationIndex];
+            return (const Animation*)animationPtr;
+        }
+        return nullptr;
+    }
 
-	uint16_t AnimationBits::getAnimationCount() const {
-		return animationCount;
-	}
+    uint16_t AnimationBits::getAnimationCount() const {
+        return animationCount;
+    }
 
-	void AnimationBits::Clear() {
+    void AnimationBits::Clear() {
         palette = nullptr;
         paletteSize = 0;
         rgbKeyframes = nullptr;
@@ -104,6 +104,6 @@ namespace DataSet
         keyFrameCount = 0;
         tracks = nullptr;
         trackCount = 0;
-	}
+    }
 
 }

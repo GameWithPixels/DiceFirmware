@@ -16,6 +16,6 @@ namespace Die
 
     void update();
 
-	TopLevelState getCurrentState();
+    TopLevelState getCurrentState();
 }
 

@@ -8,7 +8,7 @@
 
 namespace Animations
 {
-	struct Animation;
+    struct Animation;
 }
 
 /// <summary>
@@ -17,20 +17,20 @@ namespace Animations
 /// </summary>
 namespace Modules::AnimController
 {
-	void stopAtIndex(int animIndex);
-	void removeAtIndex(int animIndex);
+    void stopAtIndex(int animIndex);
+    void removeAtIndex(int animIndex);
 
-	void init();
-	void stop();
-	void start();
+    void init();
+    void stop();
+    void start();
 
-	void play(const Animations::Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace = 0, uint8_t loopCount = 1, Animations::AnimationTag tag = Animations::AnimationTag_Unknown);
-	void stop(const Animations::Animation* animationPreset, uint8_t remapFace = 0);
-	void fadeOutAnimsWithTag(Animations::AnimationTag tagToStop, int fadeOutTimeMs);
-	void stopAll();
+    void play(const Animations::Animation* animationPreset, const DataSet::AnimationBits* animationBits, uint8_t remapFace = 0, uint8_t loopCount = 1, Animations::AnimationTag tag = Animations::AnimationTag_Unknown);
+    void stop(const Animations::Animation* animationPreset, uint8_t remapFace = 0);
+    void fadeOutAnimsWithTag(Animations::AnimationTag tagToStop, int fadeOutTimeMs);
+    void stopAll();
 
-	// Notification management
-	typedef void(*AnimControllerClientMethod)(void* param);
-	void hook(AnimControllerClientMethod method, void* param);
-	void unHook(AnimControllerClientMethod client);
+    // Notification management
+    typedef void(*AnimControllerClientMethod)(void* param);
+    void hook(AnimControllerClientMethod method, void* param);
+    void unHook(AnimControllerClientMethod client);
 }

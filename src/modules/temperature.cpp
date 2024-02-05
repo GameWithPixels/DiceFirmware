@@ -36,7 +36,7 @@ namespace Modules::Temperature
     void update(void* context);
 
     static InitCallback the_callback = nullptr;
-	void init(InitCallback callback) {
+    void init(InitCallback callback) {
         the_callback = callback;
         // Measure initial temperatures
         if (!NTC::measure([](int32_t ntcTimes100) {
@@ -120,15 +120,15 @@ namespace Modules::Temperature
         // The new timer duration will kick in on the next reset of the battery timer.
     }
 
-	bool hookTemperatureChange(TemperatureChangeClientMethod method, void* param) {
+    bool hookTemperatureChange(TemperatureChangeClientMethod method, void* param) {
         return clients.Register(param, method);
     }
 
-	void unHookTemperatureChange(TemperatureChangeClientMethod client) {
+    void unHookTemperatureChange(TemperatureChangeClientMethod client) {
         clients.UnregisterWithHandler(client);
     }
 
-	void unHookTemperatureChangeWithParam(void* param) {
+    void unHookTemperatureChangeWithParam(void* param) {
         clients.UnregisterWithToken(param);
     }
 }

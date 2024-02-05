@@ -19,12 +19,12 @@ namespace DriversHW
             ChargingEvent_ChargeStop,
         };
 
-		typedef void(*ClientMethod)(void* param, ChargingEvent event);
+        typedef void(*ClientMethod)(void* param, ChargingEvent event);
 
-		// Notification management
-		void hook(ClientMethod method, void* param);
-		void unHook(ClientMethod client);
-		void unHookWithParam(void* param);
+        // Notification management
+        void hook(ClientMethod method, void* param);
+        void unHook(ClientMethod client);
+        void unHookWithParam(void* param);
 
         void selfTest();
     }

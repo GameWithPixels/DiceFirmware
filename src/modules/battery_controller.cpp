@@ -86,7 +86,7 @@ namespace Modules::BatteryController
 
     static BatteryTemperatureState currentBatteryTempState = BatteryTemperatureState_Normal;
 
-	static DelegateArray<BatteryControllerStateChangeHandler, MAX_STATE_CLIENTS> clients;
+    static DelegateArray<BatteryControllerStateChangeHandler, MAX_STATE_CLIENTS> clients;
     static DelegateArray<BatteryStateChangeHandler, MAX_BATTERY_CLIENTS> batteryClients;
     static DelegateArray<BatteryLevelChangeHandler, MAX_LEVEL_CLIENTS> levelClients;
 
@@ -159,8 +159,8 @@ namespace Modules::BatteryController
         currentStateStartTime = DriversNRF::Timers::millis();
         currentBatteryState = computeNewBatteryState();
         
-		Timers::createTimer(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
-		Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
+        Timers::createTimer(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
+        Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
 
         MessageService::RegisterMessageHandler(Message::MessageType_SetBatteryControllerMode, onSetBatteryControllerModeHandler);
 
@@ -177,7 +177,7 @@ namespace Modules::BatteryController
         charging = clamp<int32_t>(Battery::checkCharging(), 0, MAX_V_MILLIS);
     }
 
-	State getState() {
+    State getState() {
         return currentState;
     }
 
@@ -342,25 +342,25 @@ namespace Modules::BatteryController
                                 } // else it hasn't been long enough to know for sure
                             }
                             break;
-		                case State::State_Ok:
-		                case State::State_Low:
-		                case State::State_Empty:
+                        case State::State_Ok:
+                        case State::State_Low:
+                        case State::State_Empty:
                             // Not fully on coil yet
                             ret = State_TransitionOn;
                             break;
-		                case State::State_ChargingLow:
-		                case State::State_Charging:
-		                case State::State_Trickle:
-		                case State::State_Cooldown:
-		                case State::State_Done:
+                        case State::State_ChargingLow:
+                        case State::State_Charging:
+                        case State::State_Trickle:
+                        case State::State_Cooldown:
+                        case State::State_Done:
                             // On coil but coming off
                             ret = State_TransitionOff;
                             break;
                         case State::State_BadCharging:
-		                case State::State_Unknown:
-		                case State::State_Error:
-		                case State::State_LowTemp:
-		                case State::State_HighTemp:
+                        case State::State_Unknown:
+                        case State::State_Error:
+                        case State::State_LowTemp:
+                        case State::State_HighTemp:
                             // Already in error state, stay there!
                             break;
                     }
@@ -544,7 +544,7 @@ namespace Modules::BatteryController
         if (newBatteryState != currentBatteryState) {
             currentBatteryState = newBatteryState;
             for (int i = 0; i < batteryClients.Count(); ++i) {
-    			batteryClients[i].handler(batteryClients[i].token, newBatteryState);
+                batteryClients[i].handler(batteryClients[i].token, newBatteryState);
             }
         }
 
@@ -558,14 +558,14 @@ namespace Modules::BatteryController
             // And lastly notify of controller state change so notified clients
             // can also read the up-to-date battery state and level
             for (int i = 0; i < clients.Count(); ++i) {
-    			clients[i].handler(clients[i].token, newState);
+                clients[i].handler(clients[i].token, newState);
             }
         }
 
         Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
     }
 
-	void setUpdateRate(UpdateRate rate) {
+    void setUpdateRate(UpdateRate rate) {
         currentUpdateRate = rate;
         switch (rate) {
             case UpdateRate_Slow:
@@ -592,7 +592,7 @@ namespace Modules::BatteryController
             Timers::stopTimer(batteryControllerTimer);
 
             // Restart the timer
-		    Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
+            Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
         }
     }
 
@@ -601,7 +601,7 @@ namespace Modules::BatteryController
         setControllerOverrideMode(setModeMsg->mode);
     }
 
-	void setControllerOverrideMode(ControllerOverrideMode mode) {
+    void setControllerOverrideMode(ControllerOverrideMode mode) {
         overrideMode = mode;
         switch (mode) {
             case ControllerOverrideMode_ForceDisableCharging:
@@ -615,74 +615,74 @@ namespace Modules::BatteryController
         }
     }
 
-	ControllerOverrideMode getControllerOverrideMode() {
+    ControllerOverrideMode getControllerOverrideMode() {
         return overrideMode;
     }
 
 
-	/// <summary>
-	/// Method used by clients to request timer callbacks when accelerometer readings are in
-	/// </summary>
-	void hookControllerState(BatteryControllerStateChangeHandler callback, void* parameter) {
-		if (!clients.Register(parameter, callback))
-		{
-			NRF_LOG_ERROR("Too many battery level hooks registered.");
-		}
-	}
+    /// <summary>
+    /// Method used by clients to request timer callbacks when accelerometer readings are in
+    /// </summary>
+    void hookControllerState(BatteryControllerStateChangeHandler callback, void* parameter) {
+        if (!clients.Register(parameter, callback))
+        {
+            NRF_LOG_ERROR("Too many battery level hooks registered.");
+        }
+    }
 
-	/// <summary>
-	/// </summary>
-	void unHookControllerState(BatteryControllerStateChangeHandler callback) {
-		clients.UnregisterWithHandler(callback);
-	}
+    /// <summary>
+    /// </summary>
+    void unHookControllerState(BatteryControllerStateChangeHandler callback) {
+        clients.UnregisterWithHandler(callback);
+    }
 
-	/// <summary>
-	/// </summary>
-	void unHookControllerStateWithParam(void* param) {
-		clients.UnregisterWithToken(param);
-	}
+    /// <summary>
+    /// </summary>
+    void unHookControllerStateWithParam(void* param) {
+        clients.UnregisterWithToken(param);
+    }
 
-	/// <summary>
-	/// Method used by clients to request timer callbacks when accelerometer readings are in
-	/// </summary>
-	void hookBatteryState(BatteryStateChangeHandler callback, void* parameter) {
-		if (!batteryClients.Register(parameter, callback))
-		{
-			NRF_LOG_ERROR("Too many battery level hooks registered.");
-		}
-	}
+    /// <summary>
+    /// Method used by clients to request timer callbacks when accelerometer readings are in
+    /// </summary>
+    void hookBatteryState(BatteryStateChangeHandler callback, void* parameter) {
+        if (!batteryClients.Register(parameter, callback))
+        {
+            NRF_LOG_ERROR("Too many battery level hooks registered.");
+        }
+    }
 
-	/// <summary>
-	/// </summary>
-	void unHookBatteryState(BatteryStateChangeHandler callback) {
-		batteryClients.UnregisterWithHandler(callback);
-	}
+    /// <summary>
+    /// </summary>
+    void unHookBatteryState(BatteryStateChangeHandler callback) {
+        batteryClients.UnregisterWithHandler(callback);
+    }
 
-	/// <summary>
-	/// </summary>
-	void unHookBatteryStateWithParam(void* param) {
-		batteryClients.UnregisterWithToken(param);
-	}
+    /// <summary>
+    /// </summary>
+    void unHookBatteryStateWithParam(void* param) {
+        batteryClients.UnregisterWithToken(param);
+    }
 
-	/// <summary>
-	/// </summary>
-	void hookLevel(BatteryLevelChangeHandler callback, void* parameter) {
-		if (!levelClients.Register(parameter, callback)) {
-			NRF_LOG_ERROR("Too many battery state hooks registered.");
-		}
-	}
+    /// <summary>
+    /// </summary>
+    void hookLevel(BatteryLevelChangeHandler callback, void* parameter) {
+        if (!levelClients.Register(parameter, callback)) {
+            NRF_LOG_ERROR("Too many battery state hooks registered.");
+        }
+    }
 
-	/// <summary>
-	/// </summary>
-	void unHookLevel(BatteryLevelChangeHandler callback) {
-		levelClients.UnregisterWithHandler(callback);
-	}
+    /// <summary>
+    /// </summary>
+    void unHookLevel(BatteryLevelChangeHandler callback) {
+        levelClients.UnregisterWithHandler(callback);
+    }
 
-	/// <summary>
-	/// </summary>
-	void unHookLevelWithParam(void* param) {
-		levelClients.UnregisterWithToken(param);
-	}
+    /// <summary>
+    /// </summary>
+    void unHookLevelWithParam(void* param) {
+        levelClients.UnregisterWithToken(param);
+    }
 
     void updateLevelPercent() {
         int chargingOffset = charging ? 1 : 0;

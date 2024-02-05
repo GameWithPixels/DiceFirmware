@@ -22,11 +22,11 @@ using namespace Behaviors;
 
 namespace DataSet
 {
-	void ProgramDefaultDataSet(const Settings& settingsPackAlong, DataSetWrittenCallback callback) {
+    void ProgramDefaultDataSet(const Settings& settingsPackAlong, DataSetWrittenCallback callback) {
         NRF_LOG_INFO("Programming default data set");
 
         static DataSetWrittenCallback _setWrittenCallback;
-		_setWrittenCallback = callback;
+        _setWrittenCallback = callback;
 #ifdef USE_BINARY_BUFFER_IMAGE
         // Doesn't quite work yet...
         static const uint8_t writeBuffer[] __attribute__ ((aligned (4))) = {
@@ -85,20 +85,20 @@ namespace DataSet
             0xE0, 0xE2, 0x02, 0x00, 0x0C, 0xF0, 0x0D, 0x60,
         };
 
-		static const Data* newData = (const Data*)dataBuffer;
+        static const Data* newData = (const Data*)dataBuffer;
 #else
         static void* writeBuffer;
         static uint32_t bufferSize;
-		static Data* newData; 
+        static Data* newData; 
 
-		int paletteCount = 4;
+        int paletteCount = 4;
         int paletteSize = Utils::roundUpTo4(paletteCount * 3);
-		int rgbKeyframeCount = 0;
+        int rgbKeyframeCount = 0;
         int rgbTrackCount = 0;
-		int keyframeCount = 0;
+        int keyframeCount = 0;
         int trackCount = 0;
         int simpleAnimCount = 8;
-		int animCount = simpleAnimCount + 1;
+        int animCount = simpleAnimCount + 1;
         int animOffsetSize = Utils::roundUpTo4(animCount * sizeof(uint16_t));
         int animSize = sizeof(AnimationSimple) * simpleAnimCount + sizeof(AnimationRainbow);
         int actionCount = 9;
@@ -119,20 +119,20 @@ namespace DataSet
         int ruleCount = 9;
         int behaviorCount = 1;
 
-		// Compute the size of the needed buffer to store all that data!
-		bufferSize =
+        // Compute the size of the needed buffer to store all that data!
+        bufferSize =
             paletteSize * sizeof(uint8_t) +
-			rgbKeyframeCount * sizeof(RGBKeyframe) +
-			rgbTrackCount * sizeof(RGBTrack) +
-			keyframeCount * sizeof(Keyframe) +
-			trackCount * sizeof(Track) +
-			animOffsetSize + animSize +
+            rgbKeyframeCount * sizeof(RGBKeyframe) +
+            rgbTrackCount * sizeof(RGBTrack) +
+            keyframeCount * sizeof(Keyframe) +
+            trackCount * sizeof(Track) +
+            animOffsetSize + animSize +
             actionOffsetSize + actionSize +
             conditionOffsetSize + conditionsSize + 
             ruleCount * sizeof(Rule) +
             behaviorCount * sizeof(Behavior);
 
-		uint32_t dataAddress = Flash::getDataSetDataAddress();
+        uint32_t dataAddress = Flash::getDataSetDataAddress();
 
         // Allocate a buffer for all the data we're about to create
         // We'll write the data in the buffer and then program it into flash!
@@ -143,78 +143,78 @@ namespace DataSet
         // We need to fill it with pointers as if the data it points to is located in flash already.
         // That means we have to compute addresses by hand, we can't just point to the data buffer We
         // just created above. Instead we make the pointers point to where the data WILL be.
-		newData = (Data*)malloc(sizeof(Data));
-		
+        newData = (Data*)malloc(sizeof(Data));
+        
         int currentOffset = 0;
         newData->headMarker = ANIMATION_SET_VALID_KEY;
-		newData->version = ANIMATION_SET_VERSION;
+        newData->version = ANIMATION_SET_VERSION;
 
-		newData->animationBits.palette = (const uint8_t*)(dataAddress + currentOffset);
+        newData->animationBits.palette = (const uint8_t*)(dataAddress + currentOffset);
         auto writePalette = (uint8_t*)(writeBufferAddress + currentOffset);
         currentOffset += paletteSize;
-		newData->animationBits.paletteSize = paletteCount * 3;
+        newData->animationBits.paletteSize = paletteCount * 3;
 
-		newData->animationBits.rgbKeyframes = (const RGBKeyframe*)(dataAddress + currentOffset);
+        newData->animationBits.rgbKeyframes = (const RGBKeyframe*)(dataAddress + currentOffset);
         //auto writeKeyframes = (RGBKeyframe*)(writeBufferAddress + currentOffset);
         currentOffset += rgbKeyframeCount * sizeof(RGBKeyframe);
-		newData->animationBits.rgbKeyFrameCount = rgbKeyframeCount;
+        newData->animationBits.rgbKeyFrameCount = rgbKeyframeCount;
 
-		newData->animationBits.rgbTracks = (const RGBTrack*)(dataAddress + currentOffset);
+        newData->animationBits.rgbTracks = (const RGBTrack*)(dataAddress + currentOffset);
         //auto writeRGBTracks = (RGBTrack*)(writeBufferAddress + currentOffset);
-		currentOffset += rgbTrackCount * sizeof(RGBTrack);
+        currentOffset += rgbTrackCount * sizeof(RGBTrack);
         newData->animationBits.rgbTrackCount = rgbTrackCount;
 
-		newData->animationBits.keyframes = (const Keyframe*)(dataAddress + currentOffset);
+        newData->animationBits.keyframes = (const Keyframe*)(dataAddress + currentOffset);
         //auto writeKeyframes = (Keyframe*)(writeBufferAddress + currentOffset);
         currentOffset += keyframeCount * sizeof(Keyframe);
-		newData->animationBits.keyFrameCount = keyframeCount;
+        newData->animationBits.keyFrameCount = keyframeCount;
 
-		newData->animationBits.tracks = (const Track*)(dataAddress + currentOffset);
+        newData->animationBits.tracks = (const Track*)(dataAddress + currentOffset);
         //auto writeRGBTracks = (Track*)(writeBufferAddress + currentOffset);
-		currentOffset += trackCount * sizeof(Track);
+        currentOffset += trackCount * sizeof(Track);
         newData->animationBits.trackCount = trackCount;
 
-		newData->animationBits.animationOffsets = (const uint16_t*)(dataAddress + currentOffset);
+        newData->animationBits.animationOffsets = (const uint16_t*)(dataAddress + currentOffset);
         auto writeAnimationOffsets = (uint16_t*)(writeBufferAddress + currentOffset);
         currentOffset += animOffsetSize;
-		newData->animationBits.animationCount = animCount;
+        newData->animationBits.animationCount = animCount;
 
-		newData->animationBits.animations = (const uint8_t*)(dataAddress + currentOffset);
+        newData->animationBits.animations = (const uint8_t*)(dataAddress + currentOffset);
         auto writeSimpleAnimations = (AnimationSimple*)(writeBufferAddress + currentOffset);
         auto writeRainbowAnimation = (AnimationRainbow*)(writeBufferAddress + currentOffset + sizeof(AnimationSimple) * simpleAnimCount);
         currentOffset += animSize;
-		newData->animationBits.animationsSize = animSize;
-		
+        newData->animationBits.animationsSize = animSize;
+        
         newData->actionsOffsets = (const uint16_t*)(dataAddress + currentOffset);
         auto writeActionsOffsets = (uint16_t*)(writeBufferAddress + currentOffset);
         currentOffset += actionOffsetSize;
-		newData->actionCount = actionCount;
-		
+        newData->actionCount = actionCount;
+        
         newData->actions = (const Action*)(dataAddress + currentOffset);
         auto writeActions = (ActionPlayAnimation*)(writeBufferAddress + currentOffset);
         currentOffset += actionSize;
-		newData->actionsSize = actionSize;
-		
+        newData->actionsSize = actionSize;
+        
         newData->conditionsOffsets = (const uint16_t*)(dataAddress + currentOffset);
         auto writeConditionsOffsets = (uint16_t*)(writeBufferAddress + currentOffset);
         currentOffset += conditionOffsetSize;
-		newData->conditionCount = conditionCount;
-		
+        newData->conditionCount = conditionCount;
+        
         newData->conditions = (const Condition*)(dataAddress + currentOffset);
         auto writeConditions = (Condition*)(writeBufferAddress + currentOffset);
         currentOffset += conditionsSize;
-		newData->conditionsSize = conditionsSize;
+        newData->conditionsSize = conditionsSize;
         
         newData->rules = (const Rule*)(dataAddress + currentOffset);
         auto writeRules = (Rule*)(writeBufferAddress + currentOffset);
         currentOffset += ruleCount * sizeof(Rule);
         newData->ruleCount = ruleCount;
-		
+        
         newData->behavior = (const Behavior*)(dataAddress + currentOffset);
         auto writeBehaviors = (Behavior*)(writeBufferAddress + currentOffset);
         currentOffset += sizeof(Behavior);
 
-		newData->tailMarker = ANIMATION_SET_VALID_KEY;
+        newData->tailMarker = ANIMATION_SET_VALID_KEY;
 
         // Cute way to create Red Green Blue colors in palette
         writePalette[0] = 8;
@@ -230,75 +230,75 @@ namespace DataSet
         writePalette[10] = 6;
         writePalette[11] = 0;
 
-		// Create animations
-		for (int c = 0; c < simpleAnimCount; ++c) {
+        // Create animations
+        for (int c = 0; c < simpleAnimCount; ++c) {
             writeSimpleAnimations[c].type = Animation_Simple;
             writeSimpleAnimations[c].animFlags = 0;
             writeSimpleAnimations[c].fade = 255;
-		}
+        }
 
         // 0 Charging
         writeSimpleAnimations[0].count = 1;
         writeSimpleAnimations[0].duration = 3000;
         writeSimpleAnimations[0].colorIndex = 0; // Red
-	    writeSimpleAnimations[0].faceMask = DiceVariants::getTopFaceMask();
+        writeSimpleAnimations[0].faceMask = DiceVariants::getTopFaceMask();
 
         // 1 Charging Problem
         writeSimpleAnimations[1].count = 10;
         writeSimpleAnimations[1].duration = 2000;
         writeSimpleAnimations[1].colorIndex = 0; // Red
-	    writeSimpleAnimations[1].faceMask = ANIM_FACEMASK_ALL_LEDS;
+        writeSimpleAnimations[1].faceMask = ANIM_FACEMASK_ALL_LEDS;
 
         // 2 Low battery
         writeSimpleAnimations[2].count = 3;
         writeSimpleAnimations[2].duration = 1500;
         writeSimpleAnimations[2].colorIndex = 0; // Red
-	    writeSimpleAnimations[2].faceMask = DiceVariants::getTopFaceMask();
+        writeSimpleAnimations[2].faceMask = DiceVariants::getTopFaceMask();
 
         // 3 Fully charged
         writeSimpleAnimations[3].count = 1;
         writeSimpleAnimations[3].duration = 3000;
         writeSimpleAnimations[3].colorIndex = 1; // Green
-	    writeSimpleAnimations[3].faceMask = DiceVariants::getTopFaceMask();
+        writeSimpleAnimations[3].faceMask = DiceVariants::getTopFaceMask();
 
         // 4 Connection
         writeSimpleAnimations[4].count = 2;
         writeSimpleAnimations[4].duration = 1000;
         writeSimpleAnimations[4].colorIndex = 2; // Blue
-	    writeSimpleAnimations[4].faceMask = ANIM_FACEMASK_ALL_LEDS;
+        writeSimpleAnimations[4].faceMask = ANIM_FACEMASK_ALL_LEDS;
 
         // 5 Rolling
         writeSimpleAnimations[5].count = 1;
         writeSimpleAnimations[5].duration = 100;
         writeSimpleAnimations[5].colorIndex = PALETTE_COLOR_FROM_FACE; // We'll override based on face
-	    writeSimpleAnimations[5].faceMask = DiceVariants::getTopFaceMask();
+        writeSimpleAnimations[5].faceMask = DiceVariants::getTopFaceMask();
 
         // 6 On Face
         writeSimpleAnimations[6].count = 1;
         writeSimpleAnimations[6].duration = 3000;
         writeSimpleAnimations[6].colorIndex = PALETTE_COLOR_FROM_FACE; // We'll override based on face
-	    writeSimpleAnimations[6].faceMask = ANIM_FACEMASK_ALL_LEDS;
+        writeSimpleAnimations[6].faceMask = ANIM_FACEMASK_ALL_LEDS;
 
         // 7 error while charging (temperature)
         writeSimpleAnimations[7].count = 1;
         writeSimpleAnimations[7].duration = 1000;
         writeSimpleAnimations[7].colorIndex = 3; // yellow
-	    writeSimpleAnimations[7].faceMask = DiceVariants::getTopFaceMask();
+        writeSimpleAnimations[7].faceMask = DiceVariants::getTopFaceMask();
 
         // 8 Rainbow
         writeRainbowAnimation->type = Animation_Rainbow;
         writeRainbowAnimation->animFlags = AnimationFlags_Traveling | AnimationFlags_UseLedIndices;
         writeRainbowAnimation->duration = 2000;
-		writeRainbowAnimation->faceMask = ANIM_FACEMASK_ALL_LEDS;
+        writeRainbowAnimation->faceMask = ANIM_FACEMASK_ALL_LEDS;
         writeRainbowAnimation->count = 2;
         writeRainbowAnimation->fade = 200;
         writeRainbowAnimation->intensity = 0x80;
         writeRainbowAnimation->cyclesTimes10 = 10;
 
-		// Create offsets
-		for (int i = 0; i < simpleAnimCount; ++i) {
-			writeAnimationOffsets[i] = i * sizeof(AnimationSimple);
-		}
+        // Create offsets
+        for (int i = 0; i < simpleAnimCount; ++i) {
+            writeAnimationOffsets[i] = i * sizeof(AnimationSimple);
+        }
 
         // Offset for rainbow anim
         writeAnimationOffsets[simpleAnimCount] = simpleAnimCount * sizeof(AnimationSimple);
@@ -430,9 +430,9 @@ namespace DataSet
         writeActions[8].loopCount = 1;
 
         // Create action offsets
-		for (int i = 0; i < actionCount; ++i) {
+        for (int i = 0; i < actionCount; ++i) {
             writeActionsOffsets[i] = i * sizeof(ActionPlayAnimation);
-		}
+        }
 
         // Add Rules
         for (int i = 0; i < ruleCount; ++i) {
@@ -455,5 +455,5 @@ namespace DataSet
         };
 
         Flash::programFlash(*newData, settingsPackAlong, programDefaultsToFlash, _setWrittenCallback);
-	}
+    }
 }

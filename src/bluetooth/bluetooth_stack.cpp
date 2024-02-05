@@ -81,8 +81,8 @@ namespace Bluetooth::Stack
         {GENERIC_DATA_SERVICE_UUID_SHORT, BLE_UUID_TYPE_VENDOR_BEGIN},
     };
 
-	DelegateArray<ConnectionEventMethod, MAX_CLIENTS> clients;
-	DelegateArray<RssiEventMethod, MAX_RSSI_CLIENTS> rssiClients;
+    DelegateArray<ConnectionEventMethod, MAX_CLIENTS> clients;
+    DelegateArray<RssiEventMethod, MAX_RSSI_CLIENTS> rssiClients;
 
 #pragma pack( push, 1)
     struct CustomServiceData {
@@ -495,19 +495,19 @@ namespace Bluetooth::Stack
         return connected;
     }
 
-	void hook(ConnectionEventMethod method, void* param) {
-		if (!clients.Register(param, method)) {
+    void hook(ConnectionEventMethod method, void* param) {
+        if (!clients.Register(param, method)) {
             NRF_LOG_ERROR("Too many connection state hooks registered.");
         }
     }
 
-	void unHook(ConnectionEventMethod method) {
-		clients.UnregisterWithHandler(method);
-	}
+    void unHook(ConnectionEventMethod method) {
+        clients.UnregisterWithHandler(method);
+    }
 
-	void unHookWithParam(void* param) {
-		clients.UnregisterWithToken(param);
-	}
+    void unHookWithParam(void* param) {
+        clients.UnregisterWithToken(param);
+    }
 
     void hookRssi(RssiEventMethod method, void* param) {
         if (rssiClients.Count() == 0) {
@@ -517,7 +517,7 @@ namespace Bluetooth::Stack
             NRF_LOG_ERROR("Too many RSSI hooks registered.");
         }
     }
-	
+    
     void unHookRssi(RssiEventMethod client) {
         rssiClients.UnregisterWithHandler(client);
         if (rssiClients.Count() == 0) {

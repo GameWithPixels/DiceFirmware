@@ -193,43 +193,43 @@ namespace DriversNRF::Flash
         return fstorage.p_flash_info->erase_unit;
     }
 
-	uint32_t getFlashByteSize(uint32_t totalDataByteSize) {
-		auto pageSize = Flash::getPageSize();
-		return pageSize * ((totalDataByteSize + pageSize - 1) / pageSize);
-	}
+    uint32_t getFlashByteSize(uint32_t totalDataByteSize) {
+        auto pageSize = Flash::getPageSize();
+        return pageSize * ((totalDataByteSize + pageSize - 1) / pageSize);
+    }
 
 
-	bool programFlash(
-		const Data& newData,
-		const Settings& newSettings,
-		ProgramFlashFunc programFlashFunc,
-		ProgramFlashNotification onProgramFinished) {
+    bool programFlash(
+        const Data& newData,
+        const Settings& newSettings,
+        ProgramFlashFunc programFlashFunc,
+        ProgramFlashNotification onProgramFinished) {
 
-		static Data* _newData = nullptr;
-		static Settings* _newSettings = nullptr;
-		static ProgramFlashFunc _programDataFunc;
-		static ProgramFlashNotification _onProgramFinished;
+        static Data* _newData = nullptr;
+        static Settings* _newSettings = nullptr;
+        static ProgramFlashFunc _programDataFunc;
+        static ProgramFlashNotification _onProgramFinished;
 
-		static auto beginProgramming = []() {
-			// Notify clients
-			for (int i = 0; i < programmingClients.Count(); ++i)
-			{
-				programmingClients[i].handler(programmingClients[i].token, ProgrammingEventType_Begin);
-			}
-		};
+        static auto beginProgramming = []() {
+            // Notify clients
+            for (int i = 0; i < programmingClients.Count(); ++i)
+            {
+                programmingClients[i].handler(programmingClients[i].token, ProgrammingEventType_Begin);
+            }
+        };
 
-		static auto finishProgramming = []() {
+        static auto finishProgramming = []() {
             free(_newSettings);
                 _newSettings = nullptr;
             free(_newData);
                 _newData = nullptr;
 
-			// Notify clients
-			for (int i = 0; i < programmingClients.Count(); ++i)
-			{
-				programmingClients[i].handler(programmingClients[i].token, ProgrammingEventType_End);
-			}
-		};
+            // Notify clients
+            for (int i = 0; i < programmingClients.Count(); ++i)
+            {
+                programmingClients[i].handler(programmingClients[i].token, ProgrammingEventType_End);
+            }
+        };
 
         _newData = (Data*)malloc(sizeof(Data));
         if (_newData == nullptr) {
@@ -248,91 +248,91 @@ namespace DriversNRF::Flash
         _programDataFunc = programFlashFunc;
         _onProgramFinished = onProgramFinished;
 
-		uint32_t bufferSize = DataSet::computeDataSetDataSize(_newData);
-		if (availableDataSize() > bufferSize) {
-			beginProgramming();
+        uint32_t bufferSize = DataSet::computeDataSetDataSize(_newData);
+        if (availableDataSize() > bufferSize) {
+            beginProgramming();
 
-			uint32_t totalSize = bufferSize + sizeof(Data) + sizeof(Settings);
-			uint32_t flashSize = Flash::getFlashByteSize(totalSize);
-			uint32_t pageAddress = Flash::getFlashStartAddress();
-			uint32_t pageCount = Flash::bytesToPages(flashSize);
+            uint32_t totalSize = bufferSize + sizeof(Data) + sizeof(Settings);
+            uint32_t flashSize = Flash::getFlashByteSize(totalSize);
+            uint32_t pageAddress = Flash::getFlashStartAddress();
+            uint32_t pageCount = Flash::bytesToPages(flashSize);
 
-			// Start by erasing the flash
-			Flash::erase(nullptr, pageAddress, pageCount, [](void* context, bool result, uint32_t address, uint16_t data_size) {
-				NRF_LOG_INFO("Done erasing %d page", data_size);
-				if (result) {
-					// Program settings
-					Flash::write(nullptr, getSettingsStartAddress(), _newSettings, sizeof(Settings), [](void* context, bool result, uint32_t address, uint16_t data_size) {
-						if (result) {
-							NRF_LOG_INFO("Finished flashing settings, flashing dataset data");
-							// Receive all the buffers directly to flash
-							_programDataFunc([](void* context, bool result, uint32_t address, uint16_t data_size) {
-								if (result) {
-									// Program the animation set itself
-    								NRF_LOG_INFO("Finished flashing dataset data, flashing dataset itself");
-									Flash::write(nullptr, getDataSetAddress(), _newData, sizeof(Data),
-										[](void* context, bool result, uint32_t address, uint16_t data_size) {
-											if (result) {
-												NRF_LOG_INFO("Data Set written to flash!");
-											} else {
-												NRF_LOG_ERROR("Error programming dataset to flash");
-											}
-											finishProgramming();
-											_onProgramFinished(result);
-									});
-								} else {
-									NRF_LOG_ERROR("Error transferring animation data");
-									finishProgramming();
-									_onProgramFinished(false);
-								}
-							});
-						} else {
-							NRF_LOG_ERROR("Error writing settings");
-							finishProgramming();
-							_onProgramFinished(false);
-						}
-					});
-				} else {
-					NRF_LOG_ERROR("Error erasing flash");
-					finishProgramming();
-					_onProgramFinished(false);
-				}
-			});
+            // Start by erasing the flash
+            Flash::erase(nullptr, pageAddress, pageCount, [](void* context, bool result, uint32_t address, uint16_t data_size) {
+                NRF_LOG_INFO("Done erasing %d page", data_size);
+                if (result) {
+                    // Program settings
+                    Flash::write(nullptr, getSettingsStartAddress(), _newSettings, sizeof(Settings), [](void* context, bool result, uint32_t address, uint16_t data_size) {
+                        if (result) {
+                            NRF_LOG_INFO("Finished flashing settings, flashing dataset data");
+                            // Receive all the buffers directly to flash
+                            _programDataFunc([](void* context, bool result, uint32_t address, uint16_t data_size) {
+                                if (result) {
+                                    // Program the animation set itself
+                                    NRF_LOG_INFO("Finished flashing dataset data, flashing dataset itself");
+                                    Flash::write(nullptr, getDataSetAddress(), _newData, sizeof(Data),
+                                        [](void* context, bool result, uint32_t address, uint16_t data_size) {
+                                            if (result) {
+                                                NRF_LOG_INFO("Data Set written to flash!");
+                                            } else {
+                                                NRF_LOG_ERROR("Error programming dataset to flash");
+                                            }
+                                            finishProgramming();
+                                            _onProgramFinished(result);
+                                    });
+                                } else {
+                                    NRF_LOG_ERROR("Error transferring animation data");
+                                    finishProgramming();
+                                    _onProgramFinished(false);
+                                }
+                            });
+                        } else {
+                            NRF_LOG_ERROR("Error writing settings");
+                            finishProgramming();
+                            _onProgramFinished(false);
+                        }
+                    });
+                } else {
+                    NRF_LOG_ERROR("Error erasing flash");
+                    finishProgramming();
+                    _onProgramFinished(false);
+                }
+            });
             return true;
-		} else {
+        } else {
             NRF_LOG_ERROR("Not enough available data to flash");
             return false;
-		}
-	}
+        }
+    }
 
-	uint32_t getDataSetAddress() {
-		return getSettingsEndAddress();
-	}
+    uint32_t getDataSetAddress() {
+        return getSettingsEndAddress();
+    }
 
-	uint32_t getDataSetDataAddress() {
-		return getDataSetAddress() + sizeof(Data);
-	}
+    uint32_t getDataSetDataAddress() {
+        return getDataSetAddress() + sizeof(Data);
+    }
 
-	uint32_t getSettingsStartAddress() {
-		return (uint32_t)Flash::getFlashStartAddress();
-	}
-	uint32_t getSettingsEndAddress() {
-		return getSettingsStartAddress() + sizeof(Settings);
-	}
+    uint32_t getSettingsStartAddress() {
+        return (uint32_t)Flash::getFlashStartAddress();
+    }
+    uint32_t getSettingsEndAddress() {
+        return getSettingsStartAddress() + sizeof(Settings);
+    }
 
 
-	void hookProgrammingEvent(ProgrammingEventMethod client, void* param)
-	{
-		if (!programmingClients.Register(param, client))
-		{
-			NRF_LOG_ERROR("Too many hooks registered.");
-		}
-	}
+    void hookProgrammingEvent(ProgrammingEventMethod client, void* param)
+    {
+        if (!programmingClients.Register(param, client))
+        {
+            NRF_LOG_ERROR("Too many hooks registered.");
+        }
+    }
 
-	void unhookProgrammingEvent(ProgrammingEventMethod client)
-	{
-		programmingClients.UnregisterWithHandler(client);
-	}
+    void unhookProgrammingEvent(ProgrammingEventMethod client)
+    {
+        programmingClients.UnregisterWithHandler(client);
+    }
 
     #if DICE_SELFTEST && FLASH_SELFTEST
     bool testing = false;

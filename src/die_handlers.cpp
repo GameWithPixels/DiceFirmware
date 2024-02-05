@@ -158,7 +158,7 @@ namespace Die
     void playLEDAnimHandler(const Message* msg) {
         auto playAnimMessage = (const MessagePlayAnim*)msg;
         NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
-		auto animationPreset = DataSet::getAnimation((int)playAnimMessage->animation);
+        auto animationPreset = DataSet::getAnimation((int)playAnimMessage->animation);
         AnimController::play(
             animationPreset,
             DataSet::getAnimationBits(),
@@ -170,8 +170,8 @@ namespace Die
     void stopLEDAnimHandler(const Message* msg) {
         auto stopAnimMessage = (const MessageStopAnim*)msg;
         NRF_LOG_DEBUG("Stopping animation %d", stopAnimMessage->animation);
-		// Find the preset for this animation Index
-		auto animationPreset = DataSet::getAnimation((int)stopAnimMessage->animation);
+        // Find the preset for this animation Index
+        auto animationPreset = DataSet::getAnimation((int)stopAnimMessage->animation);
         AnimController::stop(animationPreset, stopAnimMessage->remapFace);
     }
 

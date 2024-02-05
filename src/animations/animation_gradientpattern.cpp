@@ -12,63 +12,63 @@
 
 namespace Animations
 {
-	/// <summary>
-	/// constructor for keyframe-based animation instances
-	/// Needs to have an associated preset passed in
-	/// </summary>
-	AnimationInstanceGradientPattern::AnimationInstanceGradientPattern(const AnimationGradientPattern* preset, const DataSet::AnimationBits* bits)
-		: AnimationInstance(preset, bits) {
-	}
+    /// <summary>
+    /// constructor for keyframe-based animation instances
+    /// Needs to have an associated preset passed in
+    /// </summary>
+    AnimationInstanceGradientPattern::AnimationInstanceGradientPattern(const AnimationGradientPattern* preset, const DataSet::AnimationBits* bits)
+        : AnimationInstance(preset, bits) {
+    }
 
-	/// <summary>
-	/// destructor
-	/// </summary>
-	AnimationInstanceGradientPattern::~AnimationInstanceGradientPattern() {
-	}
+    /// <summary>
+    /// destructor
+    /// </summary>
+    AnimationInstanceGradientPattern::~AnimationInstanceGradientPattern() {
+    }
 
-	/// <summary>
-	/// Small helper to return the expected size of the preset data
-	/// </summary>
-	int AnimationInstanceGradientPattern::animationSize() const {
-		return sizeof(AnimationGradientPattern);
-	}
+    /// <summary>
+    /// Small helper to return the expected size of the preset data
+    /// </summary>
+    int AnimationInstanceGradientPattern::animationSize() const {
+        return sizeof(AnimationGradientPattern);
+    }
 
-	/// <summary>
-	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
-	/// </summary>
-	void AnimationInstanceGradientPattern::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
-		AnimationInstance::start(_startTime, _remapFace, _loopCount);
+    /// <summary>
+    /// (re)Initializes the instance to animate leds. This can be called on a reused instance.
+    /// </summary>
+    void AnimationInstanceGradientPattern::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
+        AnimationInstance::start(_startTime, _remapFace, _loopCount);
         auto preset = getPreset();
-		if (preset->overrideWithFace) {
-			// Compute color based on face is 127
-	        rgb = animationBits->getPaletteColor(PALETTE_COLOR_FROM_FACE);
-		}
-	}
+        if (preset->overrideWithFace) {
+            // Compute color based on face is 127
+            rgb = animationBits->getPaletteColor(PALETTE_COLOR_FROM_FACE);
+        }
+    }
 
-	/// <summary>
-	/// Computes the list of LEDs that need to be on, and what their intensities should be
-	/// based on the different tracks of this animation.
-	/// </summary>
-	/// <param name="ms">The animation time (in milliseconds)</param>
-	/// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
-	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
-	/// <returns>The number of leds/intensities added to the return array</returns>
-	int AnimationInstanceGradientPattern::updateLEDs(int ms, int retIndices[], uint32_t retColors[])
-	{
+    /// <summary>
+    /// Computes the list of LEDs that need to be on, and what their intensities should be
+    /// based on the different tracks of this animation.
+    /// </summary>
+    /// <param name="ms">The animation time (in milliseconds)</param>
+    /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
+    /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
+    /// <returns>The number of leds/intensities added to the return array</returns>
+    int AnimationInstanceGradientPattern::updateLEDs(int ms, int retIndices[], uint32_t retColors[])
+    {
         int time = ms - startTime;
         auto preset = getPreset();
 
-		const int trackTime = time * 1000 / preset->duration;
+        const int trackTime = time * 1000 / preset->duration;
 
-		// Figure out the color from the gradient
-		auto& gradient = animationBits->getRGBTrack(preset->gradientTrackOffset);
+        // Figure out the color from the gradient
+        auto& gradient = animationBits->getRGBTrack(preset->gradientTrackOffset);
 
-		uint32_t gradientColor = 0;
-		if (preset->overrideWithFace) {
-        	gradientColor = rgb;
-		} else {
-			gradientColor = gradient.evaluateColor(animationBits, trackTime);
-		}
+        uint32_t gradientColor = 0;
+        if (preset->overrideWithFace) {
+            gradientColor = rgb;
+        } else {
+            gradientColor = gradient.evaluateColor(animationBits, trackTime);
+        }
 
         // Each track will append its led indices and colors into the return array
         // The assumption is that led indices don't overlap between tracks of a single animation,
@@ -89,16 +89,16 @@ namespace Animations
         }
 
         return totalCount;
-	}
+    }
 
-	/// <summary>
-	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
-	/// </summary>
-	int AnimationInstanceGradientPattern::stop(int retIndices[]) {
-		auto preset = getPreset();
-		// Each track will append its led indices and colors into the return array
-		// The assumption is that led indices don't overlap between tracks of a single animation,
-		// so there will always be enough room in the return arrays.
+    /// <summary>
+    /// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
+    /// </summary>
+    int AnimationInstanceGradientPattern::stop(int retIndices[]) {
+        auto preset = getPreset();
+        // Each track will append its led indices and colors into the return array
+        // The assumption is that led indices don't overlap between tracks of a single animation,
+        // so there will always be enough room in the return arrays.
         int totalCount = 0;
         int indices[MAX_COUNT];
         for (int i = 0; i < preset->trackCount; ++i)
@@ -111,23 +111,23 @@ namespace Animations
             }
             totalCount += count;
         }
-		return totalCount;
-	}
+        return totalCount;
+    }
 
-	/// <summary>
-	/// Small helper to get the correct type preset data pointer stored in the instance
-	/// </summary
-	const AnimationGradientPattern* AnimationInstanceGradientPattern::getPreset() const {
-		return static_cast<const AnimationGradientPattern*>(animationPreset);
-	}
+    /// <summary>
+    /// Small helper to get the correct type preset data pointer stored in the instance
+    /// </summary
+    const AnimationGradientPattern* AnimationInstanceGradientPattern::getPreset() const {
+        return static_cast<const AnimationGradientPattern*>(animationPreset);
+    }
 
-	/// <summary>
-	/// Returns a track
-	/// </summary>
-	const Track& AnimationInstanceGradientPattern::GetTrack(int index) const	{
-		auto preset = getPreset();
-		assert(index < preset->trackCount);
-		return animationBits->getTrack(preset->tracksOffset + index);
-	}
+    /// <summary>
+    /// Returns a track
+    /// </summary>
+    const Track& AnimationInstanceGradientPattern::GetTrack(int index) const	{
+        auto preset = getPreset();
+        assert(index < preset->trackCount);
+        return animationBits->getTrack(preset->tracksOffset + index);
+    }
 
 }

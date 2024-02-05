@@ -5,14 +5,14 @@
 namespace Core
 {
     #pragma pack(push, 2)
-	struct matrixInt3x3
-	{
-		int16_t m11Times1000; int16_t m12Times1000; int16_t m13Times1000;
-		int16_t m21Times1000; int16_t m22Times1000; int16_t m23Times1000;
-		int16_t m31Times1000; int16_t m32Times1000; int16_t m33Times1000;
+    struct matrixInt3x3
+    {
+        int16_t m11Times1000; int16_t m12Times1000; int16_t m13Times1000;
+        int16_t m21Times1000; int16_t m22Times1000; int16_t m23Times1000;
+        int16_t m31Times1000; int16_t m32Times1000; int16_t m33Times1000;
 
-		matrixInt3x3() {}
-		matrixInt3x3(const int3& col1, const int3& col2, const int3& col3)
+        matrixInt3x3() {}
+        matrixInt3x3(const int3& col1, const int3& col2, const int3& col3)
             : m11Times1000(col1.xTimes1000), m12Times1000(col2.xTimes1000), m13Times1000(col3.xTimes1000)
             , m21Times1000(col1.yTimes1000), m22Times1000(col2.yTimes1000), m23Times1000(col3.yTimes1000)
             , m31Times1000(col1.zTimes1000), m32Times1000(col2.zTimes1000), m33Times1000(col3.zTimes1000)
@@ -46,6 +46,6 @@ namespace Core
             ret.m31Times1000 = int3::dotTimes1000(left.row3(), right.col1()); ret.m32Times1000 = int3::dotTimes1000(left.row3(), right.col2()); ret.m33Times1000 = int3::dotTimes1000(left.row3(), right.col3());
             return ret;
         }
-	};
+    };
     #pragma pack(pop)
 }

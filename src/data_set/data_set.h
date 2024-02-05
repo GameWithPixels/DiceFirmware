@@ -18,49 +18,49 @@
 
 namespace DataSet
 {
-	struct Data;
+    struct Data;
 
-	typedef void (*InitCallback)();
-	typedef void (*DataSetWrittenCallback)(bool success);
+    typedef void (*InitCallback)();
+    typedef void (*DataSetWrittenCallback)(bool success);
 
-	void init(InitCallback callback);
-	bool CheckValid();
+    void init(InitCallback callback);
+    bool CheckValid();
 
-	uint32_t availableDataSize();
+    uint32_t availableDataSize();
 
-	// Size Hash
-	uint32_t dataSize();
-	uint32_t dataHash();
+    // Size Hash
+    uint32_t dataSize();
+    uint32_t dataHash();
 
-	const Animations::RGBTrack& getHeatTrack();
+    const Animations::RGBTrack& getHeatTrack();
 
-	// Animation bits contain palette and keyframes for animations
-	const AnimationBits* getAnimationBits();
+    // Animation bits contain palette and keyframes for animations
+    const AnimationBits* getAnimationBits();
 
-	// Animations
-	Animations::AnimationInstance* createAnimationInstance(int animationIndex);
-	const Animations::Animation* getAnimation(int animationIndex);
-	uint16_t getAnimationCount();
+    // Animations
+    Animations::AnimationInstance* createAnimationInstance(int animationIndex);
+    const Animations::Animation* getAnimation(int animationIndex);
+    uint16_t getAnimationCount();
 
-	// Conditions
-	const Behaviors::Condition* getCondition(int conditionIndex);
-	uint16_t getConditionCount();
+    // Conditions
+    const Behaviors::Condition* getCondition(int conditionIndex);
+    uint16_t getConditionCount();
 
-	// Actions
-	const Behaviors::Action* getAction(int actionIndex);
-	uint16_t getActionCount();
+    // Actions
+    const Behaviors::Action* getAction(int actionIndex);
+    uint16_t getActionCount();
 
-	// Rules
-	const Behaviors::Rule* getRule(int ruleIndex);
-	uint16_t getRuleCount();
+    // Rules
+    const Behaviors::Rule* getRule(int ruleIndex);
+    uint16_t getRuleCount();
 
-	// Behaviors
-	const Behaviors::Behavior* getBehavior();
+    // Behaviors
+    const Behaviors::Behavior* getBehavior();
 
-	uint32_t computeDataSetDataSize(const Data* newData);
+    uint32_t computeDataSetDataSize(const Data* newData);
 
-	void ProgramDefaultDataSet(const Config::Settings& settingsPackAlong, DataSetWrittenCallback callback);
+    void ProgramDefaultDataSet(const Config::Settings& settingsPackAlong, DataSetWrittenCallback callback);
 
-	void printAnimationInfo();
+    void printAnimationInfo();
 }
 

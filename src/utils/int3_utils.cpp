@@ -9,29 +9,29 @@ using namespace Config;
 
 namespace Utils
 {
-	int findClosestNormal(const int3* normals, int count, const int3& n) {
-		int bestDot = -1000000;
-		int bestFace = -1;
-		for (int i = 0; i < count; ++i) {
-			int dot = int3::dotTimes1000(n, normals[i]);
-			if (dot > bestDot) {
-				bestDot = dot;
-				bestFace = i;
-			}
-		}
-		return bestFace;
-	}
+    int findClosestNormal(const int3* normals, int count, const int3& n) {
+        int bestDot = -1000000;
+        int bestFace = -1;
+        for (int i = 0; i < count; ++i) {
+            int dot = int3::dotTimes1000(n, normals[i]);
+            if (dot > bestDot) {
+                bestDot = dot;
+                bestFace = i;
+            }
+        }
+        return bestFace;
+    }
 
     // Given 3 faces and normals, computes the rotation that makes the measures normals match the canonical normals
     // returns an amount of "confidence" as an int from 0 to 1000
-	int CalibrateNormals(
-		int face1Index, const int3& face1Normal,
-		int face2Index, const int3& face2Normal,
-		int face3Index, const int3& face3Normal,
-		int3* outNormals, int faceCount) {
+    int CalibrateNormals(
+        int face1Index, const int3& face1Normal,
+        int face2Index, const int3& face2Normal,
+        int face3Index, const int3& face3Normal,
+        int3* outNormals, int faceCount) {
 
-		// Figure out the rotation that transforms canonical normals into accelerometer reference frame
-		auto l = DiceVariants::getLayout();
+        // Figure out the rotation that transforms canonical normals into accelerometer reference frame
+        auto l = DiceVariants::getLayout();
         auto& canonNormals = l->baseNormals;
 
         // int closestCanonNormal1 = findClosestNormal(canonNormals, count, face1Normal);
@@ -68,15 +68,15 @@ namespace Utils
         int dotTimes1000 = int3::dotTimes1000(rotatedFace3Normal, face3Normal);
         int confidence = (dotTimes1000 + 1000) / 2;
 
-		// Now transform all the normals
-		for (int i = 0; i < faceCount; ++i) {
-			int3 canonNormal = canonNormals[i];
-			int3 newNormal = matrixInt3x3::mul(rot, canonNormal);
-			outNormals[i] = newNormal;
-		}
+        // Now transform all the normals
+        for (int i = 0; i < faceCount; ++i) {
+            int3 canonNormal = canonNormals[i];
+            int3 newNormal = matrixInt3x3::mul(rot, canonNormal);
+            outNormals[i] = newNormal;
+        }
 
-		// Return the confidence
-		return confidence;
-	}
+        // Return the confidence
+        return confidence;
+    }
 
 }

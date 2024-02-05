@@ -5,12 +5,12 @@
 
 namespace DriversNRF
 {
-	/// <summary>
-	/// Wrapper for the Peripheral to Peripheral Interface
-	/// </summary>
-	namespace PPI
-	{
-		void init();
-	}
+    /// <summary>
+    /// Wrapper for the Peripheral to Peripheral Interface
+    /// </summary>
+    namespace PPI
+    {
+        void init();
+    }
 }
 

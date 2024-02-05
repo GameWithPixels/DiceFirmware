@@ -45,31 +45,31 @@ namespace DriversHW::NTC
     }
 
     int getNTCTemperatureTimes100(int32_t voltageTimes1000) {
-		// Find the first voltage that is greater than the measured voltage
+        // Find the first voltage that is greater than the measured voltage
         // Because voltages are sorted, we know that we can then linearly interpolate the temperature
         // using the previous and next entries in the lookup table.
-		int nextIndex = 0;
+        int nextIndex = 0;
         while (nextIndex < NTC_LOOKUP_SIZE && lookup[nextIndex].voltageTimes1000 >= voltageTimes1000) {
             nextIndex++;
         }
 
-		int temperatureTimes100 = lookup[0].temperatureTimes100;
-		if (nextIndex == 0) {
-			temperatureTimes100 = lookup[0].temperatureTimes100;
-		} else if (nextIndex == NTC_LOOKUP_SIZE) {
-			temperatureTimes100 = lookup[NTC_LOOKUP_SIZE-1].temperatureTimes100;
-		} else {
-			// Grab the prev and next keyframes
+        int temperatureTimes100 = lookup[0].temperatureTimes100;
+        if (nextIndex == 0) {
+            temperatureTimes100 = lookup[0].temperatureTimes100;
+        } else if (nextIndex == NTC_LOOKUP_SIZE) {
+            temperatureTimes100 = lookup[NTC_LOOKUP_SIZE-1].temperatureTimes100;
+        } else {
+            // Grab the prev and next keyframes
             auto next = lookup[nextIndex];
             auto prev = lookup[nextIndex - 1];
 
 
-			// Compute the interpolation parameter
-    		int percentTimes1000 = ((int)prev.voltageTimes1000 - (int)voltageTimes1000) * 1000 / ((int)prev.voltageTimes1000 - (int)next.voltageTimes1000);
+            // Compute the interpolation parameter
+            int percentTimes1000 = ((int)prev.voltageTimes1000 - (int)voltageTimes1000) * 1000 / ((int)prev.voltageTimes1000 - (int)next.voltageTimes1000);
             temperatureTimes100 = ((int)prev.temperatureTimes100 * (1000 - percentTimes1000) + (int)next.temperatureTimes100 * percentTimes1000) / 1000;
-		}
+        }
 
-		return temperatureTimes100;
+        return temperatureTimes100;
     }
 
     bool measure(TemperatureClientMethod callback) {

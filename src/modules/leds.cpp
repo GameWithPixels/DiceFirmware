@@ -39,21 +39,21 @@ namespace Modules::LEDs
     void setPowerOn(Timers::DelayedCallback callback, void* parameter);
     void setPowerOff();
 
-	typedef void (*TestLEDCallback)(bool success);
+    typedef void (*TestLEDCallback)(bool success);
     void testLEDReturn(TestLEDCallback callback);
 
-	void init(InitCallback callback) {
-		static InitCallback _callback; // Don't initialize this static inline because it would only do it on first call!
-		_callback = callback;
-		auto board = BoardManager::getBoard();
+    void init(InitCallback callback) {
+        static InitCallback _callback; // Don't initialize this static inline because it would only do it on first call!
+        _callback = callback;
+        auto board = BoardManager::getBoard();
         NeoPixel::init();
 
         // Initialize Power pin
-		powerPin = board->ledPowerPin;
+        powerPin = board->ledPowerPin;
 
         // Nothing to validate
-		nrf_gpio_cfg_output(powerPin);
-		nrf_gpio_pin_clear(powerPin);
+        nrf_gpio_cfg_output(powerPin);
+        nrf_gpio_pin_clear(powerPin);
         powerOn = false;
 
         // Initialize out LED return pin
@@ -82,8 +82,8 @@ namespace Modules::LEDs
 
     
     void testLEDReturn(TestLEDCallback callback) {
-		static TestLEDCallback _callback; // Don't initialize this static inline because it would only do it on first call!
-		_callback = callback;
+        static TestLEDCallback _callback; // Don't initialize this static inline because it would only do it on first call!
+        _callback = callback;
         
         // test LED return
         setPowerOn([](void* ignore) {
@@ -158,17 +158,17 @@ namespace Modules::LEDs
     }
 
 
-	void hookPowerState(LEDClientMethod method, void* param) {
-		ledPowerClients.Register(param, method);
-	}
+    void hookPowerState(LEDClientMethod method, void* param) {
+        ledPowerClients.Register(param, method);
+    }
 
-	void unHookPowerState(LEDClientMethod method) {
-		ledPowerClients.UnregisterWithHandler(method);
-	}
+    void unHookPowerState(LEDClientMethod method) {
+        ledPowerClients.UnregisterWithHandler(method);
+    }
 
-	void unHookPowerStateWithParam(void* param) {
-		ledPowerClients.UnregisterWithToken(param);
-	}
+    void unHookPowerStateWithParam(void* param) {
+        ledPowerClients.UnregisterWithToken(param);
+    }
 
     bool isPixelDataZero() {
         for (int i = 0; i < numLed; ++i) {
@@ -213,10 +213,10 @@ namespace Modules::LEDs
         }
     }
 
-	// Convert separate R,G,B to packed value
-	uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
-		return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
-	}
+    // Convert separate R,G,B to packed value
+    uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
+        return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+    }
 
     void setPowerOn(Timers::DelayedCallback callback, void* parameter) {
         // Are we already on?

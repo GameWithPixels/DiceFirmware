@@ -121,7 +121,7 @@ namespace Modules::InstantAnimationController
                     },
                     [](void* context, bool result, uint8_t* data, uint16_t size) {
                     if (result) {
-		                animationsDataHash = Utils::computeHash((uint8_t*)animationsData, size);
+                        animationsDataHash = Utils::computeHash((uint8_t*)animationsData, size);
                         MessageService::SendMessage(Message::MessageType_TransferInstantAnimSetFinished);
                     }
                     else {

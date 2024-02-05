@@ -3,42 +3,42 @@
 
 namespace Animations
 {
-	/// <summary>
-	/// constructor for rainbow animations
-	/// Needs to have an associated preset passed in
-	/// </summary>
-	AnimationInstanceGradient::AnimationInstanceGradient(const AnimationGradient* preset, const DataSet::AnimationBits* bits)
-		: AnimationInstance(preset, bits) {
-	}
+    /// <summary>
+    /// constructor for rainbow animations
+    /// Needs to have an associated preset passed in
+    /// </summary>
+    AnimationInstanceGradient::AnimationInstanceGradient(const AnimationGradient* preset, const DataSet::AnimationBits* bits)
+        : AnimationInstance(preset, bits) {
+    }
 
-	/// <summary>
-	/// destructor
-	/// </summary>
-	AnimationInstanceGradient::~AnimationInstanceGradient() {
-	}
+    /// <summary>
+    /// destructor
+    /// </summary>
+    AnimationInstanceGradient::~AnimationInstanceGradient() {
+    }
 
-	/// <summary>
-	/// Small helper to return the expected size of the preset data
-	/// </summary>
-	int AnimationInstanceGradient::animationSize() const {
-		return sizeof(AnimationGradient);
-	}
+    /// <summary>
+    /// Small helper to return the expected size of the preset data
+    /// </summary>
+    int AnimationInstanceGradient::animationSize() const {
+        return sizeof(AnimationGradient);
+    }
 
-	/// <summary>
-	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
-	/// </summary>
-	void AnimationInstanceGradient::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
-		AnimationInstance::start(_startTime, _remapFace, _loopCount);
-	}
+    /// <summary>
+    /// (re)Initializes the instance to animate leds. This can be called on a reused instance.
+    /// </summary>
+    void AnimationInstanceGradient::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
+        AnimationInstance::start(_startTime, _remapFace, _loopCount);
+    }
 
-	/// <summary>
-	/// Computes the list of LEDs that need to be on, and what their intensities should be.
-	/// </summary>
-	/// <param name="ms">The animation time (in milliseconds)</param>
-	/// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
-	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
-	/// <returns>The number of leds/intensities added to the return array</returns>
-	int AnimationInstanceGradient::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+    /// <summary>
+    /// Computes the list of LEDs that need to be on, and what their intensities should be.
+    /// </summary>
+    /// <param name="ms">The animation time (in milliseconds)</param>
+    /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
+    /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
+    /// <returns>The number of leds/intensities added to the return array</returns>
+    int AnimationInstanceGradient::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
         int time = ms - startTime;
         auto preset = getPreset();
 
@@ -49,18 +49,18 @@ namespace Animations
         uint32_t color = gradient.evaluateColor(animationBits, gradientTime);
 
         // Fill the indices and colors for the anim controller to know how to update leds
-		return setColor(color, preset->faceMask, retIndices, retColors);
-	}
+        return setColor(color, preset->faceMask, retIndices, retColors);
+    }
 
-	/// <summary>
-	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
-	/// </summary>
-	int AnimationInstanceGradient::stop(int retIndices[]) {
-		auto preset = getPreset();
-		return setIndices(preset->faceMask, retIndices);
-	}
+    /// <summary>
+    /// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
+    /// </summary>
+    int AnimationInstanceGradient::stop(int retIndices[]) {
+        auto preset = getPreset();
+        return setIndices(preset->faceMask, retIndices);
+    }
 
-	const AnimationGradient* AnimationInstanceGradient::getPreset() const {
+    const AnimationGradient* AnimationInstanceGradient::getPreset() const {
         return static_cast<const AnimationGradient*>(animationPreset);
     }
 }

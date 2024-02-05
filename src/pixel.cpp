@@ -56,11 +56,11 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 
 namespace Pixel
 {
-	uint32_t getDeviceID() {
-		return NRF_FICR->DEVICEID[1] ^ NRF_FICR->DEVICEID[0];
+    uint32_t getDeviceID() {
+        return NRF_FICR->DEVICEID[1] ^ NRF_FICR->DEVICEID[0];
     }
 
-	uint32_t getBuildTimestamp() {
+    uint32_t getBuildTimestamp() {
         return BUILD_TIMESTAMP;
     }
 }

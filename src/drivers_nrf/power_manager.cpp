@@ -13,9 +13,9 @@
 
 namespace DriversNRF::PowerManager
 {
-	PowerManagerClientMethod powerEventCallback = nullptr;
+    PowerManagerClientMethod powerEventCallback = nullptr;
 
-	APP_TIMER_DEF(sleepTimer);
+    APP_TIMER_DEF(sleepTimer);
     void triggerSleepMode(void* context);
 
     enum PowerManagerState {
@@ -34,7 +34,7 @@ namespace DriversNRF::PowerManager
 
         #if defined(SLEEP_TIMEOUT_MS)
             Timers::createTimer(&sleepTimer, APP_TIMER_MODE_SINGLE_SHOT, triggerSleepMode);
-		    Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+            Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
         #endif
 
         state = PowerManagerState_Normal;

@@ -15,9 +15,9 @@ namespace Config
 
 namespace DriversNRF
 {
-	namespace Flash
-	{
-		void init();
+    namespace Flash
+    {
+        void init();
         void printFlashInfo();
         //void waitForFlashReady();
 
@@ -61,6 +61,6 @@ namespace DriversNRF
         void unhookProgrammingEvent(ProgrammingEventMethod client);
 
         void selfTest();
-	}
+    }
 }
 

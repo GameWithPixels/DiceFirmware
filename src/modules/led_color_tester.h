@@ -5,5 +5,5 @@
 /// </summary>
 namespace Modules::LEDColorTester
 {
-	void init();
+    void init();
 }

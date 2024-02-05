@@ -41,7 +41,7 @@ namespace Bluetooth::CustomAdvertisingDataHandler
         memset(&customManufacturerData, 0, sizeof(customManufacturerData));
     }
 
-	bool isChargingOrDone(BatteryController::BatteryState state) {
+    bool isChargingOrDone(BatteryController::BatteryState state) {
         return state >= BatteryController::BatteryState_Charging && state <= BatteryController::BatteryState_Done;
     }
 

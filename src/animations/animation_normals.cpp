@@ -13,30 +13,30 @@ using namespace Modules;
 
 namespace Animations
 {
-	/// <summary>
-	/// </summary>
-	AnimationInstanceNormals::AnimationInstanceNormals(const AnimationNormals* preset, const DataSet::AnimationBits* bits)
-		: AnimationInstance(preset, bits) {
-	}
+    /// <summary>
+    /// </summary>
+    AnimationInstanceNormals::AnimationInstanceNormals(const AnimationNormals* preset, const DataSet::AnimationBits* bits)
+        : AnimationInstance(preset, bits) {
+    }
 
-	/// <summary>
-	/// destructor
-	/// </summary>
-	AnimationInstanceNormals::~AnimationInstanceNormals() {
-	}
+    /// <summary>
+    /// destructor
+    /// </summary>
+    AnimationInstanceNormals::~AnimationInstanceNormals() {
+    }
 
-	/// <summary>
-	/// Small helper to return the expected size of the preset data
-	/// </summary>
-	int AnimationInstanceNormals::animationSize() const {
-		return sizeof(AnimationNormals);
-	}
+    /// <summary>
+    /// Small helper to return the expected size of the preset data
+    /// </summary>
+    int AnimationInstanceNormals::animationSize() const {
+        return sizeof(AnimationNormals);
+    }
 
-	/// <summary>
-	/// (re)Initializes the instance to animate leds. This can be called on a reused instance.
-	/// </summary>
-	void AnimationInstanceNormals::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
-		AnimationInstance::start(_startTime, _remapFace, _loopCount);
+    /// <summary>
+    /// (re)Initializes the instance to animate leds. This can be called on a reused instance.
+    /// </summary>
+    void AnimationInstanceNormals::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
+        AnimationInstance::start(_startTime, _remapFace, _loopCount);
 
         // Grab the die normals
         auto layout = Config::DiceVariants::getLayout();
@@ -62,37 +62,37 @@ namespace Animations
         auto preset = getPreset();
         switch (preset->mainGradientColorType) {
             case NormalsColorOverrideType_FaceToGradient:
-        		baseColorParam = (Accelerometer::currentFace() * 1000) / Config::DiceVariants::getLayout()->faceCount;
+                baseColorParam = (Accelerometer::currentFace() * 1000) / Config::DiceVariants::getLayout()->faceCount;
                 break;
             case NormalsColorOverrideType_FaceToRainbowWheel:
-        		baseColorParam = (Accelerometer::currentFace() * 256) / Config::DiceVariants::getLayout()->faceCount;
+                baseColorParam = (Accelerometer::currentFace() * 256) / Config::DiceVariants::getLayout()->faceCount;
                 break;
             case NormalsColorOverrideType_None:
             default:
                 break;
         }
-	}
+    }
 
-	/// <summary>
-	/// Computes the list of LEDs that need to be on, and what their intensities should be.
-	/// </summary>
-	/// <param name="ms">The animation time (in milliseconds)</param>
-	/// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
-	/// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
-	/// <returns>The number of leds/intensities added to the return array</returns>
-	int AnimationInstanceNormals::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+    /// <summary>
+    /// Computes the list of LEDs that need to be on, and what their intensities should be.
+    /// </summary>
+    /// <param name="ms">The animation time (in milliseconds)</param>
+    /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
+    /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
+    /// <returns>The number of leds/intensities added to the return array</returns>
+    int AnimationInstanceNormals::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
         int time = ms - startTime;
         auto preset = getPreset();
-		int fadeTime = preset->duration * preset->fade / (255 * 2);
+        int fadeTime = preset->duration * preset->fade / (255 * 2);
 
-		uint8_t intensity = 255;
-		if (time <= fadeTime) {
-			// Ramp up
-			intensity = (uint8_t)(time * 255 / fadeTime);
-		} else if (time >= (preset->duration - fadeTime)) {
-			// Ramp down
-			intensity = (uint8_t)((preset->duration - time) * 255 / fadeTime);
-		}
+        uint8_t intensity = 255;
+        if (time <= fadeTime) {
+            // Ramp up
+            intensity = (uint8_t)(time * 255 / fadeTime);
+        } else if (time >= (preset->duration - fadeTime)) {
+            // Ramp down
+            intensity = (uint8_t)((preset->duration - time) * 255 / fadeTime);
+        }
 
         int axisScrollTime = time * preset->axisScrollSpeedTimes1000 / preset->duration;
         int angleScrollTime = time * preset->angleScrollSpeedTimes1000 / preset->duration;
@@ -156,42 +156,42 @@ namespace Animations
             uint32_t angleColor = angleGradient.evaluateColor(animationBits, angleGradientTime);
 
             // Compute color over time
-			uint32_t gradientColor = 0;
-			switch (preset->mainGradientColorType) {
-				case NormalsColorOverrideType_FaceToGradient:
+            uint32_t gradientColor = 0;
+            switch (preset->mainGradientColorType) {
+                case NormalsColorOverrideType_FaceToGradient:
                     {
                         // use the current face (set at start()) + variance
                         int gradientParam = baseColorParam + angleToAxisNormalized * preset->mainGradientColorVar / 1000;
                         gradientColor = gradient.evaluateColor(animationBits, gradientParam);
                     }
-					break;
-				case NormalsColorOverrideType_FaceToRainbowWheel:
+                    break;
+                case NormalsColorOverrideType_FaceToRainbowWheel:
                     {
                         // use the current face (set at start()) + variance
                         int rainbowParam = (baseColorParam + angleToAxisNormalized * preset->mainGradientColorVar * 256 / 1000000) % 256;
                         gradientColor = Rainbow::wheel(rainbowParam);
                     }
-					break;
-				case NormalsColorOverrideType_None:
-				default:
-					gradientColor = gradient.evaluateColor(animationBits, gradientTime);
-					break;
-			}
+                    break;
+                case NormalsColorOverrideType_None:
+                default:
+                    gradientColor = gradient.evaluateColor(animationBits, gradientTime);
+                    break;
+            }
 
             retIndices[i] = i;
             retColors[i] = Utils::modulateColor(Utils::mulColors(gradientColor, Utils::mulColors(axisColor, angleColor)), intensity);
         }
         return layout->ledCount;
-	}
+    }
 
-	/// <summary>
-	/// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
-	/// </summary>
-	int AnimationInstanceNormals::stop(int retIndices[]) {
-		return setIndices(ANIM_FACEMASK_ALL_LEDS, retIndices);
-	}
+    /// <summary>
+    /// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
+    /// </summary>
+    int AnimationInstanceNormals::stop(int retIndices[]) {
+        return setIndices(ANIM_FACEMASK_ALL_LEDS, retIndices);
+    }
 
-	const AnimationNormals* AnimationInstanceNormals::getPreset() const {
+    const AnimationNormals* AnimationInstanceNormals::getPreset() const {
         return static_cast<const AnimationNormals*>(animationPreset);
     }
 }

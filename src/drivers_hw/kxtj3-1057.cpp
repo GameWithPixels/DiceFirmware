@@ -80,20 +80,20 @@ namespace AccelChip
     const uint8_t wakeUpCount = 1;
 
     #define MAX_CLIENTS 2
-	DelegateArray<AccelClientMethod, MAX_CLIENTS> clients;
+    DelegateArray<AccelClientMethod, MAX_CLIENTS> clients;
 
     void ApplySettings();
-	void standby();
-	void active();
+    void standby();
+    void active();
 
-	bool init()
-	{
-		uint8_t c = I2C::readRegister(devAddress, WHO_AM_I);  // Read WHO_AM_I register
+    bool init()
+    {
+        uint8_t c = I2C::readRegister(devAddress, WHO_AM_I);  // Read WHO_AM_I register
         bool success = c == 0x35;
-		if (!success) {
+        if (!success) {
              // WHO_AM_I should always be 0x35 on KXTJ3
-			NRF_LOG_ERROR("KXTJ3 - Bad WHOAMI - received 0x%02x, should be 0x35", c);
-		} else {
+            NRF_LOG_ERROR("KXTJ3 - Bad WHOAMI - received 0x%02x, should be 0x35", c);
+        } else {
             // Initialize accel chip settings
             ApplySettings();
             NRF_LOG_DEBUG("KXTJ3 init");
@@ -135,88 +135,88 @@ namespace AccelChip
     void lowPower()
     {
         disableDataInterrupt();
-		disableInterrupt();
-		clearInterrupt();
+        disableInterrupt();
+        clearInterrupt();
         standby();
     }
 
     void ApplySettings() {
-		standby();
+        standby();
 
         // Scale
-		uint8_t cfg = I2C::readRegister(devAddress, CTRL_REG1);
-		cfg &= 0b11100011; // Mask out scale bits
-		cfg |= (fsr << 2);
-		I2C::writeRegister(devAddress, CTRL_REG1, cfg);
+        uint8_t cfg = I2C::readRegister(devAddress, CTRL_REG1);
+        cfg &= 0b11100011; // Mask out scale bits
+        cfg |= (fsr << 2);
+        I2C::writeRegister(devAddress, CTRL_REG1, cfg);
 
         // Data Rate
-		uint8_t ctrl = I2C::readRegister(devAddress, DATA_CTRL_REG);
-		ctrl &= 0b11111000; // Mask out data rate bits
-		ctrl |= dataRate;
-		I2C::writeRegister(devAddress, DATA_CTRL_REG, ctrl);
+        uint8_t ctrl = I2C::readRegister(devAddress, DATA_CTRL_REG);
+        ctrl &= 0b11111000; // Mask out data rate bits
+        ctrl |= dataRate;
+        I2C::writeRegister(devAddress, DATA_CTRL_REG, ctrl);
 
-		active();
+        active();
     }
 
-	void enableInterrupt()
-	{        
+    void enableInterrupt()
+    {        
         // Make sure our interrupts are cleared to begin with!
-		standby();
+        standby();
 
         // enable interrupt on all axis any direction - Latched
-    	I2C::writeRegister(devAddress, INT_CTRL_REG2, 0b00111111);
+        I2C::writeRegister(devAddress, INT_CTRL_REG2, 0b00111111);
 
-    	// Set WAKE-UP (motion detect) Threshold
-    	I2C::writeRegister(devAddress, WAKEUP_THRD_H, (uint8_t)(wakeUpThreshold >> 4));
-    	I2C::writeRegister(devAddress, WAKEUP_THRD_L, (uint8_t)(wakeUpThreshold << 4));
+        // Set WAKE-UP (motion detect) Threshold
+        I2C::writeRegister(devAddress, WAKEUP_THRD_H, (uint8_t)(wakeUpThreshold >> 4));
+        I2C::writeRegister(devAddress, WAKEUP_THRD_L, (uint8_t)(wakeUpThreshold << 4));
 
-	    // WAKEUP_COUNTER -> Sets the time motion must be present before a wake-up interrupt is set
-	    // WAKEUP_COUNTER (counts) = Wake-Up Delay Time (sec) x Wake-Up Function ODR(Hz)
-	    I2C::writeRegister(devAddress, WAKEUP_COUNTER, wakeUpCount);
+        // WAKEUP_COUNTER -> Sets the time motion must be present before a wake-up interrupt is set
+        // WAKEUP_COUNTER (counts) = Wake-Up Delay Time (sec) x Wake-Up Function ODR(Hz)
+        I2C::writeRegister(devAddress, WAKEUP_COUNTER, wakeUpCount);
 
         // Enable interrupt, active High, latched
         uint8_t _reg2 = I2C::readRegister(devAddress, INT_CTRL_REG1);
         _reg2 |= 0b00100010;
-		I2C::writeRegister(devAddress, INT_CTRL_REG1, _reg2);
+        I2C::writeRegister(devAddress, INT_CTRL_REG1, _reg2);
 
         // WUFE – enables the Wake-Up (motion detect) function.
-    	uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
-    	_reg1 |= (0x01 << 1);
-		I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
+        uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
+        _reg1 |= (0x01 << 1);
+        I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
 
-		active();
-	}
+        active();
+    }
 
     void disableInterrupt()
-	{
-		standby();
+    {
+        standby();
 
         // disables the Wake-Up (motion detect) function.
-    	uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
-    	_reg1 &= ~(0x01 << 1);
-		I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
+        uint8_t _reg1 = I2C::readRegister(devAddress, CTRL_REG1);
+        _reg1 &= ~(0x01 << 1);
+        I2C::writeRegister(devAddress, CTRL_REG1, _reg1);
 
         // disable interrupt, active High, latched
         uint8_t _reg2 = I2C::readRegister(devAddress, INT_CTRL_REG1);
         _reg2 &= ~(0b00100010);
-		I2C::writeRegister(devAddress, INT_CTRL_REG1, _reg2);
+        I2C::writeRegister(devAddress, INT_CTRL_REG1, _reg2);
 
         // disable interrupt on all axis any direction - Latched
-    	I2C::writeRegister(devAddress, INT_CTRL_REG2, 0b00000000);
+        I2C::writeRegister(devAddress, INT_CTRL_REG2, 0b00000000);
 
-		active();
-	}
+        active();
+    }
 
-	void clearInterrupt()
-	{
-		I2C::readRegister(devAddress, INT_REL);
-	}
+    void clearInterrupt()
+    {
+        I2C::readRegister(devAddress, INT_REL);
+    }
 
 
     /// <summary>
     /// Interrupt handler when data is ready
     /// </summary>
-	void dataInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
+    void dataInterruptHandler(uint32_t pin, nrf_gpiote_polarity_t action) {
 
         //I2C::readRegister(devAddress, STATUS_REG);
         Core::int3 acc;
@@ -235,10 +235,10 @@ namespace AccelChip
         clearInterrupt();
     }
 
-	/// <summary>
-	/// Enable Data ready interrupt
-	/// </summary>
-	void enableDataInterrupt() {
+    /// <summary>
+    /// Enable Data ready interrupt
+    /// </summary>
+    void enableDataInterrupt() {
         standby();
         {
             // Set interrupt pin
@@ -257,51 +257,51 @@ namespace AccelChip
             I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
         }
         active();
-	}
+    }
 
     void disableDataInterrupt() 
     {
         standby();
-		// Disable interrupt on xyz axes
+        // Disable interrupt on xyz axes
 
         uint8_t ctrl = I2C::readRegister(devAddress, CTRL_REG1);
         ctrl &= ~(0b01100000);
         I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
 
-		I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00000000);
+        I2C::writeRegister(devAddress, INT_CTRL_REG1, 0b00000000);
 
         GPIOTE::disableInterrupt(
             BoardManager::getBoard()->accInterruptPin);
 
-		active();
+        active();
     }
 
-	/// <summary>
-	/// Method used by clients to request timer callbacks when accelerometer readings are in
-	/// </summary>
-	void hook(AccelClientMethod method, void* parameter)
-	{
-		if (!clients.Register(parameter, method))
-		{
-			NRF_LOG_ERROR("Too many KXTJ3 hooks registered.");
-		}
-	}
+    /// <summary>
+    /// Method used by clients to request timer callbacks when accelerometer readings are in
+    /// </summary>
+    void hook(AccelClientMethod method, void* parameter)
+    {
+        if (!clients.Register(parameter, method))
+        {
+            NRF_LOG_ERROR("Too many KXTJ3 hooks registered.");
+        }
+    }
 
-	/// <summary>
-	/// Method used by clients to stop getting accelerometer reading callbacks
-	/// </summary>
-	void unHook(AccelClientMethod method)
-	{
-		clients.UnregisterWithHandler(method);
-	}
+    /// <summary>
+    /// Method used by clients to stop getting accelerometer reading callbacks
+    /// </summary>
+    void unHook(AccelClientMethod method)
+    {
+        clients.UnregisterWithHandler(method);
+    }
 
-	/// <summary>
-	/// Method used by clients to stop getting accelerometer reading callbacks
-	/// </summary>
-	void unHookWithParam(void* param)
-	{
-		clients.UnregisterWithToken(param);
-	}
+    /// <summary>
+    /// Method used by clients to stop getting accelerometer reading callbacks
+    /// </summary>
+    void unHookWithParam(void* param)
+    {
+        clients.UnregisterWithToken(param);
+    }
 
 }
 }

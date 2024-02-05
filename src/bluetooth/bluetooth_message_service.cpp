@@ -35,7 +35,7 @@ namespace Bluetooth::MessageService
     ble_gatts_char_handles_t rx_handles;
     ble_gatts_char_handles_t tx_handles;
 
-	MessageHandler messageHandlers[Message::MessageType_Count];
+    MessageHandler messageHandlers[Message::MessageType_Count];
 
     Stack::SendResult send(const uint8_t* data, uint16_t size);
     bool SendMessage(Message::MessageType msgType);
@@ -46,7 +46,7 @@ namespace Bluetooth::MessageService
 
     void init() {
         // Clear message handle array
-    	memset(messageHandlers, 0, sizeof(MessageHandler) * Message::MessageType_Count);
+        memset(messageHandlers, 0, sizeof(MessageHandler) * Message::MessageType_Count);
 
         ret_code_t            err_code;
         ble_uuid_t            ble_uuid;
@@ -255,7 +255,7 @@ namespace Bluetooth::MessageService
 
     static NotifyUserCallback currentCallback = nullptr;
     void NotifyUser(const char* text, bool ok, bool cancel, uint8_t timeout_s, NotifyUserCallback callback) {
-		MessageNotifyUser notifyMsg;
+        MessageNotifyUser notifyMsg;
         notifyMsg.ok = ok ? 1 : 0;
         notifyMsg.cancel = cancel ? 1 : 0;
         notifyMsg.timeout_s = timeout_s;
@@ -264,13 +264,13 @@ namespace Bluetooth::MessageService
         if ((ok || cancel) && callback != nullptr) {
 
             // This timer will trigger after the timeout period and unregister the event handler
-    		APP_TIMER_DEF(notifyTimeout);
+            APP_TIMER_DEF(notifyTimeout);
             Timers::createTimer(&notifyTimeout, APP_TIMER_MODE_SINGLE_SHOT, [](void* context) {
                 MessageService::UnregisterMessageHandler(Message::MessageType_NotifyUserAck);
                 ((NotifyUserCallback)context)(false);
             });
 
-			Timers::startTimer(notifyTimeout, (uint32_t)timeout_s * 1000, (void*)callback);
+            Timers::startTimer(notifyTimeout, (uint32_t)timeout_s * 1000, (void*)callback);
 
             currentCallback = callback;
             MessageService::RegisterMessageHandler(Message::MessageType_NotifyUserAck, [] (const Message* msg) {
@@ -287,7 +287,7 @@ namespace Bluetooth::MessageService
         }
 
         // Kick things off by sending the notification
-		MessageService::SendMessage(&notifyMsg);
+        MessageService::SendMessage(&notifyMsg);
     }
 
 #if BLE_LOG_ENABLED

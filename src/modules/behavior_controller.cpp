@@ -28,9 +28,9 @@ namespace Modules::BehaviorController
 
     int lastRollStateTimestamp;
 
-	void init() {
+    void init() {
 
-		// Hook up the behavior controller to all the events it needs to know about to do its job!
+        // Hook up the behavior controller to all the events it needs to know about to do its job!
         Bluetooth::Stack::hook(onConnectionEvent, nullptr);
         BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
         lastRollStateTimestamp = Timers::millis();
@@ -77,7 +77,7 @@ namespace Modules::BehaviorController
         return ret;
     }
 
-	void onConnectionEvent(void* param, bool connected) {
+    void onConnectionEvent(void* param, bool connected) {
         // Do we have a connection event condition?
         auto bhv = DataSet::getBehavior();
 
@@ -146,11 +146,11 @@ namespace Modules::BehaviorController
         }
     }
 
-	void DisableAccelerometerRules() {
+    void DisableAccelerometerRules() {
         Accelerometer::unHookRollState(onRollStateChange);
     }
 
-	void EnableAccelerometerRules() {
+    void EnableAccelerometerRules() {
         Accelerometer::hookRollState(onRollStateChange, nullptr);
     }
 
