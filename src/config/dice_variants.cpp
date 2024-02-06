@@ -18,10 +18,10 @@ namespace DiceVariants
 
     const Core::int3 sixSidedNormals[] = {
         {-1000,  0000,  0000},
-        { 0000,  1000,  0000},
-        { 0000,  0000,  1000},
-        { 0000,  0000, -1000},
         { 0000, -1000,  0000},
+        { 0000,  0000, -1000},
+        { 0000,  0000,  1000},
+        { 0000,  1000,  0000},
         { 1000,  0000,  0000},
     };
 
@@ -263,6 +263,15 @@ namespace DiceVariants
         1 << 1 | 1 << 4 | 1 << 5,
     };
 
+    const Core::int3 pippedD6Normals[] = {
+        {-1000,  0000,  0000},
+        { 0000,  1000,  0000},
+        { 0000,  0000,  1000},
+        { 0000,  0000, -1000},
+        { 0000, -1000,  0000},
+        { 1000,  0000,  0000},
+    };
+
     const uint8_t pippedD6Remap[] = {
         // FIXME!!!
         0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // face 1
@@ -330,20 +339,20 @@ namespace DiceVariants
         .adjacencyCount = 4,
     };
 
-    const Layout D4Layout = {
-        //FIXME!!!
-        .baseNormals = sixSidedNormals,
-        .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
-        .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
-        .adjacencyMap = sixSidedAdjacency,
-        .faceCount = 4,
-        .ledCount = 4,
-        .adjacencyCount = 4,
-    };
+    // D4 is using D6 layout
+    // const Layout D4Layout = {
+    //     .baseNormals = sixSidedNormals,
+    //     .canonicalIndexFaceToFaceRemapLookup = sixSidedRemap,
+    //     .canonicalIndexToElectricalIndexLookup = sixSidedFaceToLedLookup,
+    //     .adjacencyMap = sixSidedAdjacency,
+    //     .faceCount = 4,
+    //     .ledCount = 4,
+    //     .adjacencyCount = 4,
+    // };
 
     // Die layout information
     const Layout PD6Layout = {
-        .baseNormals = sixSidedNormals,
+        .baseNormals = pippedD6Normals,
         .canonicalIndexFaceToFaceRemapLookup = pippedD6Remap,
         .canonicalIndexToElectricalIndexLookup = pippedD6FaceToLedLookup,
         .adjacencyMap = sixSidedAdjacency,
