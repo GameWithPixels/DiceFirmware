@@ -11,9 +11,9 @@ using namespace Modules;
 namespace Config::ValueStore
 {
     int writeValue(uint32_t value) {
-        // if (!ValidationManager::inValidation()) {
-        //     return WriteValueError_NotPermited;
-        // }
+        if (!ValidationManager::inValidation()) {
+            return WriteValueError_NotPermited;
+        }
 
         // Search for an empty slot in UICR registers.
         // This works similarly to heap v.s. stack:
