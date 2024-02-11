@@ -112,7 +112,7 @@ namespace Modules::Accelerometer
         auto settings = SettingsManager::getSettings();
         auto &normals = settings->faceNormals;
         int accMagTimes1000 = acc.magnitudeTimes1000();
-        if (accMagTimes1000 < settings->fallingThresholdTimes1000 && accMagTimes1000 > 0)
+        if (accMagTimes1000 < settings->fallingThresholdTimes1000)
         {
             if (outConfidence != nullptr)
             {
@@ -123,7 +123,7 @@ namespace Modules::Accelerometer
         else
         {
             int3 nacc = acc * 1000 / accMagTimes1000; // normalize
-            int bestDotTimes1000 = -1100;       // Should be -1000 as we're comparing this value with the dot product
+            int bestDotTimes1000 = -1100000;    // Should be -1000 as we're comparing this value with the dot product
                                                 // of 2 normalized vectors, but is set a bit lower due to imprecision 
                                                 // of fixed point operations, which may return a value lower than -1000.
             int bestFace = currentFrame.face;
