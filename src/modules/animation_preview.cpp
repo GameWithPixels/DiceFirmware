@@ -38,7 +38,7 @@ namespace Modules::AnimationPreview
 
     void ReceiveTestAnimSetHandler(const Message* msg)
     {
-        NRF_LOG_INFO("Received request to play test animation");
+        NRF_LOG_DEBUG("Received request to play test animation");
         const MessageTransferTestAnimSet* message = (const MessageTransferTestAnimSet*)msg;
 
         if (animationData == nullptr || animationDataHash != message->hash) {
@@ -54,14 +54,14 @@ namespace Modules::AnimationPreview
                 animationDataHash = 0;
             }
 
-            NRF_LOG_INFO("Animation Data to be received:");
-            NRF_LOG_INFO("Palette: %d * %d", message->paletteSize, sizeof(uint8_t));
-            NRF_LOG_INFO("RGB Keyframes: %d * %d", message->rgbKeyFrameCount, sizeof(RGBKeyframe));
-            NRF_LOG_INFO("RGB Tracks: %d * %d", message->rgbTrackCount, sizeof(RGBTrack));
-            NRF_LOG_INFO("Keyframes: %d * %d", message->keyFrameCount, sizeof(Keyframe));
-            NRF_LOG_INFO("Tracks: %d * %d", message->trackCount, sizeof(Track));
-            NRF_LOG_INFO("Animations: %d", message->animationCount);
-            NRF_LOG_INFO("Hash: 0x%04x", message->hash);
+            NRF_LOG_DEBUG("Animation Data to be received:");
+            NRF_LOG_DEBUG("Palette: %d * %d", message->paletteSize, sizeof(uint8_t));
+            NRF_LOG_DEBUG("RGB Keyframes: %d * %d", message->rgbKeyFrameCount, sizeof(RGBKeyframe));
+            NRF_LOG_DEBUG("RGB Tracks: %d * %d", message->rgbTrackCount, sizeof(RGBTrack));
+            NRF_LOG_DEBUG("Keyframes: %d * %d", message->keyFrameCount, sizeof(Keyframe));
+            NRF_LOG_DEBUG("Tracks: %d * %d", message->trackCount, sizeof(Track));
+            NRF_LOG_DEBUG("Animations: %d", message->animationCount);
+            NRF_LOG_DEBUG("Hash: 0x%04x", message->hash);
 
             int paletteBufferSize = Utils::roundUpTo4(message->paletteSize);
             int animationOffsetsBufferSize = Utils::roundUpTo4(message->animationCount * 2);
@@ -121,7 +121,7 @@ namespace Modules::AnimationPreview
                     [](void* context, bool result, uint8_t* data, uint16_t size) {
                     if (result) {
                         animationDataHash = Utils::computeHash((uint8_t*)animationData, size);
-                        NRF_LOG_INFO("Temp animation dataset hash=0x%08x", animationDataHash);
+                        NRF_LOG_DEBUG("Temp animation dataset hash=0x%08x", animationDataHash);
 
                         MessageService::SendMessage(Message::MessageType_TransferTestAnimSetFinished);
 
@@ -177,7 +177,7 @@ namespace Modules::AnimationPreview
     void BlinkIdHandler(const Message* msg)
     {
         auto *message = (const MessageBlinkId *)msg;
-        NRF_LOG_INFO("Received request to blink id with brightness=%d and loopCount=%d", message->brightness, message->loopCount);
+        NRF_LOG_DEBUG("Received request to blink id with brightness=%d and loopCount=%d", message->brightness, message->loopCount);
 
         // Create and initialize animation data
         // Note: we keep the data in a static variable so it stays valid after this call returns

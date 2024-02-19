@@ -75,7 +75,7 @@ namespace Animations
             int delay = preset->animations[i].animationDelay;
             if (delay > lastMs && delay <= thisMs) {
 
-                NRF_LOG_INFO("Starting animation %d", preset->animations[i].animationIndex);
+                NRF_LOG_DEBUG("Starting animation %d", preset->animations[i].animationIndex);
 
                 struct TriggeredAnimation
                 {

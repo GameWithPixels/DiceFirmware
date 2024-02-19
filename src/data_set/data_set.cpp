@@ -91,7 +91,7 @@ namespace DataSet
 
         //ProgramDefaultDataSet();
         if (!CheckValid()) {
-            NRF_LOG_INFO("Animation Set not valid, programming default");
+            NRF_LOG_INFO("DataSet not valid!");
             ProgramDefaultDataSet(*SettingsManager::getSettings(), finishInit);
         } else {
             finishInit(true);
@@ -178,8 +178,8 @@ namespace DataSet
     int offset = 0;
 
     void ReceiveDataSetHandler(const Message* msg) {
-        NRF_LOG_INFO("Received request to download new animation set");
-        const MessageTransferAnimSet* message = (const MessageTransferAnimSet*)msg;
+		NRF_LOG_DEBUG("Received request to download new animation set");
+		const MessageTransferAnimSet* message = (const MessageTransferAnimSet*)msg;
 
         NRF_LOG_DEBUG("Animation Data to be received:");
         NRF_LOG_DEBUG("Palette: %d * %d", message->paletteSize, sizeof(uint8_t));

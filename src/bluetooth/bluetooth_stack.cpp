@@ -124,7 +124,7 @@ namespace Bluetooth::Stack
 
         switch (p_ble_evt->header.evt_id) {
             case BLE_GAP_EVT_DISCONNECTED:
-                NRF_LOG_INFO("Disconnected, reason: 0x%02x", p_ble_evt->evt.gap_evt.params.disconnected.reason);
+                NRF_LOG_INFO("Disco: 0x%02x", p_ble_evt->evt.gap_evt.params.disconnected.reason);
                 connected = false;
                 for (int i = 0; i < clients.Count(); ++i) {
                     clients[i].handler(clients[i].token, false);
@@ -322,7 +322,7 @@ namespace Bluetooth::Stack
         err_code = nrf_ble_gatt_init(&nrfGatt, NULL);
         APP_ERROR_CHECK(err_code);
 
-        NRF_LOG_INFO("BLE Stack init, RAM start: 0x%X", ram_start);
+        NRF_LOG_DEBUG("BLE Stack init, RAM start: 0x%X", ram_start);
     }
 
     void initAdvertising() {

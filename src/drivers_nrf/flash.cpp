@@ -259,35 +259,35 @@ namespace DriversNRF::Flash
 
             // Start by erasing the flash
             Flash::erase(nullptr, pageAddress, pageCount, [](void* context, bool result, uint32_t address, uint16_t data_size) {
-                NRF_LOG_INFO("Done erasing %d page", data_size);
+                NRF_LOG_INFO("Erased %d pages", data_size);
                 if (result) {
                     // Program settings
                     Flash::write(nullptr, getSettingsStartAddress(), _newSettings, sizeof(Settings), [](void* context, bool result, uint32_t address, uint16_t data_size) {
                         if (result) {
-                            NRF_LOG_INFO("Finished flashing settings, flashing dataset data");
+                            NRF_LOG_INFO("Settings flashed");
                             // Receive all the buffers directly to flash
                             _programDataFunc([](void* context, bool result, uint32_t address, uint16_t data_size) {
                                 if (result) {
                                     // Program the animation set itself
-                                    NRF_LOG_INFO("Finished flashing dataset data, flashing dataset itself");
+                                    NRF_LOG_INFO("DataSet data flashed");
                                     Flash::write(nullptr, getDataSetAddress(), _newData, sizeof(Data),
                                         [](void* context, bool result, uint32_t address, uint16_t data_size) {
                                             if (result) {
-                                                NRF_LOG_INFO("Data Set written to flash!");
+                                                NRF_LOG_INFO("DataSet flashed");
                                             } else {
-                                                NRF_LOG_ERROR("Error programming dataset to flash");
+                                                NRF_LOG_ERROR("Error flashing dataset");
                                             }
                                             finishProgramming();
                                             _onProgramFinished(result);
                                     });
                                 } else {
-                                    NRF_LOG_ERROR("Error transferring animation data");
+                                    NRF_LOG_ERROR("Error flashing DataSet data");
                                     finishProgramming();
                                     _onProgramFinished(false);
                                 }
                             });
                         } else {
-                            NRF_LOG_ERROR("Error writing settings");
+                            NRF_LOG_ERROR("Error flashing settings");
                             finishProgramming();
                             _onProgramFinished(false);
                         }
@@ -300,7 +300,7 @@ namespace DriversNRF::Flash
             });
             return true;
         } else {
-            NRF_LOG_ERROR("Not enough available data to flash");
+            NRF_LOG_ERROR("Not enough available flash");
             return false;
         }
     }

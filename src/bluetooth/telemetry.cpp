@@ -129,7 +129,7 @@ namespace Bluetooth::Telemetry
         lastMessageMs = 0;
 
         if (requestMode == TelemetryRequestMode_Off) {
-            NRF_LOG_INFO("Starting Telemetry with interval = %d", minInterval);
+            NRF_LOG_INFO("Telemetry on @ %dms", minInterval);
             requestMode = repeat ? TelemetryRequestMode_Repeat : TelemetryRequestMode_Once;
 
             // Reset accel data and RSSI so we won't send a message until they are updated
@@ -161,7 +161,7 @@ namespace Bluetooth::Telemetry
 
     void stop() {
         if (requestMode != TelemetryRequestMode_Off) {
-            NRF_LOG_INFO("Stopping Telemetry");
+            NRF_LOG_INFO("Telemetry off");
             requestMode = TelemetryRequestMode_Off;
 
             // Stop being notified!

@@ -11,6 +11,8 @@
 #define GPREGRET_ID 0
 #define SLEEP_TIMEOUT_MS 30000 //  Comment to disable sleep timeout
 
+#define POWER_EVENT_LOG(msg) NRF_LOG_INFO("Power event! Prepare %s", msg)
+
 namespace DriversNRF::PowerManager
 {
     PowerManagerClientMethod powerEventCallback = nullptr;
@@ -48,22 +50,22 @@ namespace DriversNRF::PowerManager
         switch (event)
         {
             case NRF_PWR_MGMT_EVT_PREPARE_SYSOFF:
-                NRF_LOG_INFO("Power event! Prepare system off");
+                POWER_EVENT_LOG("system off");
                 pwrEvent = PowerManagerEvent_PrepareSysOff;
                 break;
 
             case NRF_PWR_MGMT_EVT_PREPARE_WAKEUP:
-                NRF_LOG_INFO("Power event! Prepare wake up");
+                POWER_EVENT_LOG("wake up");
                 pwrEvent = PowerManagerEvent_PrepareWakeUp;
                 break;
 
             case NRF_PWR_MGMT_EVT_PREPARE_DFU:
-                NRF_LOG_INFO("Power event! Prepare wake DFU");
+                POWER_EVENT_LOG("wake DFU");
                 pwrEvent = PowerManagerEvent_PrepareDFU;
                 break;
 
             case NRF_PWR_MGMT_EVT_PREPARE_RESET:
-                NRF_LOG_INFO("Power event! Prepare wake reset");
+                POWER_EVENT_LOG("wake reset");
                 pwrEvent = PowerManagerEvent_PrepareReset;
                 break;
         }
@@ -79,7 +81,7 @@ namespace DriversNRF::PowerManager
     NRF_PWR_MGMT_HANDLER_REGISTER(powerEventHandler, 0);
 
     void triggerSleepMode(void* context) {
-        NRF_LOG_INFO("PowerManager timeout! Going to Sleep");
+        NRF_LOG_INFO("PowerManager timeout => sleep");
         goToSleep();
     }
 
