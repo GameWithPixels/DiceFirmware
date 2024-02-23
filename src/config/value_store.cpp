@@ -34,9 +34,11 @@ namespace Config::ValueStore
         return WriteValueError_StoreFull;
     }
 
-    uint32_t readValue(ValueType type) {
+    uint32_t readValue(ValueType type, ValueType typeEnd /*= ValueType_None*/) {
         uint32_t value = -1;
         const uint32_t typeMask = (uint32_t)type << 24;
+        const uint32_t typeEndMask = (uint32_t)typeEnd << 24;
+        const bool hasTypeEnd = typeEnd != ValueType_None;
         // Iterate through all values and keep the last one that has the required type
         for (int i = INDEX_RBEGIN; i >= INDEX_REND; --i) {
             uint32_t *reg = (uint32_t *)&NRF_UICR->CUSTOMER[i];
@@ -45,10 +47,16 @@ namespace Config::ValueStore
                 // We reached the on the store
                 break;
             }
-            if ((*reg & 0xff000000) == typeMask) {
+            const auto mask = *reg & 0xff000000;
+            if ((!hasTypeEnd && mask == typeMask)
+                || (hasTypeEnd && mask >= typeMask && mask <= typeEndMask)) {
                 value = *reg & 0xffffff;
             }
         }
         return value;
+    }
+
+    bool hasValidationTimestamp() {
+        return readValue(ValueType_ValidationTimestampStart, ValueType_ValidationTimestampEnd) != (uint32_t)-1;
     }
 }

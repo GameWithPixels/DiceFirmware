@@ -4,6 +4,7 @@ namespace Config::ValueStore
 {
     enum ValueType : uint8_t
     {
+        ValueType_None = 0,
         ValueType_DieType = 1,
         ValueType_Colorway = 2,
         ValueType_ValidationTimestampStart = 0xA0, // Start index for validation timestamps
@@ -23,6 +24,10 @@ namespace Config::ValueStore
 
     // Write value to store, returns its index (or -1 if full)
     int writeValue(uint32_t value);
+
     // Read value from store for the given type, returns -1 if not found
-    uint32_t readValue(ValueType type);
+    uint32_t readValue(ValueType typeStart, ValueType typeEnd = ValueType_None);
+
+    // Check if the board has been validated at least once
+    bool hasValidationTimestamp();
 }

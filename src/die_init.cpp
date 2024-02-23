@@ -20,6 +20,7 @@
 
 #include "config/board_config.h"
 #include "config/settings.h"
+#include "config/value_store.h"
 
 #include "drivers_hw/battery.h"
 #include "drivers_hw/ntc.h"
@@ -182,17 +183,20 @@ namespace Die
                 ChargerProximity::init();
 
                 // Lights depend on board info as well
-                LEDs::init([] (bool ledInitRet) {
-                    // If LED init failed, we will "try" to turn LEDs on, hoping the problem is simply an led chain thing
-                    if (!ledInitRet) {
-                        LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_LEDs);
+                LEDs::init([](bool ledInitRet) {
+                    const bool engineeringSample = !ValidationManager::inValidation() && !ValueStore::hasValidationTimestamp();
+                    if (!engineeringSample) {
+                        // If LED init failed, we will "try" to turn LEDs on, hoping the problem is simply an led chain thing
+                        if (!ledInitRet) {
+                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_LEDs);
+                        }
+
+                        if (!tempInitRet) {
+                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_NTC);
+                        }
                     }
 
-                    if (!tempInitRet) {
-                        LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_NTC);
-                    }
-
-                    // Now that we have leds, indicate battery or acc errors
+                    // Now that we have LEDs, indicate battery or acc errors
                     if (!batteryInitRet) {
                         LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_BatterySense);
                     }
