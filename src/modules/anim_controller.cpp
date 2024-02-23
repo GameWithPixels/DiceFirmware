@@ -235,11 +235,14 @@ namespace Modules::AnimController
         
         if (animationCount < MAX_ANIMS)
         {
-            // Add a new animation
-            animations[animationCount] = Animations::createAnimationInstance(animationPreset, animationBits);
-            animations[animationCount]->setTag(tag);
-            animations[animationCount]->start(ms, remapFace, loopCount);
-            animationCount++;
+            const auto anim = Animations::createAnimationInstance(animationPreset, animationBits);
+            if (anim) {
+                // Add a new animation
+                animations[animationCount] = anim;
+                animations[animationCount]->setTag(tag);
+                animations[animationCount]->start(ms, remapFace, loopCount);
+                animationCount++;
+            }
         }
         // Else there is no more room
     }
