@@ -60,7 +60,7 @@ and run the commands above from the directory where the .hex file was saved
 ## Device Firmware Upgrade (DFU)
 
 The Pixels app comes with the capability to update die to the latest firmware but
-in some rare occurence it might fail and leave the die in an usable state.
+in some rare occurence it might fail and leave the die in an unusable state.
 
 In this case we recommend using the Nordic tools to reprogram the die with the firmware.
 The Pixels app will support recovering dice in a future update.
