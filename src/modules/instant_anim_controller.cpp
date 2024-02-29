@@ -17,15 +17,18 @@ using namespace DataSet;
 namespace Modules::InstantAnimationController
 {
     static AnimationBits animationBits;
-    static void *animationsData;
+    static void *animationsData = nullptr;
+    static uint32_t animationsDataSize;
     static uint32_t animationsDataHash;
 
     void ReceiveInstantAnimSetHandler(const Message *msg);
     void PlayInstantAnimHandler(const Message *msg);
 
-    void clearData() {
+    void clearData()
+    {
         free(animationsData);
         animationsData = nullptr;
+        animationsDataSize = 0;
         animationsDataHash = 0;
     }
 
@@ -33,7 +36,6 @@ namespace Modules::InstantAnimationController
     {
         MessageService::RegisterMessageHandler(Message::MessageType_TransferInstantAnimSet, ReceiveInstantAnimSetHandler);
         Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayInstantAnim, PlayInstantAnimHandler);
-        animationsData = nullptr;
         clearData();
 
         NRF_LOG_DEBUG("Instant Animation Controller init");
@@ -65,7 +67,7 @@ namespace Modules::InstantAnimationController
             int paletteBufferSize = Utils::roundUpTo4(message->paletteSize);
             int animationOffsetsBufferSize = Utils::roundUpTo4(message->animationCount * 2);
 
-            int bufferSize =
+            animationsDataSize =
                 paletteBufferSize +
                 message->rgbKeyFrameCount * sizeof(RGBKeyframe) +
                 message->rgbTrackCount * sizeof(RGBTrack) +
@@ -75,11 +77,11 @@ namespace Modules::InstantAnimationController
                 message->animationSize;
 
             // Allocate anim data
-            animationsData = malloc(bufferSize);
+            animationsData = malloc(animationsDataSize);
             if (animationsData != nullptr) {
 
                 // Setup pointers
-                NRF_LOG_DEBUG("Animations bufferSize: %d", bufferSize);
+                NRF_LOG_DEBUG("Animations bufferSize: %d", animationsDataSize);
                 uint32_t address = (uint32_t)animationsData;
                 animationBits.palette = (const uint8_t*)address;
                 animationBits.paletteSize = message->paletteSize;
@@ -116,8 +118,7 @@ namespace Modules::InstantAnimationController
                 // Receive all the buffers directly to flash
                 ReceiveBulkData::receive(nullptr,
                     [](void* context, uint16_t size) -> uint8_t* {
-                        // Regardless of the size passed in, we return the pre-allocated animation data buffer
-                        return (uint8_t*)animationsData;
+                        return size == animationsDataSize ? (uint8_t *)animationsData : nullptr;
                     },
                     [](void* context, bool result, uint8_t* data, uint16_t size) {
                     if (result) {

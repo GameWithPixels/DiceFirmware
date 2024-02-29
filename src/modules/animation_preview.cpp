@@ -18,20 +18,28 @@ using namespace DataSet;
 namespace Modules::AnimationPreview
 {
     static AnimationBits animationBits;
-    static void* animationData;
+    static void* animationData = nullptr;
+    static uint32_t animationDataSize;
     static uint32_t animationDataHash;
 
     void ReceiveTestAnimSetHandler(const Message *msg);
     void BlinkLEDsHandler(const Message *msg);
     void BlinkIdHandler(const Message *msg);
 
+    void clearData()
+    {
+        free(animationData);
+        animationData = nullptr;
+        animationDataSize = 0;
+        animationDataHash = 0;
+    }
+
     void init()
     {
         MessageService::RegisterMessageHandler(Message::MessageType_TransferTestAnimSet, ReceiveTestAnimSetHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_Blink, BlinkLEDsHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_BlinkId, BlinkIdHandler);
-        animationData = nullptr;
-        animationDataHash = 0;
+        clearData();
 
         NRF_LOG_DEBUG("Animation Preview init");
     }
@@ -49,9 +57,7 @@ namespace Modules::AnimationPreview
                     AnimController::stop(animationBits.getAnimation(i), 255);
                 }
 
-                free(animationData);
-                animationData = nullptr;
-                animationDataHash = 0;
+                clearData();
             }
 
             NRF_LOG_DEBUG("Animation Data to be received:");
@@ -66,7 +72,7 @@ namespace Modules::AnimationPreview
             int paletteBufferSize = Utils::roundUpTo4(message->paletteSize);
             int animationOffsetsBufferSize = Utils::roundUpTo4(message->animationCount * 2);
 
-            int bufferSize =
+            animationDataSize =
                 paletteBufferSize +
                 message->rgbKeyFrameCount * sizeof(RGBKeyframe) +
                 message->rgbTrackCount * sizeof(RGBTrack) +
@@ -76,10 +82,10 @@ namespace Modules::AnimationPreview
                 message->animationSize;
 
             // Allocate anim data
-            animationData = malloc(bufferSize);
+            animationData = malloc(animationDataSize);
             if (animationData != nullptr) {
                 // Setup pointers
-                NRF_LOG_DEBUG("Preview bufferSize: 0x%04x", bufferSize);
+                NRF_LOG_DEBUG("Preview bufferSize: 0x%04x", animationDataSize);
                 uint32_t address = (uint32_t)animationData;
                 animationBits.palette = (const uint8_t*)address;
                 animationBits.paletteSize = message->paletteSize;
@@ -116,8 +122,7 @@ namespace Modules::AnimationPreview
                 // Receive all the buffers directly to flash
                 ReceiveBulkData::receive(nullptr,
                     [](void* context, uint16_t size) -> uint8_t* {
-                        // Regardless of the size passed in, we return the pre-allocated animation data buffer
-                        return (uint8_t*)animationData;
+                        return size == animationDataSize ? (uint8_t*)animationData : nullptr;
                     },
                     [](void* context, bool result, uint8_t* data, uint16_t size) {
                     if (result) {
@@ -131,9 +136,7 @@ namespace Modules::AnimationPreview
                         AnimController::play(animation, &animationBits, Accelerometer::currentFace());
                     } else {
                         NRF_LOG_ERROR("Failed to download temp animation");
-                        free(animationData);
-                        animationData = nullptr;
-                        animationDataHash = 0;
+                        clearData();
                     }
                 });
             } else {
