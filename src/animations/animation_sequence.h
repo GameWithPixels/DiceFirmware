@@ -4,6 +4,8 @@
 
 #pragma pack(push, 1)
 
+#define MAX_SEQ_ANIMATIONS 4
+
 namespace Animations
 {
     struct EditAnimationSequenceItem
@@ -18,7 +20,7 @@ namespace Animations
     struct AnimationSequence
         : public Animation
     {
-        EditAnimationSequenceItem animations[4];
+        EditAnimationSequenceItem animations[MAX_SEQ_ANIMATIONS];
         uint8_t animationCount;
     };
 

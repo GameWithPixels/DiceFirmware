@@ -71,7 +71,8 @@ namespace Animations
         int lastMs = lastMillis - startTime;
         int thisMs = ms - startTime;
         lastMillis = ms;
-        for (int i = 0; i < preset->animationCount; i++) {
+        const int animCount = MIN(preset->animationCount, MAX_SEQ_ANIMATIONS);
+        for (int i = 0; i < animCount; i++) {
             int delay = preset->animations[i].animationDelay;
             if (delay > lastMs && delay <= thisMs) {
 
