@@ -103,7 +103,9 @@ After selecting the DFU file you may select your Pixels die.
 All nearby Bluetooth Low Energy device will be displayed in this list.
 
 When turned on the die name should also appear in the list.
-If not try to reset your Pixels die by placing it back into its box and covering it with the lid.
+If not try to:
+- Uncheck the "Nearby" option.
+- Reset your Pixels die by placing it back into its box and covering it with the lid.
 Wait at least five seconds before removing the lid.
 
 Occasionally you may see a "PXL????????" or "Dfu?????" device (where the question marks
