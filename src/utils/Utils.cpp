@@ -13,8 +13,8 @@ static const int scaler = 64 * 1024;
 
 namespace Utils
 {
-    uint32_t roundUpTo4(uint32_t address) {
-        return 4 * ((address + 3) / 4);
+    uint32_t roundUpTo4(uint32_t value) {
+        return (value + 3) & ~(uint32_t)3;
     }
 
     uint32_t addColors(uint32_t a, uint32_t b) {

@@ -72,6 +72,7 @@ namespace Modules::AnimationPreview
                 message->rgbTrackCount * sizeof(RGBTrack) +
                 message->keyFrameCount * sizeof(Keyframe) +
                 message->trackCount * sizeof(Track) +
+                animationOffsetsBufferSize +
                 message->animationSize;
 
             // Allocate anim data
