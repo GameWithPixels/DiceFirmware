@@ -7,6 +7,7 @@
 #include "utils/rainbow.h"
 #include "config/board_config.h"
 #include "config/settings.h"
+#include "data_set/data_set.h"
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "nrf_log.h"
@@ -174,6 +175,10 @@ namespace Modules::AnimController
             }
             
             // And light up!
+            uint8_t brightness = DataSet::getBrightness();
+            for (int j = 0; j < c; ++j) {
+                allColors[j] = Utils::modulateColor(allColors[j], brightness);
+            }
             LEDs::setPixelColors(allColors);
         }
     }

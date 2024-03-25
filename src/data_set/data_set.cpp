@@ -175,6 +175,11 @@ namespace DataSet
         return data->behavior;
     }
 
+    uint8_t getBrightness() {
+        assert(CheckValid());
+        return data->brightness;
+    }
+
     int offset = 0;
 
     void ReceiveDataSetHandler(const Message* msg) {

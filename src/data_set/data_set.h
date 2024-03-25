@@ -57,6 +57,9 @@ namespace DataSet
     // Behaviors
     const Behaviors::Behavior* getBehavior();
 
+    // Brightness
+    uint8_t getBrightness();
+
     uint32_t computeDataSetDataSize(const Data* newData);
 
     void ProgramDefaultDataSet(const Config::Settings& settingsPackAlong, DataSetWrittenCallback callback);
