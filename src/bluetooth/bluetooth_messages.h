@@ -330,6 +330,8 @@ struct MessageTransferAnimSet
     uint16_t actionSize;
     uint16_t ruleCount;
 
+    uint8_t brightness;
+
     MessageTransferAnimSet() : Message(Message::MessageType_TransferAnimSet) {}
 };
 

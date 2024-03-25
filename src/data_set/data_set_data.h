@@ -43,6 +43,9 @@ namespace DataSet
         // The behavior of this die, or a collection of condition->action pairs
         const Behaviors::Behavior* behavior;
 
+        // Brightness to apply on top of animations
+        uint8_t brightness;
+
         // Indicates whether there is valid data
         uint32_t tailMarker;
     };

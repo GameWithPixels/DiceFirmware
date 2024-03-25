@@ -251,6 +251,8 @@ namespace DataSet
         newData.behavior = (const Behavior*)address;
         address += sizeof(Behavior);
 
+        newData.brightness = message->brightness;
+
         newData.tailMarker = ANIMATION_SET_VALID_KEY;
 
         static auto receiveToFlash = [](Flash::ProgramFlashFuncCallback callback) {

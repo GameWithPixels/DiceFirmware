@@ -214,6 +214,8 @@ namespace DataSet
         auto writeBehaviors = (Behavior*)(writeBufferAddress + currentOffset);
         currentOffset += sizeof(Behavior);
 
+        newData->brightness = 255;
+
         newData->tailMarker = ANIMATION_SET_VALID_KEY;
 
         // Cute way to create Red Green Blue colors in palette
