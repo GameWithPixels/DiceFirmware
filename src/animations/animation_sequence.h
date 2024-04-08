@@ -8,7 +8,7 @@
 
 namespace Animations
 {
-    struct EditAnimationSequenceItem
+    struct AnimationSequenceItem
     {
         uint16_t animationIndex;
         uint16_t animationDelay;
@@ -20,7 +20,7 @@ namespace Animations
     struct AnimationSequence
         : public Animation
     {
-        EditAnimationSequenceItem animations[MAX_SEQ_ANIMATIONS];
+        AnimationSequenceItem animations[MAX_SEQ_ANIMATIONS];
         uint8_t animationCount;
     };
 

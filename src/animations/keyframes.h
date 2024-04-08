@@ -7,7 +7,7 @@
 namespace Animations
 {
     /// <summary>
-    /// Stores a single keyframe of an LED animation
+    /// Stores a single keyframe of a LED animation
     /// size: 2 bytes, split this way:
     /// - 9 bits: time 0 - 511 in 500th of a second (i.e )
     ///   + 1    -> 0.002s
@@ -46,7 +46,7 @@ namespace Animations
     };
 
     /// <summary>
-    /// Stores a single keyframe of an LED animation
+    /// Stores a single keyframe of a LED animation
     /// size: 2 bytes, split this way:
     /// - 9 bits: time 0 - 511 in 500th of a second (i.e )
     ///   + 1    -> 0.002s

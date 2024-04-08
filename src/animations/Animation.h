@@ -39,8 +39,8 @@ namespace Animations
     enum AnimationFlags : uint8_t
     {
         AnimationFlags_None,
-        AnimationFlags_Traveling = 1,
-        AnimationFlags_UseLedIndices = 2,
+        AnimationFlags_Traveling = 1,     // Make the animation travel around the dice, only available for the Rainbow animation
+        AnimationFlags_UseLedIndices = 2, // Play animation is using LED indices, not face indices
     };
 
     /// <summary>
