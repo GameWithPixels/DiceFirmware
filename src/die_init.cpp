@@ -72,6 +72,10 @@ namespace Die
     }
 
     void init() {
+
+        // Enable DC-DC converter, in case it was not already
+        NRF_POWER->DCDCEN = 1;
+
         //--------------------
         // Initialize NRF drivers
         // We don't expect NRF drivers to error unless because of a firmware bug
@@ -175,6 +179,7 @@ namespace Die
 
                 static bool tempInitRet = false;
                 tempInitRet = tempInitRetParam;
+
                 // Battery controller relies on the battery driver
                 BatteryController::init();
 
