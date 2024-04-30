@@ -105,9 +105,6 @@ namespace Behaviors
     struct ConditionRolled
         : public Condition
     {
-        uint8_t padding1;
-        uint8_t padding2;
-        uint8_t padding3;
         uint32_t faceMask;
         bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
     };

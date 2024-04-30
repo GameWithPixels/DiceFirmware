@@ -156,7 +156,7 @@ namespace Modules::AnimController
 
                     // This is a little bit of a hack, but to keep one single default profile
                     // for all dice types, filter the LEDs here to only keep one and make it the top face.
-                    if (animTrackCount > 0 && anim->animationPreset->animFlags & AnimationFlags_HighestLED) {
+                    if (animTrackCount > 0 && anim->animationPreset->animFlags & AnimationFlags_HighestLed) {
                         // Override the faces so there is only the highest led color
                         animTrackCount = 1;
                         canonIndices[0] = l->faceCount - 1;

@@ -35,7 +35,7 @@ namespace Animations
         AnimationFlags_None,
         AnimationFlags_Traveling		= 1 << 0, // Make the animation travel around the dice, only available for the Rainbow animation
         AnimationFlags_UseLedIndices	= 1 << 1, // Play animation is using LED indices, not face indices
-        AnimationFlags_HighestLED		= 1 << 2
+        AnimationFlags_HighestLed		= 1 << 2
     };
 
     /// <summary>
@@ -47,6 +47,8 @@ namespace Animations
         AnimationType type;
         uint8_t animFlags; // Combination of AnimationFlags
         uint16_t duration; // in ms
+        uint32_t faceMask;
+        uint8_t intensity;
     };
 
     typedef Profile::Pointer<Animation> AnimationPtr;

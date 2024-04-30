@@ -21,10 +21,10 @@ namespace Animations
         ScalarType_Lookup,
 
         // After this are Curve types
-        CurveType_TwoUInt8,     // simple interpolation between two 8 bit values
-        CurveType_TwoUInt16,    // simple interpolation between two 16 bit values
-        CurveType_TrapezeUInt8, // trapeze shaped interpolation from 0 to a given value and back to 0
-        CurveType_TrapezeUInt16, // trapeze shaped interpolation from 0 to a given value and back to 0
+        CurveType_TwoUInt8 = 0xf,   // simple interpolation between two 8 bit values
+        CurveType_TwoUInt16,        // simple interpolation between two 16 bit values
+        CurveType_TrapezeUInt8,     // trapeze shaped interpolation from 0 to a given value and back to 0
+        CurveType_TrapezeUInt16,    // trapeze shaped interpolation from 0 to a given value and back to 0
         CurveType_UInt16Keyframes,
     };
 
@@ -32,13 +32,13 @@ namespace Animations
     enum ColorType : uint8_t
     {
         ColorType_Unknown = 0,
-        ColorType_Palette,      // uses the global palette
-        ColorType_RGB,          // stores actual rgb values
-        ColorType_Lookup,       // uses a scalar to lookup the color in a gradient
+        ColorType_Palette,          // uses the global palette
+        ColorType_RGB,              // stores actual rgb values
+        ColorType_Lookup,           // uses a scalar to lookup the color in a gradient
         // After this are gradient types
-        GradientType_Rainbow,   // basic programmatic rainbow gradient
-        GradientType_TwoColors, // simple two-color gradient
-        GradientType_Keyframes, // gradient with a few keyframes
+        GradientType_Rainbow = 0xf, // basic programmatic rainbow gradient
+        GradientType_TwoColors,     // simple two-color gradient
+        GradientType_Keyframes,     // gradient with a few keyframes
 
     };
 

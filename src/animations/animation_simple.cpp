@@ -55,8 +55,9 @@ namespace Animations
             color = black;
         }
 
+        uint8_t intensity = preset->intensity;
         // Fill the indices and colors for the anim controller to know how to update LEDs
-        return setColor(color, preset->faceMask, retIndices, retColors);
+        return setColor(Utils::scaleColor(color, intensity * 1000 / 255), preset->faceMask, retIndices, retColors);
     }
 
     /// <summary>

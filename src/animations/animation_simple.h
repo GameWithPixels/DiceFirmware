@@ -19,7 +19,6 @@ namespace Animations
         : public Animation
     {
         uint8_t colorFlags;
-        uint32_t faceMask;
         DColorPtr color;
         uint8_t count;
         uint8_t fade;
