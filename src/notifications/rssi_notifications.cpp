@@ -73,7 +73,7 @@ namespace Notifications::Rssi
                 }
 
                 // Send the message
-                NRF_LOG_INFO("Sending RSSI: %d", rssi);
+                NRF_LOG_DEBUG("Sending RSSI: %d", rssi);
                 MessageRssi retMsg;
                 retMsg.rssi = rssi;
                 MessageService::SendMessage(&retMsg);

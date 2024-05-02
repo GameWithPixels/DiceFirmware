@@ -60,10 +60,11 @@ namespace Profile::Instant
 		return instantProfileData.checkValid();
 	}
 
-	void init() {
-        MessageService::RegisterMessageHandler(Message::MessageType_TransferInstantProfile, ReceiveInstantProfileHandler);
-		NRF_LOG_INFO("Instant Profile init");
-	}
+    void init() {
+        // TODO already registered in Static
+        // MessageService::RegisterMessageHandler(Message::MessageType_TransferProfile, ReceiveInstantProfileHandler);
+        NRF_LOG_INFO("Instant Profile init");
+    }
 
 	bool refreshData() {
 		// Assume the profile is in flash already, and check/initialize it
@@ -73,21 +74,25 @@ namespace Profile::Instant
 
 	void ReceiveInstantProfileHandler(const Message* msg) {
 		NRF_LOG_INFO("Received request to download new profile");
-		auto message = (const MessageTransferInstantProfile*)msg;
+        auto message = (const MessageTransferProfile*)msg;
 
-		if (message->profileHash == getHash()) {
-			// Up to date
-			MessageTransferInstantProfileAck ack;
+        if (message->mode != MessageTransferProfileMode_Instant) {
+            return;
+        }
+
+        if (message->hash == getHash()) {
+            // Up to date
+            MessageTransferProfileAck ack;
 			ack.result = TransferProfileAck_UpToDate;
 			MessageService::SendMessage(&ack);
-		} else if (message->profileSize > INSTANT_PROFILE_ALLOC_SIZE) {
+		} else if (message->dataSize > INSTANT_PROFILE_ALLOC_SIZE) {
             // Don't send data please
-            MessageTransferInstantProfileAck ack;
+            MessageTransferProfileAck ack;
             ack.result = TransferProfileAck_NoMemory;
             MessageService::SendMessage(&ack);
         } else {
             // Send Ack and receive data
-            MessageTransferInstantProfileAck ackMsg;
+            MessageTransferProfileAck ackMsg;
             ackMsg.result = TransferProfileAck_Download;
             MessageService::SendMessage(&ackMsg);
 
@@ -100,7 +105,7 @@ namespace Profile::Instant
                 [](void* context, bool result, uint8_t* data, uint16_t size) {
                 if (result) {
                     result = refreshData();
-                    MessageTransferInstantProfileFinished finMsg;
+                    MessageTransferProfileFinished finMsg;
                     finMsg.result = result ? TransferProfileFinished_Success : TransferProfileFinished_Error;
                     MessageService::SendMessage(&finMsg);
                 } else {

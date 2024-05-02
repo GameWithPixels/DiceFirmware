@@ -26,7 +26,7 @@ namespace Notifications::Battery
         if (MessageService::isConnected()) {
             const auto level = BatteryController::getLevelPercent();
             const auto state = BatteryController::getBatteryState();
-            NRF_LOG_INFO("Sending battery level: %d%%, state: %d", level, state);
+            NRF_LOG_DEBUG("Sending battery level: %d%%, state: %d", level, state);
             MessageBatteryLevel batteryMsg;
             batteryMsg.levelPercent = level;
             batteryMsg.state = state;

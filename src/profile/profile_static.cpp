@@ -97,7 +97,11 @@ namespace Profile::Static
 		NRF_LOG_INFO("Received request to download new profile");
 		const MessageTransferProfile* message = (const MessageTransferProfile*)msg;
 
-		if (message->profileHash == getHash()) {
+        if (message->mode != MessageTransferProfileMode_Persistent) {
+            return;
+        }
+
+		if (message->hash == getHash()) {
 			// Up to date
 			MessageTransferProfileAck ack;
 			ack.result = TransferProfileAck_UpToDate;
@@ -121,13 +125,13 @@ namespace Profile::Static
 					} else {
 						NRF_LOG_ERROR("Error after programming dataset: size=0x%x, hash=0x%08x", getSize(), getHash());
 					}
-					MessageTransferInstantProfileFinished finMsg;
+					MessageTransferProfileFinished finMsg;
 					finMsg.result = result ? TransferProfileFinished_Success : TransferProfileFinished_Error;
 					MessageService::SendMessage(&finMsg);
 				}
 			};
 
-			if (!Flash::programProfile(message->profileSize, receiveToFlash, onProgramFinished)) {
+			if (!Flash::programProfile(message->dataSize, receiveToFlash, onProgramFinished)) {
 				// Don't send data please
 				MessageTransferProfileAck ack;
 				ack.result = TransferProfileAck_NoMemory;

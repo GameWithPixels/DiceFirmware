@@ -53,9 +53,9 @@ struct Message
         MessageType_Unused_001,
         MessageType_Unused_002,
         MessageType_Unused_003,
-        MessageType_TransferInstantProfile,
-        MessageType_TransferInstantProfileAck,
-        MessageType_TransferInstantProfileFinished,
+        MessageType_Unused_012,
+        MessageType_Unused_013,
+        MessageType_Unused_014,
         MessageType_DebugLog,
         MessageType_PlayAnim,
         MessageType_Unused_004,
@@ -309,11 +309,18 @@ struct MessageBulkDataAck
     MessageBulkDataAck() : Message(Message::MessageType_BulkDataAck) {}
 };
 
+enum MessageTransferProfileMode : uint8_t
+{
+    MessageTransferProfileMode_Persistent = 0,
+    MessageTransferProfileMode_Instant,
+};
+
 struct MessageTransferProfile
     : Message
 {
-    uint16_t profileSize;
-    uint32_t profileHash;
+    MessageTransferProfileMode mode;
+    uint16_t dataSize;
+    uint32_t hash;
 
     MessageTransferProfile() : Message(Message::MessageType_TransferProfile) {}
 };
@@ -328,7 +335,7 @@ enum TransferProfileAckType : uint8_t
 struct MessageTransferProfileAck
     : Message
 {
-    uint8_t result;
+    TransferProfileAckType result;
 
     MessageTransferProfileAck() : Message(Message::MessageType_TransferProfileAck) {}
 };
@@ -345,31 +352,6 @@ struct MessageTransferProfileFinished
     TransferProfileFinishedType result;
 
     MessageTransferProfileFinished() : Message(Message::MessageType_TransferProfileFinished) {}
-};
-
-struct MessageTransferInstantProfile
-    : Message
-{
-    uint16_t profileSize;
-    uint32_t profileHash;
-
-    MessageTransferInstantProfile() : Message(Message::MessageType_TransferInstantProfile) {}
-};
-
-struct MessageTransferInstantProfileAck
-    : Message
-{
-    TransferProfileAckType result;
-
-    MessageTransferInstantProfileAck() : Message(Message::MessageType_TransferInstantProfileAck) {}
-};
-
-struct MessageTransferInstantProfileFinished
-    : Message
-{
-    TransferProfileFinishedType result;
-
-    MessageTransferInstantProfileFinished() : Message(Message::MessageType_TransferInstantProfileFinished) {}
 };
 
 struct MessageDebugLog
