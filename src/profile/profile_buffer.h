@@ -73,5 +73,4 @@ namespace Profile
     // size: 3 bytes
 }
 
-
 #pragma pack(pop)

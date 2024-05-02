@@ -39,7 +39,6 @@ namespace Animations
         GradientType_Rainbow = 0xf, // basic programmatic rainbow gradient
         GradientType_TwoColors,     // simple two-color gradient
         GradientType_Keyframes,     // gradient with a few keyframes
-
     };
 
     // The most basic animation elements are scalars and colors

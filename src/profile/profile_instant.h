@@ -13,4 +13,3 @@ namespace Profile::Instant
     uint32_t getHash();
     const Data* getData();
 }
-

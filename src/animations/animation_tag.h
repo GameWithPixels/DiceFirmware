@@ -15,5 +15,4 @@ namespace Animations
         AnimationTag_BatteryNotification,
         AnimationTag_BluetoothMessage,
     };
-
 }

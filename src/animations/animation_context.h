@@ -76,4 +76,3 @@ namespace Animations
 }
 
 #pragma pack(pop)
-

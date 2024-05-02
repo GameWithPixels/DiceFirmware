@@ -83,5 +83,4 @@ namespace Profile
         static uint8_t* createDefaultProfile(uint32_t* outSize);
         static void destroyDefaultProfile(uint8_t* ptr);
     };
-
 }

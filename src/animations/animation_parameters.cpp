@@ -79,5 +79,4 @@ namespace Animations
                 return sizeof(DColor);
         }
     }
-
 }

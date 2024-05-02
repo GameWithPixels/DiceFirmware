@@ -5,7 +5,6 @@
 
 #pragma pack(push, 1)
 
-
 namespace Animations
 {
     struct AnimationContext;
@@ -66,5 +65,3 @@ namespace Animations
 }
 
 #pragma pack(pop)
-
-

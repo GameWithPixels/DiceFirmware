@@ -15,4 +15,3 @@ namespace Profile::Static
     uint32_t getHash();
     const Data* getData();
 }
-

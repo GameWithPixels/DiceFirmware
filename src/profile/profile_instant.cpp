@@ -37,28 +37,28 @@ namespace Profile::Instant
 
     void ReceiveInstantProfileHandler(const Message *msg);
 
-	// This points to the profile data in flash
-	Data instantProfileData;
+    // This points to the profile data in flash
+    Data instantProfileData;
 
-	uint32_t getSize() {
-		return instantProfileData.getSize();
-	}
+    uint32_t getSize() {
+        return instantProfileData.getSize();
+    }
 
-	uint32_t getHash() {
-		return instantProfileData.getHash();
-	}
+    uint32_t getHash() {
+        return instantProfileData.getHash();
+    }
 
-	BufferDescriptor getBuffer() {
-		return instantProfileData.getBuffer();
-	}
+    BufferDescriptor getBuffer() {
+        return instantProfileData.getBuffer();
+    }
 
-	const Data* getData() {
-		return &instantProfileData;
-	}
+    const Data* getData() {
+        return &instantProfileData;
+    }
 
-	bool CheckValid() {
-		return instantProfileData.checkValid();
-	}
+    bool CheckValid() {
+        return instantProfileData.checkValid();
+    }
 
     void init() {
         // TODO already registered in Static
@@ -66,14 +66,14 @@ namespace Profile::Instant
         NRF_LOG_INFO("Instant Profile init");
     }
 
-	bool refreshData() {
-		// Assume the profile is in flash already, and check/initialize it
-		auto header = reinterpret_cast<Header const *>(instantProfileBytes);
-		return instantProfileData.init(header);
-	}
+    bool refreshData() {
+        // Assume the profile is in flash already, and check/initialize it
+        auto header = reinterpret_cast<Header const *>(instantProfileBytes);
+        return instantProfileData.init(header);
+    }
 
-	void ReceiveInstantProfileHandler(const Message* msg) {
-		NRF_LOG_INFO("Received request to download new profile");
+    void ReceiveInstantProfileHandler(const Message* msg) {
+        NRF_LOG_INFO("Received request to download new profile");
         auto message = (const MessageTransferProfile*)msg;
 
         if (message->mode != MessageTransferProfileMode_Instant) {
@@ -83,10 +83,10 @@ namespace Profile::Instant
         if (message->hash == getHash()) {
             // Up to date
             MessageTransferProfileAck ack;
-			ack.result = TransferProfileAck_UpToDate;
-			MessageService::SendMessage(&ack);
-		} else if (message->dataSize > INSTANT_PROFILE_ALLOC_SIZE) {
-            // Don't send data please
+            ack.result = TransferProfileAck_UpToDate;
+            MessageService::SendMessage(&ack);
+        } else if (message->dataSize > INSTANT_PROFILE_ALLOC_SIZE) {
+            // Don't send data please       
             MessageTransferProfileAck ack;
             ack.result = TransferProfileAck_NoMemory;
             MessageService::SendMessage(&ack);
@@ -112,10 +112,9 @@ namespace Profile::Instant
                 }
             });
         }
-	}
+    }
 
-	uint32_t availableDataSize() {
-		return INSTANT_PROFILE_ALLOC_SIZE;
-	}
-
+    uint32_t availableDataSize() {
+        return INSTANT_PROFILE_ALLOC_SIZE;
+    }
 }

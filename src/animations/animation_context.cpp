@@ -202,4 +202,3 @@ namespace Animations
         return buffer;
     }
 }
-
