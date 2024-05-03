@@ -1,7 +1,7 @@
 #include "ppi.h"
 #include "config/board_config.h"
 #include "nrf_drv_ppi.h"
-#include "log.h"
+#include "nrf_log.h"
 
 namespace DriversNRF::PPI
 {

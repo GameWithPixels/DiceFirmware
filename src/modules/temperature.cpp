@@ -6,6 +6,7 @@
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
+#include "nrf_log.h"
 
 using namespace DriversNRF;
 using namespace DriversHW;

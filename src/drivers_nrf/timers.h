@@ -1,7 +1,6 @@
 #pragma once
 
 #include "app_timer.h"
-#include "nrf_log.h"
 
 namespace DriversNRF
 {

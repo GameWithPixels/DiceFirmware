@@ -2,12 +2,11 @@
 #include "power_manager.h"
 #include "app_error.h"
 #include "app_error_weak.h"
-#include "Log.h"
+#include "nrf_log.h"
 #include "nrf_delay.h"
 #include "nrf_gpio.h"
 #include "nrf_drv_clock.h"
 #include "app_timer2_custom.h"
-
 
 #define MAX_DELAYED_CALLS 8
 

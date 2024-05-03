@@ -1,7 +1,7 @@
 #include "a2d.h"
 #include "nrf_drv_saadc.h"
 #include "config/board_config.h"
-#include "log.h"
+#include "nrf_log.h"
 #include "timers.h"
 #include "power_manager.h"
 

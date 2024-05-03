@@ -1,7 +1,7 @@
 #include "value_store.h"
-#include "drivers_nrf/log.h"
 #include "modules/validation_manager.h"
 #include "nrf_nvmc.h"
+#include "nrf_log.h"
 
 #define INDEX_RBEGIN (sizeof(NRF_UICR->CUSTOMER) / 4 - 1) // Index of "reverse" begin (higher value)
 #define INDEX_REND 1                                      // Index of "reverse" end (lower value)

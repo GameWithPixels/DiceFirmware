@@ -6,7 +6,7 @@
 #include "power_manager.h"
 #include "app_error.h"
 #include "app_error_weak.h"
-#include "log.h"
+#include "nrf_log.h"
 #include "nrf_soc.h"
 #include "scheduler.h"
 #include "core/delegate_array.h"

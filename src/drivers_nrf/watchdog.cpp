@@ -3,6 +3,7 @@
 #include "power_manager.h"
 #include "timers.h"
 #include "drivers_nrf/log.h"
+#include "nrf_log.h"
 
 static nrf_drv_wdt_channel_id m_channel_id;
 

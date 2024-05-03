@@ -2,7 +2,7 @@
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "app_timer.h"
-#include "log.h"
+#include "nrf_log.h"
 
 #define SCHED_MAX_EVENT_DATA_SIZE      16        /**< Maximum size of scheduler events. */
 #define SCHED_QUEUE_SIZE               16        /**< Maximum number of events in the scheduler queue. */

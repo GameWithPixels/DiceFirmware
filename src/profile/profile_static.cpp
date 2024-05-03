@@ -121,9 +121,9 @@ namespace Profile::Static
                 if (result) {
                     result = refreshData();
                     if (result) {
-                        NRF_LOG_INFO("Dataset size=0x%x, hash=0x%08x", getSize(), getHash());
+                        NRF_LOG_DEBUG("Dataset size=%d, hash=0x%08x", getSize(), getHash());
                     } else {
-                        NRF_LOG_ERROR("Error after programming dataset: size=0x%x, hash=0x%08x", getSize(), getHash());
+                        NRF_LOG_ERROR("Error after programming dataset: size=%d, hash=0x%08x", getSize(), getHash());
                     }
                     MessageTransferProfileFinished finMsg;
                     finMsg.result = result ? TransferProfileFinished_Success : TransferProfileFinished_Error;

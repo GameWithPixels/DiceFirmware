@@ -7,9 +7,9 @@
 #include "neopixel.h"
 #include "nrf_drv_pwm.h"
 #include "nrf_delay.h"
+#include "nrf_log.h"
 #include "settings.h"
 #include "config/board_config.h"
-#include "../drivers_nrf/log.h"
 
 using namespace Config;
 

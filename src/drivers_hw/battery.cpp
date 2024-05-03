@@ -5,13 +5,13 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 #include "nrf_saadc.h"
+#include "nrf_log.h"
 
 #include "nrf_drv_ppi.h"
 #include "nrf_drv_timer.h"
 
 #include "drivers_nrf/gpiote.h"
 #include "drivers_nrf/a2d.h"
-#include "drivers_nrf/log.h"
 #include "drivers_nrf/timers.h"
 #include "drivers_nrf/power_manager.h"
 #include "drivers_nrf/scheduler.h"

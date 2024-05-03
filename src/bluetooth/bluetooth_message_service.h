@@ -1,4 +1,5 @@
 #pragma once
+
 #include "bluetooth_messages.h"
 
 #ifndef BLE_LOG_ENABLED

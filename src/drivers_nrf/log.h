@@ -1,5 +1,4 @@
 #pragma once
-#include "nrf_log.h"
 
 namespace DriversNRF
 {

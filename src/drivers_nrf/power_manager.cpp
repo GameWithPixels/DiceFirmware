@@ -5,6 +5,7 @@
 #include "app_error.h"
 #include "app_error_weak.h"
 #include "log.h"
+#include "nrf_log.h"
 #include "core/delegate_array.h"
 #include "drivers_nrf/timers.h"
 

@@ -1,6 +1,6 @@
 #include "rng.h"
 #include "config/board_config.h"
-#include "log.h"
+#include "nrf_log.h"
 #include "nrf_sdh_soc.h"
 #include "app_error.h"
 

@@ -4,6 +4,7 @@
 #include "drivers_nrf/timers.h"
 #include "malloc.h"
 #include "drivers_nrf/flash.h"
+#include "nrf_log.h"
 
 #define RETRY_MS (10000) // ms
 #define TIMEOUT_MS (3000) // ms
@@ -412,7 +413,7 @@ namespace Bluetooth
 
                         auto msg = (const MessageBulkSetup*)message;
                         size = msg->size;
-                        NRF_LOG_INFO("Transfer size: 0x%04x", size);
+                        NRF_LOG_INFO("Transfer size: %d (0x%04x)", size, size);
                         currentState = State_WaitingForData;
 
                         // Send Ack, and wait for data to come in, or timeout!

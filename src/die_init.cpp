@@ -54,6 +54,7 @@
 #include "nrf_fstorage_sd.h"
 #include "nrf_power.h"
 #include "nrf_drv_clock.h"
+#include "nrf_log.h"
 
 using namespace DriversNRF;
 using namespace Config;

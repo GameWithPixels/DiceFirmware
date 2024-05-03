@@ -3,13 +3,13 @@
 #include "drivers_nrf/watchdog.h"
 #include "drivers_nrf/scheduler.h"
 #include "drivers_nrf/power_manager.h"
-#include "drivers_nrf/log.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "modules/accelerometer.h"
 #include "modules/anim_controller.h"
 #include "notifications/battery.h"
 #include "notifications/roll.h"
 #include "notifications/rssi.h"
+#include "nrf_log.h"
 
 using namespace Modules;
 using namespace Bluetooth;

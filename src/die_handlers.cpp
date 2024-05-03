@@ -4,7 +4,6 @@
 #include "drivers_nrf/flash.h"
 #include "drivers_nrf/power_manager.h"
 #include "drivers_nrf/scheduler.h"
-#include "drivers_nrf/log.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
@@ -20,6 +19,7 @@
 #include "notifications/roll.h"
 #include "notifications/rssi.h"
 #include "profile/profile_static.h"
+#include "nrf_log.h"
 
 #define CHARGER_STATE_CHANGE_FADE_OUT_MS 250
 
