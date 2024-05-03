@@ -19,12 +19,12 @@ namespace Animations
         Profile::Pointer<LEDPattern> pattern;
 
         // Then the color and intensity curves define the specifics of how the LEDs turn on
-        DGradientPtr colorOverTime;     // Works best if one of these two colors is white
-        DGradientPtr colorOverBlink;    // and the other is the actual curve, but you can use both.
+        DColorPtr colorOverTime;     // Works best if one of these two colors is white
+        DColorPtr colorOverBlink;    // and the other is the actual curve, but you can use both.
                                         // The colors will be multiplied together
-        DCurvePtr intensityOverTime;    // Works best if one of these two curves is constant 1 (or 255)
-        DCurvePtr intensityOverBlink;   // the two curves will be multiplied together
-    };
+        DScalarPtr intensityOverTime;    // Works best if one of these two curves is constant 1 (or 255)
+        DScalarPtr intensityOverBlink;   // the two curves will be multiplied together
+   };
     // size: 11 bytes + design
 
     // Instance data for a pattern-based animation

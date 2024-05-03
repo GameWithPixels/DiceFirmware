@@ -236,6 +236,10 @@ for x in range(256):
         return _sineTable[x]; // 0-255 in, 0-255 out
     }
 
+    uint8_t cos8(uint8_t x) {
+        return x < 196 ? _sineTable[x + 64] : _sineTable[x - 196]; // 0-255 in, 0-255 out
+    }
+
     uint8_t gamma8(uint8_t x) {
         return _gammaTable[x]; // 0-255 in, 0-255 out
     }
@@ -355,7 +359,7 @@ for x in range(256):
     }
 
 
-    // sqrt_i32 computes the squrare root of a 32bit integer and returns
+    // sqrt_i32 computes the square root of a 32bit integer and returns
     // a 32bit integer value. It requires that v is positive.
     // Source: https://github.com/chmike/fpsqrt/tree/master
     int32_t sqrt_i32(int32_t v) {

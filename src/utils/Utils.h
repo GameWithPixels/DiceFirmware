@@ -44,6 +44,7 @@ namespace Utils
     uint32_t interpolateColors(uint32_t start, uint32_t end, uint16_t param, EasingType easing);
 
     uint8_t sine8(uint8_t x);
+    uint8_t cos8(uint8_t x);
     uint8_t gamma8(uint8_t x);
     uint32_t gamma(uint32_t color);
     uint8_t asin8(uint8_t x);

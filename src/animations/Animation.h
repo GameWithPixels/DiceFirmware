@@ -35,7 +35,7 @@ namespace Animations
         AnimationFlags_None,
         AnimationFlags_Traveling		= 1 << 0, // Make the animation travel around the dice, only available for the Rainbow animation
         AnimationFlags_UseLedIndices	= 1 << 1, // Play animation is using LED indices, not face indices
-        AnimationFlags_HighestLed		= 1 << 2
+        AnimationFlags_HighestLed		= 1 << 2  // Illuminate just the up face with the animation color corresponding to the highest LED
     };
 
     /// <summary>

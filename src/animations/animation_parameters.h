@@ -8,37 +8,41 @@
 
 namespace Animations
 {
-    struct DGradient;
-    struct DCurve;
+    struct DScalar;
+    struct Curve;
+    struct DColor;
+    struct ColorCurve;
+
+    typedef Profile::Pointer<DScalar> DScalarPtr;
+    typedef Profile::Pointer<Curve> CurvePtr;
+    typedef Profile::Pointer<DColor> DColorPtr;
+    typedef Profile::Pointer<ColorCurve> ColorCurvePtr;
 
     // Scalar types
     enum ScalarType : uint8_t
     {
         ScalarType_Unknown = 0,
-        ScalarType_UInt8_t,     // 8-bit value
-        ScalarType_UInt16_t,    // 16-bit value
+
+        ScalarType_UInt8,
+        ScalarType_UInt16,
         ScalarType_Global,
         ScalarType_Lookup,
 
-        // After this are Curve types
-        CurveType_TwoUInt8 = 0xf,   // simple interpolation between two 8 bit values
-        CurveType_TwoUInt16,        // simple interpolation between two 16 bit values
-        CurveType_TrapezeUInt8,     // trapeze shaped interpolation from 0 to a given value and back to 0
-        CurveType_TrapezeUInt16,    // trapeze shaped interpolation from 0 to a given value and back to 0
-        CurveType_UInt16Keyframes,
+        ScalarType_OperationScalar = 0x10,
+        ScalarType_OperationScalarAndUInt8,
+        ScalarType_OperationScalarAndUInt16,
+        ScalarType_OperationUInt8AndScalar,
+        ScalarType_OperationUInt16AndScalar,
+        ScalarType_OperationTwoScalars,
     };
 
     // Color types
     enum ColorType : uint8_t
     {
         ColorType_Unknown = 0,
-        ColorType_Palette,          // uses the global palette
-        ColorType_RGB,              // stores actual rgb values
-        ColorType_Lookup,           // uses a scalar to lookup the color in a gradient
-        // After this are gradient types
-        GradientType_Rainbow = 0xf, // basic programmatic rainbow gradient
-        GradientType_TwoColors,     // simple two-color gradient
-        GradientType_Keyframes,     // gradient with a few keyframes
+        ColorType_Palette,  // uses the global palette
+        ColorType_RGB,      // stores actual rgb values
+        ColorType_Lookup,   // uses a scalar to lookup the color in a curve
     };
 
     // The most basic animation elements are scalars and colors
@@ -83,22 +87,106 @@ namespace Animations
     {
         GlobalType globalType;
     };
+    // size: 2 bytes
 
     struct DScalarLookup : public DScalar
     {
-        Profile::Pointer<DCurve> lookupCurve;
+        Profile::Pointer<Curve> lookupCurve;
         Profile::Pointer<DScalar> parameter;
+    };
+    // size: 5 bytes
+
+    enum OperationType : uint8_t
+    {
+        OperationType_Unknown = 0,
+        OperationType_Abs,
+        OperationType_Sin,
+        OperationType_Cos,
+        OperationType_Asin,
+        OperationType_Acos,
+        OperationType_Sqr,
+        OperationType_Sqrt,
+        // Pow, Log, Floor, Ceil, Round, Trunc, Frac, Neg, Inv, Sign, SignNonZero,
+    };
+
+    struct DOperationScalar : public DScalar
+    {
+        OperationType operationType;
+        DScalarPtr operand;
+    };
+    // size: 4 bytes
+
+
+    enum DOperationTwoOperandsType : uint8_t
+    {
+        DOperationTwoOperandsType_Unknown = 0,
+        DOperationTwoOperandsType_Add,
+        DOperationTwoOperandsType_Sub,
+        DOperationTwoOperandsType_Mul,
+        DOperationTwoOperandsType_Div,
+        DOperationTwoOperandsType_Mod,
+        DOperationTwoOperandsType_Min,
+        DOperationTwoOperandsType_Max,
+    };
+
+    // Base operation with 2 operands struct
+    struct DOperationTwoOperands : public DScalar
+    {
+        DOperationTwoOperandsType operationType;
+    };
+
+    struct DOperationScalarAndUInt8 : public DOperationTwoOperands
+    {
+        DScalarPtr operand1;
+        uint8_t operand2;
+    };
+    // size: 5 bytes
+
+    struct DOperationScalarAndUInt16 : public DOperationTwoOperands
+    {
+        DScalarPtr operand1;
+        uint16_t operand2;
+    };
+    // size: 6 bytes
+
+    struct DOperationUInt8AndScalar : public DOperationTwoOperands
+    {
+        uint8_t operand1;
+        DScalarPtr operand2;
+    };
+    // size: 5 bytes
+
+    struct DOperationUInt16AndScalar : public DOperationTwoOperands
+    {
+        uint16_t operand1;
+        DScalarPtr operand2;
+    };
+
+    struct DOperationTwoScalars : public DOperationTwoOperands
+    {
+        DScalarPtr operand1;
+        DScalarPtr operand2;
+    };
+    // size: 8 bytes
+
+    // Curve types
+    enum CurveType : uint8_t
+    {
+        CurveType_Unknown = 0,
+        CurveType_TwoUInt8,   // simple interpolation between two 8 bit values
+        CurveType_TwoUInt16,        // simple interpolation between two 16 bit values
+        CurveType_TrapezeUInt8,     // trapeze shaped interpolation from 0 to a given value and back to 0
+        CurveType_TrapezeUInt16,    // trapeze shaped interpolation from 0 to a given value and back to 0
+        CurveType_UInt16Keyframes,
     };
 
     // Base curve struct
-    struct DCurve
-    : public DScalar
+    struct Curve
     {
-        // Base class for curves doesn't have any additional data
-        // because we re-use the type identifier from DScalar
+        CurveType type;
     };
 
-    struct DCurveTwoUInt8 : public DCurve
+    struct CurveTwoUInt8 : public Curve
     {
         uint8_t start;
         uint8_t end;
@@ -106,7 +194,7 @@ namespace Animations
     };
     // size: 4 bytes
 
-    struct DCurveTwoUInt16 : public DCurve
+    struct CurveTwoUInt16 : public Curve
     {
         uint16_t start;
         uint16_t end;
@@ -114,7 +202,7 @@ namespace Animations
     };
     // size: 6 bytes
 
-    struct DCurveTrapezeUInt8 : public DCurve
+    struct CurveTrapezeUInt8 : public Curve
     {
         uint8_t value;
         uint8_t rampUpScale;
@@ -124,7 +212,7 @@ namespace Animations
     };
     // size: 6 bytes
 
-    struct DCurveTrapezeUInt16 : public DCurve
+    struct CurveTrapezeUInt16 : public Curve
     {
         uint16_t value;
         uint8_t rampUpScale;
@@ -134,7 +222,7 @@ namespace Animations
     };
     // size: 7 bytes
 
-    struct DCurveUInt16Keyframes : public DCurve
+    struct CurveUInt16Keyframes : public Curve
     {
         struct Keyframe
         {
@@ -143,8 +231,6 @@ namespace Animations
         };
         Profile::Array<Keyframe> keyframes;
     };
-    // Etc...
-
 
     // Base color struct
     struct DColor
@@ -168,33 +254,39 @@ namespace Animations
 
     struct DColorLookup : public DColor
     {
-        Profile::Pointer<DGradient> lookupGradient;
+        Profile::Pointer<ColorCurve> lookupCurve;
         Profile::Pointer<DScalar> parameter;
     };
+    // size: 5 bytes
 
-    // Etc...
-    struct DGradient
-    : public DColor
+    enum ColorCurveType : uint8_t
     {
-        // Base class for gradients doesn't have any additional data
-        // because we re-use the type identifier from DGradient
+        ColorCurveType_Unknown = 0,
+        ColorCurveType_Rainbow,
+        ColorCurveType_TwoColors,
+        ColorCurveType_Keyframes,
     };
 
-    struct DGradientRainbow : public DGradient
+    struct ColorCurve
+    {
+        ColorCurveType type;
+    };
+
+    struct ColorCurveRainbow : public ColorCurve
     {
         // No data for now
     };
     // size: 1 bytes
 
-    struct DGradientTwoColors : public DGradient
+    struct ColorCurveTwoColors : public ColorCurve
     {
-        Profile::Pointer<DColor> start; // 2 bytes
-        Profile::Pointer<DColor> end; // 2 bytes
+        Profile::Pointer<DColor> start;
+        Profile::Pointer<DColor> end;
         Utils::EasingType easing;
     };
     // size: 6 bytes
 
-    struct DGradientKeyframes : public DGradient
+    struct ColorCurveKeyframes : public ColorCurve
     {
         struct Keyframe
         {
@@ -205,14 +297,6 @@ namespace Animations
         Profile::Array<Keyframe> keyframes;
     };
     // size: 4 + N * 4
-
-    typedef Profile::Pointer<DScalar> DScalarPtr;
-    typedef Profile::Pointer<DCurve> DCurvePtr;
-    typedef Profile::Pointer<DColor> DColorPtr;
-    typedef Profile::Pointer<DGradient> DGradientPtr;
-
-    uint16_t getScalarSize(const DScalar* scalar, Profile::BufferDescriptor buf);
-    uint16_t getColorSize(const DColor* color, Profile::BufferDescriptor buf);
 }
 
 #pragma pack(pop)

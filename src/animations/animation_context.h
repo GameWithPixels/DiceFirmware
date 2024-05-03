@@ -69,8 +69,8 @@ namespace Animations
         // public parameter evaluators
         uint16_t evaluateScalar(DScalarPtr scalar) const;
         uint32_t evaluateColor(DColorPtr color) const;
-        uint16_t evaluateCurve(DScalarPtr curve, uint16_t param) const;
-        uint32_t evaluateGradient(DColorPtr color, uint16_t param) const;
+        uint16_t evaluateCurve(CurvePtr curve, uint16_t param) const;
+        uint32_t evaluateColorCurve(ColorCurvePtr colorCurve, uint16_t param) const;
     };
 
 }
