@@ -14,7 +14,7 @@ namespace Animations
     {
         uint8_t count;
         uint8_t fade;
-        uint8_t cyclesTimes10;
+        uint8_t cyclesTimes16; // How to stretch or repeat the rainbow across the LEDs
     };
 
     /// <summary>

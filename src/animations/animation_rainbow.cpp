@@ -48,7 +48,7 @@ namespace Animations
             for (int i = 0; i < c; ++i) {
                 if ((preset->faceMask & (1 << i)) != 0) {
                     retIndices[retCount] = i;
-                    retColors[retCount] = Rainbow::wheel((uint8_t)((wheelPos + i * 256 * preset->cyclesTimes10 / (c * 10)) % 256), intensity);
+                    retColors[retCount] = Rainbow::wheel((uint8_t)((wheelPos + i * 256 * preset->cyclesTimes16 / (c * 16)) % 256), intensity);
                     retCount++;
                 }
             }
