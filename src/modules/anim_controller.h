@@ -1,7 +1,8 @@
 #pragma once
 
 #include "stdint.h"
-#include "animations/Animation.h"
+#include "animations/animation_tag.h"
+#include "profile/profile_buffer.h"
 
 // Frame duration = time between each animation update, in ms.
 #define ANIM_FRAME_DURATION 33
@@ -9,6 +10,7 @@
 namespace Animations
 {
     struct Animation;
+    struct ParameterOverride;
 }
 
 /// <summary>

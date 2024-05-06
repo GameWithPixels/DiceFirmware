@@ -1,7 +1,6 @@
 #include "animation_flashes.h"
+#include "animation_context.h"
 #include "utils/utils.h"
-#include "utils/Rainbow.h"
-#include "config/board_config.h"
 
 namespace Animations
 {
@@ -26,35 +25,51 @@ namespace Animations
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of LEDs</param>
     /// <returns>The number of LEDs/intensities added to the return array</returns>
     int AnimationFlashesInstance::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+        const auto ledCount = context->globals->ledCount;
         auto preset = getPreset();
 
-        // Compute color
-        const uint32_t presetColor =
-            ((preset->colorFlags & (uint8_t)AnimationFlashesFlags_CaptureColor) != 0) ?
-                capturedColor :
-                context->evaluateColor(preset->color);
-        const uint32_t black = 0;
         const int period = preset->duration / preset->count;
         const int fadeTime = period * preset->fade / (255 * 2);
         const int onOffTime = (period - fadeTime * 2) / 2;
         const int time = (ms - startTime) % period;
 
-        uint32_t color = 0;
-        if (time <= fadeTime) {
-            // Ramp up
-            color = Utils::interpolateColors(black, 0, presetColor, fadeTime, time);
-        } else if (time <= fadeTime + onOffTime) {
-            color = presetColor;
-        } else if (time <= fadeTime * 2 + onOffTime) {
-            // Ramp down
-            color = Utils::interpolateColors(presetColor, fadeTime + onOffTime, black, fadeTime * 2 + onOffTime, time);
-        } else {
-            color = black;
-        }
+        int retCount = 0;
+        for (int i = 0; i < ledCount; ++i) {
+            if ((preset->faceMask & (1 << i)) != 0) {
+                // TODO !!
+                ((AnimationContextGlobals*)context->globals)->animatedLED = i;
 
-        uint8_t intensity = preset->intensity;
-        // Fill the indices and colors for the anim controller to know how to update LEDs
-        return setColor(Utils::scaleColor(color, intensity * 1000 / 255), preset->faceMask, retIndices, retColors);
+                // Compute color
+                const uint32_t presetColor =
+                    ((preset->colorFlags & (uint8_t)AnimationFlashesFlags_CaptureColor) != 0) ?
+                    capturedColor :
+                    context->evaluateColor(preset->color);
+
+                // Fade in & out
+                const uint32_t black = 0;
+                uint32_t color = 0;
+                if (time <= fadeTime) {
+                    // Ramp up
+                    color = Utils::interpolateColors(black, 0, presetColor, fadeTime, time);
+                } else if (time <= fadeTime + onOffTime) {
+                    color = presetColor;
+                } else if (time <= fadeTime * 2 + onOffTime) {
+                    // Ramp down
+                    color = Utils::interpolateColors(presetColor, fadeTime + onOffTime, black, fadeTime * 2 + onOffTime, time);
+                } else {
+                    color = black;
+                }
+                color = presetColor;
+
+                // Scale color intensity
+                color = Utils::scaleColor(color, preset->intensity * 1000 / 255);
+
+                // Set LED color
+                retColors[retCount] = color;
+                retCount++;
+            }
+        }
+        return retCount;
     }
 
     /// <summary>

@@ -93,6 +93,7 @@ namespace Modules::AnimController
         const auto faceCount = DiceVariants::getLayout()->faceCount;
 
         // Update our globals
+        globals.ledCount = ledCount;
         globals.currentFace = Accelerometer::currentFace();
         globals.normalizedCurrentFace = globals.currentFace * 0xFFFF / faceCount;
 

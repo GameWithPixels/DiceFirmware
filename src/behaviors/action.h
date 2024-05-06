@@ -11,6 +11,12 @@
 #define FACE_INDEX_CURRENT_FACE 0xFF
 #define FACE_INDEX_HIGHEST_FACE 0xFE
 
+namespace Animations
+{
+    struct Animation;
+    struct ParameterOverride;
+}
+
 namespace Behaviors
 {
     /// <summary>

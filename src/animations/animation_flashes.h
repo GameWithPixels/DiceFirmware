@@ -1,6 +1,7 @@
 #pragma once
 
 #include "animations/animation.h"
+#include "animations/animation_parameters.h"
 
 #pragma pack(push, 1)
 

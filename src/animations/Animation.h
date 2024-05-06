@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include "animation_tag.h"
-#include "animation_context.h"
 #include "profile/profile_buffer.h"
 
 #pragma pack(push, 1)
@@ -11,6 +10,8 @@
 
 namespace Animations
 {
+    struct AnimationContext;
+
     enum AnimationType : uint8_t
     {
         AnimationType_Unknown = 0,
@@ -33,9 +34,8 @@ namespace Animations
     enum AnimationFlags : uint8_t
     {
         AnimationFlags_None,
-        AnimationFlags_Traveling		= 1 << 0, // Make the animation travel around the dice, only available for the Rainbow animation
-        AnimationFlags_UseLedIndices	= 1 << 1, // Play animation is using LED indices, not face indices
-        AnimationFlags_HighestLed		= 1 << 2  // Illuminate just the up face with the animation color corresponding to the highest LED
+        AnimationFlags_UseLedIndices	= 1 << 0, // Play animation is using LED indices, not face indices
+        AnimationFlags_HighestLed		= 1 << 1  // Illuminate just the up face with the animation color corresponding to the highest LED
     };
 
     /// <summary>

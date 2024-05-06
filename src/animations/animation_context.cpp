@@ -46,15 +46,18 @@ namespace Animations
             case ScalarType_Global:
                 {
                     auto sg = static_cast<const DScalarGlobal*>(s);
-                    switch (sg->globalType) {
-                        case GlobalType_NormalizedCurrentFace:
+                    switch (sg->name) {
+                        case GlobalName_NormalizedCurrentFace:
                             ret = globals->normalizedCurrentFace;
                             break;
-                        case GlobalType_NormalizedAnimationTime:
+                        case GlobalName_NormalizedAnimationTime:
                             ret = globals->normalizedAnimationTime;
                             break;
+                        case GlobalName_AnimatedLED:
+                            ret = globals->animatedLED;
+                            break;
                         default:
-                            NRF_LOG_ERROR("Bad scalar type %d", sg->globalType);
+                            NRF_LOG_ERROR("Bad scalar name %d", sg->name);
                             break;
                     }
                 }
@@ -69,31 +72,31 @@ namespace Animations
                 {
                     auto op = static_cast<const DOperationScalar*>(s);
                     const auto i = evaluateScalar(op->operand);
-                    switch (op->operationType)
+                    switch (op->operation)
                     {
-                        case OperationType_Abs:
+                        case OperationOneOperand_Abs:
                             ret = std::abs(i);
                             break;
-                        case OperationType_Sin:
+                        case OperationOneOperand_Sin:
                             ret = Utils::sine8(i);
                             break;
-                        case OperationType_Cos:
+                        case OperationOneOperand_Cos:
                             ret = Utils::cos8(i);
                             break;
-                        case OperationType_Asin:
+                        case OperationOneOperand_Asin:
                             ret = Utils::asin8(i);
                             break;
-                        case OperationType_Acos:
+                        case OperationOneOperand_Acos:
                             ret = Utils::acos8(i);
                             break;
-                        case OperationType_Sqr:
+                        case OperationOneOperand_Sqr:
                             ret = i * i;
                             break;
-                        case OperationType_Sqrt:
+                        case OperationOneOperand_Sqrt:
                             ret = i > 0 ? Utils::sqrt_i32(i) : 0;
                             break;
                         default:
-                            NRF_LOG_ERROR("Bad operation type %d", op->type);
+                            NRF_LOG_ERROR("Bad operation %d", op->type);
                             break;
                     }
                 }
@@ -102,34 +105,38 @@ namespace Animations
                     auto op = static_cast<const DOperationTwoScalars*>(s);
                     const auto i1 = evaluateScalar(op->operand1);
                     const auto i2 = evaluateScalar(op->operand2);
-                    switch (op->operationType)
+                    switch (op->operation)
                     {
-                        case DOperationTwoOperandsType_Add:
+                        case OperationTwoOperands_Add:
                             ret = i1 + i2;
                         break;
-                        case DOperationTwoOperandsType_Sub:
+                        case OperationTwoOperands_Sub:
                             ret = i1 - i2;
                             break;
-                        case DOperationTwoOperandsType_Mul:
+                        case OperationTwoOperands_Mul:
                             ret = i1 * i2;
                             break;
-                        case DOperationTwoOperandsType_Div:
+                        case OperationTwoOperands_Div:
                             ret = i1 / i2;
                             break;
-                        case DOperationTwoOperandsType_Mod:
+                        case OperationTwoOperands_Mod:
                             ret = i1 % i2;
                             break;
-                        case DOperationTwoOperandsType_Min:
+                        case OperationTwoOperands_Min:
                             ret = std::min(i1, i2);
                             break;
-                        case DOperationTwoOperandsType_Max:
+                        case OperationTwoOperands_Max:
                             ret = std::max(i1, i2);
                             break;
+                        case OperationTwoOperands_Traveling:
+                            ret = i1 + (uint32_t)globals->animatedLED * 0xffff * i2 / ((uint32_t)globals->ledCount * 256);
+                            break;
                         default:
-                            NRF_LOG_ERROR("Bad operation2 type %d", op->type);
+                            NRF_LOG_ERROR("Bad operation2 %d", op->type);
                             break;
                     }
                 }
+                break;
             default:
                 NRF_LOG_ERROR("Bad scalar type %d", s->type);
                 break;

@@ -1,8 +1,7 @@
 #include "animation_rainbow.h"
+#include "animation_context.h"
 #include "utils/rainbow.h"
-#include "config/dice_variants.h"
-
-using namespace Config;
+#include "utils/Utils.h"
 
 namespace Animations
 {
@@ -21,7 +20,7 @@ namespace Animations
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of LEDs/intensities added to the return array</returns>
     int AnimationRainbowInstance::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
-        const auto ledCount = DiceVariants::getLayout()->ledCount;
+        const auto ledCount = context->globals->ledCount;
         auto preset = getPreset();
 
         // Compute color
@@ -42,7 +41,7 @@ namespace Animations
 
         // Fill the indices and colors for the anim controller to know how to update LEDs
         int retCount = 0;
-        if (preset->animFlags & AnimationFlags_Traveling) {
+        if (preset->traveling) {
             for (int i = 0; i < ledCount; ++i) {
                 if ((preset->faceMask & (1 << i)) != 0) {
                     retIndices[retCount] = i;

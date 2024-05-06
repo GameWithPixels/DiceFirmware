@@ -77,16 +77,17 @@ namespace Animations
     };
     // size: 3 bytes
 
-    enum GlobalType : uint8_t
+    enum GlobalName : uint8_t
     {
-        GlobalType_Unknown = 0,
-        GlobalType_NormalizedCurrentFace,
-        GlobalType_NormalizedAnimationTime,
+        GlobalName_Unknown = 0,
+        GlobalName_NormalizedCurrentFace,
+        GlobalName_NormalizedAnimationTime,
+        GlobalName_AnimatedLED,
     };
 
     struct DScalarGlobal : public DScalar
     {
-        GlobalType globalType;
+        GlobalName name;
     };
     // size: 2 bytes
 
@@ -97,43 +98,44 @@ namespace Animations
     };
     // size: 5 bytes
 
-    enum OperationType : uint8_t
+    enum OperationOneOperand : uint8_t
     {
-        OperationType_Unknown = 0,
-        OperationType_Abs,
-        OperationType_Sin,
-        OperationType_Cos,
-        OperationType_Asin,
-        OperationType_Acos,
-        OperationType_Sqr,
-        OperationType_Sqrt,
+        OperationOneOperand_Unknown = 0,
+        OperationOneOperand_Abs,
+        OperationOneOperand_Sin,
+        OperationOneOperand_Cos,
+        OperationOneOperand_Asin,
+        OperationOneOperand_Acos,
+        OperationOneOperand_Sqr,
+        OperationOneOperand_Sqrt,
         // Pow, Log, Floor, Ceil, Round, Trunc, Frac, Neg, Inv, Sign, SignNonZero,
     };
 
     struct DOperationScalar : public DScalar
     {
-        OperationType operationType;
+        OperationOneOperand operation;
         DScalarPtr operand;
     };
     // size: 4 bytes
 
 
-    enum DOperationTwoOperandsType : uint8_t
+    enum OperationTwoOperands : uint8_t
     {
-        DOperationTwoOperandsType_Unknown = 0,
-        DOperationTwoOperandsType_Add,
-        DOperationTwoOperandsType_Sub,
-        DOperationTwoOperandsType_Mul,
-        DOperationTwoOperandsType_Div,
-        DOperationTwoOperandsType_Mod,
-        DOperationTwoOperandsType_Min,
-        DOperationTwoOperandsType_Max,
+        OperationTwoOperands_Unknown = 0,
+        OperationTwoOperands_Add,
+        OperationTwoOperands_Sub,
+        OperationTwoOperands_Mul,
+        OperationTwoOperands_Div,
+        OperationTwoOperands_Mod,
+        OperationTwoOperands_Min,
+        OperationTwoOperands_Max,
+        OperationTwoOperands_Traveling,
     };
 
     // Base operation with 2 operands struct
     struct DOperationTwoOperands : public DScalar
     {
-        DOperationTwoOperandsType operationType;
+        OperationTwoOperands operation;
     };
 
     struct DOperationScalarAndUInt8 : public DOperationTwoOperands

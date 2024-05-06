@@ -12,6 +12,8 @@ namespace Animations
     // This will be used in the animation context
     struct AnimationContextGlobals
     {
+        uint8_t ledCount;                   // Number of LEDs
+        uint8_t animatedLED;                // LED currently being animated
         uint8_t currentFace;                // Current face index
         uint16_t normalizedCurrentFace;     // Normalized face index
         uint16_t normalizedAnimationTime;   // Normalized time since the start of the animation
