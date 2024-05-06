@@ -26,23 +26,20 @@ namespace Animations
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of LEDs</param>
     /// <returns>The number of LEDs/intensities added to the return array</returns>
     int AnimationFlashesInstance::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
-        
         auto preset = getPreset();
 
         // Compute color
-        uint32_t black = 0;
-        uint32_t color = 0;
-        uint32_t presetColor = 0;
-        if ((preset->colorFlags & (uint8_t)AnimationFlashesFlags_CaptureColor) != 0) {
-            presetColor = capturedColor;
-        } else {
-            presetColor = context->evaluateColor(preset->color);
-        }
-        int period = preset->duration / preset->count;
-        int fadeTime = period * preset->fade / (255 * 2);
-        int onOffTime = (period - fadeTime * 2) / 2;
-        int time = (ms - startTime) % period;
+        const uint32_t presetColor =
+            ((preset->colorFlags & (uint8_t)AnimationFlashesFlags_CaptureColor) != 0) ?
+                capturedColor :
+                context->evaluateColor(preset->color);
+        const uint32_t black = 0;
+        const int period = preset->duration / preset->count;
+        const int fadeTime = period * preset->fade / (255 * 2);
+        const int onOffTime = (period - fadeTime * 2) / 2;
+        const int time = (ms - startTime) % period;
 
+        uint32_t color = 0;
         if (time <= fadeTime) {
             // Ramp up
             color = Utils::interpolateColors(black, 0, presetColor, fadeTime, time);

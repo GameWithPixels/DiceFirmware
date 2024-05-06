@@ -77,7 +77,8 @@ namespace Animations
         // retIndices is one to one with retColors and keeps track of which face to turn on as well as its corresponding color
         // return value of the method is the number of faces to turn on
         virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]) = 0;
-        virtual int stop(int retIndices[]) = 0;
+        // stops the animation and returns the indices of the LEDs that were turned on
+        virtual int stop(int retIndices[]);
         // Set the animation source tag
         void setTag(AnimationTag _tag);
         // sets all of the LEDs that satisfy the face mask (eg: all LEDs on = 0x000FFFFF) to the given color and then stores this information in retIndices and retColors

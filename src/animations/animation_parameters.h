@@ -81,6 +81,7 @@ namespace Animations
     {
         GlobalType_Unknown = 0,
         GlobalType_NormalizedCurrentFace,
+        GlobalType_NormalizedAnimationTime,
     };
 
     struct DScalarGlobal : public DScalar

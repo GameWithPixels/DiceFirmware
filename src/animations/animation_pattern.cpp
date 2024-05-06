@@ -2,14 +2,11 @@
 
 namespace Animations
 {
-    void AnimationPatternInstance::start(int _startTime, uint8_t _remapFace, bool _loop) {
+    void AnimationPatternInstance::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
         // TODO
     }
+
     int AnimationPatternInstance::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
-        // TODO
-        return 0;
-    }
-    int AnimationPatternInstance::stop(int retIndices[]) {
         // TODO
         return 0;
     }

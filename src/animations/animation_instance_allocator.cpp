@@ -19,15 +19,12 @@ namespace Animations
 {
     uint16_t AnimationInstanceAllocator::getLEDPatternInstanceSize(LEDPattern const * pattern) const {
         switch (pattern->type) {
-        case LEDPatternType_Unknown:
-            NRF_LOG_ERROR("Unknown pattern type");
-            return sizeof(LEDPatternInstance);
         case LEDPatternType_Keyframes:
             return sizeof(LEDPatternKeyframesInstance);
         case LEDPatternType_Noise:
             return sizeof(LEDPatternNoiseInstance);
         default:
-            NRF_LOG_ERROR("Unhandled pattern type");
+            NRF_LOG_ERROR("Bad pattern type %d", pattern->type);
             return sizeof(LEDPatternInstance);
         }
     }
@@ -35,9 +32,6 @@ namespace Animations
     uint16_t AnimationInstanceAllocator::getAnimationInstanceSize(Animation const * animation) const {
         uint16_t ret = 0;
         switch (animation->type) {
-            case AnimationType_Unknown:
-                NRF_LOG_ERROR("Unknown animation type");
-                break;
             case AnimationType_Flashes:
                 ret = sizeof(AnimationFlashesInstance);
                 break;
@@ -57,7 +51,7 @@ namespace Animations
                 ret = sizeof(AnimationSequenceInstance);
                 break;
             default:
-                NRF_LOG_ERROR("Unsupported clip type");
+                NRF_LOG_ERROR("Bad clip type %d", animation->type);
                 break;
         }
         return ret;
@@ -65,9 +59,6 @@ namespace Animations
 
     LEDPatternInstance* AnimationInstanceAllocator::CreateLEDPatternInstance(LEDPattern const * pattern) {
         switch (pattern->type) {
-        case LEDPatternType_Unknown:
-            NRF_LOG_ERROR("Unknown pattern type");
-            return nullptr;
         case LEDPatternType_Keyframes:
             {
                 // "allocate" the animation led pattern instance
@@ -89,7 +80,7 @@ namespace Animations
                 return ret;
             }
         default:
-            NRF_LOG_ERROR("Unhandled pattern type");
+            NRF_LOG_ERROR("Bad pattern type %d", pattern->type);
             return nullptr;
         }
     }
@@ -97,9 +88,6 @@ namespace Animations
     AnimationInstance* AnimationInstanceAllocator::CreateAnimationInstance(Animation const * animation) {
         AnimationInstance* ret = nullptr;
         switch (animation->type) {
-            case AnimationType_Unknown:
-                NRF_LOG_ERROR("Unknown clip type");
-                break;
             case AnimationType_Flashes:
                 // "allocate" the animation clip instance
                 ret = instanceBufferAllocate<AnimationFlashesInstance>();
@@ -133,7 +121,7 @@ namespace Animations
                 ret = instanceBufferAllocate<AnimationSequenceInstance>();
                 break;
             default:
-                NRF_LOG_ERROR("Unsupported clip type");
+                NRF_LOG_ERROR("Bad clip type %d", animation->type);
                 break;
         }
 

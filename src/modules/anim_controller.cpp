@@ -89,13 +89,12 @@ namespace Modules::AnimController
     /// <param name="ms">Current global time in milliseconds</param>
     void update(int ms)
     {
-        auto b = BoardManager::getBoard();
-        auto l = DiceVariants::getLayout();
-        int c = b->ledCount;
+        const auto ledCount = BoardManager::getBoard()->ledCount;
+        const auto faceCount = DiceVariants::getLayout()->faceCount;
 
         // Update our globals
         globals.currentFace = Accelerometer::currentFace();
-        globals.normalizedFace = globals.currentFace * 0xFFFF / l->faceCount;
+        globals.normalizedCurrentFace = globals.currentFace * 0xFFFF / faceCount;
 
         if (animationCount > 0) {
             // Notify clients for feeding or not feeding PowerManager
@@ -107,7 +106,7 @@ namespace Modules::AnimController
 
             // clear the global color array
             uint32_t allColors[MAX_COUNT];
-            for (int j = 0; j < c; ++j) {
+            for (int j = 0; j < ledCount; ++j) {
                 allColors[j] = 0;
             }
 
@@ -116,18 +115,22 @@ namespace Modules::AnimController
 
                 bool fade = anim->forceFadeTime != -1;
 
-                int endTime = anim->startTime + anim->animationPreset->duration;
+                const auto duration = anim->animationPreset->duration;
+                int endTime = anim->startTime + duration;
                 uint32_t fadePercentTimes1000 = 1000;
                 if (anim->loopCount > 1 && ms > endTime) {
                     // Yes, update anim start time so next if statement updates the animation
                     anim->loopCount--;
-                    anim->startTime += anim->animationPreset->duration;
-                    endTime += anim->animationPreset->duration;
+                    anim->startTime += duration;
+                    endTime += duration;
                 } else if (fade) {
                     endTime = anim->forceFadeTime;
                     fadePercentTimes1000 = 1000 * (endTime - ms) / FORCE_FADE_OUT_DURATION_MS;
                 }
-                
+
+                // Update normalized animation time
+                globals.normalizedAnimationTime = 0xffff * (ms - anim->startTime) / duration;
+
                 if (ms > endTime)
                 {
                     // The animation is over, get rid of it!
@@ -151,7 +154,7 @@ namespace Modules::AnimController
                     int ledIndices[MAX_COUNT * 4];
                     uint32_t colors[MAX_COUNT * 4];
 
-                    // Update the leds
+                    // Update the LEDs
                     int animTrackCount = anim->updateLEDs(ms, canonIndices, colors);
 
                     // This is a little bit of a hack, but to keep one single default profile
@@ -159,7 +162,7 @@ namespace Modules::AnimController
                     if (animTrackCount > 0 && anim->animationPreset->animFlags & AnimationFlags_HighestLed) {
                         // Override the faces so there is only the highest led color
                         animTrackCount = 1;
-                        canonIndices[0] = l->faceCount - 1;
+                        canonIndices[0] = faceCount - 1;
                     }
 
                     // Gamma correct and map face index to led index
@@ -178,7 +181,7 @@ namespace Modules::AnimController
                     // Update color array
                     for (int j = 0; j < animTrackCount; ++j) {
 
-                        // Fade out all leds if necessary
+                        // Fade out all LEDs if necessary
                         auto color = colors[j];
                         if (fade) {
                             color = Utils::scaleColor(color, fadePercentTimes1000);
@@ -193,7 +196,7 @@ namespace Modules::AnimController
             
             // And light up!
             uint8_t brightness = Profile::Static::getData()->getBrightness();
-            for (int j = 0; j < c; ++j) {
+            for (int j = 0; j < ledCount; ++j) {
                 allColors[j] = Utils::modulateColor(allColors[j], brightness);
             }
             LEDs::setPixelColors(allColors);
@@ -359,7 +362,7 @@ namespace Modules::AnimController
     /// </summary>
     void stopAtIndex(int animIndex)
     {
-        // Found the animation, start by killing the leds it controls
+        // Found the animation, start by killing the LEDs it controls
         int canonIndices[MAX_COUNT];
         int ledIndices[MAX_COUNT];
         uint32_t zeros[MAX_COUNT];

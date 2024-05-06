@@ -4,36 +4,27 @@
 
 #include "rainbow.h"
 #include "utils.h"
-#include "nrf_delay.h"
-
-#define NUMPIXELS 21
 
 namespace Rainbow
 {
     // Input a value 0 to 255 to get a color value.
     // The colours are a transition r - g - b - back to r.
-    uint32_t wheel(uint8_t WheelPos, uint8_t intensity)
+    uint32_t wheel(uint8_t wheelPos)
     {
-        if (WheelPos < 85)
-        {
-            return Utils::toColor(WheelPos * 3 * intensity / 255, (255 - WheelPos * 3) * intensity / 255, 0);
-        }
-        else if (WheelPos < 170)
-        {
-            WheelPos -= 85;
-            return Utils::toColor((255 - WheelPos * 3) * intensity / 255, 0, WheelPos * 3 * intensity / 255);
-        }
-        else
-        {
-            WheelPos -= 170;
-            return Utils::toColor(0, WheelPos * 3 * intensity / 255, (255 - WheelPos * 3) * intensity / 255);
+        if (wheelPos < 85) {
+            return Utils::toColor(wheelPos * 3, 255 - wheelPos * 3, 0);
+        } else if (wheelPos < 170) {
+            wheelPos -= 85;
+            return Utils::toColor(255 - wheelPos * 3, 0, wheelPos * 3);
+        } else {
+            wheelPos -= 170;
+            return Utils::toColor(0, wheelPos * 3, 255 - wheelPos * 3);
         }
     }
 
     uint32_t faceWheel(uint8_t face, uint8_t count) {
         return wheel((face * 256) / count);
     }
-
 
     constexpr uint8_t paletteBits = 6;
     constexpr uint8_t paletteSize = 1 << paletteBits;

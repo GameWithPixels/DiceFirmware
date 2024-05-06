@@ -32,11 +32,14 @@ namespace Animations
         loopCount = _loopCount;
     }
 
+    int AnimationInstance::stop(int retIndices[]) {
+        return setIndices(animationPreset->faceMask, retIndices);
+    }
+
     int AnimationInstance::setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]) {
-        auto b = BoardManager::getBoard();
-        int c = b->ledCount;
+        const auto ledCount = BoardManager::getBoard()->ledCount;
         int retCount = 0;
-        for (int i = 0; i < c; ++i) {
+        for (int i = 0; i < ledCount; ++i) {
             if ((faceMask & (1 << i)) != 0) {
                 retIndices[retCount] = i;
                 retColors[retCount] = color;
@@ -47,10 +50,9 @@ namespace Animations
     }
 
     int AnimationInstance::setIndices(uint32_t faceMask, int retIndices[]) {
-        auto b = BoardManager::getBoard();
-        int c = b->ledCount;
+        const auto ledCount = BoardManager::getBoard()->ledCount;
         int retCount = 0;
-        for (int i = 0; i < c; ++i) {
+        for (int i = 0; i < ledCount; ++i) {
             if ((faceMask & (1 << i)) != 0) {
                 retIndices[retCount] = i;
                 retCount++;

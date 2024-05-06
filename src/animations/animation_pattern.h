@@ -34,9 +34,13 @@ namespace Animations
         LEDPatternInstance* patternInstance;
         // Pattern Instance data
 
-        virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
+        virtual void start(int _startTime, uint8_t _remapFace, uint8_t _loopCount);
         virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
-        virtual int stop(int retIndices[]);
+
+    private:
+        const AnimationPattern* getPreset() const {
+            return static_cast<const AnimationPattern*>(animationPreset);
+        }
     };
 }
 

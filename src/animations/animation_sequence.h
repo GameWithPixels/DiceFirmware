@@ -23,7 +23,7 @@ namespace Animations
         : public Animation
     {
         // An animation layer stores a clip and associated data.
-        struct AnimationOccurence
+        struct AnimationOccurrence
         {
             AnimationPtr animation;
             DScalarPtr startDelay;
@@ -31,7 +31,7 @@ namespace Animations
         };
 
         // An animation is a composition/superposition of layers
-        Profile::Array<AnimationOccurence> layers;
+        Profile::Array<AnimationOccurrence> layers;
     };
 
     /// <summary>
@@ -43,9 +43,13 @@ namespace Animations
         // Setup by the context at creation
         AnimationInstance** layerInstances;
 
-        virtual void start(int _startTime, uint8_t _remapFace, bool _loop);
+        virtual void start(int _startTime, uint8_t _remapFace, uint8_t _loopCount);
         virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
-        virtual int stop(int retIndices[]);
+
+    private:
+        const AnimationSequence* getPreset() const {
+            return static_cast<const AnimationSequence*>(animationPreset);
+        }
     };
 
 }

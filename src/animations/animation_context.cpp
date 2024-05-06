@@ -25,9 +25,9 @@ namespace Animations
 
     uint16_t AnimationContext::evaluateScalar(DScalarPtr scalar) const {
         // Check if this is an overriden scalar
-        auto scopy = scalar;
-        auto buf = getParameterBuffer(scopy);
-        auto s = scopy.get(buf);
+        auto copy = scalar;
+        auto buf = getParameterBuffer(copy);
+        auto s = copy.get(buf);
 
         uint16_t ret = 0;
         switch (s->type) {
@@ -48,10 +48,13 @@ namespace Animations
                     auto sg = static_cast<const DScalarGlobal*>(s);
                     switch (sg->globalType) {
                         case GlobalType_NormalizedCurrentFace:
-                            ret = globals->normalizedFace;
+                            ret = globals->normalizedCurrentFace;
+                            break;
+                        case GlobalType_NormalizedAnimationTime:
+                            ret = globals->normalizedAnimationTime;
                             break;
                         default:
-                            NRF_LOG_ERROR("Invalid Scalar Type");
+                            NRF_LOG_ERROR("Bad scalar type %d", sg->globalType);
                             break;
                     }
                 }
@@ -90,6 +93,7 @@ namespace Animations
                             ret = i > 0 ? Utils::sqrt_i32(i) : 0;
                             break;
                         default:
+                            NRF_LOG_ERROR("Bad operation type %d", op->type);
                             break;
                     }
                 }
@@ -122,11 +126,12 @@ namespace Animations
                             ret = std::max(i1, i2);
                             break;
                         default:
+                            NRF_LOG_ERROR("Bad operation2 type %d", op->type);
                             break;
                     }
                 }
             default:
-                NRF_LOG_ERROR("Invalid Scalar Type");
+                NRF_LOG_ERROR("Bad scalar type %d", s->type);
                 break;
         }
         return ret;
@@ -158,7 +163,7 @@ namespace Animations
                 }
                 break;
             default:
-                NRF_LOG_ERROR("Invalid color type");
+                NRF_LOG_ERROR("Bad color type %d", c->type);
                 break;
         }
         return ret;
@@ -166,9 +171,9 @@ namespace Animations
 
     uint16_t AnimationContext::evaluateCurve(CurvePtr curve, uint16_t param) const {
         // Check if this is an overriden scalar
-        auto curveCopy = curve;
-        auto buf = getParameterBuffer(curveCopy);
-        auto c = curveCopy.get(buf);
+        auto copy = curve;
+        auto buf = getParameterBuffer(copy);
+        auto c = copy.get(buf);
         uint16_t ret = 0;
         switch (c->type) {
             case CurveType_TwoUInt8:
@@ -184,16 +189,16 @@ namespace Animations
                 }
                 break;
             default:
-                NRF_LOG_ERROR("Not implemented Scalar Type");
+                NRF_LOG_ERROR("Bad curve type", c->type);
         }
         return ret;
     }
 
     uint32_t AnimationContext::evaluateColorCurve(ColorCurvePtr colorCurve, uint16_t param) const {
         // Check if this is an overriden scalar
-        auto colorCurveCopy = colorCurve;
-        auto buf = getParameterBuffer(colorCurveCopy);
-        auto c = colorCurveCopy.get(buf);
+        auto copy = colorCurve;
+        auto buf = getParameterBuffer(copy);
+        auto c = copy.get(buf);
         uint32_t ret = 0;
         switch (c->type) {
             case ColorCurveType_Rainbow:
@@ -208,7 +213,7 @@ namespace Animations
                 }
                 break;
             default:
-                NRF_LOG_ERROR("Not implemented color type");
+                NRF_LOG_ERROR("Bad color type", c->type);
                 break;
         }
         return ret;
