@@ -14,7 +14,7 @@ namespace Animations
     enum AnimationType : uint8_t
     {
         AnimationType_Unknown = 0,
-        AnimationType_Simple,
+        AnimationType_Flashes,
         AnimationType_Rainbow,
         AnimationType_BlinkID,
         AnimationType_Pattern,

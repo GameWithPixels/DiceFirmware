@@ -6,16 +6,16 @@
 
 namespace Animations
 {
-    enum AnimationSimpleFlags : uint8_t
+    enum AnimationFlashesFlags : uint8_t
     {
-        AnimationSimpleFlags_None			= 0,
-        AnimationSimpleFlags_CaptureColor	= 1 << 0,
+        AnimationFlashesFlags_None		  = 0,
+        AnimationFlashesFlags_CaptureColor  = 1 << 0,
     };
 
     /// <summary>
     /// Procedural on off animation
     /// </summary>
-    struct AnimationSimple
+    struct AnimationFlashes
         : public Animation
     {
         uint8_t colorFlags;
@@ -27,7 +27,7 @@ namespace Animations
     /// <summary>
     /// Procedural on off animation instance data
     /// </summary>
-    struct AnimationSimpleInstance
+    struct AnimationFlashesInstance
         : public AnimationInstance
     {
     private:
@@ -36,7 +36,7 @@ namespace Animations
         virtual int stop(int retIndices[]);
 
     private:
-        const AnimationSimple* getPreset() const;
+        const AnimationFlashes* getPreset() const;
 
         uint32_t capturedColor;
     };

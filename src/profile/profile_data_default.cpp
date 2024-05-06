@@ -6,7 +6,7 @@
 #include "config/settings.h"
 
 #include "animations/animation_rainbow.h"
-#include "animations/animation_simple.h"
+#include "animations/animation_flashes.h"
 #include "behaviors/condition.h"
 #include "behaviors/action.h"
 #include "behaviors/behavior.h"
@@ -184,10 +184,10 @@ namespace Profile
             return animPtr;
         }
 
-        Pointer<AnimationSimple> addAnimSimple(uint8_t count, uint16_t duration, DColorPtr color, uint8_t fade, uint32_t animFlags, uint8_t colorFlags = AnimationSimpleFlags_None) {
-            auto animPtr = allocatePtr<AnimationSimple>();
+        Pointer<AnimationFlashes> addAnimFlash(uint8_t count, uint16_t duration, DColorPtr color, uint8_t fade, uint32_t animFlags, uint8_t colorFlags = (uint8_t)AnimationFlashesFlags_None){
+            auto animPtr = allocatePtr<AnimationFlashes>();
             auto anim = get(animPtr);
-            anim->type = AnimationType_Simple;
+            anim->type = AnimationType_Flashes;
             anim->animFlags = animFlags;
             anim->duration = duration;
             anim->faceMask = ANIM_FACEMASK_ALL_LEDS;
@@ -292,15 +292,15 @@ namespace Profile
 
         // Allocate our Hello animation
         auto animationRainbowPtr = allocator.addAnimRainbow(3, 3000);
-        auto animationChargingPtr = allocator.addAnimSimple(1, 3000, redColorPtr, 255, AnimationFlags_HighestLed);
-        auto animationLowBatteryPtr = allocator.addAnimSimple(3, 1500, redColorPtr, 255, AnimationFlags_None);
-        auto animationChargingProblemPtr = allocator.addAnimSimple(10, 2000, redColorPtr, 255, AnimationFlags_HighestLed);
-        auto animationFullyChargedPtr = allocator.addAnimSimple(1, 10000, greenColorPtr, 32, AnimationFlags_HighestLed);
-        auto animationConnectionPtr = allocator.addAnimSimple(1, 1000, blueColorPtr, 255, AnimationFlags_None);
-        auto animationHandlingPtr = allocator.addAnimSimple(1, 1000, lookupGradientFromFacePtr, 255, AnimationFlags_HighestLed, AnimationSimpleFlags_CaptureColor);
-        auto animationRollingPtr = allocator.addAnimSimple(1, 500, lookupGradientFromFacePtr, 255, AnimationFlags_HighestLed, AnimationSimpleFlags_CaptureColor);
-        auto animationOnFacePtr = allocator.addAnimSimple(1, 3000, lookupGradientFromFacePtr, 255, AnimationFlags_None, AnimationSimpleFlags_CaptureColor);
-        auto animationTempErrorPtr = allocator.addAnimSimple(3, 1000, yellowColorPtr, 255, AnimationFlags_HighestLed);
+        auto animationChargingPtr = allocator.addAnimFlash(1, 3000, redColorPtr, 255, AnimationFlags_HighestLed);
+        auto animationLowBatteryPtr = allocator.addAnimFlash(3, 1500, redColorPtr, 255, AnimationFlags_None);
+        auto animationChargingProblemPtr = allocator.addAnimFlash(10, 2000, redColorPtr, 255, AnimationFlags_HighestLed);
+        auto animationFullyChargedPtr = allocator.addAnimFlash(1, 10000, greenColorPtr, 32, AnimationFlags_HighestLed);
+        auto animationConnectionPtr = allocator.addAnimFlash(1, 1000, blueColorPtr, 255, AnimationFlags_None);
+        auto animationHandlingPtr = allocator.addAnimFlash(1, 1000, lookupGradientFromFacePtr, 255, AnimationFlags_HighestLed, AnimationFlashesFlags_CaptureColor);
+        auto animationRollingPtr = allocator.addAnimFlash(1, 500, lookupGradientFromFacePtr, 255, AnimationFlags_HighestLed, AnimationFlashesFlags_CaptureColor);
+        auto animationOnFacePtr = allocator.addAnimFlash(1, 3000, lookupGradientFromFacePtr, 255, AnimationFlags_None, AnimationFlashesFlags_CaptureColor);
+        auto animationTempErrorPtr = allocator.addAnimFlash(3, 1000, yellowColorPtr, 255, AnimationFlags_HighestLed);
 
         // Allocate animation array
         auto animationArrayPtr = allocator.allocateArray<AnimationPtr>(10);

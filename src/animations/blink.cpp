@@ -25,7 +25,7 @@ namespace Animations
         buffer.size = sizeof(colorBuffer);
 
         // Create a small anim on the spot
-        blinkAnim.type = AnimationType_Simple;
+        blinkAnim.type = AnimationType_Flashes;
         blinkAnim.duration = durationMs;
         blinkAnim.faceMask = faceMask;
         blinkAnim.count = flashCount;

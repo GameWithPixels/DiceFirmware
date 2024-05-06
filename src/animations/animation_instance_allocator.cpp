@@ -7,7 +7,7 @@
 #include "config/dice_variants.h"
 #include "animation_context.h"
 
-#include "animations/animation_simple.h"
+#include "animations/animation_flashes.h"
 #include "animations/animation_blinkid.h"
 #include "animations/animation_pattern.h"
 #include "animations/animation_rainbow.h"
@@ -38,8 +38,8 @@ namespace Animations
             case AnimationType_Unknown:
                 NRF_LOG_ERROR("Unknown animation type");
                 break;
-            case AnimationType_Simple:
-                ret = sizeof(AnimationSimpleInstance);
+            case AnimationType_Flashes:
+                ret = sizeof(AnimationFlashesInstance);
                 break;
             case AnimationType_Rainbow:
                 ret = sizeof(AnimationRainbowInstance);
@@ -100,9 +100,9 @@ namespace Animations
             case AnimationType_Unknown:
                 NRF_LOG_ERROR("Unknown clip type");
                 break;
-            case AnimationType_Simple:
+            case AnimationType_Flashes:
                 // "allocate" the animation clip instance
-                ret = instanceBufferAllocate<AnimationSimpleInstance>();
+                ret = instanceBufferAllocate<AnimationFlashesInstance>();
                 break;
             case AnimationType_Rainbow:
                 // "allocate" the animation clip instance

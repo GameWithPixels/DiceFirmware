@@ -131,7 +131,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/animations/animation_context.cpp \
 	$(PROJ_DIR)/src/animations/animation_instance_allocator.cpp \
 	$(PROJ_DIR)/src/animations/animation_parameters.cpp \
-	$(PROJ_DIR)/src/animations/animation_simple.cpp \
+	$(PROJ_DIR)/src/animations/animation_flashes.cpp \
 	$(PROJ_DIR)/src/animations/animation_pattern.cpp \
 	$(PROJ_DIR)/src/animations/animation_rainbow.cpp \
 	$(PROJ_DIR)/src/animations/animation_blinkid.cpp \

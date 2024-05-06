@@ -1,6 +1,6 @@
 #pragma once
 
-#include "animations/animation_simple.h"
+#include "animations/animation_flashes.h"
 
 namespace Animations
 {
@@ -16,6 +16,6 @@ namespace Animations
             uint8_t loopCount = 1);
 
     private:
-        AnimationSimple blinkAnim;
+        AnimationFlashes blinkAnim;
     };
 }
