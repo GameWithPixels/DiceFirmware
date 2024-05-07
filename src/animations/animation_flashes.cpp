@@ -30,18 +30,17 @@ namespace Animations
 
         int retCount = 0;
         for (int i = 0; i < ledCount; ++i) {
-            if ((preset->faceMask & (1 << i)) != 0) {
-                // TODO !!
-                ((AnimationContextGlobals*)context->globals)->animatedLED = i;
+            // TODO !!
+            ((AnimationContextGlobals*)context->globals)->animatedLED = i;
+            ((AnimationContextGlobals*)context->globals)->normalizedAnimatedLED = i * 0xFFFF / ledCount;
+            const uint32_t intensity = context->evaluateScalar(preset->intensity);
 
+            if (intensity > 0) {
                 // Compute color
                 const uint32_t color =
                     ((preset->colorFlags & (uint8_t)AnimationFlashesFlags_CaptureColor) != 0) ?
                     capturedColor :
                     context->evaluateColor(preset->color);
-
-                // Compute intensity
-                const uint32_t intensity = context->evaluateScalar(preset->intensity);
 
                 // Set LED color
                 retIndices[retCount] = i;
@@ -51,14 +50,6 @@ namespace Animations
         }
 
         return retCount;
-    }
-
-    /// <summary>
-    /// Clear all LEDs controlled by this animation, for instance when the anim gets interrupted.
-    /// </summary>
-    int AnimationFlashesInstance::stop(int retIndices[]) {
-        auto preset = getPreset();
-        return setIndices(preset->faceMask, retIndices);
     }
 
     const AnimationFlashes* AnimationFlashesInstance::getPreset() const {

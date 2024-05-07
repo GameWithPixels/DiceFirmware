@@ -27,7 +27,8 @@ namespace Animations
         // Create a small anim on the spot
         blinkAnim.type = AnimationType_Flashes;
         blinkAnim.duration = durationMs;
-        blinkAnim.faceMask = faceMask;
+        // TODO create nodes for those parameters
+        // blinkAnim.faceMask = faceMask;
         // blinkAnim.count = flashCount;
         // blinkAnim.fade = fade;
         blinkAnim.color = cptr;

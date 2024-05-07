@@ -35,9 +35,6 @@ namespace Animations
         Profile::Array<ParameterOverride> overrides;
 
         uint16_t getGlobal(GlobalName name) const;
-        uint16_t operation(OperationOneOperand op, uint16_t value) const;
-        uint16_t operation(OperationTwoOperands op, uint16_t left, uint16_t right) const;
-        uint16_t trapeze(uint16_t param, uint16_t rampUp, uint16_t rampDown, Utils::EasingType rampUpEasing, Utils::EasingType rampDownEasing) const;
 
     private:
         template <typename T>

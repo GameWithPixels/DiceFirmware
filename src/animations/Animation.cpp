@@ -33,7 +33,8 @@ namespace Animations
     }
 
     int AnimationInstance::stop(int retIndices[]) {
-        return setIndices(animationPreset->faceMask, retIndices);
+        // TODO track which LEDs where turned on by the animation
+        return setIndices(ANIM_FACEMASK_ALL_LEDS, retIndices);
     }
 
     int AnimationInstance::setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]) {

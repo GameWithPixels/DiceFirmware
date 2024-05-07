@@ -28,9 +28,7 @@ namespace Animations
         ScalarType_Global,
         ScalarType_Lookup,
 
-        ScalarType_OperationUInt8 = 0x10,
-        ScalarType_OperationUInt16,
-        ScalarType_OperationScalar,
+        ScalarType_OperationScalar = 0x10,
         ScalarType_OperationScalarAndUInt8,
         ScalarType_OperationScalarAndUInt16,
         ScalarType_OperationUInt8AndScalar,
@@ -76,6 +74,7 @@ namespace Animations
         GlobalName_NormalizedCurrentFace,
         GlobalName_NormalizedAnimationTime,
         GlobalName_AnimatedLED,
+        GlobalName_NormalizedAnimatedLED,
     };
 
     struct DScalarGlobal : public DScalar
@@ -101,23 +100,11 @@ namespace Animations
         OperationOneOperand_Acos,
         OperationOneOperand_Sqr,
         OperationOneOperand_Sqrt,
-        OperationOneOperand_LoopTime,
+        OperationOneOperand_TwoPow,
+        OperationOneOperand_ToMask,
+        OperationOneOperand_FlipBits,
         // Pow, Log, Floor, Ceil, Round, Trunc, Frac, Neg, Inv, Sign, SignNonZero,
     };
-
-    struct DOperationUInt8 : public DScalar
-    {
-        OperationOneOperand operation;
-        uint8_t value;
-    };
-    // size: 3 bytes
-
-    struct DOperationUInt16 : public DScalar
-    {
-        OperationOneOperand operation;
-        uint16_t value;
-    };
-    // size: 4 bytes
 
     struct DOperationScalar : public DScalar
     {
@@ -139,7 +126,7 @@ namespace Animations
         OperationTwoOperands_Mod,
         OperationTwoOperands_Min,
         OperationTwoOperands_Max,
-        OperationTwoOperands_Traveling,
+        OperationTwoOperands_Mask,
     };
 
     // Base operation with 2 operands struct
@@ -190,7 +177,8 @@ namespace Animations
         CurveType_TwoUInt16,        // simple interpolation between two 16 bit values
         CurveType_TrapezeUInt8,     // trapeze shaped interpolation from 0 to a 1 and back to 0
         CurveType_TrapezeUInt16,    // trapeze shaped interpolation from 0 to a 1 and back to 0
-        CurveType_UInt16Keyframes,
+        CurveType_BitmaskUInt32,
+        CurveType_KeyframesUInt16,
     };
 
     // Base curve struct
@@ -233,7 +221,13 @@ namespace Animations
     };
     // size: 7 bytes
 
-    struct CurveUInt16Keyframes : public Curve
+    struct CurveBitmaskUInt32 : public Curve
+    {
+        uint32_t mask;
+    };
+    // size: 6 bytes
+
+    struct CurveKeyframesUInt16 : public Curve
     {
         struct Keyframe
         {
@@ -285,6 +279,7 @@ namespace Animations
         ColorCurveType_Rainbow,
         ColorCurveType_TwoColors,
         ColorCurveType_Keyframes,
+        ColorCurveType_Bitmask,
     };
 
     struct ColorCurve

@@ -33,7 +33,6 @@ namespace Animations
     private:
         virtual void start(int _startTime, uint8_t _remapFace, uint8_t _loopCount);
         virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]);
-        virtual int stop(int retIndices[]);
 
     private:
         const AnimationFlashes* getPreset() const;

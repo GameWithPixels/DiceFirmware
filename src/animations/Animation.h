@@ -47,7 +47,6 @@ namespace Animations
         AnimationType type;
         uint8_t animFlags; // Combination of AnimationFlags
         uint16_t duration; // in ms
-        uint32_t faceMask;
     };
 
     typedef Profile::Pointer<Animation> AnimationPtr;

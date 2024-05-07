@@ -11,6 +11,11 @@ using namespace Config;
 
 namespace Animations
 {
+    uint16_t operation(OperationOneOperand op, uint16_t value);
+    uint16_t operation(OperationTwoOperands op, uint16_t left, uint16_t right);
+    uint16_t trapeze(uint16_t param, uint16_t rampUp, uint16_t rampDown, Utils::EasingType rampUpEasing, Utils::EasingType rampDownEasing);
+
+
     AnimationContext::AnimationContext(
         const AnimationContextGlobals* theGlobals,
         Profile::BufferDescriptor theBuffer,
@@ -49,16 +54,6 @@ namespace Animations
             case ScalarType_Lookup: {
                     auto sl = static_cast<const DScalarLookup*>(s);
                     ret = evaluateCurve(sl->lookupCurve, evaluateScalar(sl->parameter));
-                }
-                break;
-            case ScalarType_OperationUInt8: {
-                    auto op = static_cast<const DOperationUInt8*>(s);
-                    ret = operation(op->operation, op->value);
-                }
-                break;
-            case ScalarType_OperationUInt16: {
-                    auto op = static_cast<const DOperationUInt16*>(s);
-                    ret = operation(op->operation, op->value);
                 }
                 break;
             case ScalarType_OperationScalar: {
@@ -156,6 +151,12 @@ namespace Animations
                     ret = trapeze(param, ct16->rampUpScale * 0x100, ct16->rampDownScale * 0x100, ct16->rampUpEasing, ct16->rampDownEasing);
                 }
                 break;
+            case CurveType_BitmaskUInt32: {
+                    auto cb32 = static_cast<const CurveBitmaskUInt32*>(c);
+                    const auto bit = param;
+                    ret = (cb32->mask & (1 << bit)) != 0 ? 0xFFFFF : 0;
+                }
+                break;
             default:
                 NRF_LOG_ERROR("Bad curve type", c->type);
         }
@@ -212,6 +213,9 @@ namespace Animations
         case GlobalName_AnimatedLED:
             ret = globals->animatedLED;
             break;
+        case GlobalName_NormalizedAnimatedLED:
+            ret = globals->normalizedAnimatedLED;
+            break;
         default:
             NRF_LOG_ERROR("Bad global name %d", name);
             break;
@@ -219,7 +223,7 @@ namespace Animations
         return ret;
     }
 
-    uint16_t AnimationContext::operation(OperationOneOperand op, uint16_t value) const {
+    uint16_t operation(OperationOneOperand op, uint16_t value) {
         uint16_t ret = 0;
         switch (op)
         {
@@ -244,8 +248,16 @@ namespace Animations
         case OperationOneOperand_Sqrt:
             ret = value > 0 ? Utils::sqrt_i32(value) : 0;
             break;
-        case OperationOneOperand_LoopTime:
-            ret = globals->normalizedAnimationTime * value; // TODO / 0x100;
+        case OperationOneOperand_TwoPow:
+            ret = 1 << value;
+            break;
+        case OperationOneOperand_ToMask:
+            if (value > 0) {
+                ret = 1 << (value / 0xFFF);
+            }
+            break;
+        case OperationOneOperand_FlipBits:
+            ret = value ^ 0xFFFF;
             break;
         default:
             NRF_LOG_ERROR("Bad operation %d", op);
@@ -254,7 +266,7 @@ namespace Animations
         return ret;
     }
 
-    uint16_t AnimationContext::operation(OperationTwoOperands op, uint16_t value1, uint16_t value2) const {
+    uint16_t operation(OperationTwoOperands op, uint16_t value1, uint16_t value2) {
         uint16_t ret = 0;
         switch (op)
         {
@@ -288,8 +300,8 @@ namespace Animations
         case OperationTwoOperands_Max:
             ret = std::max(value1, value2);
             break;
-        case OperationTwoOperands_Traveling:
-            ret = value1 + (uint32_t)globals->animatedLED * 0xFFFF * value2 / ((uint32_t)globals->ledCount * 256);
+        case OperationTwoOperands_Mask:
+            ret = (value1 & value2) != 0 ? 0xFFFF : 0;
             break;
         default:
             NRF_LOG_ERROR("Bad operation2 %d", op);
@@ -298,7 +310,7 @@ namespace Animations
         return ret;
     }
 
-    uint16_t AnimationContext::trapeze(uint16_t param, uint16_t rampUp, uint16_t rampDown, Utils::EasingType rampUpEasing, Utils::EasingType rampDownEasing) const {
+    uint16_t trapeze(uint16_t param, uint16_t rampUp, uint16_t rampDown, Utils::EasingType rampUpEasing, Utils::EasingType rampDownEasing) {
         uint16_t ret = 0x100;
         if (param <= rampUp) {
             // Ramp up

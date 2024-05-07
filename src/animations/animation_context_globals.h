@@ -15,6 +15,8 @@ namespace Animations
         uint8_t ledCount;                   // Number of LEDs
         uint8_t animatedLED;                // LED currently being animated
         uint8_t currentFace;                // Current face index
+
+        uint16_t normalizedAnimatedLED;     // LED currently being animated
         uint16_t normalizedCurrentFace;     // Normalized face index
         uint16_t normalizedAnimationTime;   // Normalized time since the start of the animation
     };

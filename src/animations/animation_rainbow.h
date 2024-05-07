@@ -12,6 +12,7 @@ namespace Animations
     struct AnimationRainbow
         : public Animation
     {
+        uint32_t faceMask;
         uint8_t count;
         uint8_t fade;
         uint8_t intensity;
