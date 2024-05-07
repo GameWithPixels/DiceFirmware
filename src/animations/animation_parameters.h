@@ -9,13 +9,17 @@
 namespace Animations
 {
     struct DScalar;
+    struct DScalarVector;
     struct Curve;
     struct DColor;
+    struct DColorVector;
     struct ColorCurve;
 
     typedef Profile::Pointer<DScalar> DScalarPtr;
+    typedef Profile::Pointer<DScalarVector> DScalarVectorPtr;
     typedef Profile::Pointer<Curve> CurvePtr;
     typedef Profile::Pointer<DColor> DColorPtr;
+    typedef Profile::Pointer<DColorVector> DColorVectorPtr;
     typedef Profile::Pointer<ColorCurve> ColorCurvePtr;
 
     // Scalar types
@@ -73,8 +77,6 @@ namespace Animations
         GlobalName_Unknown = 0,
         GlobalName_NormalizedCurrentFace,
         GlobalName_NormalizedAnimationTime,
-        GlobalName_AnimatedLED,
-        GlobalName_NormalizedAnimatedLED,
     };
 
     struct DScalarGlobal : public DScalar
@@ -109,7 +111,7 @@ namespace Animations
     struct DOperationScalar : public DScalar
     {
         OperationOneOperand operation;
-        DScalarPtr value;
+        DScalarPtr parameter;
     };
     // size: 4 bytes
 
@@ -137,37 +139,55 @@ namespace Animations
 
     struct DOperationScalarAndUInt8 : public DOperationTwoOperands
     {
-        DScalarPtr value1;
-        uint8_t value2;
+        DScalarPtr parameter1;
+        uint8_t parameter2;
     };
     // size: 5 bytes
 
     struct DOperationScalarAndUInt16 : public DOperationTwoOperands
     {
-        DScalarPtr value1;
-        uint16_t value2;
+        DScalarPtr parameter1;
+        uint16_t parameter2;
     };
     // size: 6 bytes
 
     struct DOperationUInt8AndScalar : public DOperationTwoOperands
     {
-        uint8_t value1;
-        DScalarPtr value2;
+        uint8_t parameter1;
+        DScalarPtr parameter2;
     };
     // size: 5 bytes
 
     struct DOperationUInt16AndScalar : public DOperationTwoOperands
     {
-        uint16_t value1;
-        DScalarPtr value2;
+        uint16_t parameter1;
+        DScalarPtr parameter2;
     };
 
     struct DOperationTwoScalars : public DOperationTwoOperands
     {
-        DScalarPtr value1;
-        DScalarPtr value2;
+        DScalarPtr parameter1;
+        DScalarPtr parameter2;
     };
     // size: 8 bytes
+
+    // Scalar vector types
+    enum ScalarVectorType : uint8_t
+    {
+        ScalarVectorType_Unknown = 0,
+        ScalarVectorType_Repeated,
+    };
+
+    // Base scalar vector struct
+    struct DScalarVector
+    {
+        ScalarVectorType type;
+    };
+
+    struct DScalarVectorRepeated : public DScalarVector
+    {
+        DScalarPtr value;
+    };
 
     // Curve types
     enum CurveType : uint8_t
@@ -272,6 +292,37 @@ namespace Animations
         ColorCurvePtr lookupCurve;
     };
     // size: 5 bytes
+
+    // Color Vector types
+    enum ColorVectorType : uint8_t
+    {
+        ColorVectorType_Unknown = 0,
+        ColorVectorType_Repeated,
+        ColorVectorType_Mixer,
+        // ColorVectorType_Lookup,
+    };
+
+    // Base color vector struct
+    struct DColorVector
+    {
+        ColorVectorType type;
+    };
+
+    struct DColorVectorRepeated : public DColorVector
+    {
+        DColorPtr color;
+    };
+
+    struct DColorVectorMixer : public DColorVector
+    {
+        DColorVectorPtr colors;
+        DScalarVectorPtr intensities;
+    };
+
+    // struct DColorVectorLookup : public DColorVector
+    // {
+    //     ColorCurvePtr colorCurve;
+    // };
 
     enum ColorCurveType : uint8_t
     {

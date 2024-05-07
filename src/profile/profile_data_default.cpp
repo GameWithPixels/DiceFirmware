@@ -17,7 +17,7 @@ using namespace Config;
 using namespace Animations;
 using namespace Behaviors;
 
-#define USE_BINARY_BUFFER_IMAGE 1
+#define USE_BINARY_BUFFER_IMAGE 0
 
 namespace Profile
 {
@@ -181,7 +181,7 @@ namespace Profile
             auto t = get(ret);
             t->type = ScalarType_OperationScalar;
             t->operation = op;
-            t->value = val;
+            t->parameter = val;
             return ret;
         }
 
@@ -190,8 +190,8 @@ namespace Profile
             auto t = get(ret);
             t->type = ScalarType_OperationUInt16AndScalar;
             t->operation = op;
-            t->value1 = val1;
-            t->value2 = val2;
+            t->parameter1 = val1;
+            t->parameter2 = val2;
             return ret;
         }
 
@@ -200,8 +200,8 @@ namespace Profile
             auto t = get(ret);
             t->type = ScalarType_OperationScalarAndUInt16;
             t->operation = op;
-            t->value1 = val1;
-            t->value2 = val2;
+            t->parameter1 = val1;
+            t->parameter2 = val2;
             return ret;
         }
 
@@ -210,8 +210,8 @@ namespace Profile
             auto t = get(ret);
             t->type = ScalarType_OperationTwoScalars;
             t->operation = op;
-            t->value1 = val1;
-            t->value2 = val2;
+            t->parameter1 = val1;
+            t->parameter2 = val2;
             return ret;
         }
 
@@ -224,6 +224,14 @@ namespace Profile
             t->rampUpEasing = Utils::EasingType_Linear;
             t->rampDownEasing = Utils::EasingType_Linear;
             return ret;
+        }
+
+        Pointer<DScalarVectorRepeated> addScalarRepeated(DScalarPtr value) {
+            auto vectPtr = allocatePtr<DScalarVectorRepeated>();
+            auto vect = get(vectPtr);
+            vect->type = ScalarVectorType_Repeated;
+            vect->value = value;
+            return vectPtr;
         }
 
         // Create the gradient that we will lookup into
@@ -254,6 +262,32 @@ namespace Profile
             return colorPtr;
         }
 
+        Pointer<DColorVectorRepeated> addColorRepeated(DColorPtr color) {
+            auto vectPtr = allocatePtr<DColorVectorRepeated>();
+            auto vect = get(vectPtr);
+            vect->type = ColorVectorType_Repeated;
+            vect->color = color;
+            return vectPtr;
+        }
+
+        Pointer<DColorVectorMixer> addColorVectorMixer(DColorVectorPtr colors, DScalarVectorPtr intensities) {
+            auto vectPtr = allocatePtr<DColorVectorMixer>();
+            auto vect = get(vectPtr);
+            vect->type = ColorVectorType_Mixer;
+            vect->colors = colors;
+            vect->intensities = intensities;
+            return vectPtr;
+        }
+
+        // Pointer<DColorVectorLookup> addColorVectorLookup(DColorVectorPtr colors, DScalarVectorPtr intensities) {
+        //     auto vectPtr = allocatePtr<DColorVectorLookup>();
+        //     auto vect = get(vectPtr);
+        //     vect->type = ColorVectorType_Lookup;
+        //     vect->colors = colors;
+        //     vect->intensities = intensities;
+        //     return vectPtr;
+        // }
+
         Pointer<AnimationRainbow> addAnimRainbow(uint8_t count, uint16_t duration) {
             auto animPtr = allocatePtr<AnimationRainbow>();
             auto anim = get(animPtr);
@@ -268,17 +302,13 @@ namespace Profile
             return animPtr;
         }
 
-        Pointer<AnimationFlashes> addAnimFlashes(uint8_t count, uint16_t duration, DColorPtr color, DScalarPtr intensity, uint8_t fade, uint32_t animFlags = (uint8_t)AnimationFlags_None, uint8_t colorFlags = (uint8_t)AnimationFlashesFlags_None) {
+        Pointer<AnimationFlashes> addAnimFlashes(uint16_t duration, DColorVectorPtr colors, uint32_t animFlags = (uint8_t)AnimationFlags_None) {
             auto animPtr = allocatePtr<AnimationFlashes>();
             auto anim = get(animPtr);
             anim->type = AnimationType_Flashes;
             anim->animFlags = animFlags;
             anim->duration = duration;
-            // anim->count = count;
-            // anim->fade = fade;
-            anim->color = color;
-            anim->intensity = intensity;
-            anim->colorFlags = colorFlags;
+            anim->colors = colors;
             return animPtr;
         }
 
@@ -369,8 +399,6 @@ namespace Profile
         const auto rainbowGradientPtr = allocator.addRainbow();
         const auto lookupGradientFromFacePtr = allocator.addLookup(rainbowGradientPtr, currentFaceScalarPtr);
         const auto animTimePtr = allocator.addGlobal(GlobalName_NormalizedAnimationTime);
-        const auto animatedLEDPtr = allocator.addGlobal(GlobalName_AnimatedLED);
-        const auto normAnimLEDPtr = allocator.addGlobal(GlobalName_NormalizedAnimatedLED);
 
         // Colors
         const auto redColorPtr = allocator.addRGB(8, 0, 0);
@@ -379,42 +407,70 @@ namespace Profile
         const auto yellowColorPtr = allocator.addRGB(6,6,0);
 
         // Repeat count
-        const auto scalar3Ptr = allocator.addConstantU8(3);
-        const auto scaledTimePtr = allocator.addOperation(OperationTwoOperands_Mul, animTimePtr, scalar3Ptr);
+        // const auto scalar3Ptr = allocator.addConstantU8(3);
+        // const auto scaledTimePtr = allocator.addOperation(OperationTwoOperands_Mul, animTimePtr, scalar3Ptr);
 
         // Traveling rainbow
-        const auto cyclesPtr = allocator.addConstantU16(512);
-        const auto travelingTimePtr = allocator.addOperation(OperationTwoOperands_Add, scaledTimePtr,
-            allocator.addOperation(OperationTwoOperands_FIMul, normAnimLEDPtr, cyclesPtr));
-        const auto travelingRainbowPtr = allocator.addLookup(rainbowGradientPtr, travelingTimePtr);
+        // const auto cyclesPtr = allocator.addConstantU16(512);
+        // const auto travelingTimePtr = allocator.addOperation(OperationTwoOperands_Add, scaledTimePtr,
+        //     allocator.addOperation(OperationTwoOperands_FIMul, normAnimLEDPtr, cyclesPtr));
+        // const auto travelingRainbowPtr = allocator.addVectorLookup(rainbowGradientPtr, travelingTimePtr);
+        const auto travelingRainbowPtr = allocator.addLookup(rainbowGradientPtr, animTimePtr);
 
         // Animated face mask (limited to 16 bits!)
-        const auto ledBitPtr = allocator.addOperation(OperationOneOperand_TwoPow, animatedLEDPtr);
-        const auto maskPtr = allocator.addOperation(OperationOneOperand_FlipBits,
-            allocator.addOperation(OperationOneOperand_ToMask, scaledTimePtr));
-        const auto faceMaskPtr = allocator.addOperation(OperationTwoOperands_Mask, maskPtr, ledBitPtr);
+        // const auto ledBitPtr = allocator.addOperation(OperationOneOperand_TwoPow, animatedLEDPtr);
+        // const auto maskPtr = allocator.addOperation(OperationOneOperand_FlipBits,
+        //     allocator.addOperation(OperationOneOperand_ToMask, scaledTimePtr));
+        // const auto faceMaskPtr = allocator.addOperation(OperationTwoOperands_Mask, maskPtr, ledBitPtr);
 
         // Fade in/out intensity
         const auto trapezePtr = allocator.addTrapeze(32, 256 - 32);
         const auto fadeInOutPtr = allocator.addScalarLookup(animTimePtr, trapezePtr);
         const auto scalar32Ptr = allocator.addConstantU16(32 * 256);
-        const auto fadeIntensityPtr = allocator.addOperation(OperationTwoOperands_FIMul, scalar32Ptr, fadeInOutPtr);
+        const auto fadeIntensityVectorPtr = allocator.addScalarRepeated(
+            allocator.addOperation(OperationTwoOperands_FIMul, scalar32Ptr, fadeInOutPtr)
+        );
 
         // Combined face mask and intensity
-        const auto maskAndIntensityPtr = allocator.addOperation(OperationTwoOperands_FMul, faceMaskPtr, fadeIntensityPtr);
+        // const auto maskAndIntensityPtr = allocator.addOperation(OperationTwoOperands_FMul, faceMaskPtr, fadeIntensityPtr);
 
+        // Animation color vectors
+        const auto rainbowVect = allocator.addColorVectorMixer(
+            allocator.addColorRepeated(travelingRainbowPtr),
+            fadeIntensityVectorPtr);
+        const auto faceVect = allocator.addColorVectorMixer(
+            allocator.addColorRepeated(lookupGradientFromFacePtr),
+            fadeIntensityVectorPtr
+        );
+        const auto redVect = allocator.addColorVectorMixer(
+            allocator.addColorRepeated(redColorPtr),
+            fadeIntensityVectorPtr
+        );
+        const auto brightGreenVect = allocator.addColorVectorMixer(
+            allocator.addColorRepeated(greenColorPtr),
+            allocator.addScalarRepeated(scalar32Ptr)
+        );
+        const auto blueVect = allocator.addColorVectorMixer(
+            allocator.addColorRepeated(blueColorPtr),
+            fadeIntensityVectorPtr
+        );
+        const auto yellowVect = allocator.addColorVectorMixer(
+            allocator.addColorRepeated(yellowColorPtr),
+            fadeIntensityVectorPtr
+        );
+        
         // Allocate our Hello animation
         //const auto animationRainbowPtr = allocator.addAnimRainbow(3, 3000);
-        const auto animationRainbowPtr = allocator.addAnimFlashes(1, 3000, travelingRainbowPtr, maskAndIntensityPtr, 0, AnimationFlags_UseLedIndices);
-        const auto animationHandlingPtr = allocator.addAnimFlashes(1, 1000, lookupGradientFromFacePtr, fadeIntensityPtr, 255, AnimationFlags_HighestLed, AnimationFlashesFlags_CaptureColor);
-        const auto animationRollingPtr = allocator.addAnimFlashes(1, 500, lookupGradientFromFacePtr, fadeIntensityPtr, 255, AnimationFlags_HighestLed, AnimationFlashesFlags_CaptureColor);
-        const auto animationOnFacePtr = allocator.addAnimFlashes(1, 3000, lookupGradientFromFacePtr, fadeIntensityPtr, 255, AnimationFlags_None, AnimationFlashesFlags_CaptureColor);
-        const auto animationChargingPtr = allocator.addAnimFlashes(1, 3000, redColorPtr, scalar32Ptr, 255, AnimationFlags_HighestLed);
-        const auto animationLowBatteryPtr = allocator.addAnimFlashes(3, 1500, redColorPtr, scalar32Ptr, 255);
-        const auto animationChargingProblemPtr = allocator.addAnimFlashes(10, 2000, redColorPtr, scalar32Ptr, 255, AnimationFlags_HighestLed);
-        const auto animationFullyChargedPtr = allocator.addAnimFlashes(1, 10000, greenColorPtr, scalar32Ptr, 32, AnimationFlags_HighestLed);
-        const auto animationConnectionPtr = allocator.addAnimFlashes(1, 1000, blueColorPtr, scalar32Ptr, 255);
-        const auto animationTempErrorPtr = allocator.addAnimFlashes(3, 1000, yellowColorPtr, scalar32Ptr, 255, AnimationFlags_HighestLed);
+        const auto animationRainbowPtr = allocator.addAnimFlashes(3000, rainbowVect, AnimationFlags_UseLedIndices);
+        const auto animationHandlingPtr = allocator.addAnimFlashes(1000, faceVect, AnimationFlags_HighestLed); //, AnimationFlashesFlags_CaptureColor);
+        const auto animationRollingPtr = allocator.addAnimFlashes(500, faceVect, AnimationFlags_HighestLed); //, AnimationFlashesFlags_CaptureColor);
+        const auto animationOnFacePtr = allocator.addAnimFlashes(3000, faceVect, AnimationFlags_None); //, AnimationFlashesFlags_CaptureColor);
+        const auto animationChargingPtr = allocator.addAnimFlashes(3000, redVect, AnimationFlags_HighestLed);
+        const auto animationLowBatteryPtr = allocator.addAnimFlashes(/*repeat 3*/ 1500, redVect);
+        const auto animationChargingProblemPtr = allocator.addAnimFlashes(/*repeat 10*/ 2000, redVect, AnimationFlags_HighestLed);
+        const auto animationFullyChargedPtr = allocator.addAnimFlashes(10000, brightGreenVect, AnimationFlags_HighestLed);
+        const auto animationConnectionPtr = allocator.addAnimFlashes(1000, blueVect);
+        const auto animationTempErrorPtr = allocator.addAnimFlashes(/*repeat 3*/ 1000, yellowVect, AnimationFlags_HighestLed);
 
         // Allocate animation array
         const auto animationArrayPtr = allocator.allocateArray<AnimationPtr>(10);

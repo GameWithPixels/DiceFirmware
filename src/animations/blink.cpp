@@ -31,7 +31,7 @@ namespace Animations
         // blinkAnim.faceMask = faceMask;
         // blinkAnim.count = flashCount;
         // blinkAnim.fade = fade;
-        blinkAnim.color = cptr;
+        // blinkAnim.color = cptr;
 
         Modules::AnimController::stop(&blinkAnim);
         const auto remapFace = Config::DiceVariants::getLayout()->faceCount - 1;

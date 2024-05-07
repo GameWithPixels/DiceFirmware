@@ -1,11 +1,11 @@
 #include "animation_context.h"
+#include "malloc.h"
+#include "settings.h"
+#include "animation.h"
+#include "config/dice_variants.h"
 #include "utils/Rainbow.h"
 #include "utils/Utils.h"
 #include "nrf_log.h"
-#include "malloc.h"
-
-#include "animation.h"
-#include "config/dice_variants.h"
 
 using namespace Config;
 
@@ -58,32 +58,32 @@ namespace Animations
                 break;
             case ScalarType_OperationScalar: {
                     auto op = static_cast<const DOperationScalar*>(s);
-                    ret = operation(op->operation, evaluateScalar(op->value));
+                    ret = operation(op->operation, evaluateScalar(op->parameter));
                 }
                 break;
             case ScalarType_OperationScalarAndUInt8: {
                     auto op = static_cast<const DOperationScalarAndUInt8*>(s);
-                    ret = operation(op->operation, evaluateScalar(op->value1), op->value2);
+                    ret = operation(op->operation, evaluateScalar(op->parameter1), op->parameter2);
                 }
                 break;
             case ScalarType_OperationScalarAndUInt16: {
                     auto op = static_cast<const DOperationScalarAndUInt16*>(s);
-                    ret = operation(op->operation, evaluateScalar(op->value1), op->value2);
+                    ret = operation(op->operation, evaluateScalar(op->parameter1), op->parameter2);
                 }
                 break;
             case ScalarType_OperationUInt8AndScalar: {
                     auto op = static_cast<const DOperationUInt8AndScalar*>(s);
-                    ret = operation(op->operation, op->value1, evaluateScalar(op->value2));
+                    ret = operation(op->operation, op->parameter1, evaluateScalar(op->parameter2));
                 }
                 break;
             case ScalarType_OperationUInt16AndScalar: {
                     auto op = static_cast<const DOperationUInt16AndScalar*>(s);
-                    ret = operation(op->operation, op->value1, evaluateScalar(op->value2));
+                    ret = operation(op->operation, op->parameter1, evaluateScalar(op->parameter2));
                 }
                 break;
             case ScalarType_OperationTwoScalars: {
                     auto op = static_cast<const DOperationTwoScalars*>(s);
-                    ret = operation(op->operation, evaluateScalar(op->value1), evaluateScalar(op->value2));
+                    ret = operation(op->operation, evaluateScalar(op->parameter1), evaluateScalar(op->parameter2));
                 }
                 break;
             default:
@@ -93,34 +93,28 @@ namespace Animations
         return ret;
     }
 
-    uint32_t AnimationContext::evaluateColor(DColorPtr color) const {
-        // Check if this is an overriden scalar
-        auto copy = color;
+    void AnimationContext::evaluateScalarVector(DScalarVectorPtr scalarVector, uint16_t retScalars[]) const {
+        // Check if this is an overriden vector
+        auto copy = scalarVector;
         auto buf = getParameterBuffer(copy);
-        auto c = copy.get(buf);
+        auto sv = copy.get(buf);
 
-        uint32_t ret = 0;
-        switch (c->type) {
-            case ColorType_Palette: {
-                    auto cp = static_cast<const DColorPalette*>(c);
-                    ret = Rainbow::palette(cp->index);
-                }
-                break;
-            case ColorType_RGB: {
-                    auto crgb = static_cast<const DColorRGB*>(c);
-                    ret = Utils::toColor(crgb->rValue, crgb->gValue, crgb->bValue);
-                }
-                break;
-            case ColorType_Lookup: {
-                    auto cl = static_cast<const DColorLookup*>(c);
-                    ret = evaluateColorCurve(cl->lookupCurve, evaluateScalar(cl->parameter));
+        switch (sv->type) {
+            case ScalarVectorType_Repeated: {
+                    auto svr = static_cast<const DScalarVectorRepeated*>(sv);
+                    const auto value = evaluateScalar(svr->value);
+                    for (int i = 0; i < MAX_COUNT; ++i) {
+                        retScalars[i] = value;
+                    }
                 }
                 break;
             default:
-                NRF_LOG_ERROR("Bad color type %d", c->type);
+                for (int i = 0; i < MAX_COUNT; ++i) {
+                    retScalars[i] = 0;
+                }
+                NRF_LOG_ERROR("Bad scalar vector type", sv->type);
                 break;
         }
-        return ret;
     }
 
     uint16_t AnimationContext::evaluateCurve(CurvePtr curve, uint16_t param) const {
@@ -161,6 +155,71 @@ namespace Animations
                 NRF_LOG_ERROR("Bad curve type", c->type);
         }
         return ret;
+    }
+
+    uint32_t AnimationContext::evaluateColor(DColorPtr color) const {
+        // Check if this is an overriden scalar
+        auto copy = color;
+        auto buf = getParameterBuffer(copy);
+        auto c = copy.get(buf);
+
+        uint32_t ret = 0;
+        switch (c->type) {
+            case ColorType_Palette: {
+                    auto cp = static_cast<const DColorPalette*>(c);
+                    ret = Rainbow::palette(cp->index);
+                }
+                break;
+            case ColorType_RGB: {
+                    auto crgb = static_cast<const DColorRGB*>(c);
+                    ret = Utils::toColor(crgb->rValue, crgb->gValue, crgb->bValue);
+                }
+                break;
+            case ColorType_Lookup: {
+                    auto cl = static_cast<const DColorLookup*>(c);
+                    ret = evaluateColorCurve(cl->lookupCurve, evaluateScalar(cl->parameter));
+                }
+                break;
+            default:
+                NRF_LOG_ERROR("Bad color type %d", c->type);
+                break;
+        }
+        return ret;
+    }
+
+    void AnimationContext::evaluateColorVector(DColorVectorPtr colorVector, uint32_t retColors[]) const {
+        // Check if this is an overriden vector
+        auto copy = colorVector;
+        auto buf = getParameterBuffer(copy);
+        auto cv = copy.get(buf);
+
+        switch (cv->type) {
+            case ColorVectorType_Repeated: {
+                    auto cvr = static_cast<const DColorVectorRepeated*>(cv);
+                    const auto color = evaluateColor(cvr->color);
+                    for (int i = 0; i < MAX_COUNT; ++i) {
+                        retColors[i] = color;
+                    }
+                }
+                break;
+            case ColorVectorType_Mixer: {
+                    auto cvm = static_cast<const DColorVectorMixer*>(cv);
+                    uint32_t colors[MAX_COUNT];
+                    evaluateColorVector(cvm->colors, colors);
+                    uint16_t intensities[MAX_COUNT];
+                    evaluateScalarVector(cvm->intensities, intensities);
+                    for (int i = 0; i < MAX_COUNT; ++i) {
+                        retColors[i] = Utils::modulateColor(colors[i], intensities[i] / 256);
+                    }
+                }
+                break;
+            default:
+                for (int i = 0; i < MAX_COUNT; ++i) {
+                    retColors[i] = 0;
+                }
+                NRF_LOG_ERROR("Bad color vector type", cv->type);
+                break;
+        }
     }
 
     uint32_t AnimationContext::evaluateColorCurve(ColorCurvePtr colorCurve, uint16_t param) const {
@@ -209,12 +268,6 @@ namespace Animations
             break;
         case GlobalName_NormalizedAnimationTime:
             ret = globals->normalizedAnimationTime;
-            break;
-        case GlobalName_AnimatedLED:
-            ret = globals->animatedLED;
-            break;
-        case GlobalName_NormalizedAnimatedLED:
-            ret = globals->normalizedAnimatedLED;
             break;
         default:
             NRF_LOG_ERROR("Bad global name %d", name);

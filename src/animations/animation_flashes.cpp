@@ -1,6 +1,7 @@
 #include "animation_flashes.h"
 #include "animation_context.h"
 #include "utils/utils.h"
+#include "settings.h"
 
 namespace Animations
 {
@@ -9,12 +10,6 @@ namespace Animations
     /// </summary>
     void AnimationFlashesInstance::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
         AnimationInstance::start(_startTime, _remapFace, _loopCount);
-
-        // If applicable, capture the color once
-        auto preset = getPreset();
-        if ((preset->colorFlags & (uint8_t)AnimationFlashesFlags_CaptureColor) != 0) {
-            capturedColor = context->evaluateColor(preset->color);
-        }
     }
 
     /// <summary>
@@ -28,25 +23,15 @@ namespace Animations
         const auto ledCount = context->globals->ledCount;
         auto preset = getPreset();
 
+        uint32_t colors[MAX_COUNT];
+        context->evaluateColorVector(preset->colors, colors);
+
         int retCount = 0;
         for (int i = 0; i < ledCount; ++i) {
-            // TODO !!
-            ((AnimationContextGlobals*)context->globals)->animatedLED = i;
-            ((AnimationContextGlobals*)context->globals)->normalizedAnimatedLED = i * 0xFFFF / ledCount;
-            const uint32_t intensity = context->evaluateScalar(preset->intensity);
-
-            if (intensity > 0) {
-                // Compute color
-                const uint32_t color =
-                    ((preset->colorFlags & (uint8_t)AnimationFlashesFlags_CaptureColor) != 0) ?
-                    capturedColor :
-                    context->evaluateColor(preset->color);
-
-                // Set LED color
-                retIndices[retCount] = i;
-                retColors[retCount] = Utils::modulateColor(color, intensity / 256);
-                retCount++;
-            }
+            // Set LED color
+            retIndices[retCount] = i;
+            retColors[retCount] = colors[i];
+            retCount++;
         }
 
         return retCount;
@@ -55,5 +40,4 @@ namespace Animations
     const AnimationFlashes* AnimationFlashesInstance::getPreset() const {
         return static_cast<const AnimationFlashes*>(animationPreset);
     }
-
 }
