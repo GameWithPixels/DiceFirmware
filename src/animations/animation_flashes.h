@@ -19,10 +19,9 @@ namespace Animations
     struct AnimationFlashes
         : public Animation
     {
-        uint8_t colorFlags;
         DColorPtr color;
-        uint8_t count;
-        uint8_t fade;
+        DScalarPtr intensity;
+        uint8_t colorFlags;
     };
 
     /// <summary>

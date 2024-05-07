@@ -7,7 +7,6 @@ namespace DriversNRF
     namespace Watchdog
     {
         void init();
-        void initClearResetFlagTimer();
         void feed();
         void selfTest();
     }

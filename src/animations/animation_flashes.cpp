@@ -28,11 +28,6 @@ namespace Animations
         const auto ledCount = context->globals->ledCount;
         auto preset = getPreset();
 
-        const int period = preset->duration / preset->count;
-        const int fadeTime = period * preset->fade / (255 * 2);
-        const int onOffTime = (period - fadeTime * 2) / 2;
-        const int time = (ms - startTime) % period;
-
         int retCount = 0;
         for (int i = 0; i < ledCount; ++i) {
             if ((preset->faceMask & (1 << i)) != 0) {
@@ -40,35 +35,21 @@ namespace Animations
                 ((AnimationContextGlobals*)context->globals)->animatedLED = i;
 
                 // Compute color
-                const uint32_t presetColor =
+                const uint32_t color =
                     ((preset->colorFlags & (uint8_t)AnimationFlashesFlags_CaptureColor) != 0) ?
                     capturedColor :
                     context->evaluateColor(preset->color);
 
-                // Fade in & out
-                const uint32_t black = 0;
-                uint32_t color = 0;
-                if (time <= fadeTime) {
-                    // Ramp up
-                    color = Utils::interpolateColors(black, 0, presetColor, fadeTime, time);
-                } else if (time <= fadeTime + onOffTime) {
-                    color = presetColor;
-                } else if (time <= fadeTime * 2 + onOffTime) {
-                    // Ramp down
-                    color = Utils::interpolateColors(presetColor, fadeTime + onOffTime, black, fadeTime * 2 + onOffTime, time);
-                } else {
-                    color = black;
-                }
-                color = presetColor;
-
-                // Scale color intensity
-                color = Utils::scaleColor(color, preset->intensity * 1000 / 255);
+                // Compute intensity
+                const uint32_t intensity = context->evaluateScalar(preset->intensity);
 
                 // Set LED color
-                retColors[retCount] = color;
+                retIndices[retCount] = i;
+                retColors[retCount] = Utils::modulateColor(color, intensity / 256);
                 retCount++;
             }
         }
+
         return retCount;
     }
 

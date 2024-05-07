@@ -28,21 +28,14 @@ namespace Animations
         ScalarType_Global,
         ScalarType_Lookup,
 
-        ScalarType_OperationScalar = 0x10,
+        ScalarType_OperationUInt8 = 0x10,
+        ScalarType_OperationUInt16,
+        ScalarType_OperationScalar,
         ScalarType_OperationScalarAndUInt8,
         ScalarType_OperationScalarAndUInt16,
         ScalarType_OperationUInt8AndScalar,
         ScalarType_OperationUInt16AndScalar,
         ScalarType_OperationTwoScalars,
-    };
-
-    // Color types
-    enum ColorType : uint8_t
-    {
-        ColorType_Unknown = 0,
-        ColorType_Palette,  // uses the global palette
-        ColorType_RGB,      // stores actual rgb values
-        ColorType_Lookup,   // uses a scalar to lookup the color in a curve
     };
 
     // The most basic animation elements are scalars and colors
@@ -93,8 +86,8 @@ namespace Animations
 
     struct DScalarLookup : public DScalar
     {
-        Profile::Pointer<Curve> lookupCurve;
-        Profile::Pointer<DScalar> parameter;
+        DScalarPtr parameter;
+        CurvePtr lookupCurve;
     };
     // size: 5 bytes
 
@@ -108,16 +101,30 @@ namespace Animations
         OperationOneOperand_Acos,
         OperationOneOperand_Sqr,
         OperationOneOperand_Sqrt,
+        OperationOneOperand_LoopTime,
         // Pow, Log, Floor, Ceil, Round, Trunc, Frac, Neg, Inv, Sign, SignNonZero,
     };
+
+    struct DOperationUInt8 : public DScalar
+    {
+        OperationOneOperand operation;
+        uint8_t value;
+    };
+    // size: 3 bytes
+
+    struct DOperationUInt16 : public DScalar
+    {
+        OperationOneOperand operation;
+        uint16_t value;
+    };
+    // size: 4 bytes
 
     struct DOperationScalar : public DScalar
     {
         OperationOneOperand operation;
-        DScalarPtr operand;
+        DScalarPtr value;
     };
     // size: 4 bytes
-
 
     enum OperationTwoOperands : uint8_t
     {
@@ -126,6 +133,9 @@ namespace Animations
         OperationTwoOperands_Sub,
         OperationTwoOperands_Mul,
         OperationTwoOperands_Div,
+        OperationTwoOperands_FMul,
+        OperationTwoOperands_FIMul,
+        OperationTwoOperands_FDiv,
         OperationTwoOperands_Mod,
         OperationTwoOperands_Min,
         OperationTwoOperands_Max,
@@ -140,35 +150,35 @@ namespace Animations
 
     struct DOperationScalarAndUInt8 : public DOperationTwoOperands
     {
-        DScalarPtr operand1;
-        uint8_t operand2;
+        DScalarPtr value1;
+        uint8_t value2;
     };
     // size: 5 bytes
 
     struct DOperationScalarAndUInt16 : public DOperationTwoOperands
     {
-        DScalarPtr operand1;
-        uint16_t operand2;
+        DScalarPtr value1;
+        uint16_t value2;
     };
     // size: 6 bytes
 
     struct DOperationUInt8AndScalar : public DOperationTwoOperands
     {
-        uint8_t operand1;
-        DScalarPtr operand2;
+        uint8_t value1;
+        DScalarPtr value2;
     };
     // size: 5 bytes
 
     struct DOperationUInt16AndScalar : public DOperationTwoOperands
     {
-        uint16_t operand1;
-        DScalarPtr operand2;
+        uint16_t value1;
+        DScalarPtr value2;
     };
 
     struct DOperationTwoScalars : public DOperationTwoOperands
     {
-        DScalarPtr operand1;
-        DScalarPtr operand2;
+        DScalarPtr value1;
+        DScalarPtr value2;
     };
     // size: 8 bytes
 
@@ -178,8 +188,8 @@ namespace Animations
         CurveType_Unknown = 0,
         CurveType_TwoUInt8,   // simple interpolation between two 8 bit values
         CurveType_TwoUInt16,        // simple interpolation between two 16 bit values
-        CurveType_TrapezeUInt8,     // trapeze shaped interpolation from 0 to a given value and back to 0
-        CurveType_TrapezeUInt16,    // trapeze shaped interpolation from 0 to a given value and back to 0
+        CurveType_TrapezeUInt8,     // trapeze shaped interpolation from 0 to a 1 and back to 0
+        CurveType_TrapezeUInt16,    // trapeze shaped interpolation from 0 to a 1 and back to 0
         CurveType_UInt16Keyframes,
     };
 
@@ -207,7 +217,6 @@ namespace Animations
 
     struct CurveTrapezeUInt8 : public Curve
     {
-        uint8_t value;
         uint8_t rampUpScale;
         uint8_t rampDownScale;
         Utils::EasingType rampUpEasing;
@@ -217,9 +226,8 @@ namespace Animations
 
     struct CurveTrapezeUInt16 : public Curve
     {
-        uint16_t value;
-        uint8_t rampUpScale;
-        uint8_t rampDownScale;
+        uint16_t rampUpScale;
+        uint16_t rampDownScale;
         Utils::EasingType rampUpEasing;
         Utils::EasingType rampDownEasing;
     };
@@ -233,6 +241,15 @@ namespace Animations
             uint16_t value;
         };
         Profile::Array<Keyframe> keyframes;
+    };
+
+    // Color types
+    enum ColorType : uint8_t
+    {
+        ColorType_Unknown = 0,
+        ColorType_Palette,  // uses the global palette
+        ColorType_RGB,      // stores actual rgb values
+        ColorType_Lookup,   // uses a scalar to lookup the color in a curve
     };
 
     // Base color struct
@@ -257,8 +274,8 @@ namespace Animations
 
     struct DColorLookup : public DColor
     {
-        Profile::Pointer<ColorCurve> lookupCurve;
-        Profile::Pointer<DScalar> parameter;
+        DScalarPtr parameter;
+        ColorCurvePtr lookupCurve;
     };
     // size: 5 bytes
 
@@ -283,8 +300,8 @@ namespace Animations
 
     struct ColorCurveTwoColors : public ColorCurve
     {
-        Profile::Pointer<DColor> start;
-        Profile::Pointer<DColor> end;
+        DColorPtr start;
+        DColorPtr end;
         Utils::EasingType easing;
     };
     // size: 6 bytes

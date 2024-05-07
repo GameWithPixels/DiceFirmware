@@ -174,7 +174,6 @@ namespace Modules::AnimController
                     } else {
                         // Compute electrical indices from face indices
                         for (int j = 0; j < animTrackCount; ++j) {
-                            //colors[j] = Utils::gamma(colors[j]);
                             ledIndices[j] = DiceVariants::animIndexToLEDIndex(canonIndices[j], anim->remapFace);
                         }
                     }

@@ -28,8 +28,8 @@ namespace Animations
         blinkAnim.type = AnimationType_Flashes;
         blinkAnim.duration = durationMs;
         blinkAnim.faceMask = faceMask;
-        blinkAnim.count = flashCount;
-        blinkAnim.fade = fade;
+        // blinkAnim.count = flashCount;
+        // blinkAnim.fade = fade;
         blinkAnim.color = cptr;
 
         Modules::AnimController::stop(&blinkAnim);
