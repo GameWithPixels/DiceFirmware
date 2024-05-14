@@ -108,7 +108,7 @@ namespace Modules::Accelerometer
     int determineFace(int3 acc, int16_t *outConfidence)
     {
         // Compare against face normals stored in board manager
-        int faceCount = DiceVariants::getLayout()->faceCount;
+        int faceCount = SettingsManager::getLayout()->faceCount;
         auto settings = SettingsManager::getSettings();
         auto &normals = settings->faceNormals;
         int accMagTimes1000 = acc.magnitudeTimes1000();
@@ -200,7 +200,8 @@ namespace Modules::Accelerometer
                     // Just slid the dice around?
                     if (stopMoving)
                     {
-                        if (BoardManager::getBoard()->ledCount == 6)
+                        if (SettingsManager::getLayoutType() == DiceVariants::DieLayoutType::DieLayoutType_D6_FD6 ||
+                            SettingsManager::getLayoutType() == DiceVariants::DieLayoutType::DieLayoutType_D4)
                         {
                             // We may be at rest
                             if (onFace)
@@ -225,7 +226,8 @@ namespace Modules::Accelerometer
             // If we stop moving we may be on a face
             if (stopMoving)
             {
-                if (BoardManager::getBoard()->ledCount == 6)
+                if (SettingsManager::getLayoutType() == DiceVariants::DieLayoutType::DieLayoutType_D6_FD6 ||
+                    SettingsManager::getLayoutType() == DiceVariants::DieLayoutType::DieLayoutType_D4)
                 {
                     // We may be at rest
                     if (onFace)
@@ -524,17 +526,17 @@ namespace Modules::Accelerometer
                                 readAccelerometer(&measuredNormals->face10);
 
                                 // From the 3 measured normals we can calibrate the accelerometer
-                                auto b = BoardManager::getBoard();
+                                auto l = SettingsManager::getLayout();
 
-                                int3 newNormals[b->ledCount];
+                                int3 newNormals[l->faceCount];
                                 measuredNormals->confidenceTimes1000 = Utils::CalibrateNormals(
                                     0, measuredNormals->face1,
                                     4, measuredNormals->face5,
                                     9, measuredNormals->face10,
-                                    newNormals, b->ledCount);
+                                    newNormals, l->faceCount);
 
                                 // And flash the new normals
-                                SettingsManager::programCalibrationData(newNormals, b->ledCount, [] (bool result) {
+                                SettingsManager::programCalibrationData(newNormals, l->faceCount, [] (bool result) {
 
                                     // Notify user that we're done, yay!!!
                                     // char text[256] = "";
@@ -567,7 +569,8 @@ namespace Modules::Accelerometer
         uint8_t face = faceMsg->face;
 
         // Copy current calibration data
-        int normalCount = BoardManager::getBoard()->ledCount;
+        auto l = SettingsManager::getLayout();
+        int normalCount = l->faceCount;
         int3 calibratedNormalsCopy[normalCount];
         memcpy(calibratedNormalsCopy, SettingsManager::getSettings()->faceNormals, normalCount * sizeof(int3));
 

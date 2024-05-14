@@ -102,6 +102,14 @@ namespace Config::SettingsManager
         return colorWayFromStore != -1 ? (DiceVariants::Colorway)colorWayFromStore : SettingsManager::getSettings()->colorway;
     }
 
+    DiceVariants::DieLayoutType getLayoutType() {
+        return DiceVariants::getLayoutType(getDieType());
+    }
+
+    const DiceVariants::Layout* getLayout() {
+        return DiceVariants::getLayout(getLayoutType());
+    }
+
     void ProgramDefaultParametersHandler(const Message* msg) {
         programDefaultParameters([] (bool result) {
             // Ignore result for now
@@ -151,9 +159,10 @@ namespace Config::SettingsManager
 
     void setDefaultCalibrationData(Settings& outSettings) {
         // Copy normals from defaults
-        auto layout = DiceVariants::getLayout();
+        auto dieType = DiceVariants::estimateDieTypeFromBoard();
+        auto layout = DiceVariants::getLayout(DiceVariants::getLayoutType(dieType));
         int ledCount = layout->ledCount;
-        const Core::int3* defaultNormals = layout->baseNormals;
+        const Core::int3* defaultNormals = layout->faceNormals;
         for (int i = 0; i < ledCount; ++i) {
             outSettings.faceNormals[i] = defaultNormals[i];
         }

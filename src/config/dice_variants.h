@@ -31,26 +31,49 @@ namespace Config::DiceVariants
         Colorway_Custom = 0xFF,
     };
 
+    enum DieLayoutType : uint8_t
+    {
+        DieLayoutType_Unknown = 0,
+        DieLayoutType_D4,
+        DieLayoutType_D6_FD6,
+        DieLayoutType_D8,
+        DieLayoutType_D10_D00,
+        DieLayoutType_D12,
+        DieLayoutType_D20,
+        DieLayoutType_PD6,
+    };
+
     struct Layout
     {
-        const Core::int3* baseNormals;
-        const uint8_t* canonicalIndexFaceToFaceRemapLookup;     // This remaps LED indices to remap faces when re-targeting the "up" face
-                                                                // So if an animation pattern was authored with the 20 face up, we can
-                                                                // remap the LEDs to play the animation with any face being up.
-        const uint8_t* canonicalIndexToElectricalIndexLookup;   // Because LEDs are organized in a daisy chain, but that daisy chain
-                                                                // doesn't necessarily follow the order of the faces, we need to be able
-                                                                // to remap from canonical (i.e. face) index to electrical (i.e. LED) index.
-        const uint32_t* adjacencyMap;                           // Bitfield indicating which faces are adjacent to the current face
+        DieLayoutType layoutType;
         uint8_t faceCount; // Face count isn't always equal to LED count (i.e. PD6, D4)
         uint8_t ledCount;
         uint8_t adjacencyCount; // How many faces each face is adjacent to
+
+        const Core::int3* faceNormals;
+        const Core::int3* ledNormals;
+        const uint8_t* canonicalIndexFaceToFaceRemapLookup;     // This remaps LED indices to new LED Indices for a given up-face.
+                                                                // So if an animation pattern was authored with the 20 face up (the canonical way),
+                                                                // we can remap the LEDs to play the animation with any face being up so it looks the same.
+                                                                // This allows re-using animations across different orientations.
+        const uint8_t* daisyChainIndexFromLEDIndexLookup;             // Because LEDs are organized in a daisy chain (daisy chain), but that daisy chain
+                                                                // doesn't necessarily follow the natural order of the LEDs (typically matching
+                                                                // the face numbers), we need to be able to remap from LED Index (often matching
+                                                                // the face index) to daisy chain (daisy chain) index.
+        const uint32_t* adjacencyMap;                           // Bitfield indicating which faces are adjacent to the current face
+
+        int faceIndexFromLEDIndex(int ledIndex) const;
+        void ledColorsFromFaceColors(uint32_t const faceColors[], uint32_t retLedColors[]) const;
+        int animIndexFromLEDIndex(int ledIndex, int remapFace) const;
+        int daisyChainIndexFromLEDIndex(int daisyChainIndex) const;
+
+        uint32_t getTopFaceMask() const;
+        uint8_t getTopFace() const;
+        uint8_t getAdjacentFaces(uint8_t face, uint8_t retFaces[]) const;
     };
 
-    const Layout* getLayout();
+    DieLayoutType getLayoutType(DieType dieType);
+    const Layout* getLayout(DieLayoutType layoutType);
+
     DieType estimateDieTypeFromBoard();
-    uint8_t animIndexToLEDIndex(int animFaceIndex, int remapFace);
-    uint32_t getTopFaceMask();
-    uint8_t getTopFace();
-    uint8_t getFaceForLEDIndex(int ledIndex);
-    uint8_t getAdjacentFaces(uint8_t face, uint8_t retFaces[]);
 }

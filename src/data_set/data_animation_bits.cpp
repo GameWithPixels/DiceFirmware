@@ -4,7 +4,8 @@
 #include "utils/utils.h"
 #include "utils/rainbow.h"
 #include "modules/accelerometer.h"
-#include "config/board_config.h"
+#include "config/settings.h"
+#include "config/dice_variants.h"
 
 using namespace Modules;
 using namespace Config;
@@ -14,7 +15,8 @@ namespace DataSet
     uint32_t AnimationBits::getPaletteColor(uint16_t colorIndex) const {
         if (colorIndex == PALETTE_COLOR_FROM_FACE) {
             // Color is based on the face
-            return Rainbow::faceWheel(Accelerometer::currentFace(), BoardManager::getBoard()->ledCount);
+            int ledCount = SettingsManager::getLayout()->ledCount;
+            return Rainbow::faceWheel(Accelerometer::currentFace(), ledCount);
         }
         else if (colorIndex == PALETTE_COLOR_FROM_RANDOM) {
             // Not implemented

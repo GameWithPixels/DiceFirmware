@@ -40,7 +40,16 @@ namespace Animations
     {
         AnimationFlags_None,
         AnimationFlags_Traveling = 1,     // Make the animation travel around the dice, only available for the Rainbow animation
-        AnimationFlags_UseLedIndices = 2, // Play animation is using LED indices, not face indices
+    };
+
+    /// <summary>
+    /// Defines the type of index returned by the animation
+    /// </summary>
+    enum AnimationIndexType : uint8_t
+    {
+        AnimationIndexType_Face       = 0,    // Animation indices refer to face indices
+        AnimationIndexType_Led        = 1,    // Animation indices refer to led indices, which for most dice (except PD6) are the same as face indices
+        AnimationIndexType_DaisyChain = 2,    // Animation indices refer to daisy chain indices, which are the indices of the LEDs in the daisy chain
     };
 
     /// <summary>
@@ -50,6 +59,7 @@ namespace Animations
     struct Animation
     {
         AnimationType type;
+        AnimationIndexType indexType;
         uint8_t animFlags; // Combination of AnimationFlags
         uint16_t duration; // in ms
     };

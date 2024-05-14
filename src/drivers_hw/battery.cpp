@@ -1,7 +1,6 @@
 #include "battery.h"
 #include "nrf_assert.h"
 #include "nrf_log.h"
-#include "board_config.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 #include "nrf_saadc.h"
@@ -17,6 +16,10 @@
 #include "drivers_nrf/scheduler.h"
 #include "core/delegate_array.h"
 #include "modules/validation_manager.h"
+
+#include "config/settings.h"
+#include "config/board_config.h"
+#include "config/dice_variants.h"
 
 using namespace DriversNRF;
 using namespace Config;

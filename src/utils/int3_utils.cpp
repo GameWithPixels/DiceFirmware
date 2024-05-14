@@ -1,8 +1,8 @@
 #include "core/int3.h"
 #include "core/matrixint3x3.h"
 #include "int3_utils.h"
-#include "config/board_config.h"
 #include "config/dice_variants.h"
+#include "config/settings.h"
 
 using namespace Core;
 using namespace Config;
@@ -31,8 +31,8 @@ namespace Utils
         int3* outNormals, int faceCount) {
 
         // Figure out the rotation that transforms canonical normals into accelerometer reference frame
-        auto l = DiceVariants::getLayout();
-        auto& canonNormals = l->baseNormals;
+        auto l = SettingsManager::getLayout();
+        auto& canonNormals = l->faceNormals;
 
         // int closestCanonNormal1 = findClosestNormal(canonNormals, count, face1Normal);
         // int closestCanonNormal2 = findClosestNormal(canonNormals, count, face2Normal);

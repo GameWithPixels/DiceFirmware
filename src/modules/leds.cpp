@@ -32,7 +32,7 @@ namespace Modules::LEDs
     static uint8_t powerPin;
     static uint8_t numLed = 0;
     static bool powerOn = false;
-    static uint32_t pixels[MAX_COUNT];
+    static uint32_t daisyChain[MAX_COUNT];
 
     void show();
 
@@ -60,7 +60,7 @@ namespace Modules::LEDs
         nrf_gpio_cfg_default(board->ledReturnPin);
 
         // Initialize our color array
-        memset(pixels, 0, MAX_COUNT * sizeof(uint32_t));
+        memset(daisyChain, 0, MAX_COUNT * sizeof(uint32_t));
         numLed = board->ledCount;
 
         if (BatteryController::getState() != BatteryController::State_Empty &&
@@ -124,36 +124,36 @@ namespace Modules::LEDs
     }
 
     void clear() {
-        memset(pixels, 0, MAX_COUNT * sizeof(uint32_t));
+        memset(daisyChain, 0, MAX_COUNT * sizeof(uint32_t));
         show();
     }
 
-    void setPixelColor(uint16_t n, uint32_t c) {
-        if (n < numLed) {
-            pixels[n] = c;
+    void setPixelColor(uint16_t daisyChainIndex, uint32_t c) {
+        if (daisyChainIndex < numLed) {
+            daisyChain[daisyChainIndex] = c;
             show();
         }
     }
 
     void setAll(uint32_t c) {
         for (int i = 0; i < numLed; ++i) {
-            pixels[i] = c;
+            daisyChain[i] = c;
         }
         show();
     }
 
-    void setPixelColors(int* indices, uint32_t* colors, int count) {
+    void setPixelColors(int* ropeIndices, uint32_t* colors, int count) {
         for (int i = 0; i < count; ++i) {
-            int n = indices[i];
+            int n = ropeIndices[i];
             if (n < numLed) {
-                pixels[n] = colors[i];
+                daisyChain[n] = colors[i];
             }
         }
         show();
     }
 
     void setPixelColors(uint32_t* colors) {
-        memcpy(pixels, colors, numLed * sizeof(uint32_t));
+        memcpy(daisyChain, colors, numLed * sizeof(uint32_t));
         show();
     }
 
@@ -172,7 +172,7 @@ namespace Modules::LEDs
 
     bool isPixelDataZero() {
         for (int i = 0; i < numLed; ++i) {
-            if (pixels[i] != 0) {
+            if (daisyChain[i] != 0) {
                 return false;
             }
         }
@@ -181,7 +181,7 @@ namespace Modules::LEDs
 
     void clampColors() {
         for (int i = 0; i < numLed; ++i) {
-            uint32_t color = pixels[i];
+            uint32_t color = daisyChain[i];
             // Clamp intensity
             uint8_t r = Utils::getRed(color);
             uint8_t g = Utils::getGreen(color);
@@ -189,7 +189,7 @@ namespace Modules::LEDs
             r = (r + LOW_BATT_LED_INTENSITY_DIVISOR - 1) / LOW_BATT_LED_INTENSITY_DIVISOR;
             g = (g + LOW_BATT_LED_INTENSITY_DIVISOR - 1) / LOW_BATT_LED_INTENSITY_DIVISOR;
             b = (b + LOW_BATT_LED_INTENSITY_DIVISOR - 1) / LOW_BATT_LED_INTENSITY_DIVISOR;
-            pixels[i] = Utils::toColor(r,g,b);
+            daisyChain[i] = Utils::toColor(r,g,b);
         }
     }
 
@@ -207,7 +207,7 @@ namespace Modules::LEDs
                         BatteryController::getState() == BatteryController::State_ChargingLow) {
                         clampColors();
                     }
-                    NeoPixel::show(pixels);
+                    NeoPixel::show(daisyChain);
                 }, nullptr);
             }
         }
@@ -259,7 +259,7 @@ namespace Modules::LEDs
         uint32_t nanoAmps = 0; // We don't have anywhere near this precision, it just makes fixed-point computations easier
         int ledOnCount = 0;
         for (int i = 0; i < numLed; ++i) {
-            uint32_t color = pixels[i];
+            uint32_t color = daisyChain[i];
             if (color != 0) {
                 ledOnCount++;
                 // Clamp intensity

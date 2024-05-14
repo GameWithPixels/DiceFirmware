@@ -5,7 +5,6 @@
 #include "drivers_nrf/flash.h"
 #include "utils/utils.h"
 #include "utils/rainbow.h"
-#include "config/board_config.h"
 #include "config/settings.h"
 #include "data_set/data_set.h"
 #include "app_error.h"
@@ -85,8 +84,7 @@ namespace Modules::AnimController
     /// <param name="ms">Current global time in milliseconds</param>
     void update(int ms)
     {
-        auto b = BoardManager::getBoard();
-        int c = b->ledCount;
+        auto l = SettingsManager::getLayout();
 
         if (animationCount > 0) {
             // Notify clients for feeding or not feeding PowerManager
@@ -96,11 +94,9 @@ namespace Modules::AnimController
                 }
             });
 
-            // clear the global color array
-            uint32_t allColors[MAX_COUNT];
-            for (int j = 0; j < c; ++j) {
-                allColors[j] = 0;
-            }
+            // Current animations will write their color into this array
+            uint32_t allDaisyChainColors[MAX_COUNT];
+            memset(allDaisyChainColors, 0, sizeof(uint32_t) * l->ledCount);
 
             for (int i = 0; i < animationCount; ++i) {
                 auto anim = animations[i];
@@ -138,48 +134,72 @@ namespace Modules::AnimController
                 }
                 else
                 {
-                    int canonIndices[MAX_COUNT * 4]; // Allow up to 4 tracks to target the same LED
-                    int ledIndices[MAX_COUNT * 4];
-                    uint32_t colors[MAX_COUNT * 4];
+                    // Collect color values from the animations
+                    // Allow for more indices than leds in case animations try to drive the same leds multiple times.
+                    // It doesn't really make sense but it's not a problem.
+                    int indices[MAX_COUNT * 2];
+                    uint32_t colors[MAX_COUNT * 2];
+                    int animTrackCount = anim->updateLEDs(ms, indices, colors);
 
-                    // Update the leds
-                    int animTrackCount = anim->updateLEDs(ms, canonIndices, colors);
+                    uint32_t daisyChainColors[MAX_COUNT];
+                    if (anim->animationPreset->indexType == AnimationIndexType_Face ||
+                        anim->animationPreset->indexType == AnimationIndexType_Led) {
+                        // Put the colors returned by the animation in an array so remapping is easier
+                        uint32_t ledColorBuffer[MAX_COUNT];
+                        if (anim->animationPreset->indexType == AnimationIndexType_Face) {
+                            // Put the colors in the buffer at the face index
+                            uint32_t faceColorBuffer[MAX_COUNT];
+                            memset(faceColorBuffer, 0, sizeof(uint32_t) * l->faceCount);
+                            for (int j = 0; j < animTrackCount; ++j) {
+                                faceColorBuffer[indices[j]] = colors[j];
+                            }
+                            // Remap from faceIndex to ledIndex
+                            // Often times this does nothing special
+                            l->ledColorsFromFaceColors(faceColorBuffer, ledColorBuffer);
+                        } else {
+                            // indexType is AnimationIndexType_Led
+                            // Anim returns colors in led Index, great!
+                            memset(ledColorBuffer, 0, sizeof(uint32_t) * l->ledCount);
+                            for (int j = 0; j < animTrackCount; ++j) {
+                                ledColorBuffer[indices[j]] = colors[j];
+                            }
+                        }
 
-                    // Gamma correct and map face index to led index
-                    //NRF_LOG_INFO("track_count = %d", animTrackCount);
-                    if (anim->animationPreset->animFlags & AnimationFlags_UseLedIndices) {
-                        // animation is working with led indices, not face indices
-                        memcpy(ledIndices, canonIndices, animTrackCount * sizeof(int));
+                        // Perform led remapping based on current face
+                        for (int j = 0; j < l->ledCount; ++j) {
+                            // The lookup table tells us which (canonical) led index to use for the current led given the remap face passed in.
+                            // The daisy chain lookup table tells us what daisy chain index to use for a given ledIndex
+                            // We use both those lookup tables to remap directly from animation led index to daisy chain index given the face remapping.
+                            daisyChainColors[l->daisyChainIndexFromLEDIndex(j)] = ledColorBuffer[l->animIndexFromLEDIndex(j, anim->remapFace)];
+                        }
                     } else {
-                        // Compute electrical indices from face indices
+                        // indexType is AnimationIndexType_DaisyChain
+                        // Anim returns colors in daisy chain Index, even easier!
+                        memset(daisyChainColors, 0, sizeof(uint32_t) * l->ledCount);
                         for (int j = 0; j < animTrackCount; ++j) {
-                            //colors[j] = Utils::gamma(colors[j]);
-                            ledIndices[j] = DiceVariants::animIndexToLEDIndex(canonIndices[j], anim->remapFace);
+                            daisyChainColors[indices[j]] = colors[j];
                         }
                     }
 
-                    // Update color array
-                    for (int j = 0; j < animTrackCount; ++j) {
-
-                        // Fade out all leds if necessary
-                        auto color = colors[j];
+                    // Blend with any other color already written to the led (and fade if necessary)
+                    for (int j = 0; j < l->ledCount; ++j) {
+                        auto color = daisyChainColors[j];
                         if (fade) {
                             color = Utils::scaleColor(color, fadePercentTimes1000);
                         }
-                        
-                        // Combine colors if necessary
-                        //NRF_LOG_INFO("index: %d -> %08x", ledIndices[j], colors[j]);
-                        allColors[ledIndices[j]] = Utils::addColors(allColors[ledIndices[j]], color);
+                        allDaisyChainColors[j] = Utils::addColors(allDaisyChainColors[j], color);
                     }
                 }
             }
             
-            // And light up!
+            // Apply global brightness (do it here, i.e. once per update)
             uint8_t brightness = DataSet::getBrightness();
-            for (int j = 0; j < c; ++j) {
-                allColors[j] = Utils::modulateColor(allColors[j], brightness);
+            for (int j = 0; j < l->ledCount; ++j) {
+                allDaisyChainColors[j] = Utils::modulateColor(allDaisyChainColors[j], brightness);
             }
-            LEDs::setPixelColors(allColors);
+
+            // Send the colors over!
+            LEDs::setPixelColors(allDaisyChainColors);
         }
     }
 
@@ -311,17 +331,6 @@ namespace Modules::AnimController
     /// </summary>
     void stopAtIndex(int animIndex)
     {
-        // Found the animation, start by killing the leds it controls
-        int canonIndices[MAX_COUNT];
-        int ledIndices[MAX_COUNT];
-        uint32_t zeros[MAX_COUNT];
-        memset(zeros, 0, sizeof(uint32_t) * MAX_COUNT);
-        auto anim = animations[animIndex];
-        int ledCount = anim->stop(canonIndices);
-        for (int i = 0; i < ledCount; ++i) {
-            ledIndices[i] = DiceVariants::animIndexToLEDIndex(canonIndices[i], anim->remapFace);
-        }
-        LEDs::setPixelColors(ledIndices, zeros, ledCount);
     }
 
     /// <summary>
@@ -329,8 +338,6 @@ namespace Modules::AnimController
     /// </summary>
     void removeAtIndex(int animIndex)
     {
-        stopAtIndex(animIndex);
-
         // Shift the other animations
         for (; animIndex < animationCount - 1; ++animIndex)
         {

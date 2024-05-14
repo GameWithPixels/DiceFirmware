@@ -16,7 +16,8 @@
 #include "animation_normals.h"
 #include "animation_sequence.h"
 #include "animation_worm.h"
-#include "config/board_config.h"
+#include "config/settings.h"
+#include "config/dice_variants.h"
 
 
 // Define new and delete
@@ -65,8 +66,7 @@ namespace Animations
     }
 
     int AnimationInstance::setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]) {
-        auto b = BoardManager::getBoard();
-        int c = b->ledCount;
+        int c = SettingsManager::getLayout()->ledCount;
         int retCount = 0;
         for (int i = 0; i < c; ++i) {
             if ((faceMask & (1 << i)) != 0) {
@@ -79,8 +79,7 @@ namespace Animations
     }
 
     int AnimationInstance::setIndices(uint32_t faceMask, int retIndices[]) {
-        auto b = BoardManager::getBoard();
-        int c = b->ledCount;
+        int c = SettingsManager::getLayout()->ledCount;
         int retCount = 0;
         for (int i = 0; i < c; ++i) {
             if ((faceMask & (1 << i)) != 0) {

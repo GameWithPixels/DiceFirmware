@@ -65,6 +65,8 @@ namespace Config
 
         DiceVariants::DieType getDieType();
         DiceVariants::Colorway getColorway();
+        DiceVariants::DieLayoutType getLayoutType();
+        const DiceVariants::Layout* getLayout();
 
         void setDefaults(Settings& outSettings);
         void programDefaults(SettingsWrittenCallback callback);

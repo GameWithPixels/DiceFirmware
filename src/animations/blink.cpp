@@ -3,6 +3,7 @@
 #include "utils\Utils.h"
 #include "config/board_config.h"
 #include "config/dice_variants.h"
+#include "config/settings.h"
 
 namespace Animations
 {
@@ -31,7 +32,8 @@ namespace Animations
         blinkAnim.colorIndex = 0;
 
         Modules::AnimController::stop(&blinkAnim);
-        const auto remapFace = Config::DiceVariants::getTopFace();
+        auto layout = Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType());
+        const auto remapFace = layout->getTopFace();
         Modules::AnimController::play(&blinkAnim, &animBits, remapFace, loopCount, Animations::AnimationTag_BluetoothMessage);
     }
 }

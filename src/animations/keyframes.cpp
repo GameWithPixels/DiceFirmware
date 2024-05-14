@@ -1,7 +1,8 @@
 #include "keyframes.h"
 #include "assert.h"
 #include "../utils/utils.h"
-#include "config/board_config.h"
+#include "config/settings.h"
+#include "config/dice_variants.h"
 #include "data_set/data_animation_bits.h"
 
 using namespace Config;
@@ -52,7 +53,8 @@ namespace Animations
 
         // Fill the return arrays
         int currentCount = 0;
-        for (int i = 0; i < Config::BoardManager::getBoard()->ledCount; ++i) {
+        int ledCount = SettingsManager::getLayout()->ledCount;
+        for (int i = 0; i < ledCount; ++i) {
             if (ledMask & (1 << i)) {
                 retIndices[currentCount] = i;
                 retColors[currentCount] = color;
@@ -104,7 +106,8 @@ namespace Animations
     int RGBTrack::extractLEDIndices(int retIndices[]) const {
         // Fill the return arrays
         int currentCount = 0;
-        for (int i = 0; i < Config::BoardManager::getBoard()->ledCount; ++i) {
+        int ledCount = SettingsManager::getLayout()->ledCount;
+        for (int i = 0; i < ledCount; ++i) {
             if (ledMask & (1 << i)) {
                 retIndices[currentCount] = i;
                 currentCount++;
@@ -158,7 +161,8 @@ namespace Animations
 
         // Fill the return arrays
         int currentCount = 0;
-        for (int i = 0; i < Config::BoardManager::getBoard()->ledCount; ++i) {
+        int ledCount = SettingsManager::getLayout()->ledCount;
+        for (int i = 0; i < ledCount; ++i) {
             if (ledMask & (1 << i)) {
                 retIndices[currentCount] = i;
                 retColors[currentCount] = mcolor;
@@ -210,7 +214,8 @@ namespace Animations
     int Track::extractLEDIndices(int retIndices[]) const {
         // Fill the return arrays
         int currentCount = 0;
-        for (int i = 0; i < Config::BoardManager::getBoard()->ledCount; ++i) {
+        int ledCount = SettingsManager::getLayout()->ledCount;
+        for (int i = 0; i < ledCount; ++i) {
             if (ledMask & (1 << i)) {
                 retIndices[currentCount] = i;
                 currentCount++;

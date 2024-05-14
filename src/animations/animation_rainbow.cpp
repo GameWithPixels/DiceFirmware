@@ -1,6 +1,7 @@
 #include "animation_rainbow.h"
 #include "utils/rainbow.h"
 #include "config/dice_variants.h"
+#include "config/settings.h"
 
 using namespace Config;
 
@@ -42,7 +43,7 @@ namespace Animations
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
     int AnimationInstanceRainbow::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
-        auto l = DiceVariants::getLayout();
+        auto l = SettingsManager::getLayout();
         int c = l->ledCount;
 
         auto preset = getPreset();
