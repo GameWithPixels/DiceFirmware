@@ -80,6 +80,7 @@ namespace Die
                 Accelerometer::stop();
                 Accelerometer::lowPower();
                 AnimController::stop();
+                BatteryController::setControllerOverrideMode(BatteryControllerMode::ControllerOverrideMode_ForceEnableCharging);
                 break;
             case PowerManager::PowerManagerEvent_PrepareWakeUp:
                 //NRF_LOG_INFO("Going to low power mode");
@@ -87,6 +88,7 @@ namespace Die
                 Accelerometer::lowPower();
                 AnimController::stop();
                 BatteryController::setUpdateRate(BatteryController::UpdateRate_Slow);
+                BatteryController::setControllerOverrideMode(BatteryControllerMode::ControllerOverrideMode_ForceEnableCharging);
                 Temperature::slowMode(true);
                 break;
             case PowerManager::PowerManagerEvent_PrepareSleep:
@@ -94,6 +96,7 @@ namespace Die
                 Accelerometer::stop();
                 //AnimController::stop();
                 BatteryController::setUpdateRate(BatteryController::UpdateRate_Slow);
+                BatteryController::setControllerOverrideMode(BatteryControllerMode::ControllerOverrideMode_ForceEnableCharging);
                 Temperature::slowMode(true);
                 Stack::stopAdvertising();
 
@@ -115,6 +118,7 @@ namespace Die
                 //NRF_LOG_INFO("Resuming from Sleep");
                 Accelerometer::wakeUp();
                 //AnimController::start();
+                BatteryController::setControllerOverrideMode(BatteryControllerMode::ControllerOverrideMode_Default);
                 BatteryController::setUpdateRate(BatteryController::UpdateRate_Normal);
                 Temperature::slowMode(false);
                 Stack::startAdvertising();
