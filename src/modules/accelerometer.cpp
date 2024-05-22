@@ -123,9 +123,9 @@ namespace Modules::Accelerometer
         else
         {
             int3 nacc = acc * 1000 / accMagTimes1000; // normalize
-            int bestDotTimes1000 = -1100000;    // Should be -1000 as we're comparing this value with the dot product
-                                                // of 2 normalized vectors, but is set a bit lower due to imprecision 
-                                                // of fixed point operations, which may return a value lower than -1000.
+            int bestDotTimes1000 = -1100;    // Should be -1000 as we're comparing this value with the dot product
+                                             // of 2 normalized vectors, but is set a bit lower due to imprecision 
+                                             // of fixed point operations, which may return a value lower than -1000.
             int bestFace = currentFrame.face;
             for (int i = 0; i < faceCount; ++i)
             {
@@ -197,27 +197,7 @@ namespace Modules::Accelerometer
                 }
                 else if (stopMoving)
                 {
-                    // Just slid the dice around?
-                    if (stopMoving)
-                    {
-                        if (BoardManager::getBoard()->ledCount == 6)
-                        {
-                            // We may be at rest
-                            if (onFace)
-                            {
-                                // We're at rest
-                                newRollState = RollState_OnFace;
-                            }
-                            else
-                            {
-                                newRollState = RollState_Crooked;
-                            }
-                        }
-                        else
-                        {
-                            newRollState = RollState_OnFace;
-                        }
-                    }
+                    newRollState = RollState_OnFace;
                 }
             }
             break;
@@ -225,23 +205,7 @@ namespace Modules::Accelerometer
             // If we stop moving we may be on a face
             if (stopMoving)
             {
-                if (BoardManager::getBoard()->ledCount == 6)
-                {
-                    // We may be at rest
-                    if (onFace)
-                    {
-                        // We're at rest
-                        newRollState = RollState_OnFace;
-                    }
-                    else
-                    {
-                        newRollState = RollState_Crooked;
-                    }
-                }
-                else
-                {
-                    newRollState = RollState_OnFace;
-                }
+                newRollState = RollState_OnFace;
             }
             break;
         default:
