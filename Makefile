@@ -7,7 +7,7 @@ SDK_VER := 17
 # Percent character is escaped in some versions of make when using the shell commands below
 PERCENT := %
 # Generate build timestamp
-BUILD_TIMESTAMP := 1704063600 # 2024-01-01
+BUILD_TIMESTAMP := 1704150000 # 2024-01-02
 # $(shell python -c 'import time; print(round(time.time()))')
 # Format timestamp like this: 2022-07-14T0923+0200
 # No semicolon between hours and minutes because the date/time string is used in filenames.
