@@ -137,6 +137,7 @@ namespace DataSet
         // Allocate a buffer for all the data we're about to create
         // We'll write the data in the buffer and then program it into flash!
         writeBuffer = malloc(bufferSize);
+        memset(writeBuffer, 0, bufferSize);
         uint32_t writeBufferAddress = (uint32_t)writeBuffer;
 
         // Allocate a new data object
