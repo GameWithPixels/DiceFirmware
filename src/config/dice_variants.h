@@ -28,6 +28,7 @@ namespace Config::DiceVariants
         Colorway_Midnight_Galaxy,
         Colorway_Aurora_Sky,
         Colorway_Clear,
+        Colorway_White_Aurora,
         Colorway_Custom = 0xFF,
     };
 
