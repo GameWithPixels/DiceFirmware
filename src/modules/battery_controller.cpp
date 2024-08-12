@@ -174,7 +174,7 @@ namespace Modules::BatteryController
             vBatMilli = newVBatMilli;
         }
         vCoilMilli = clamp<int32_t>(Battery::checkVCoilTimes1000(), 0, MAX_V_MILLIS);
-        charging = clamp<int32_t>(Battery::checkCharging(), 0, MAX_V_MILLIS);
+        charging = Battery::checkCharging();
     }
 
     State getState() {

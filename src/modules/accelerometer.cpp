@@ -168,7 +168,7 @@ namespace Modules::Accelerometer
 
         bool startMoving = newSigmaTimes1000 > settings->startMovingThresholdTimes1000;
         bool stopMoving = newSigmaTimes1000 < settings->stopMovingThresholdTimes1000;
-        bool onFace = newFaceConfidenceTimes1000 > settings->faceThresholdTimes1000;
+        // bool onFace = newFaceConfidenceTimes1000 > settings->faceThresholdTimes1000;
         bool zeroG = acc.sqrMagnitudeTimes1000() < (settings->fallingThresholdTimes1000 * settings->fallingThresholdTimes1000 / 1000);
         bool shock = acc.sqrMagnitudeTimes1000() > (settings->shockThresholdTimes1000 * settings->shockThresholdTimes1000 / 1000);
 

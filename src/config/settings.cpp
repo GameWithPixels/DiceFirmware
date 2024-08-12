@@ -128,7 +128,7 @@ namespace Config::SettingsManager
     void setDefaultParameters(Settings& outSettings) {
         // Generate our name
         const char pixel[] = "Pixel";
-        static_assert(sizeof(pixel) + 9 < sizeof(outSettings.name));
+        static_assert(sizeof(pixel) + 8 <= sizeof(outSettings.name));
         strcpy(outSettings.name, pixel);
         uint32_t uniqueId = Pixel::getDeviceID();
         for (int i = 0; i < 8; ++i) {
