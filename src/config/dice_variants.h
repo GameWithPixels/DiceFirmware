@@ -17,6 +17,7 @@ namespace Config::DiceVariants
         DieType_D20,
         DieType_PD6,
         DieType_FD6,
+        DieType_M20,
     };
 
     // This enum describes what the dice looks like, so the App can use the appropriate 3D model/color
