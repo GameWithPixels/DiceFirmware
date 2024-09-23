@@ -102,7 +102,7 @@ namespace Config::SettingsManager
         return colorWayFromStore != -1 ? (DiceVariants::Colorway)colorWayFromStore : SettingsManager::getSettings()->colorway;
     }
 
-    DiceVariants::DieLayoutType getLayoutType() {
+    DiceVariants::LEDLayoutType getLayoutType() {
         return DiceVariants::getLayoutType(getDieType());
     }
 

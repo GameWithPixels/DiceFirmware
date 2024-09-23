@@ -78,7 +78,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceNoise::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+    int AnimationInstanceNoise::update(int ms, int retIndices[], uint32_t retColors[]) {
         
         auto preset = getPreset();
         int time = ms - startTime;

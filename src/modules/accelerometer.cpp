@@ -200,8 +200,8 @@ namespace Modules::Accelerometer
                     // Just slid the dice around?
                     if (stopMoving)
                     {
-                        if (SettingsManager::getLayoutType() == DiceVariants::DieLayoutType::DieLayoutType_D6_FD6 ||
-                            SettingsManager::getLayoutType() == DiceVariants::DieLayoutType::DieLayoutType_D4)
+                        if (SettingsManager::getLayoutType() == DiceVariants::LEDLayoutType::DieLayoutType_D6_FD6 ||
+                            SettingsManager::getLayoutType() == DiceVariants::LEDLayoutType::DieLayoutType_D4)
                         {
                             // We may be at rest
                             if (onFace)
@@ -226,8 +226,8 @@ namespace Modules::Accelerometer
             // If we stop moving we may be on a face
             if (stopMoving)
             {
-                if (SettingsManager::getLayoutType() == DiceVariants::DieLayoutType::DieLayoutType_D6_FD6 ||
-                    SettingsManager::getLayoutType() == DiceVariants::DieLayoutType::DieLayoutType_D4)
+                if (SettingsManager::getLayoutType() == DiceVariants::LEDLayoutType::DieLayoutType_D6_FD6 ||
+                    SettingsManager::getLayoutType() == DiceVariants::LEDLayoutType::DieLayoutType_D4)
                 {
                     // We may be at rest
                     if (onFace)

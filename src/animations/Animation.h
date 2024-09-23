@@ -91,7 +91,7 @@ namespace Animations
         // method used to set which faces to turn on as well as the color of their LEDs
         // retIndices is one to one with retColors and keeps track of which face to turn on as well as its corresponding color
         // return value of the method is the number of faces to turn on
-        virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]) = 0;
+        virtual int update(int ms, int retIndices[], uint32_t retColors[]) = 0;
         virtual int stop(int retIndices[]) = 0;
         // Set the animation source tag
         void setTag(AnimationTag _tag);
@@ -100,6 +100,8 @@ namespace Animations
         // sets all indices that satisfy the facemask and stores the info in retIndices
         int setIndices(uint32_t faceMask, int retIndices[]);
         void forceFadeOut(int fadeOutTime);
+
+        void updateLEDs(int ms, uint32_t* outDaisyChainColors);
     };
 
     Animations::AnimationInstance* createAnimationInstance(const Animations::Animation* preset, const DataSet::AnimationBits* bits);

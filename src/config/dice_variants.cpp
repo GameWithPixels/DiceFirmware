@@ -1,6 +1,7 @@
 #include "dice_variants.h"
 #include "board_config.h"
 #include "string.h"
+#include "assert.h"
 
 using namespace Core;
 
@@ -39,12 +40,14 @@ namespace DiceVariants
     // 1, 5, 2, 6, 4, 3 <-- face number (6-sided)
     // 1, -, -, 4, 2, 3 <-- face number (4-sided)
     // 0, -, -, 3, 1, 2 <-- face/led index (4-sided)
+    const uint8_t D4LEDIndices[] = {
+        0, 255, 255, 3, 1, 2,
+    };
 
     // 0, 1, 2, 3 <-- face/led Index
-    // 0, 3, 1, 2 <-- daisy chain index
-
+    // 0, 4, 5, 3 <-- daisy chain index
     const uint8_t D4ElectricalIndices[] = {
-        0, 3, 1, 2,   // Led Index
+        0, 4, 5, 2,   // daisy chain index
     };
 
     const uint32_t D4Adjacency[] = {
@@ -85,12 +88,14 @@ namespace DiceVariants
     // 0, 1, 2, 3, 4, 5 <-- daisy chain index
     // 1, 5, 2, 6, 4, 3 <-- face number
     // 0, 4, 1, 5, 3, 2 <-- face/led index
+    const uint8_t D6LEDIndices[] = {
+        0, 4, 1, 5, 3, 2,
+    };
 
     // 0, 1, 2, 3, 4, 5 <-- led index
     // 0, 2, 5, 4, 1, 3 <-- DaisyChain Index
-
     const uint8_t D6ElectricalIndices[] = {
-        0, 2, 5, 4, 1, 3,   // Led Index
+        0, 2, 5, 4, 1, 3,
     };
 
     const uint32_t D6Adjacency[] = {
@@ -132,13 +137,16 @@ namespace DiceVariants
 
     //  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 <-- daisy chain index
     //  4, 12, 10,  3, 17,  1, 11, 14,  6,  0, 18,  8,  5, 13, 19,  7,  9, 16,  2, 15 <-- face/led Index
+    const uint8_t D20LEDIndices[] = {
+        4, 12, 10,  3, 17,  1, 11, 14,  6,  0, 18,  8,  5, 13, 19,  7,  9, 16,  2, 15
+    };
+
 
     //  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19 <-- Face/led index
     //  9,  5, 18,  3,  0, 12,  8, 15, 11, 16,  2,  6,  1, 13,  7, 19, 17,  4, 10, 14 <-- daisy chain index
     //  9, 13,  7, 19, 11, 16,  1,  5, 17,  4, 18,  3, 10, 15,  2,  6,  0, 12,  8, 14 <-- old molds daisy chain index
-
     const uint8_t D20ElectricalIndices[] = {
-            9,  5, 18,  3,  0, 12,  8, 15, 11, 16,  2,  6,  1, 13,  7, 19, 17,  4, 10, 14
+        9,  5, 18,  3,  0, 12,  8, 15, 11, 16,  2,  6,  1, 13,  7, 19, 17,  4, 10, 14
     };
 
     // Used for determining which face is up and/or for animations that color each face based on their normal
@@ -232,10 +240,13 @@ namespace DiceVariants
 
     // 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11 <-- daisy chain index
     // 3,  7,  1,  0,  5,  2, 11,  6,  9,  4, 10,  8 <-- Face/led index
+    const uint8_t D12LEDIndices[] = {
+        3,  7,  1,  0,  5,  2, 11,  6,  9,  4, 10,  8
+    };
+
 
     // 0, 1, 2, 3, 4, 5, 6, 7,  8, 9, 10, 11 <-- face/Led Index
     // 3, 2, 5, 0, 9, 4, 7, 1, 11, 8, 10,  6 <-- DaisyChain Index
-
     const uint8_t D12ElectricalIndices[] = {
         3, 2, 5, 0, 9, 4, 7, 1, 11, 8, 10, 6
     };
@@ -292,10 +303,12 @@ namespace DiceVariants
 
     // 0  1  2  3  4  5  6  7  8  9 <-- DaisyChain Index
     // 3  5  9  1  7  4  6  2  8  0 <-- Face / Led Index
+    const uint8_t D10LEDIndices[] = {
+         3,  5,  9,  1,  7,  4,  6,  2,  8,  0
+    };
 
     // 0  1  2  3  4  5  6  7  8  9 <-- Face / Led Index
     // 9, 3, 7, 0, 5, 1, 6, 4, 8, 2 <-- DaisyChain Index
-
     const uint8_t D10ElectricalIndices[] = {
          9, 3, 7, 0, 5, 1, 6, 4, 8, 2
     };
@@ -344,10 +357,15 @@ namespace DiceVariants
         { 921,  198,  333}, 
     };
 
+    //  0, 1, 2, 3, 4, 5, 6, 7  // Daisy Chain Index
+    //  2, 0, 3, 1, 7, 5, 4, 6  // LED Index
+    const uint8_t D8LEDIndices[] = {
+        2, 0, 3, 1, 7, 5, 4, 6
+    };
+
     //  1, 2, 3, 4, 5, 6, 7, 8  // Face Number
     //  0, 1, 2, 3, 4, 5, 6, 7  // Face / LED Index
     //  1, 3, 0, 2, 6, 5, 7, 4  // DaisyChain Index
-
     const uint8_t D8ElectricalIndices[] = {
         1, 3, 0, 2, 6, 5, 7, 4  // DaisyChain Index
     };
@@ -370,20 +388,6 @@ namespace DiceVariants
         { 0000,  0000, -1000},
         { 0000, -1000,  0000},
         { 1000,  0000,  0000},
-    };
-
-    // Animations are defined with the highest face up, so we may need to remap the Face (or LEDs) to
-    // match the current face up. This table is used to do this.
-    // If we have computed the color of a face in the canonical orientation (highest face up), then we
-    // can use the following to figure out which face/led we should actually set to this color.
-    // Actual face/led := DXRemap[currentFaceUp * face/led count + canonicalIndex]
-    const uint8_t PD6FaceRemap[] = {
-        5, 2, 1, 4, 3, 0,
-        4, 0, 2, 3, 5, 1,
-        3, 4, 5, 0, 1, 2,
-        2, 5, 4, 1, 0, 3,
-        1, 2, 0, 5, 3, 4, 
-        0, 1, 2, 3, 4, 5, 
     };
 
     // Used for determining which face is up and/or for animations that color each face based on their normal
@@ -413,148 +417,215 @@ namespace DiceVariants
         { -780,   442,  -442},
     };
 
-    const uint8_t PD6LEDRemap[] = {
-        // FIXME!!!
-        0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // face 1
-        0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // face 2
-        0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // face 3
-        0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // ...
-        0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
-        0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
-    //  1   ==2==   ====3====   ======4======   ========5=========  ===========6==========
+    // 0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // Daisy Chain Index
+    // 0,	6,	7,	8,	9,	1,	2,	3,	4,	5, 10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // LED Index
+    const uint8_t PD6LEDIndices[] = {
+        0,	6,	7,	8,	9,	1,	2,	3,	4,	5, 10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
     };
 
+    // 0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // LED Index
+    // 0,	5,	6,	7,	8,	9,	1,	2,	3,	4,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // Daisy Chain Index
     const uint8_t PD6ElectricalIndices[] = {
-    //  0   --1--   ----2----   ------3------   ---------5--------  ----------6----------- // Face index
-    //  0   0   1   0   1   2   0   1   2   3    0   1   2   3   4   0   1   2   3   4   5 // Led index in face
         0,	5,	6,	7,	8,	9,	1,	2,	3,	4,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
     };
 
+    // Indicates what face each LED (from its "logical" index) is on
+    // 0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20, // LED Index
+    // 0    --1--   ----2----   ------3------   ---------4--------  ----------5-----------  // Face index
+    const uint8_t PD6FaceIndices[] = {
+        0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5
+    };
+
+    const Core::int3 M20FaceNormals[] = {
+        // These are incorrect, fix when we have proper M20 design
+        {-335,  937, - 92}, // FIXME
+        {-352, -930, - 98}, // FIXME
+        { 716,  572, -399}, // FIXME
+        {-253, -357,  898}, // FIXME
+        {-995,    8,   93}, // FIXME
+        { 804, -  9,  593}, // FIXME
+        {-396,  583, -708}, // FIXME
+        { 705, -582, -403}, // FIXME
+        { 407,  571,  712}, // FIXME
+        { 246, -355, -901}, // FIXME
+        {-246,  355,  901}, // FIXME
+        {-407, -571, -712}, // FIXME
+        {-705,  582,  403}, // FIXME
+        { 396, -583,  708}, // FIXME
+        {-804,    9, -593}, // FIXME
+        { 995, -  8, - 93}, // FIXME
+        { 253,  357, -898}, // FIXME
+        {-716, -572,  399}, // FIXME
+        { 352,  930,   98}, // FIXME
+        { 335, -937,   92}, // FIXME
+    };
+    
+    const Core::int3 M20LEDNormals[] = {
+        // These are incorrect, fix when we have proper M20 design
+        { -446,  850, -276}, // FIXME
+        { -447,  525,  723}, // FIXME
+        { -447, -850, -276}, // FIXME
+        {-1000,  000, -000}, // FIXME
+        {  447,  525, -723}, // FIXME
+        { -447,  000, -894}, // FIXME
+        {  447, -000,  894}, // FIXME
+        { -447, -525,  723}, // FIXME
+        { 1000, -000,  000}, // FIXME
+        {  447,  850,  276}, // FIXME
+        {  447, -525, -723}, // FIXME
+        {  446, -850,  276}, // FIXME
+    };
+
+
     const Layout D20Layout = {
-        .layoutType = DieLayoutType::DieLayoutType_D20,
+        .layoutType = LEDLayoutType::DieLayoutType_D20,
         .faceCount = 20,
         .ledCount = 20,
         .adjacencyCount = 3,
         .faceNormals = D20Normals,
         .ledNormals = D20Normals,
-        .canonicalIndexFaceToFaceRemapLookup = D20Remap,
+        .faceIndexFromAnimFaceIndexLookup = D20Remap,
         .daisyChainIndexFromLEDIndexLookup = D20ElectricalIndices,
-        .adjacencyMap = D20Adjacency,
+        .LEDIndexFromDaisyChainLookup = D20LEDIndices,
+        .faceAdjacencyMap = D20Adjacency,
     };
 
     const Layout D12Layout = {
-        .layoutType = DieLayoutType::DieLayoutType_D12,
+        .layoutType = LEDLayoutType::DieLayoutType_D12,
         .faceCount = 12,
         .ledCount = 12,
         .adjacencyCount = 5,
         .faceNormals = D12Normals,
         .ledNormals = D12Normals,
-        .canonicalIndexFaceToFaceRemapLookup = D12Remap,
+        .faceIndexFromAnimFaceIndexLookup = D12Remap,
         .daisyChainIndexFromLEDIndexLookup = D12ElectricalIndices,
-        .adjacencyMap = D12Adjacency,
+        .LEDIndexFromDaisyChainLookup = D12LEDIndices,
+        .faceAdjacencyMap = D12Adjacency,
     };
 
     const Layout D10Layout = {
-        .layoutType = DieLayoutType::DieLayoutType_D10_D00,
+        .layoutType = LEDLayoutType::DieLayoutType_D10_D00,
         .faceCount = 10,
         .ledCount = 10,
         .adjacencyCount = 4,
         .faceNormals = D10Normals,
         .ledNormals = D10Normals,
-        .canonicalIndexFaceToFaceRemapLookup = D10Remap,
+        .faceIndexFromAnimFaceIndexLookup = D10Remap,
         .daisyChainIndexFromLEDIndexLookup = D10ElectricalIndices,
-        .adjacencyMap = D10Adjacency,
+        .LEDIndexFromDaisyChainLookup = D10LEDIndices,
+        .faceAdjacencyMap = D10Adjacency,
     };
 
     const Layout D8Layout = {
-        .layoutType = DieLayoutType::DieLayoutType_D8,
+        .layoutType = LEDLayoutType::DieLayoutType_D8,
         .faceCount = 8,
         .ledCount = 8,
         .adjacencyCount = 3,
         .faceNormals = D8Normals,
         .ledNormals = D8Normals,
-        .canonicalIndexFaceToFaceRemapLookup = D8Remap,
+        .faceIndexFromAnimFaceIndexLookup = D8Remap,
         .daisyChainIndexFromLEDIndexLookup = D8ElectricalIndices,
-        .adjacencyMap = D8Adjacency,
+        .LEDIndexFromDaisyChainLookup = D8LEDIndices,
+        .faceAdjacencyMap = D8Adjacency,
     };
 
     const Layout D6Layout = {
-        .layoutType = DieLayoutType::DieLayoutType_D6_FD6,
+        .layoutType = LEDLayoutType::DieLayoutType_D6_FD6,
         .faceCount = 6,
         .ledCount = 6,
         .adjacencyCount = 4,
         .faceNormals = D6Normals,
         .ledNormals = D6Normals,
-        .canonicalIndexFaceToFaceRemapLookup = D6Remap,
+        .faceIndexFromAnimFaceIndexLookup = D6Remap,
         .daisyChainIndexFromLEDIndexLookup = D6ElectricalIndices,
-        .adjacencyMap = D6Adjacency,
+        .LEDIndexFromDaisyChainLookup = D6LEDIndices,
+        .faceAdjacencyMap = D6Adjacency,
     };
 
     const Layout D4Layout = {
-        .layoutType = DieLayoutType::DieLayoutType_D4,
+        .layoutType = LEDLayoutType::DieLayoutType_D4,
         .faceCount = 4,
         .ledCount = 4,
         .adjacencyCount = 2,
         .faceNormals = D4Normals,
         .ledNormals = D4Normals,
-        .canonicalIndexFaceToFaceRemapLookup = D4Remap,
+        .faceIndexFromAnimFaceIndexLookup = D4Remap,
         .daisyChainIndexFromLEDIndexLookup = D4ElectricalIndices,
-        .adjacencyMap = D4Adjacency,
+        .LEDIndexFromDaisyChainLookup = D4LEDIndices,
+        .faceAdjacencyMap = D4Adjacency,
     };
 
     // Die layout information
     const Layout PD6Layout = {
-        .layoutType = DieLayoutType::DieLayoutType_PD6,
+        .layoutType = LEDLayoutType::DieLayoutType_PD6,
         .faceCount = 6,
         .ledCount = 21,
         .adjacencyCount = 4,
         .faceNormals = PD6FaceNormals,
         .ledNormals = PD6LEDNormals,
-        .canonicalIndexFaceToFaceRemapLookup = PD6FaceRemap,
+        .faceIndexFromAnimFaceIndexLookup = D6Remap,
         .daisyChainIndexFromLEDIndexLookup = PD6ElectricalIndices,
-        .adjacencyMap = D6Adjacency,
+        .LEDIndexFromDaisyChainLookup = PD6LEDIndices,
+        .faceAdjacencyMap = D6Adjacency,
+    };
+
+    const Layout M20Layout = {
+        .layoutType = LEDLayoutType::DieLayoutType_M20,
+        .faceCount = 20,
+        .ledCount = 12,
+        .adjacencyCount = 3,
+        .faceNormals = M20FaceNormals,
+        .ledNormals = M20LEDNormals,
+        .faceIndexFromAnimFaceIndexLookup = D20Remap,
+        .daisyChainIndexFromLEDIndexLookup = D12ElectricalIndices,
+        .LEDIndexFromDaisyChainLookup = D12LEDIndices,
+        .faceAdjacencyMap = D20Adjacency,
     };
 
     // Given a die type, return the matching layout (for normals, face ordering, remapping, etc...)
-    DieLayoutType getLayoutType(DieType dieType) {
+    LEDLayoutType getLayoutType(DieType dieType) {
         switch (dieType) {
         case DieType::DieType_D4:
-            return DieLayoutType::DieLayoutType_D4;
+            return LEDLayoutType::DieLayoutType_D4;
         case DieType::DieType_D6:
         case DieType::DieType_FD6:
-            return DieLayoutType::DieLayoutType_D6_FD6;
+            return LEDLayoutType::DieLayoutType_D6_FD6;
         case DieType::DieType_D8:
-            return DieLayoutType::DieLayoutType_D8;
+            return LEDLayoutType::DieLayoutType_D8;
         case DieType::DieType_D10:
         case DieType::DieType_D00:
-            return DieLayoutType::DieLayoutType_D10_D00;
+            return LEDLayoutType::DieLayoutType_D10_D00;
         case DieType::DieType_D12:
-            return DieLayoutType::DieLayoutType_D12;
+            return LEDLayoutType::DieLayoutType_D12;
         case DieType::DieType_D20:
-            return DieLayoutType::DieLayoutType_D20;
+            return LEDLayoutType::DieLayoutType_D20;
         case DieType::DieType_PD6:
-            return DieLayoutType::DieLayoutType_PD6;
+            return LEDLayoutType::DieLayoutType_PD6;
+        case DieType::DieType_M20:
+            return LEDLayoutType::DieLayoutType_M20;
         default:
-            return DieLayoutType::DieLayoutType_Unknown;
+            return LEDLayoutType::DieLayoutType_Unknown;
         }
     }
 
-    const Layout* getLayout(DieLayoutType layoutType) {
+    const Layout* getLayout(LEDLayoutType layoutType) {
         switch (layoutType) {
-            case DieLayoutType::DieLayoutType_D4:
+            case LEDLayoutType::DieLayoutType_D4:
                 return &D4Layout;
-            case DieLayoutType::DieLayoutType_D6_FD6:
+            case LEDLayoutType::DieLayoutType_D6_FD6:
                 return &D6Layout;
-            case DieLayoutType::DieLayoutType_D8:
+            case LEDLayoutType::DieLayoutType_D8:
                 return &D8Layout;
-            case DieLayoutType::DieLayoutType_D10_D00:
+            case LEDLayoutType::DieLayoutType_D10_D00:
                 return &D10Layout;
-            case DieLayoutType::DieLayoutType_D12:
+            case LEDLayoutType::DieLayoutType_D12:
                 return &D12Layout;
-            case DieLayoutType::DieLayoutType_D20:
+            case LEDLayoutType::DieLayoutType_D20:
                 return &D20Layout;
-            case DieLayoutType::DieLayoutType_PD6:
+            case LEDLayoutType::DieLayoutType_PD6:
                 return &PD6Layout;
+            case LEDLayoutType::DieLayoutType_M20:
+                return &M20Layout;
             default:
                 return nullptr;
         }
@@ -582,68 +653,81 @@ namespace DiceVariants
         }
     }
 
-    int Layout::faceIndexFromLEDIndex(int ledIndex) const {
-        switch (layoutType) {
-            case DieLayoutType::DieLayoutType_PD6:
-                //  0   --1--   ----2----   ------3------   ---------4--------  ----------5----------- // Face index
-                //  0   0   1   0   1   2   0   1   2   3    0   1   2   3   4   0   1   2   3   4   5 // Led index in face
-                //  0,	5,	6,	7,	8,	9,	1,	2,	3,	4,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
-               if (ledIndex == 0) {
-                return 0;
-               } else if (ledIndex <= 4) {
-                return 3;
-               } else if (ledIndex <= 6) {
-                return 1;
-               } else if (ledIndex <= 9) {
-                return 2;
-               } else if (ledIndex <= 14) {
-                return 4;
-               } else {
-                return 5;
-               }
-            default:
-                return ledIndex;
-        }
-    }
-
-    // Mutates the passed in color array to remap face colors to led Colors
-    void Layout::ledColorsFromFaceColors(uint32_t const faceColors[], uint32_t retLedColors[]) const {
-        switch (layoutType)
-        {
-        case DieLayoutType::DieLayoutType_PD6:
-            for (int i = 0; i < ledCount; i++) {
-                retLedColors[i] = faceColors[faceIndexFromLEDIndex(i)];
-            }
-            break;
-        default:
-            // Nothing to do, led indices are the same as face indices
-            break;
-        }
-    }
-
-
-    // Compute the canonical led index to grab color from in an animation,
-    // given the led we're trying to set and the remap face.
-    int Layout::animIndexFromLEDIndex(int ledIndex, int remapFace) const {
-        return canonicalIndexFaceToFaceRemapLookup[remapFace * ledCount + ledIndex];
-    }
-
     // Compute the electrical led index (ie. index in daisy-chain) from the ledIndex,
     // given the led we're trying to set and the remap face.
     int Layout::daisyChainIndexFromLEDIndex(int LEDIndex) const {
         return daisyChainIndexFromLEDIndexLookup[LEDIndex];
     }
 
+    int Layout::LEDIndexFromDaisyChainIndex(int daisyChainIndex) const {
+        return LEDIndexFromDaisyChainLookup[daisyChainIndex];
+    }
+
+    int Layout::remapFaceIndexBasedOnUpFace(int upFace, int faceIndex, int outFaces[]) const {
+        outFaces[0] = faceIndexFromAnimFaceIndexLookup[upFace * faceCount + faceIndex];
+        return 1;
+    }
+
+    int Layout::remapLEDIndexBasedOnUpFace(int upFace, int ledIndex, int outFaces[]) const {
+        switch (layoutType) {
+            case LEDLayoutType::DieLayoutType_D4:
+            case LEDLayoutType::DieLayoutType_D6_FD6:
+            case LEDLayoutType::DieLayoutType_D8:
+            case LEDLayoutType::DieLayoutType_D10_D00:
+            case LEDLayoutType::DieLayoutType_D12:
+            case LEDLayoutType::DieLayoutType_D20:
+                // For all these, led index == face index
+                outFaces[0] = faceIndexFromAnimFaceIndexLookup[upFace * faceCount + ledIndex];
+                return 1;
+            case LEDLayoutType::DieLayoutType_PD6:
+                // FIXME!!!
+                return 0;
+            case LEDLayoutType::DieLayoutType_M20:
+                // FIXME!!!
+                return 0;
+            default:
+                return 0;
+        }
+    }
+
+    int Layout::faceIndicesFromLEDIndex(int ledIndex, int outFaces[]) const {
+        switch (layoutType) {
+            case LEDLayoutType::DieLayoutType_D4:
+            case LEDLayoutType::DieLayoutType_D6_FD6:
+            case LEDLayoutType::DieLayoutType_D8:
+            case LEDLayoutType::DieLayoutType_D10_D00:
+            case LEDLayoutType::DieLayoutType_D12:
+            case LEDLayoutType::DieLayoutType_D20:
+                // For all these, led index == face index
+                outFaces[0] = ledIndex;
+                return 1;
+            case LEDLayoutType::DieLayoutType_PD6:
+                outFaces[0] = PD6FaceIndices[ledIndex];
+                return 1;
+            case LEDLayoutType::DieLayoutType_M20:
+                // FIXME!!!
+                outFaces[0] = 0;
+                outFaces[1] = 1;
+                outFaces[2] = 2;
+                outFaces[3] = 3;
+                outFaces[4] = 4;
+                return 5;
+            default:
+                return 0;
+        }
+    }
+
+
     uint32_t Layout::getTopFaceMask() const {
         switch (layoutType) {
-            case DieLayoutType::DieLayoutType_D4:
-            case DieLayoutType::DieLayoutType_D6_FD6:
-            case DieLayoutType::DieLayoutType_D8:
-            case DieLayoutType::DieLayoutType_D10_D00:
-            case DieLayoutType::DieLayoutType_D12:
-            case DieLayoutType::DieLayoutType_D20:
+            case LEDLayoutType::DieLayoutType_D4:
+            case LEDLayoutType::DieLayoutType_D6_FD6:
+            case LEDLayoutType::DieLayoutType_D8:
+            case LEDLayoutType::DieLayoutType_D10_D00:
+            case LEDLayoutType::DieLayoutType_D12:
+            case LEDLayoutType::DieLayoutType_D20:
                 return 1 << getTopFace();
-            case DieLayoutType::DieLayoutType_PD6:
+            case LEDLayoutType::DieLayoutType_PD6:
                 return 0b111111 << 15;
             default:
                 return 0xFFFFFFFF;
@@ -652,19 +736,19 @@ namespace DiceVariants
 
     uint8_t Layout::getTopFace() const {
         switch (layoutType) {
-            case DieLayoutType::DieLayoutType_D4:
+            case LEDLayoutType::DieLayoutType_D4:
                 return 3;
-            case DieLayoutType::DieLayoutType_D6_FD6:
+            case LEDLayoutType::DieLayoutType_D6_FD6:
                 return 5;
-            case DieLayoutType::DieLayoutType_D8:
+            case LEDLayoutType::DieLayoutType_D8:
                 return 7;
-            case DieLayoutType::DieLayoutType_D10_D00:
+            case LEDLayoutType::DieLayoutType_D10_D00:
                 return 0;
-            case DieLayoutType::DieLayoutType_D12:
+            case LEDLayoutType::DieLayoutType_D12:
                 return 11;
-            case DieLayoutType::DieLayoutType_D20:
+            case LEDLayoutType::DieLayoutType_D20:
                 return 19;
-            case DieLayoutType::DieLayoutType_PD6:
+            case LEDLayoutType::DieLayoutType_PD6:
                 return 5;
             default:
                 return 0;
@@ -672,15 +756,15 @@ namespace DiceVariants
     }
 
     uint8_t Layout::getAdjacentFaces(uint8_t face, uint8_t retFaces[]) const {
-        uint32_t adj = adjacencyMap[face];
+        uint32_t adj = faceAdjacencyMap[face];
         uint8_t count = 0;
         for (int i = 0; i < faceCount; i++) {
             if (adj & (1 << i)) {
                 retFaces[count++] = i;
             }
         }
+        assert(count == adjacencyCount);
         return count;
     }
-
 }
 }

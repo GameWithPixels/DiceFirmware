@@ -137,49 +137,8 @@ namespace Modules::AnimController
                     // Collect color values from the animations
                     // Allow for more indices than leds in case animations try to drive the same leds multiple times.
                     // It doesn't really make sense but it's not a problem.
-                    int indices[MAX_COUNT * 2];
-                    uint32_t colors[MAX_COUNT * 2];
-                    int animTrackCount = anim->updateLEDs(ms, indices, colors);
-
                     uint32_t daisyChainColors[MAX_COUNT];
-                    if (anim->animationPreset->indexType == AnimationIndexType_Face ||
-                        anim->animationPreset->indexType == AnimationIndexType_Led) {
-                        // Put the colors returned by the animation in an array so remapping is easier
-                        uint32_t ledColorBuffer[MAX_COUNT];
-                        if (anim->animationPreset->indexType == AnimationIndexType_Face) {
-                            // Put the colors in the buffer at the face index
-                            uint32_t faceColorBuffer[MAX_COUNT];
-                            memset(faceColorBuffer, 0, sizeof(uint32_t) * l->faceCount);
-                            for (int j = 0; j < animTrackCount; ++j) {
-                                faceColorBuffer[indices[j]] = colors[j];
-                            }
-                            // Remap from faceIndex to ledIndex
-                            // Often times this does nothing special
-                            l->ledColorsFromFaceColors(faceColorBuffer, ledColorBuffer);
-                        } else {
-                            // indexType is AnimationIndexType_Led
-                            // Anim returns colors in led Index, great!
-                            memset(ledColorBuffer, 0, sizeof(uint32_t) * l->ledCount);
-                            for (int j = 0; j < animTrackCount; ++j) {
-                                ledColorBuffer[indices[j]] = colors[j];
-                            }
-                        }
-
-                        // Perform led remapping based on current face
-                        for (int j = 0; j < l->ledCount; ++j) {
-                            // The lookup table tells us which (canonical) led index to use for the current led given the remap face passed in.
-                            // The daisy chain lookup table tells us what daisy chain index to use for a given ledIndex
-                            // We use both those lookup tables to remap directly from animation led index to daisy chain index given the face remapping.
-                            daisyChainColors[l->daisyChainIndexFromLEDIndex(j)] = ledColorBuffer[l->animIndexFromLEDIndex(j, anim->remapFace)];
-                        }
-                    } else {
-                        // indexType is AnimationIndexType_DaisyChain
-                        // Anim returns colors in daisy chain Index, even easier!
-                        memset(daisyChainColors, 0, sizeof(uint32_t) * l->ledCount);
-                        for (int j = 0; j < animTrackCount; ++j) {
-                            daisyChainColors[indices[j]] = colors[j];
-                        }
-                    }
+                    anim->updateLEDs(ms, daisyChainColors);
 
                     // Blend with any other color already written to the led (and fade if necessary)
                     for (int j = 0; j < l->ledCount; ++j) {
