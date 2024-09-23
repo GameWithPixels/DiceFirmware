@@ -2,6 +2,7 @@
 #include "utils/utils.h"
 #include "utils/rainbow.h"
 #include "config/dice_variants.h"
+#include "config/settings.h"
 #include "data_set/data_animation_bits.h"
 
 using namespace Config;
@@ -43,8 +44,8 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceCycle::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
-        auto l = DiceVariants::getLayout();
+    int AnimationInstanceCycle::update(int ms, int retIndices[], uint32_t retColors[]) {
+        auto l = SettingsManager::getLayout();
         int c = l->ledCount;
 
         auto preset = getPreset();

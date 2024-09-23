@@ -42,7 +42,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of LEDs</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of LEDs</param>
     /// <returns>The number of LEDs/intensities added to the return array</returns>
-    int AnimationInstanceSimple::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+    int AnimationInstanceSimple::update(int ms, int retIndices[], uint32_t retColors[]) {
         
         auto preset = getPreset();
 

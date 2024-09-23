@@ -46,7 +46,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceKeyframed::updateLEDs(int ms, int retIndices[], uint32_t retColors[])
+    int AnimationInstanceKeyframed::update(int ms, int retIndices[], uint32_t retColors[])
     {
         int time = ms - startTime;
         auto preset = getPreset();

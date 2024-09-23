@@ -9,7 +9,7 @@
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_stack.h"
 #include "config/settings.h"
-#include "config/board_config.h"
+#include "config/dice_variants.h"
 #include "config/value_store.h"
 #include "modules/charger_proximity.h"
 #include "modules/anim_controller.h"
@@ -35,7 +35,7 @@ namespace Die
         Bluetooth::MessageIAmADie msg;
 
 #if LEGACY_IMADIE_MESSAGE
-        msg.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
+        msg.ledCount = (uint8_t)SettingsManager::getLayout()->ledCount;
         msg.colorway = SettingsManager::getColorway();
         msg.dataSetHash = DataSet::dataHash();
         msg.pixelId = Pixel::getDeviceID();
@@ -52,7 +52,7 @@ namespace Die
         msg.dieInfo.pixelId = Pixel::getDeviceID();
         msg.dieInfo.chipModel = ChipModel_nRF52810;
         msg.dieInfo.dieType = SettingsManager::getDieType();
-        msg.dieInfo.ledCount = (uint8_t)BoardManager::getBoard()->ledCount;
+        msg.dieInfo.ledCount = (uint8_t)SettingsManager::getLayout()->ledCount;
         msg.dieInfo.colorway = SettingsManager::getColorway();
         msg.dieInfo.inValidation = ValidationManager::inValidation();
         memset(msg.customDesignAndColorName.name, 0, sizeof(msg.customDesignAndColorName.name));

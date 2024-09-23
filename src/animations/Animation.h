@@ -40,7 +40,16 @@ namespace Animations
     {
         AnimationFlags_None,
         AnimationFlags_Traveling = 1,     // Make the animation travel around the dice, only available for the Rainbow animation
-        AnimationFlags_UseLedIndices = 2, // Play animation is using LED indices, not face indices
+    };
+
+    /// <summary>
+    /// Defines the type of index returned by the animation
+    /// </summary>
+    enum AnimationIndexType : uint8_t
+    {
+        AnimationIndexType_Face       = 0,    // Animation indices refer to face indices
+        AnimationIndexType_DaisyChain = 1,    // Animation indices refer to daisy chain indices, which are the indices of the LEDs in the daisy chain
+        AnimationIndexType_Led        = 2,    // Animation indices refer to led indices, which for most dice (except PD6) are the same as face indices
     };
 
     /// <summary>
@@ -52,6 +61,23 @@ namespace Animations
         AnimationType type;
         uint8_t animFlags; // Combination of AnimationFlags
         uint16_t duration; // in ms
+
+        bool isTraveling() const {
+            return (animFlags & AnimationFlags_Traveling) != 0;
+        }
+        void setTraveling(bool value) {
+            if (value) {
+                animFlags |= AnimationFlags_Traveling;
+            } else {
+                animFlags &= ~AnimationFlags_Traveling;
+            }
+        }
+        AnimationIndexType getIndexType() const {
+            return (AnimationIndexType)((animFlags >> 1) & 0b11);
+        }
+        void setIndexType(AnimationIndexType value) {
+            animFlags = (animFlags & 0b11111001) | (value << 1);
+        }
     };
 
     /// <summary>
@@ -81,7 +107,7 @@ namespace Animations
         // method used to set which faces to turn on as well as the color of their LEDs
         // retIndices is one to one with retColors and keeps track of which face to turn on as well as its corresponding color
         // return value of the method is the number of faces to turn on
-        virtual int updateLEDs(int ms, int retIndices[], uint32_t retColors[]) = 0;
+        virtual int update(int ms, int retIndices[], uint32_t retColors[]) = 0;
         virtual int stop(int retIndices[]) = 0;
         // Set the animation source tag
         void setTag(AnimationTag _tag);
@@ -90,6 +116,8 @@ namespace Animations
         // sets all indices that satisfy the facemask and stores the info in retIndices
         int setIndices(uint32_t faceMask, int retIndices[]);
         void forceFadeOut(int fadeOutTime);
+
+        void updateLEDs(int ms, uint32_t* outDaisyChainColors);
     };
 
     Animations::AnimationInstance* createAnimationInstance(const Animations::Animation* preset, const DataSet::AnimationBits* bits);

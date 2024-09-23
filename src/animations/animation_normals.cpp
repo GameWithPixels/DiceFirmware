@@ -1,7 +1,8 @@
 #include "animation_normals.h"
 #include "data_set/data_animation_bits.h"
 #include "board_config.h"
-#include "dice_variants.h"
+#include "config/dice_variants.h"
+#include "config/settings.h"
 #include "utils/Utils.h"
 #include "nrf_log.h"
 #include "utils/Rainbow.h"
@@ -10,6 +11,7 @@
 
 using namespace DriversNRF;
 using namespace Modules;
+using namespace Config;
 
 namespace Animations
 {
@@ -39,11 +41,11 @@ namespace Animations
         AnimationInstance::start(_startTime, _remapFace, _loopCount);
 
         // Grab the die normals
-        auto layout = Config::DiceVariants::getLayout();
-        normals = layout->baseNormals;
+        auto layout = SettingsManager::getLayout();
+        normals = layout->faceNormals;
 
         // Grab the orientation normal, based on the current face
-        uint8_t face = Config::DiceVariants::getTopFace();
+        uint8_t face = layout->getTopFace();
         faceNormal = &normals[face];
         int backFaceOffset = 1;
         Core::int3 backVectorNormal = normals[(face + backFaceOffset) % layout->faceCount];
@@ -62,10 +64,10 @@ namespace Animations
         auto preset = getPreset();
         switch (preset->mainGradientColorType) {
             case NormalsColorOverrideType_FaceToGradient:
-                baseColorParam = (Accelerometer::currentFace() * 1000) / Config::DiceVariants::getLayout()->faceCount;
+                baseColorParam = (Accelerometer::currentFace() * 1000) / layout->faceCount;
                 break;
             case NormalsColorOverrideType_FaceToRainbowWheel:
-                baseColorParam = (Accelerometer::currentFace() * 256) / Config::DiceVariants::getLayout()->faceCount;
+                baseColorParam = (Accelerometer::currentFace() * 256) / layout->faceCount;
                 break;
             case NormalsColorOverrideType_None:
             default:
@@ -80,7 +82,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceNormals::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+    int AnimationInstanceNormals::update(int ms, int retIndices[], uint32_t retColors[]) {
         int time = ms - startTime;
         auto preset = getPreset();
         int fadeTime = preset->duration * preset->fade / (255 * 2);
@@ -102,13 +104,12 @@ namespace Animations
         auto& gradient = animationBits->getRGBTrack(preset->gradientOverTime);
         auto& axisGradient = animationBits->getRGBTrack(preset->gradientAlongAxis);
         auto& angleGradient = animationBits->getRGBTrack(preset->gradientAlongAngle);
-        auto layout = Config::DiceVariants::getLayout();
+        auto layout = Config::SettingsManager::getLayout();
         for (int i = 0; i < layout->ledCount; ++i) {
-            int face = Config::DiceVariants::getFaceForLEDIndex(i);
-
+            auto normal = layout->ledNormals[i];
             // Compute color relative to up/down angle (based on the angle to axis)
             // We'll extract the angle from the dot product of the face's normal and the axis
-            int dotAxisTimes1000 = Core::int3::dotTimes1000(*faceNormal, normals[face]);
+            int dotAxisTimes1000 = Core::int3::dotTimes1000(*faceNormal, normal);
 
             // remap the [-1000, 1000] range to an 8 bit value usable by acos8
             uint8_t dotAxis8 = (dotAxisTimes1000 * 1275 + 1275000) / 10000;
@@ -131,7 +132,7 @@ namespace Animations
             // Compute color relative to up/down angle (angle to axis), we'll use the dot product to the back vector
 
             // Start by getting a properly normalized in-plane direction vector
-            Core::int3 inPlaneNormal = normals[face] - *faceNormal * dotAxisTimes1000;
+            Core::int3 inPlaneNormal = normal - *faceNormal * dotAxisTimes1000;
             inPlaneNormal.normalize();
 
             // Compute dot product and extract angle
@@ -140,7 +141,7 @@ namespace Animations
             int angleToBack8 = Utils::acos8(dotBack8);
 
             // Oops, we need full range so check cross product with axis to swap the sign as needed
-            if (Core::int3::dotTimes1000(Core::int3::cross(backVector, normals[face]), *faceNormal) < 0) {
+            if (Core::int3::dotTimes1000(Core::int3::cross(backVector, normal), *faceNormal) < 0) {
                 // Negate the angle
                 angleToBack8 = 255 - angleToBack8;
             }

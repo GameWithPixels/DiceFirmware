@@ -1,7 +1,8 @@
 #include "animation_noise.h"
 #include "data_set/data_animation_bits.h"
 #include "utils/Utils.h"
-#include "config/board_config.h"
+#include "config/settings.h"
+#include "config/dice_variants.h"
 #include "nrf_log.h"
 #include "drivers_nrf/rng.h"
 #include "modules/accelerometer.h"
@@ -10,6 +11,7 @@
 
 using namespace DriversNRF;
 using namespace Modules;
+using namespace Config;
 
 #define MAX_RETRIES 5
 namespace Animations
@@ -17,9 +19,9 @@ namespace Animations
     int computeBaseParam(NoiseColorOverrideType type) {
         switch (type) {
             case NoiseColorOverrideType_FaceToGradient:
-                return (Accelerometer::currentFace() * 1000) / Config::DiceVariants::getLayout()->faceCount;
+                return (Accelerometer::currentFace() * 1000) / Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType())->faceCount;
             case NoiseColorOverrideType_FaceToRainbowWheel:
-                return (Accelerometer::currentFace() * 256) / Config::DiceVariants::getLayout()->faceCount;
+                return (Accelerometer::currentFace() * 256) / Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType())->faceCount;
             case NoiseColorOverrideType_RandomFromGradient:
             case NoiseColorOverrideType_None:
             default:
@@ -54,7 +56,7 @@ namespace Animations
     void AnimationInstanceNoise::start(int _startTime, uint8_t _remapFace, uint8_t _loopCount) {
         AnimationInstance::start(_startTime, _remapFace, _loopCount);
         auto preset = getPreset();
-        ledCount = Config::BoardManager::getBoard()->ledCount;
+        ledCount = SettingsManager::getLayout()->ledCount;
         blinkInterValMinMs = 1000000 / (preset->blinkFrequencyTimes1000 + preset->blinkFrequencyVarTimes1000);
         int blinkInterValMaxMs = 1000000 / (preset->blinkFrequencyTimes1000 - preset->blinkFrequencyVarTimes1000);
         blinkInterValDeltaMs = MAX(blinkInterValMaxMs - blinkInterValMinMs, 1);
@@ -76,7 +78,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceNoise::updateLEDs(int ms, int retIndices[], uint32_t retColors[]) {
+    int AnimationInstanceNoise::update(int ms, int retIndices[], uint32_t retColors[]) {
         
         auto preset = getPreset();
         int time = ms - startTime;

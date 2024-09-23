@@ -16,7 +16,8 @@
 #include "animation_normals.h"
 #include "animation_sequence.h"
 #include "animation_worm.h"
-#include "config/board_config.h"
+#include "config/settings.h"
+#include "config/dice_variants.h"
 
 
 // Define new and delete
@@ -26,6 +27,7 @@ void operator delete(void* ptr, unsigned int) { free(ptr); }
 
 
 #define MAX_LEVEL (256)
+#define MAX_BLENDED_COLORS (8)
 
 using namespace Utils;
 using namespace DataSet;
@@ -65,8 +67,7 @@ namespace Animations
     }
 
     int AnimationInstance::setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]) {
-        auto b = BoardManager::getBoard();
-        int c = b->ledCount;
+        int c = SettingsManager::getLayout()->ledCount;
         int retCount = 0;
         for (int i = 0; i < c; ++i) {
             if ((faceMask & (1 << i)) != 0) {
@@ -79,8 +80,7 @@ namespace Animations
     }
 
     int AnimationInstance::setIndices(uint32_t faceMask, int retIndices[]) {
-        auto b = BoardManager::getBoard();
-        int c = b->ledCount;
+        int c = SettingsManager::getLayout()->ledCount;
         int retCount = 0;
         for (int i = 0; i < c; ++i) {
             if ((faceMask & (1 << i)) != 0) {
@@ -99,6 +99,78 @@ namespace Animations
         // Otherwise the anim will end sooner than the force fade out time, so
         // making it not loop is enough.
     }
+
+    int animIndices[MAX_COUNT];
+    uint32_t animColors[MAX_COUNT];
+    void AnimationInstance::updateLEDs(int ms, uint32_t* outDaisyChainColors) {
+
+        // Update the (derived) animation instance
+        int animColorCount = update(ms, animIndices, animColors);
+
+        // Do a bunch of remapping / blending based on the animation flags and layout
+        auto layout = SettingsManager::getLayout();
+
+        // Flatten the colors
+        uint32_t colors[MAX_COUNT];
+        memset(colors, 0, sizeof(uint32_t) * layout->ledCount);
+        for (int i = 0; i < animColorCount; ++i) {
+            int c = animIndices[i];
+            if (c >= 0 && c < MAX_COUNT) {
+                colors[c] = animColors[i];
+            }
+        }
+
+        // Now figure out what color each LED needs
+        // Remap "electrical" index (daisy chain index) to "logical" led index
+        for (int l = 0; l < layout->ledCount; ++l) {
+
+            // Remap logical led index to face indices (there may be more than one)
+            int animIndices[MAX_BLENDED_COLORS];
+            int animIndexCount = 1;
+
+            if (animationPreset->getIndexType() == AnimationIndexType_Face || animationPreset->getIndexType() == AnimationIndexType_Led) {
+                int ll = layout->LEDIndexFromDaisyChainIndex(l);
+                if (animationPreset->getIndexType() == AnimationIndexType_Face) {
+                    // Animation specifies face indices, meaning if there are more than one led on a face,
+                    // they will all get the same color from the animation.
+                    animIndexCount = layout->remapFaceIndexBasedOnUpFace(remapFace, ll, animIndices);
+                } else {
+                    // Remap LED Indices instead
+                    animIndexCount = layout->remapLEDIndexBasedOnUpFace(remapFace, ll, animIndices);
+                }
+            } else {
+                // Daisy chain - no remapping
+                animIndices[0] = l;
+            }
+
+            // Blend the colors together
+            if (animIndexCount == 0) {
+                // No face, no color
+                outDaisyChainColors[l] = 0;
+            } else if (animIndexCount == 1) {
+                // One face, copy the color
+                outDaisyChainColors[l] = colors[animIndices[0]];
+            } else {
+                // Multiple faces, average the colors
+                uint32_t r = 0;
+                uint32_t g = 0;
+                uint32_t b = 0;
+                for (int i = 0; i < animIndexCount; ++i) {
+                    uint32_t faceColor = colors[animIndices[i]];
+                    r += getRed(faceColor);
+                    g += getGreen(faceColor);
+                    b += getBlue(faceColor);
+                }
+                r /= animIndexCount;
+                g /= animIndexCount;
+                b /= animIndexCount;
+
+                // Set the led color
+                outDaisyChainColors[l] = toColor(r, g, b);
+            }
+        }
+    }
+
 
     AnimationInstance* createAnimationInstance(const Animation* preset, const AnimationBits* bits) {
         AnimationInstance* ret = nullptr;
@@ -148,5 +220,6 @@ namespace Animations
         // Eventually we might use an allocator
         delete animationInstance;
     }
+
 }
 
