@@ -93,12 +93,12 @@ namespace Die
         uint32_t resetReas = nrf_power_resetreas_get();
         nrf_power_resetreas_clear(0xFFFFFFFF);
         if (resetReas != 0) {
-            if ((resetReas & (1 << 0)) != 0) { NRF_LOG_WARNING("Reset Reason - PIN RESET"); }
-            if ((resetReas & (1 << 1)) != 0) { NRF_LOG_ERROR("Reset Reason - WATCHDOG"); }
-            if ((resetReas & (1 << 2)) != 0) { NRF_LOG_INFO("Reset Reason - SYSTEM REQUEST"); }
-            if ((resetReas & (1 << 3)) != 0) { NRF_LOG_ERROR("Reset Reason - LOCKUP"); }
-            if ((resetReas & (1 << 16)) != 0) { NRF_LOG_INFO("Reset Reason - WAKE FROM SYSOFF"); }
-            if ((resetReas & (1 << 18)) != 0) { NRF_LOG_INFO("Reset Reason - DEBUG"); }
+            if ((resetReas & (1 << 0)) != 0) { NRF_LOG_WARNING("Reset Reason - %s", "PIN RESET"); }
+            if ((resetReas & (1 << 1)) != 0) { NRF_LOG_ERROR("Reset Reason - %s", "WATCHDOG"); }
+            if ((resetReas & (1 << 2)) != 0) { NRF_LOG_INFO("Reset Reason - %s", "SYSTEM REQUEST"); }
+            if ((resetReas & (1 << 3)) != 0) { NRF_LOG_ERROR("Reset Reason - %s", "LOCKUP"); }
+            if ((resetReas & (1 << 16)) != 0) { NRF_LOG_INFO("Reset Reason - %s", "WAKE FROM SYSOFF"); }
+            if ((resetReas & (1 << 18)) != 0) { NRF_LOG_INFO("Reset Reason - %s", "DEBUG"); }
         }
         #endif
 

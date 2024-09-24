@@ -105,8 +105,8 @@ namespace Animations
         auto& axisGradient = animationBits->getRGBTrack(preset->gradientAlongAxis);
         auto& angleGradient = animationBits->getRGBTrack(preset->gradientAlongAngle);
         auto layout = Config::SettingsManager::getLayout();
-        for (int i = 0; i < layout->ledCount; ++i) {
-            auto normal = layout->ledNormals[i];
+        for (int i = 0; i < layout->faceCount; ++i) {
+            auto normal = layout->faceNormals[i];
             // Compute color relative to up/down angle (based on the angle to axis)
             // We'll extract the angle from the dot product of the face's normal and the axis
             int dotAxisTimes1000 = Core::int3::dotTimes1000(*faceNormal, normal);
@@ -182,7 +182,7 @@ namespace Animations
             retIndices[i] = i;
             retColors[i] = Utils::modulateColor(Utils::mulColors(gradientColor, Utils::mulColors(axisColor, angleColor)), intensity);
         }
-        return layout->ledCount;
+        return layout->faceCount;
     }
 
     /// <summary>

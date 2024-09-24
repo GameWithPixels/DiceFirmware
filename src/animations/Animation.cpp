@@ -67,7 +67,7 @@ namespace Animations
     }
 
     int AnimationInstance::setColor(uint32_t color, uint32_t faceMask, int retIndices[], uint32_t retColors[]) {
-        int c = SettingsManager::getLayout()->ledCount;
+        int c = SettingsManager::getLayout()->faceCount;
         int retCount = 0;
         for (int i = 0; i < c; ++i) {
             if ((faceMask & (1 << i)) != 0) {
@@ -80,7 +80,7 @@ namespace Animations
     }
 
     int AnimationInstance::setIndices(uint32_t faceMask, int retIndices[]) {
-        int c = SettingsManager::getLayout()->ledCount;
+        int c = SettingsManager::getLayout()->faceCount;
         int retCount = 0;
         for (int i = 0; i < c; ++i) {
             if ((faceMask & (1 << i)) != 0) {
@@ -107,18 +107,18 @@ namespace Animations
         // Update the (derived) animation instance
         int animColorCount = update(ms, animIndices, animColors);
 
-        // Do a bunch of remapping / blending based on the animation flags and layout
-        auto layout = SettingsManager::getLayout();
-
         // Flatten the colors
         uint32_t colors[MAX_COUNT];
-        memset(colors, 0, sizeof(uint32_t) * layout->ledCount);
+        memset(colors, 0, sizeof(uint32_t) * MAX_COUNT);
         for (int i = 0; i < animColorCount; ++i) {
             int c = animIndices[i];
             if (c >= 0 && c < MAX_COUNT) {
                 colors[c] = animColors[i];
             }
         }
+
+        // Do a bunch of remapping / blending based on the animation flags and layout
+        auto layout = SettingsManager::getLayout();
 
         // Now figure out what color each LED needs
         // Remap "electrical" index (daisy chain index) to "logical" led index
@@ -131,9 +131,13 @@ namespace Animations
             if (animationPreset->getIndexType() == AnimationIndexType_Face || animationPreset->getIndexType() == AnimationIndexType_Led) {
                 int ll = layout->LEDIndexFromDaisyChainIndex(l);
                 if (animationPreset->getIndexType() == AnimationIndexType_Face) {
+                    int faces[MAX_BLENDED_COLORS];
+                    animIndexCount = layout->faceIndicesFromLEDIndex(ll, faces);
                     // Animation specifies face indices, meaning if there are more than one led on a face,
                     // they will all get the same color from the animation.
-                    animIndexCount = layout->remapFaceIndexBasedOnUpFace(remapFace, ll, animIndices);
+                    for (int f = 0; f < animIndexCount; ++f) {
+                        animIndices[f] = layout->remapFaceIndexBasedOnUpFace(remapFace, faces[f]);
+                    }
                 } else {
                     // Remap LED Indices instead
                     animIndexCount = layout->remapLEDIndexBasedOnUpFace(remapFace, ll, animIndices);

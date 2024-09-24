@@ -257,15 +257,7 @@ namespace Modules::Accelerometer
                     currentFrame.jerk = Core::int3::zero();
                     currentFrame.sigmaTimes1000 = 0;
                     currentFrame.face = determineFace(currentFrame.acc, &currentFrame.faceConfidenceTimes1000);
-
-                    // Determine what state we're in to begin with
-                    auto settings = SettingsManager::getSettings();
-                    bool onFace = currentFrame.faceConfidenceTimes1000 > settings->faceThresholdTimes1000;
-                    if (onFace) {
-                        currentFrame.rollState = RollState_OnFace;
-                    } else {
-                        currentFrame.rollState = RollState_Crooked;
-                    }
+                    currentFrame.rollState = RollState_OnFace;
 
                     // Unhook first to avoid being hooked more than once if start() is called multiple times
                     AccelChip::unHook(accHandler);

@@ -17,7 +17,7 @@ namespace Modules::Accelerometer
         RollState_OnFace,
         RollState_Handling,
         RollState_Rolling,
-        RollState_Crooked,
+        RollState_Crooked,  // Unused
         RollState_Count
     };
 
