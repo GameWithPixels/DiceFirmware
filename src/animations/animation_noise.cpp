@@ -5,23 +5,21 @@
 #include "config/dice_variants.h"
 #include "nrf_log.h"
 #include "drivers_nrf/rng.h"
-#include "modules/accelerometer.h"
 #include "dice_variants.h"
 #include "utils/Rainbow.h"
 
 using namespace DriversNRF;
-using namespace Modules;
 using namespace Config;
 
 #define MAX_RETRIES 5
 namespace Animations
 {
-    int computeBaseParam(NoiseColorOverrideType type) {
+    int computeBaseParam(int upFace, NoiseColorOverrideType type) {
         switch (type) {
             case NoiseColorOverrideType_FaceToGradient:
-                return (Accelerometer::currentFace() * 1000) / Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType())->faceCount;
+                return (upFace * 1000) / Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType())->faceCount;
             case NoiseColorOverrideType_FaceToRainbowWheel:
-                return (Accelerometer::currentFace() * 256) / Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType())->faceCount;
+                return (upFace * 256) / Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType())->faceCount;
             case NoiseColorOverrideType_RandomFromGradient:
             case NoiseColorOverrideType_None:
             default:
@@ -68,7 +66,7 @@ namespace Animations
         }
 
         nextBlinkTime = _startTime + blinkInterValMinMs + (RNG::randomUInt32() % blinkInterValDeltaMs);
-        baseColorParam = computeBaseParam(preset->overallGradientColorType);
+        baseColorParam = computeBaseParam(_remapFace, preset->overallGradientColorType);
     }
 
     /// <summary>
@@ -78,7 +76,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceNoise::update(int ms, int retIndices[], uint32_t retColors[]) {
+    void AnimationInstanceNoise::updateLEDs(int ms, uint32_t* outLEDs) {
         
         auto preset = getPreset();
         int time = ms - startTime;
@@ -150,16 +148,13 @@ namespace Animations
             nextBlinkTime = ms + blinkInterValMinMs + (RNG::randomUInt32() % blinkInterValDeltaMs);
         }
 
-        int retCount = 0; // number that indicates how many LEDS to light up in ther current cycle
         for (int i = 0; i < ledCount; ++i) {
             if (blinkDurations[i] > 0) {
                 // Update this blink
                 int blinkTime = ms - blinkStartTimes[i];
                 if (blinkTime > blinkDurations[i]) {
                     // This blink is over, return black this one time
-                    retIndices[retCount] = i;
-                    retColors[retCount] = 0;
-                    retCount++;
+                    outLEDs[i] = 0;
 
                     // and clear the array entry
                     blinkDurations[i] = 0;
@@ -168,14 +163,11 @@ namespace Animations
                     // Process this blink
                     int blinkGradientTime = blinkTime * 1000 / blinkDurations[i];
                     uint32_t blinkColor = gradientIndividual.evaluateColor(animationBits, blinkGradientTime);
-                    retIndices[retCount] = i;
-                    retColors[retCount] = Utils::modulateColor(Utils::mulColors(blinkColors[i], blinkColor), intensity);
-                    retCount++;
+                    outLEDs[i] = Utils::modulateColor(Utils::mulColors(blinkColors[i], blinkColor), intensity);
                 }
             }
             // Else skip
         }
-        return retCount;
     }
 
     /// <summary>

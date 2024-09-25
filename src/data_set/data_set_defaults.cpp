@@ -293,8 +293,7 @@ namespace DataSet
 
         // 8 Rainbow
         writeRainbowAnimation->type = Animation_Rainbow;
-        writeRainbowAnimation->setIndexType(AnimationIndexType_DaisyChain);
-        writeRainbowAnimation->setTraveling(true);
+        writeRainbowAnimation->animFlags = AnimationFlags_Traveling;
         writeRainbowAnimation->duration = 2000;
         writeRainbowAnimation->faceMask = ANIM_FACEMASK_ALL_LEDS;
         writeRainbowAnimation->count = 2;

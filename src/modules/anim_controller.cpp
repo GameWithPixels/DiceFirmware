@@ -139,7 +139,7 @@ namespace Modules::AnimController
                     // It doesn't really make sense but it's not a problem.
                     uint32_t daisyChainColors[MAX_COUNT];
                     memset(daisyChainColors, 0, sizeof(uint32_t) * l->ledCount);
-                    anim->updateLEDs(ms, daisyChainColors);
+                    anim->updateDaisyChainLEDs(ms, daisyChainColors);
 
                     // Blend with any other color already written to the led (and fade if necessary)
                     for (int j = 0; j < l->ledCount; ++j) {

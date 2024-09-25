@@ -31,8 +31,8 @@ namespace Animations
         virtual int animationSize() const;
 
         virtual void start(int _startTime, uint8_t _remapFace, uint8_t _loopCount);
-        virtual int update(int ms, int retIndices[], uint32_t retColors[]);
         virtual int stop(int retIndices[]);
+        virtual void updateDaisyChainLEDs(int ms, uint32_t* outDaisyChainColors);
 
     private:
         const AnimationRainbow* getPreset() const;

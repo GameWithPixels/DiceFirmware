@@ -42,7 +42,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceRainbow::update(int ms, int retIndices[], uint32_t retColors[]) {
+    void AnimationInstanceRainbow::updateDaisyChainLEDs(int ms, uint32_t* outDaisyChainColors) {
         auto l = SettingsManager::getLayout();
         int c = l->ledCount;
 
@@ -65,21 +65,21 @@ namespace Animations
         }
 
         // Fill the indices and colors for the anim controller to know how to update leds
-        int retCount = 0;
         if (preset->animFlags & AnimationFlags_Traveling) {
             for (int i = 0; i < c; ++i) {
                 if ((preset->faceMask & (1 << i)) != 0) {
-                    retIndices[retCount] = i;
-                    retColors[retCount] = Rainbow::wheel((uint8_t)((wheelPos + i * 256 * preset->cyclesTimes10 / (c * 10)) % 256), intensity);
-                    retCount++;
+                    outDaisyChainColors[i] = Rainbow::wheel((uint8_t)((wheelPos + i * 256 * preset->cyclesTimes10 / (c * 10)) % 256), intensity);
                 }
             }
         } else {
             // All leds same color
             color = Rainbow::wheel((uint8_t)wheelPos, intensity);
-            retCount = setColor(color, preset->faceMask, retIndices, retColors);
+            for (int i = 0; i < c; ++i) {
+                if ((preset->faceMask & (1 << i)) != 0) {
+                    outDaisyChainColors[i] = color;
+                }
+            }
         }
-        return retCount;
     }
 
     /// <summary>

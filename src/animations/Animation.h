@@ -43,16 +43,6 @@ namespace Animations
     };
 
     /// <summary>
-    /// Defines the type of index returned by the animation
-    /// </summary>
-    enum AnimationIndexType : uint8_t
-    {
-        AnimationIndexType_Face       = 0,    // Animation indices refer to face indices
-        AnimationIndexType_DaisyChain = 1,    // Animation indices refer to daisy chain indices, which are the indices of the LEDs in the daisy chain
-        AnimationIndexType_Led        = 2,    // Animation indices refer to led indices, which for most dice (except PD6) are the same as face indices
-    };
-
-    /// <summary>
     /// Base struct for animation presets. All presets have a few properties in common.
     /// Presets are stored in flash, so do not have methods or vtables or anything like that.
     /// </summary>
@@ -61,23 +51,6 @@ namespace Animations
         AnimationType type;
         uint8_t animFlags; // Combination of AnimationFlags
         uint16_t duration; // in ms
-
-        bool isTraveling() const {
-            return (animFlags & AnimationFlags_Traveling) != 0;
-        }
-        void setTraveling(bool value) {
-            if (value) {
-                animFlags |= AnimationFlags_Traveling;
-            } else {
-                animFlags &= ~AnimationFlags_Traveling;
-            }
-        }
-        AnimationIndexType getIndexType() const {
-            return (AnimationIndexType)((animFlags >> 1) & 0b11);
-        }
-        void setIndexType(AnimationIndexType value) {
-            animFlags = (animFlags & 0b11111001) | (value << 1);
-        }
     };
 
     /// <summary>
@@ -104,10 +77,6 @@ namespace Animations
         // starts the animation, with the option of repeating it if _loopCount > 1
         virtual void start(int _startTime, uint8_t _remapFace, uint8_t _loopCount);
         virtual int animationSize() const = 0;
-        // method used to set which faces to turn on as well as the color of their LEDs
-        // retIndices is one to one with retColors and keeps track of which face to turn on as well as its corresponding color
-        // return value of the method is the number of faces to turn on
-        virtual int update(int ms, int retIndices[], uint32_t retColors[]) = 0;
         virtual int stop(int retIndices[]) = 0;
         // Set the animation source tag
         void setTag(AnimationTag _tag);
@@ -117,7 +86,25 @@ namespace Animations
         int setIndices(uint32_t faceMask, int retIndices[]);
         void forceFadeOut(int fadeOutTime);
 
-        void updateLEDs(int ms, uint32_t* outDaisyChainColors);
+        // This method used to set which faces to turn on as well as the color of their LEDs
+        // retIndices is one to one with retColors and keeps track of which face to turn on as well as its corresponding color
+        // return value of the method is the number of faces to turn on.
+        // It returns a list of faces and colors, in 'canonical orientation', i.e. ignoring the current up face.
+        // This is the 'legacy' way of doing things, and is used by animations like GradientPattern, etc...
+        virtual int update(int ms, int retIndices[], uint32_t retColors[]);
+
+        // This method is used to return the list of all colors for all FACES of the die, taking into account the current orientation of the die.
+        // The base implementation calls update() and then flattens and remaps the faces to the current orientation.
+        virtual void updateFaces(int ms, uint32_t* outFaces);
+
+        // This method is use to return the list of all colors for all LEDS of the die, taking into account the current orientation of the die.
+        // The base implementation calls updateFaces() and then extracts the led colors from the face colors.
+        // Animation classes like noise or normals will override this method to directly set the led colors.
+        virtual void updateLEDs(int ms, uint32_t* outLEDs);
+
+        // This method remaps the colors of the LEDs in 'logical' order to the colors of the leds in the daisy chain to pass back to the animation controller.
+        // Animation classes like Rainbow override this method to directly set the daisy chain colors.
+        virtual void updateDaisyChainLEDs(int ms, uint32_t* outDaisyChainColors);
     };
 
     Animations::AnimationInstance* createAnimationInstance(const Animations::Animation* preset, const DataSet::AnimationBits* bits);

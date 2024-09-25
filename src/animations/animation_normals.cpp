@@ -6,11 +6,9 @@
 #include "utils/Utils.h"
 #include "nrf_log.h"
 #include "utils/Rainbow.h"
-#include "modules/accelerometer.h"
 #include "drivers_nrf/rng.h"
 
 using namespace DriversNRF;
-using namespace Modules;
 using namespace Config;
 
 namespace Animations
@@ -42,16 +40,15 @@ namespace Animations
 
         // Grab the die normals
         auto layout = SettingsManager::getLayout();
-        normals = layout->faceNormals;
+        const Core::int3* normals = layout->faceNormals;
 
         // Grab the orientation normal, based on the current face
-        uint8_t face = layout->getTopFace();
-        faceNormal = &normals[face];
+        faceNormal = &normals[_remapFace];
         int backFaceOffset = 1;
-        Core::int3 backVectorNormal = normals[(face + backFaceOffset) % layout->faceCount];
+        Core::int3 backVectorNormal = normals[(_remapFace + backFaceOffset) % layout->faceCount];
         while (abs(Core::int3::dotTimes1000(*faceNormal, backVectorNormal)) > 800 && backFaceOffset < layout->faceCount) {
             backFaceOffset += 1;
-            backVectorNormal = normals[(face + backFaceOffset) % layout->faceCount];
+            backVectorNormal = normals[(_remapFace + backFaceOffset) % layout->faceCount];
         }
         
         // Compute our base vectors, up is aligned with current face, and
@@ -64,10 +61,10 @@ namespace Animations
         auto preset = getPreset();
         switch (preset->mainGradientColorType) {
             case NormalsColorOverrideType_FaceToGradient:
-                baseColorParam = (Accelerometer::currentFace() * 1000) / layout->faceCount;
+                baseColorParam = (_remapFace * 1000) / layout->faceCount;
                 break;
             case NormalsColorOverrideType_FaceToRainbowWheel:
-                baseColorParam = (Accelerometer::currentFace() * 256) / layout->faceCount;
+                baseColorParam = (_remapFace * 256) / layout->faceCount;
                 break;
             case NormalsColorOverrideType_None:
             default:
@@ -82,7 +79,7 @@ namespace Animations
     /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
     /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
     /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceNormals::update(int ms, int retIndices[], uint32_t retColors[]) {
+    void AnimationInstanceNormals::updateLEDs(int ms, uint32_t* outLEDs) {
         int time = ms - startTime;
         auto preset = getPreset();
         int fadeTime = preset->duration * preset->fade / (255 * 2);
@@ -105,8 +102,8 @@ namespace Animations
         auto& axisGradient = animationBits->getRGBTrack(preset->gradientAlongAxis);
         auto& angleGradient = animationBits->getRGBTrack(preset->gradientAlongAngle);
         auto layout = Config::SettingsManager::getLayout();
-        for (int i = 0; i < layout->faceCount; ++i) {
-            auto normal = layout->faceNormals[i];
+        for (int i = 0; i < layout->ledCount; ++i) {
+            auto normal = layout->ledNormals[i];
             // Compute color relative to up/down angle (based on the angle to axis)
             // We'll extract the angle from the dot product of the face's normal and the axis
             int dotAxisTimes1000 = Core::int3::dotTimes1000(*faceNormal, normal);
@@ -179,10 +176,8 @@ namespace Animations
                     break;
             }
 
-            retIndices[i] = i;
-            retColors[i] = Utils::modulateColor(Utils::mulColors(gradientColor, Utils::mulColors(axisColor, angleColor)), intensity);
+            outLEDs[i] = Utils::modulateColor(Utils::mulColors(gradientColor, Utils::mulColors(axisColor, angleColor)), intensity);
         }
-        return layout->faceCount;
     }
 
     /// <summary>
@@ -195,4 +190,5 @@ namespace Animations
     const AnimationNormals* AnimationInstanceNormals::getPreset() const {
         return static_cast<const AnimationNormals*>(animationPreset);
     }
+
 }

@@ -161,9 +161,9 @@ namespace Config::SettingsManager
         // Copy normals from defaults
         auto dieType = DiceVariants::estimateDieTypeFromBoard();
         auto layout = DiceVariants::getLayout(DiceVariants::getLayoutType(dieType));
-        int ledCount = layout->ledCount;
+        int faceCount = layout->faceCount;
         const Core::int3* defaultNormals = layout->faceNormals;
-        for (int i = 0; i < ledCount; ++i) {
+        for (int i = 0; i < faceCount; ++i) {
             outSettings.faceNormals[i] = defaultNormals[i];
         }
     }
