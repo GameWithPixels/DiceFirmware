@@ -14,7 +14,8 @@ namespace DriversHW
     /// </summary>
     namespace AccelChip
     {
-        bool init();
+        typedef void (*InitCallback)(bool result);
+        void init(InitCallback callback);
         void read(Core::int3* outAccel);
 
         void enableInterrupt();

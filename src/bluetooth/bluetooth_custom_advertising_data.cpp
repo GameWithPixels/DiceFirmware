@@ -29,7 +29,7 @@ namespace Bluetooth::CustomAdvertisingDataHandler
     // Global custom manufacturer and service data
     static CustomManufacturerData customManufacturerData;
 
-    void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace);
+    void onRollStateChange(void* param, Accelerometer::RollState prevState, int prevFace, Accelerometer::RollState newState, int newFace);
     void onBatteryStateChange(void *param, BatteryController::BatteryState state);
     void onBatteryLevelChange(void *param, uint8_t levelPercent);
     void updateCustomAdvertisingDataState(Accelerometer::RollState newState, int newFace);
@@ -83,7 +83,7 @@ namespace Bluetooth::CustomAdvertisingDataHandler
         updateCustomAdvertisingDataBattery(levelPercent & 0x7F, 0x80);
     }
 
-    void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace) {
+    void onRollStateChange(void* param, Accelerometer::RollState prevState, int prevFace, Accelerometer::RollState newState, int newFace) {
         updateCustomAdvertisingDataState(newState, newFace);
     }
 

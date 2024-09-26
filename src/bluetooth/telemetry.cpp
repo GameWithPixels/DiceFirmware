@@ -88,7 +88,7 @@ namespace Bluetooth::Telemetry
         teleMessage.acc = frame.acc;
         teleMessage.faceConfidenceTimes1000 = frame.faceConfidenceTimes1000;
         teleMessage.time = frame.time;
-        teleMessage.rollState = frame.rollState;
+        teleMessage.rollState = frame.determinedRollState;
         teleMessage.face = frame.face;
         trySend();
     }

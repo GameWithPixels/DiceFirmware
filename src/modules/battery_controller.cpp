@@ -10,6 +10,8 @@
 #include "leds.h"
 #include "temperature.h"
 
+#define NRF_LOG_ENABLED 0
+
 using namespace DriversHW;
 using namespace DriversNRF;
 using namespace Bluetooth;

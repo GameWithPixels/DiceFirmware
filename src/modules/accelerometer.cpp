@@ -22,6 +22,7 @@
 #include "validation_manager.h"
 #include "malloc.h"
 
+
 using namespace Modules;
 using namespace Core;
 using namespace DriversHW;
@@ -32,19 +33,19 @@ using namespace Bluetooth;
 // This defines how frequently we try to read the accelerometer
 #define MAX_FRAMEDATA_CLIENTS 1
 #define MAX_ACC_CLIENTS 8
+#define MAX_ACCELERATION_FRAMES 3
+
+#define ABS(x) ((x) < 0 ? -(x) : (x))
 
 namespace Modules::Accelerometer
 {
-    static int3 handleStateNormal; // The normal when we entered the handled state, so we can determine if we've moved enough
-
-    // This stores our current Acceleration Data
-    static AccelFrame currentFrame;
+    // This stores a few frames of acceleration data
+    static AccelFrame frames[MAX_ACCELERATION_FRAMES];
 
     static DelegateArray<FrameDataClientMethod, MAX_FRAMEDATA_CLIENTS> frameDataClients;
     static DelegateArray<RollStateClientMethod, MAX_ACC_CLIENTS> rollStateClients;
 
-    enum State
-    {
+    enum State {
         State_Unknown = 0,
         State_Initializing,
         State_Off,
@@ -65,36 +66,36 @@ namespace Modules::Accelerometer
 
     void update(void *context);
 
-    bool init()
-    {
-        currentState = State_Initializing;
-        if (!AccelChip::init()) {
-            return false;
-        }
-
-        MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, calibrateHandler);
-        MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, calibrateFaceHandler);
-
-        Flash::hookProgrammingEvent(onSettingsProgrammingEvent, nullptr);
-
-        // Initialize the acceleration data
-        readAccelerometer(&currentFrame.acc);
-        currentFrame.face = 0;
-        currentFrame.faceConfidenceTimes1000 = 0;
-        currentFrame.time = DriversNRF::Timers::millis();
-        currentFrame.jerk = int3::zero();
-        currentFrame.sigmaTimes1000 = 0;
-        currentFrame.smoothAcc = currentFrame.acc;
-
-        currentState = State_Off;
-        start();
-        NRF_LOG_DEBUG("Acc init");
-
-        return true;
+    // Given two vectors, return the absolute difference in the axis that changed the most.
+    int agitation(int3 xyz0, int3 xyz_minus1) {
+        int3 abs_diffs(
+            ABS(xyz0.xTimes1000 - xyz_minus1.xTimes1000),
+            ABS(xyz0.yTimes1000 - xyz_minus1.yTimes1000),
+            ABS(xyz0.zTimes1000 - xyz_minus1.zTimes1000));
+        return(MAX(abs_diffs.xTimes1000, MAX(abs_diffs.yTimes1000, abs_diffs.zTimes1000)));
     }
 
-    void update(void *context)
-    {
+    void init(InitCallback callback) {
+        static InitCallback _callback; // Don't initialize this static inline because it would only do it on first call!
+        _callback = callback;
+
+        currentState = State_Initializing;
+        AccelChip::init([](bool result) {
+            if (result) {
+                MessageService::RegisterMessageHandler(Message::MessageType_Calibrate, calibrateHandler);
+                MessageService::RegisterMessageHandler(Message::MessageType_CalibrateFace, calibrateFaceHandler);
+
+                Flash::hookProgrammingEvent(onSettingsProgrammingEvent, nullptr);
+
+                currentState = State_Off;
+                start();
+                NRF_LOG_DEBUG("Acc init");
+            }
+            _callback(result);
+        });
+    }
+
+    void update(void *context) {
         int3 acc;
         readAccelerometer(&acc);
         accHandler(acc);
@@ -105,159 +106,142 @@ namespace Modules::Accelerometer
     /// Will return the last value if it cannot determine the current face up
     /// </summary>
     /// <returns>The face number, starting at 0</returns>
-    int determineFace(int3 acc, int16_t *outConfidence)
-    {
-        // Compare against face normals stored in board manager
+    int determineFace(int3 acc, int16_t *outConfidence, int previousFace) {
+        // Compare against face normals stored in layout
         int faceCount = SettingsManager::getLayout()->faceCount;
+
+        // Use calibrated normals, not canonical ones
         auto settings = SettingsManager::getSettings();
         auto &normals = settings->faceNormals;
+
+        // First check that the acceleration is not too low
         int accMagTimes1000 = acc.magnitudeTimes1000();
-        if (accMagTimes1000 < settings->fallingThresholdTimes1000)
-        {
-            if (outConfidence != nullptr)
-            {
-                *outConfidence = 0;
-            }
-            return currentFrame.face;
-        }
-        else
-        {
+        if (accMagTimes1000 < settings->fallingThresholdTimes1000) {
+            // We return the previous face, but we have no real idea actually
+            *outConfidence = 0;
+            return previousFace;
+        } else {
+            // Compare the acceleration vector with the face normals
             int3 nacc = acc * 1000 / accMagTimes1000; // normalize
-            int bestDotTimes1000 = -1100;    // Should be -1000 as we're comparing this value with the dot product
-                                             // of 2 normalized vectors, but is set a bit lower due to imprecision 
-                                             // of fixed point operations, which may return a value lower than -1000.
-            int bestFace = currentFrame.face;
-            for (int i = 0; i < faceCount; ++i)
-            {
+
+            // The starting "best value" should be -1000 as we're comparing this value with
+            // the dot product of 2 normalized vectors, but is set a bit lower due to
+            // imprecision of fixed point operations, which may return a value lower than -1000.
+            int bestDotTimes1000 = -1100;    
+            int bestFace = previousFace;
+            for (int i = 0; i < faceCount; ++i) {
                 int dotTimes1000 = int3::dotTimes1000(nacc, normals[i]);
-                if (dotTimes1000 > bestDotTimes1000)
-                {
+                if (dotTimes1000 > bestDotTimes1000) {
+                    // Found a better match
                     bestDotTimes1000 = dotTimes1000;
                     bestFace = i;
                 }
             }
-            if (outConfidence != nullptr)
-            {
-                *outConfidence = bestDotTimes1000;
-            }
+            // Return the best face
+            *outConfidence = bestDotTimes1000;
             return bestFace;
         }
     }
 
-    void accHandler(void *param, const int3 &acc)
-    {
+    void accHandler(void *param, const int3 &acc) {
         auto settings = SettingsManager::getSettings();
 
-        uint32_t newTime = DriversNRF::Timers::millis();
-        Core::int3 newJerk = ((acc - currentFrame.acc) * 1000) / (newTime - currentFrame.time); // 1000 is not fixed point scaling, just something to make the Jerk value a good range
+        // Shift acceleration data back
+        for (int i = MAX_ACCELERATION_FRAMES-1; i >= 1; --i) {
+            frames[i] = frames[i-1];
+        }
+
+        // Now frame 0 will receive the new data
+        frames[0].time = DriversNRF::Timers::millis();
+        frames[0].acc = acc;
+        frames[0].agitationTimes1000 = agitation(acc, frames[1].acc);
+        frames[0].face = determineFace(acc, &frames[0].faceConfidenceTimes1000, frames[1].face);
+
+        // Calculate the estimated roll state
+        if (frames[0].agitationTimes1000 < settings->lowerThresholdTimes1000) {
+            frames[0].estimatedRollState = RollState_OnFace;
+        } else if (frames[0].agitationTimes1000 >= settings->lowerThresholdTimes1000 && frames[0].agitationTimes1000 < settings->middleThresholdTimes1000) {
+            // Medium amount of agitation... we're handling (or finishing to roll)
+            if (frames[1].estimatedRollState != RollState_Rolling) {
+                frames[0].estimatedRollState = RollState_Handling;
+            } else {
+                frames[0].estimatedRollState = RollState_Rolling;
+            }
+        } else {
+            frames[0].estimatedRollState = RollState_Rolling;
+        }
         
         // If the time between the last and current time is zero, log it
-        if(newTime - currentFrame.time == 0) {
-            NRF_LOG_WARNING("Time diff between frames is 0, time: %d", newTime);
+        if(frames[0].time - frames[1].time == 0) {
+            NRF_LOG_WARNING("Time diff between frames is 0, time: %d", frames[0].time);
         }      
 
-        int sqrJerkMagTimes1000 = newJerk.sqrMagnitudeTimes1000();
-        if (sqrJerkMagTimes1000 > 10000)
-        {
-            sqrJerkMagTimes1000 = 10000;
-        }
-        int newSigmaTimes1000 = (currentFrame.sigmaTimes1000 * settings->sigmaDecayTimes1000 + sqrJerkMagTimes1000 * (1000 - settings->sigmaDecayTimes1000)) / 1000;
-        Core::int3 newSmoothAcc = (currentFrame.smoothAcc * settings->accDecayTimes1000 + acc * (1000 - settings->accDecayTimes1000)) / 1000;
-        int16_t newFaceConfidenceTimes1000 = 0;
-        uint8_t newFace = determineFace(acc, &newFaceConfidenceTimes1000);
-
-        bool startMoving = newSigmaTimes1000 > settings->startMovingThresholdTimes1000;
-        bool stopMoving = newSigmaTimes1000 < settings->stopMovingThresholdTimes1000;
-        // bool onFace = newFaceConfidenceTimes1000 > settings->faceThresholdTimes1000;
-        bool zeroG = acc.sqrMagnitudeTimes1000() < (settings->fallingThresholdTimes1000 * settings->fallingThresholdTimes1000 / 1000);
-        bool shock = acc.sqrMagnitudeTimes1000() > (settings->shockThresholdTimes1000 * settings->shockThresholdTimes1000 / 1000);
-
-        RollState newRollState = currentFrame.rollState;
-        switch (newRollState)
-        {
-        case RollState_Unknown:
-        case RollState_OnFace:
-        case RollState_Crooked:
-            // We start rolling if we detect enough motion
-            if (startMoving)
-            {
-                // We're at least being handled
-                newRollState = RollState_Handling;
-                handleStateNormal = acc.normalized();
+        // Count how many onface states we estimated in the last 3 frames, same with handling and rolling
+        int onFaceCount = 0;
+        int handlingCount = 0;
+        int rollingCount = 0;
+        int agitationCount = 0;
+        for (int i = 0; i < MAX_ACCELERATION_FRAMES; ++i) {
+            switch (frames[i].estimatedRollState) {
+                case RollState_OnFace:
+                    onFaceCount++;
+                    break;
+                case RollState_Handling:
+                    handlingCount++;
+                    break;
+                case RollState_Rolling:
+                    rollingCount++;
+                    break;
+                default:
+                    break;
             }
-            break;
-        case RollState_Handling:
-            // Did we move enough?
-            {
-                bool rotatedEnough = int3::dotTimes1000(acc.normalized(), handleStateNormal) < 500;
-                if (shock || zeroG || rotatedEnough)
-                {
-                    // Stuff is happening that we are most likely rolling now
-                    newRollState = RollState_Rolling;
-                }
-                else if (stopMoving)
-                {
-                    newRollState = RollState_OnFace;
-                }
-            }
-            break;
-        case RollState_Rolling:
-            // If we stop moving we may be on a face
-            if (stopMoving)
-            {
-                newRollState = RollState_OnFace;
-            }
-            break;
-        default:
-            break;
-        }
-
-        bool faceChanged = newFace != currentFrame.face;
-        bool stateChanged = newRollState != currentFrame.rollState;
-        if (faceChanged || stateChanged)
-        {
-            for (int i = 0; i < rollStateClients.Count(); ++i)
-            {
-                rollStateClients[i].handler(rollStateClients[i].token, newRollState, newFace);
+            if (frames[i].agitationTimes1000 > settings->upperThresholdTimes1000) {
+                agitationCount++;
             }
         }
 
-        // Update last frame data
-        currentFrame.acc = acc;
-        currentFrame.time = newTime;
-        currentFrame.jerk = newJerk;
-        currentFrame.sigmaTimes1000 = newSigmaTimes1000;
-        currentFrame.smoothAcc = newSmoothAcc;
-        currentFrame.rollState = newRollState;
-        currentFrame.face = newFace;
-        currentFrame.faceConfidenceTimes1000 = newFaceConfidenceTimes1000;
+        frames[0].determinedRollState = frames[1].determinedRollState;
+        if (onFaceCount == 3) {
+            frames[0].determinedRollState = RollState_OnFace;
+        } else if (handlingCount == 3) {
+            frames[0].determinedRollState = RollState_Handling;
+        } else if ((rollingCount >= 2) && (agitationCount > 0)) {
+            frames[0].determinedRollState = RollState_Rolling;
+        }
+
+        bool faceChanged = frames[0].face != frames[1].face;
+        bool stateChanged = frames[0].determinedRollState != frames[1].determinedRollState;
+        if (faceChanged || stateChanged) {
+            for (int i = 0; i < rollStateClients.Count(); ++i) {
+                rollStateClients[i].handler(rollStateClients[i].token, frames[1].determinedRollState, frames[1].face, frames[0].determinedRollState, frames[0].face);
+            }
+        }
 
         // Notify frame data clients
-        for (int i = 0; i < frameDataClients.Count(); ++i)
-        {
-            frameDataClients[i].handler(frameDataClients[i].token, currentFrame);
+        for (int i = 0; i < frameDataClients.Count(); ++i) {
+            frameDataClients[i].handler(frameDataClients[i].token, frames[0]);
         }
     }
 
     /// <summary>
     /// Initialize the acceleration system
     /// </summary>
-    void start()
-    {
+    void start() {
         switch (currentState) {
             case State_Off:
             case State_LowPower:
                 {
                     NRF_LOG_DEBUG("Starting accelerometer");
 
-                    // Set initial value
-                    readAccelerometer(&currentFrame.acc);
-                    currentFrame.smoothAcc = currentFrame.acc;
-                    currentFrame.time = Timers::millis();
-                    currentFrame.jerk = Core::int3::zero();
-                    currentFrame.sigmaTimes1000 = 0;
-                    currentFrame.face = determineFace(currentFrame.acc, &currentFrame.faceConfidenceTimes1000);
-                    currentFrame.rollState = RollState_OnFace;
+                    // Initialize the acceleration data
+                    readAccelerometer(&frames[0].acc);
+                    frames[0].face = 0;
+                    frames[0].faceConfidenceTimes1000 = 0;
+                    frames[0].time = DriversNRF::Timers::millis();
+                    frames[0].agitationTimes1000 = 0;
+                    frames[0].estimatedRollState = RollState_OnFace;
+                    memcpy(&frames[1], &frames[0], sizeof(AccelFrame));
+                    memcpy(&frames[2], &frames[0], sizeof(AccelFrame));
 
                     // Unhook first to avoid being hooked more than once if start() is called multiple times
                     AccelChip::unHook(accHandler);
@@ -279,8 +263,7 @@ namespace Modules::Accelerometer
     /// <summary>
     /// Stop getting updated from the timer
     /// </summary>
-    void stop()
-    {
+    void stop() {
         switch (currentState) {
             case State_On:
                 AccelChip::unHook(accHandler);
@@ -297,8 +280,7 @@ namespace Modules::Accelerometer
         }
     }
 
-    void lowPower()
-    {
+    void lowPower() {
         switch (currentState) {
             case State_Off:
                 AccelChip::lowPower();
@@ -310,16 +292,15 @@ namespace Modules::Accelerometer
         }
     }
 
-    void wakeUp()
-    {
+    void wakeUp() {
         start();
 
         // Force override the roll state, since we most likely just woke up from motion
-        currentFrame.rollState = RollState_Handling;
+        frames[0].determinedRollState = RollState_Handling;
 
         // Notify frame data clients
         for (int i = 0; i < frameDataClients.Count(); ++i) {
-            frameDataClients[i].handler(frameDataClients[i].token, currentFrame);
+            frameDataClients[i].handler(frameDataClients[i].token, frames[0]);
         }
     }
 
@@ -327,23 +308,19 @@ namespace Modules::Accelerometer
     /// <summary>
     /// Returns the currently stored up face!
     /// </summary>
-    int currentFace()
-    {
-        return currentFrame.face;
+    int currentFace() {
+        return frames[0].face;
     }
 
-    int currentFaceConfidenceTimes1000()
-    {
-        return currentFrame.faceConfidenceTimes1000;
+    int currentFaceConfidenceTimes1000() {
+        return frames[0].faceConfidenceTimes1000;
     }
 
-    RollState currentRollState()
-    {
-        return currentFrame.rollState;
+    RollState currentRollState() {
+        return frames[0].determinedRollState;
     }
 
-    const char *getRollStateString(RollState state)
-    {
+    const char *getRollStateString(RollState state) {
 #if defined(DEBUG)
         switch (state)
         {
@@ -367,10 +344,8 @@ namespace Modules::Accelerometer
     /// <summary>
     /// Method used by clients to request timer callbacks when accelerometer readings are in
     /// </summary>
-    void hookFrameData(Accelerometer::FrameDataClientMethod callback, void *parameter)
-    {
-        if (!frameDataClients.Register(parameter, callback))
-        {
+    void hookFrameData(Accelerometer::FrameDataClientMethod callback, void *parameter) {
+        if (!frameDataClients.Register(parameter, callback)) {
             NRF_LOG_ERROR("Too many accelerometer hooks registered.");
         }
     }
@@ -378,34 +353,28 @@ namespace Modules::Accelerometer
     /// <summary>
     /// Method used by clients to stop getting accelerometer reading callbacks
     /// </summary>
-    void unHookFrameData(Accelerometer::FrameDataClientMethod callback)
-    {
+    void unHookFrameData(Accelerometer::FrameDataClientMethod callback) {
         frameDataClients.UnregisterWithHandler(callback);
     }
 
     /// <summary>
     /// Method used by clients to stop getting accelerometer reading callbacks
     /// </summary>
-    void unHookFrameDataWithParam(void *param)
-    {
+    void unHookFrameDataWithParam(void *param) {
         frameDataClients.UnregisterWithToken(param);
     }
 
-    void hookRollState(RollStateClientMethod method, void *param)
-    {
-        if (!rollStateClients.Register(param, method))
-        {
+    void hookRollState(RollStateClientMethod method, void *param) {
+        if (!rollStateClients.Register(param, method)) {
             NRF_LOG_ERROR("Too many accelerometer hooks registered.");
         }
     }
 
-    void unHookRollState(RollStateClientMethod client)
-    {
+    void unHookRollState(RollStateClientMethod client) {
         rollStateClients.UnregisterWithHandler(client);
     }
 
-    void unHookRollStateWithParam(void *param)
-    {
+    void unHookRollStateWithParam(void *param) {
         rollStateClients.UnregisterWithToken(param);
     }
 
@@ -424,14 +393,12 @@ namespace Modules::Accelerometer
 
     static CalibrationNormals *measuredNormals = nullptr;
 
-    void onConnectionLost(void *param, bool connected)
-    {
+    void onConnectionLost(void *param, bool connected) {
         if (!connected)
             measuredNormals->calibrationInterrupted = true;
     }
 
-    void calibrateHandler(const Message *msg)
-    {
+    void calibrateHandler(const Message *msg) {
         // Turn off state change notifications
         stop();
         Bluetooth::Stack::hook(onConnectionLost, nullptr);
@@ -517,8 +484,7 @@ namespace Modules::Accelerometer
         });
     }
 
-    void calibrateFaceHandler(const Message *msg)
-    {
+    void calibrateFaceHandler(const Message *msg) {
         const MessageCalibrateFace *faceMsg = (const MessageCalibrateFace *)msg;
         uint8_t face = faceMsg->face;
 
@@ -538,30 +504,24 @@ namespace Modules::Accelerometer
 
 #pragma GCC diagnostic pop "-Wstack-usage="
 
-    void onSettingsProgrammingEvent(void *context, Flash::ProgrammingEventType evt)
-    {
-        if (evt == Flash::ProgrammingEventType_Begin)
-        {
+    void onSettingsProgrammingEvent(void *context, Flash::ProgrammingEventType evt) {
+        if (evt == Flash::ProgrammingEventType_Begin) {
             NRF_LOG_DEBUG("Stopping axel from programming event");
             stop();
-        }
-        else
-        {
+        } else {
             NRF_LOG_DEBUG("Starting axel from programming event");
             start();
         }
     }
 
-    void readAccelerometer(int3 *acc)
-    {
+    void readAccelerometer(int3 *acc) {
         AccelChip::read(acc);
     }
 
     // Interrupt Callback Storage
     static void* interruptParam = nullptr;
     static AccelerometerInterruptMethod interruptCallback = nullptr;
-    void enableInterrupt(AccelerometerInterruptMethod callback, void* param)
-    {
+    void enableInterrupt(AccelerometerInterruptMethod callback, void* param) {
         ASSERT(interruptCallback == nullptr);
         ASSERT(interruptParam== nullptr);
 
@@ -592,8 +552,7 @@ namespace Modules::Accelerometer
         AccelChip::enableInterrupt();
     }
 
-    void disableInterrupt()
-    {
+    void disableInterrupt() {
         GPIOTE::disableInterrupt(BoardManager::getBoard()->accInterruptPin);
         AccelChip::disableInterrupt();
     }

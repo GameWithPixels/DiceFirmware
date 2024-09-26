@@ -68,7 +68,7 @@ using namespace Modules;
 namespace Die
 {
     // Callback for calling PowerManager::feed to prevent sleep mode due to animations
-    void feed(void* param, Accelerometer::RollState newState, int newFace)  {
+    void feed(void* param, Accelerometer::RollState prevState, int prevFace, Accelerometer::RollState newState, int newFace)  {
         PowerManager::feed();
     }
 
@@ -162,112 +162,114 @@ namespace Die
             // Accel pins depend on the board info
             // on fail blink 2 short times then power off
             static bool accInitRet = false;
-            accInitRet = Accelerometer::init();
+            Accelerometer::init([](bool accInitRetParam) {
+                accInitRet = accInitRetParam;
 
-            // Battery Temperature Module
-            // on fail blink red 3 short times then power off
-            NTC::init();
+                // Battery Temperature Module
+                // on fail blink red 3 short times then power off
+                NTC::init();
 
-            // Temperature sensor
-            MCUTemperature::init();
+                // Temperature sensor
+                MCUTemperature::init();
 
-            // Temperature Module
-            Temperature::init([] (bool tempInitRetParam) {
+                // Temperature Module
+                Temperature::init([] (bool tempInitRetParam) {
 
-                static bool tempInitRet = false;
-                tempInitRet = tempInitRetParam;
-                // Battery controller relies on the battery driver
-                BatteryController::init();
+                    static bool tempInitRet = false;
+                    tempInitRet = tempInitRetParam;
+                    // Battery controller relies on the battery driver
+                    BatteryController::init();
 
-                // Charger proximity translates info from the battery controller
-                ChargerProximity::init();
+                    // Charger proximity translates info from the battery controller
+                    ChargerProximity::init();
 
-                // Lights depend on board info as well
-                LEDs::init([](bool ledInitRet) {
-                    const bool engineeringSample = !ValidationManager::inValidation() && !ValueStore::hasValidationTimestamp();
-                    if (!engineeringSample) {
-                        // If LED init failed, we will "try" to turn LEDs on, hoping the problem is simply an led chain thing
-                        if (!ledInitRet) {
-                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_LEDs);
+                    // Lights depend on board info as well
+                    LEDs::init([](bool ledInitRet) {
+                        const bool engineeringSample = !ValidationManager::inValidation() && !ValueStore::hasValidationTimestamp();
+                        if (!engineeringSample) {
+                            // If LED init failed, we will "try" to turn LEDs on, hoping the problem is simply an led chain thing
+                            if (!ledInitRet) {
+                                LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_LEDs);
+                            }
+
+                            if (!tempInitRet) {
+                                LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_NTC);
+                            }
                         }
 
-                        if (!tempInitRet) {
-                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_NTC);
-                        }
-                    }
-
-                    // Now that we have LEDs, indicate battery or acc errors
-                    if (!batteryInitRet) {
-                        LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_BatterySense);
-                    }
-
-                    if (!accInitRet) {
-                        LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_Accelerometer);
-                    }
-
-                    // Animation set needs flash and board info
-                    DataSet::init([] () {
-
-                    #if defined(DEBUG)
-                        // Useful for development
-                        LEDColorTester::init();
-                    #endif
-
-                        // Telemetry depends on accelerometer
-                        Telemetry::init();
-
-                        // Animation controller relies on animation set
-                        AnimController::init();
-
-                        //--------------------
-                        // Initialize Bluetooth Advertising Data + Name
-                        //--------------------
-
-                        // Now that the message service added its uuid to the SoftDevice, initialize the advertising
-                        Stack::initAdvertising();
-
-                        // Initialize custom advertising data handler
-                        CustomAdvertisingDataHandler::init();
-
-                        const bool inValidation = ValidationManager::inValidation();
-                        if (!inValidation) {
-                            // Want to prevent sleep mode due to animations while not in validation
-                            Accelerometer::hookRollState(feed, nullptr);
+                        // Now that we have LEDs, indicate battery or acc errors
+                        if (!batteryInitRet) {
+                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_BatterySense);
                         }
 
-                        // Behavior Controller relies on all the modules
-                        BehaviorController::init();
-
-                        // Animation Preview depends on bluetooth
-                        AnimationPreview::init();
-
-                        // Instant Animation Controller preview depends on bluetooth
-                        InstantAnimationController::init();
-
-                        // Get ready for handling hardware test messages
-                        HardwareTest::init();
-
-                        // Start advertising!
-                        Stack::startAdvertising();
-
-                        // Initialize common logic
-                        initMainLogic();
-
-                        // Always init validation manager so it handles the ExitValidation message
-                        ValidationManager::init();
-
-                        // Entering the main loop! Play Hello! anim if in validation mode
-                        if (inValidation) {
-                            ValidationManager::onPixelInitialized();
-                        } else {
-                            initDieLogic();
-                            BehaviorController::onPixelInitialized();
-                            Timers::setDelayedCallback([](void* ignore) {
-                                BehaviorController::EnableAccelerometerRules();
-                            }, nullptr, 1000);
+                        if (!accInitRet) {
+                            LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_Accelerometer);
                         }
 
-                        NRF_LOG_INFO("----- Device initialized! -----");
+                        // Animation set needs flash and board info
+                        DataSet::init([] () {
+
+                        #if defined(DEBUG)
+                            // Useful for development
+                            LEDColorTester::init();
+                        #endif
+
+                            // Telemetry depends on accelerometer
+                            Telemetry::init();
+
+                            // Animation controller relies on animation set
+                            AnimController::init();
+
+                            //--------------------
+                            // Initialize Bluetooth Advertising Data + Name
+                            //--------------------
+
+                            // Now that the message service added its uuid to the SoftDevice, initialize the advertising
+                            Stack::initAdvertising();
+
+                            // Initialize custom advertising data handler
+                            CustomAdvertisingDataHandler::init();
+
+                            const bool inValidation = ValidationManager::inValidation();
+                            if (!inValidation) {
+                                // Want to prevent sleep mode due to animations while not in validation
+                                Accelerometer::hookRollState(feed, nullptr);
+                            }
+
+                            // Behavior Controller relies on all the modules
+                            BehaviorController::init();
+
+                            // Animation Preview depends on bluetooth
+                            AnimationPreview::init();
+
+                            // Instant Animation Controller preview depends on bluetooth
+                            InstantAnimationController::init();
+
+                            // Get ready for handling hardware test messages
+                            HardwareTest::init();
+
+                            // Start advertising!
+                            Stack::startAdvertising();
+
+                            // Initialize common logic
+                            initMainLogic();
+
+                            // Always init validation manager so it handles the ExitValidation message
+                            ValidationManager::init();
+
+                            // Entering the main loop! Play Hello! anim if in validation mode
+                            if (inValidation) {
+                                ValidationManager::onPixelInitialized();
+                            } else {
+                                initDieLogic();
+                                BehaviorController::onPixelInitialized();
+                                Timers::setDelayedCallback([](void* ignore) {
+                                    BehaviorController::EnableAccelerometerRules();
+                                }, nullptr, 1000);
+                            }
+
+                            NRF_LOG_INFO("----- Device initialized! -----");
+                        });
                     });
                 });
             });

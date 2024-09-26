@@ -24,7 +24,7 @@ namespace Modules::BehaviorController
 {
     void onConnectionEvent(void* param, bool connected);
     void onBatteryStateChange(void* param, BatteryController::BatteryState newState);
-    void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace);
+    void onRollStateChange(void* param, Accelerometer::RollState prevState, int prevFace, Accelerometer::RollState newState, int newFace);
 
     int lastRollStateTimestamp;
 
@@ -155,7 +155,7 @@ namespace Modules::BehaviorController
     }
 
 
-    void onRollStateChange(void* param, Accelerometer::RollState newState, int newFace) {
+    void onRollStateChange(void* param, Accelerometer::RollState prevState, int prevFace, Accelerometer::RollState newState, int newFace) {
 
         // Do we have a roll state event condition?
         auto bhv = DataSet::getBehavior();
@@ -190,7 +190,7 @@ namespace Modules::BehaviorController
                     conditionTriggered = static_cast<const Behaviors::ConditionFaceCompare*>(condition)->checkTrigger(newState, newFace);
                     break;
                 case Behaviors::Condition_Rolled:
-                    conditionTriggered = static_cast<const Behaviors::ConditionRolled*>(condition)->checkTrigger(newState, newFace);
+                    conditionTriggered = static_cast<const Behaviors::ConditionRolled*>(condition)->checkTrigger(prevState, prevFace, newState, newFace);
                     break;
                 default:
                     break;

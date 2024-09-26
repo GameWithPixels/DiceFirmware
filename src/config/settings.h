@@ -38,14 +38,11 @@ namespace Config
         // Die name
         char name[MAX_NAME_LENGTH + 1]; // One extra byte for the zero terminator
 
-        // Face detector
-        int sigmaDecayTimes1000;
-        int startMovingThresholdTimes1000;
-        int stopMovingThresholdTimes1000;
-        int faceThresholdTimes1000;
+        // Parameters for the roll detection. Might have to be adjusted based on future experience:
+        int lowerThresholdTimes1000;
+        int middleThresholdTimes1000;
+        int upperThresholdTimes1000;
         int fallingThresholdTimes1000;
-        int shockThresholdTimes1000;
-        int accDecayTimes1000;
 
         // Calibration data
         Core::int3 faceNormals[MAX_COUNT];

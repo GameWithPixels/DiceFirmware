@@ -118,7 +118,7 @@ namespace Behaviors
         uint8_t padding2;
         uint8_t padding3;
         uint32_t faceMask;
-        bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
+        bool checkTrigger(Modules::Accelerometer::RollState prevState, int prevFaceIndex, Modules::Accelerometer::RollState newState, int newFaceIndex) const;
     };
 
     /// <summary>

@@ -57,9 +57,10 @@ namespace Behaviors
     /// <summary>
     /// Called by the Behavior Controller when a roll state event happens to see if this condition should trigger
     /// </summary>
-    bool ConditionRolled::checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const {
+    bool ConditionRolled::checkTrigger(Modules::Accelerometer::RollState prevState, int prevFaceIndex, Modules::Accelerometer::RollState newState, int newFaceIndex) const {
         bool ret = false;
-        if (newState == Modules::Accelerometer::RollState_OnFace) {
+        // Only trigger if we switch from rolling to on face, as otherwise it just means we moved the die but didn't roll it.
+        if (prevState == Modules::Accelerometer::RollState_Rolling && newState == Modules::Accelerometer::RollState_OnFace) {
             ret = (faceMask & (1 << newFaceIndex)) != 0;
         }
         return ret;

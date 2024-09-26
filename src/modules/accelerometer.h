@@ -30,26 +30,25 @@ namespace Modules::Accelerometer
     /// </summary>
     struct AccelFrame
     {
-        int3 acc;
-        int3 jerk;
-        int3 smoothAcc;
-        int16_t sigmaTimes1000;
-        int16_t faceConfidenceTimes1000;
         uint32_t time;
-        RollState rollState;
+        int3 acc;
+        int agitationTimes1000;
+        RollState estimatedRollState;
         uint8_t face;
+        int16_t faceConfidenceTimes1000;
+        RollState determinedRollState;
     };
 
     #pragma pack(pop)
 
-    bool init();
+    typedef void (*InitCallback)(bool result);
+    void init(InitCallback callback);
     void start();
     void stop();
     void lowPower();
     void wakeUp();
 
     int currentFace();
-    int currentFaceConfidenceTimes1000();
     RollState currentRollState();
 
     // Returns empty string in release builds so to save space
@@ -67,7 +66,7 @@ namespace Modules::Accelerometer
     void unHookFrameData(FrameDataClientMethod client);
     void unHookFrameDataWithParam(void* param);
 
-    typedef void(*RollStateClientMethod)(void* param, RollState newState, int newFace);
+    typedef void(*RollStateClientMethod)(void* param, RollState prevState, int prevFace, RollState newState, int newFace);
     void hookRollState(RollStateClientMethod method, void* param);
     void unHookRollState(RollStateClientMethod client);
     void unHookRollStateWithParam(void* param);

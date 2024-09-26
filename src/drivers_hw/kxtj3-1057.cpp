@@ -8,6 +8,8 @@
 #include "config/board_config.h"
 #include "drivers_nrf/gpiote.h"
 #include "drivers_nrf/scheduler.h"
+#include "drivers_nrf/timers.h"
+#include "nrf_delay.h"
 
 using namespace DriversNRF;
 using namespace Config;
@@ -17,7 +19,7 @@ namespace DriversHW
 namespace AccelChip
 {
 
-    enum Registers
+    enum Registers : uint8_t
     {
         WHO_AM_I = 0x0F,
         DCST_RESP = 0x0C,	// used to verify proper integrated circuit functionality.It always has a byte value of 0x55
@@ -48,7 +50,7 @@ namespace AccelChip
         WAKEUP_THRD_L = 0x6B,
     };
 
-    enum Scale
+    enum Scale : uint8_t
     {
         SCALE_2G  = 0,
         SCALE_4G  = 2,
@@ -56,7 +58,7 @@ namespace AccelChip
         SCALE_16G = 1,
     };
 
-    enum DataRate
+    enum DataRate : uint8_t
     {
         ODR_0_781 = 8,
         ODR_1_563 = 9,
@@ -86,19 +88,47 @@ namespace AccelChip
     void standby();
     void active();
 
-    bool init()
+
+    // APP_TIMER_DEF(checkTimer);
+    // int accCount = 0;
+    // static void checkTimerHandler(void* context)
+    // {
+    //     Scheduler::push(&accCount, sizeof(int), [](void* p_event_data, uint16_t event_size) {
+    //         int* pCount = (int*)p_event_data;
+    //         NRF_LOG_INFO("Accel count: %d", *pCount);
+    //     });
+    //     accCount = 0;
+    // }
+
+    void init(InitCallback callback)
     {
-        uint8_t c = I2C::readRegister(devAddress, WHO_AM_I);  // Read WHO_AM_I register
-        bool success = c == 0x35;
-        if (!success) {
-             // WHO_AM_I should always be 0x35 on KXTJ3
-            NRF_LOG_ERROR("KXTJ3 - Bad WHOAMI - received 0x%02x, should be 0x35", c);
-        } else {
-            // Initialize accel chip settings
-            ApplySettings();
-            NRF_LOG_DEBUG("KXTJ3 init");
-        }
-        return success;
+        static InitCallback _callback; // Don't initialize this static inline because it would only do it on first call!
+        _callback = callback;
+
+        // Timers::createTimer(&checkTimer, APP_TIMER_MODE_REPEATED, checkTimerHandler);
+        // Timers::startTimer(checkTimer, 1000, nullptr);
+
+        // Reset the device
+        standby();
+        uint8_t ctrl2 = I2C::readRegister(devAddress, CTRL_REG2);
+        ctrl2 |= 0x80; // Reset the device
+        I2C::writeRegister(devAddress, CTRL_REG2, ctrl2); // Reset the device
+
+        // Wait for reset to complete
+        Timers::setDelayedCallback([](void* param) {
+
+            uint8_t c = I2C::readRegister(devAddress, WHO_AM_I);  // Read WHO_AM_I register
+            bool success = c == 0x35;
+            if (!success) {
+                // WHO_AM_I should always be 0x35 on KXTJ3
+                NRF_LOG_ERROR("KXTJ3 - Bad WHOAMI - received 0x%02x, should be 0x35", c);
+            } else {
+                // Initialize accel chip settings
+                ApplySettings();
+                NRF_LOG_DEBUG("KXTJ3 init");
+            }
+            _callback(success);
+        }, nullptr, 3);
     }
 
     void read(Core::int3* outAccel) {
@@ -222,6 +252,9 @@ namespace AccelChip
         Core::int3 acc;
         read(&acc);
 
+        // // DEBUG
+        // accCount++;
+
         // Trigger the callbacks
         Scheduler::push(&acc, sizeof(Core::int3), [](void* accCopyPtr, uint16_t event_size) {
 
@@ -232,7 +265,7 @@ namespace AccelChip
                 clients[i].handler(clients[i].token, *accCopy);
             }
         });
-        clearInterrupt();
+        //clearInterrupt();
     }
 
     /// <summary>
@@ -253,6 +286,7 @@ namespace AccelChip
 
             // Enable data ready interrupt
             uint8_t ctrl = I2C::readRegister(devAddress, CTRL_REG1);
+            ctrl &= ~(0b01100000);
             ctrl |= 0b01100000;
             I2C::writeRegister(devAddress, CTRL_REG1, ctrl);
         }

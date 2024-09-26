@@ -10,7 +10,7 @@ using namespace Modules;
 namespace Notifications::Roll
 {
     void requestRollStateHandler(const Message *message);
-    void onRollStateChange(void *token, Accelerometer::RollState newRollState, int newFace);
+    void onRollStateChange(void *token, Accelerometer::RollState prevRollState, int prevFace, Accelerometer::RollState newRollState, int newFace);
 
     void init() {
         // We always send roll events over Bluetooth when connected
@@ -37,7 +37,7 @@ namespace Notifications::Roll
         sendRollState(Accelerometer::currentRollState(), Accelerometer::currentFace());
     }
 
-    void onRollStateChange(void* token, Accelerometer::RollState newRollState, int newFace) {
+    void onRollStateChange(void *token, Accelerometer::RollState prevRollState, int prevFace, Accelerometer::RollState newRollState, int newFace) {
         sendRollState(newRollState, newFace);
     }
 }

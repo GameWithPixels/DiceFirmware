@@ -148,13 +148,10 @@ namespace Config::SettingsManager
         outSettings.dieType = DiceVariants::estimateDieTypeFromBoard();
         outSettings.colorway = DiceVariants::Colorway::Colorway_Unknown;
         outSettings.customColorwayName[0] = '\0';
-        outSettings.sigmaDecayTimes1000 = 500;
-        outSettings.startMovingThresholdTimes1000 = 5000;
-        outSettings.stopMovingThresholdTimes1000 = 500;
-        outSettings.faceThresholdTimes1000 = 980;
         outSettings.fallingThresholdTimes1000 = 100;
-        outSettings.shockThresholdTimes1000 = 7500;
-        outSettings.accDecayTimes1000 = 900;
+        outSettings.lowerThresholdTimes1000 = 100;
+        outSettings.middleThresholdTimes1000 = 300;
+        outSettings.upperThresholdTimes1000 = 750;
     }
 
     void setDefaultCalibrationData(Settings& outSettings) {
