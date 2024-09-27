@@ -189,7 +189,7 @@ namespace Animations
         for (int l = 0; l < layout->ledCount; ++l) {
 
             int ll = layout->LEDIndexFromDaisyChainIndex(l);
-            outDaisyChainColors[l] = ledColors[ll];
+            outDaisyChainColors[l] = (ll != 255) ? ledColors[ll] : 0;
         }
     }
 

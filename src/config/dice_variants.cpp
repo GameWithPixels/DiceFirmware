@@ -629,7 +629,7 @@ namespace DiceVariants
     const Layout D4Layout = {
         .layoutType = LEDLayoutType::DieLayoutType_D4,
         .faceCount = 4,
-        .ledCount = 4,
+        .ledCount = 6,
         .adjacencyCount = 2,
         .faceNormals = D4Normals,
         .ledNormals = D4Normals,
