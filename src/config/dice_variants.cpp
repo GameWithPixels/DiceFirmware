@@ -5,8 +5,6 @@
 
 using namespace Core;
 
-#define MAX_COUNT 22		// Max LED count so far is 21 (on PD6)
-                            // but we want room for one more 'fake' LED to test LED return
 namespace Config
 {
 namespace DiceVariants
