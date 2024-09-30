@@ -93,7 +93,7 @@ namespace Bluetooth::Stack
 
     // Buffers pointing to the custom advertising and service data
     static ble_advdata_manuf_data_t advertisedManufData = {
-        .company_identifier = 0xFFFF, // <-- Temporary until we get our Company Id Code
+        .company_identifier = 0x0D39, // Systemic Games company identifier
         .data = {
             .size   = 0,        // Initialized later by the custom data handler
             .p_data = nullptr
