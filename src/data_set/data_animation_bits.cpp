@@ -15,8 +15,8 @@ namespace DataSet
     uint32_t AnimationBits::getPaletteColor(uint16_t colorIndex) const {
         if (colorIndex == PALETTE_COLOR_FROM_FACE) {
             // Color is based on the face
-            int ledCount = SettingsManager::getLayout()->ledCount;
-            return Rainbow::faceWheel(Accelerometer::currentFace(), ledCount);
+            int faceCount = SettingsManager::getLayout()->faceCount;
+            return Rainbow::faceWheel(Accelerometer::currentFace(), faceCount);
         }
         else if (colorIndex == PALETTE_COLOR_FROM_RANDOM) {
             // Not implemented
