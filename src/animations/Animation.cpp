@@ -120,10 +120,11 @@ namespace Animations
         memset(outFaces, 0, sizeof(uint32_t) * MAX_COUNT);
         for (int i = 0; i < animColorCount; ++i) {
             int face = animIndices[i];
-
-            // Remap the faces as necessary
-            int remappedFace = layout->remapFaceIndexBasedOnUpFace(remapFace, face);
-            outFaces[remappedFace] = animColors[i];
+            if (face < layout->faceCount) {
+                // Remap the faces as necessary
+                int remappedFace = layout->remapFaceIndexBasedOnUpFace(remapFace, face);
+                outFaces[remappedFace] = animColors[i];
+            }
         }
     }
 
@@ -189,7 +190,7 @@ namespace Animations
         for (int l = 0; l < layout->ledCount; ++l) {
 
             int ll = layout->LEDIndexFromDaisyChainIndex(l);
-            outDaisyChainColors[l] = ledColors[ll];
+            outDaisyChainColors[l] = (ll != 255) ? ledColors[ll] : 0;
         }
     }
 

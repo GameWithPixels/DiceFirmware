@@ -93,8 +93,18 @@ namespace Config::SettingsManager
     }
 
     DiceVariants::DieType getDieType() {
+        // First check the data store
         const int dieTypeFromStore = ValueStore::readValue(ValueStore::ValueType_DieType);
-        return dieTypeFromStore != -1 ? (DiceVariants::DieType)dieTypeFromStore : SettingsManager::getSettings()->dieType;
+        if (dieTypeFromStore != -1) {
+            return (DiceVariants::DieType)dieTypeFromStore;
+        } else {
+            // then check settings
+            if (checkValid()) {
+                return settings->dieType;
+            } else {
+                return DiceVariants::estimateDieTypeFromBoard();
+            }
+        }
     }
 
     DiceVariants::Colorway getColorway() {
@@ -145,7 +155,14 @@ namespace Config::SettingsManager
         }
         outSettings.name[8 + sizeof(pixel) - 1] = '\0';
         outSettings.settingsTimeStamp = Pixel::getBuildTimestamp();
-        outSettings.dieType = DiceVariants::estimateDieTypeFromBoard();
+
+        // Manually fetch die type, we don't want to pull it from the settings
+        const int dieTypeFromStore = ValueStore::readValue(ValueStore::ValueType_DieType);
+        if (dieTypeFromStore != -1) {
+            outSettings.dieType = (DiceVariants::DieType)dieTypeFromStore;
+        } else {
+            outSettings.dieType = DiceVariants::estimateDieTypeFromBoard();
+        }
         outSettings.colorway = DiceVariants::Colorway::Colorway_Unknown;
         outSettings.customColorwayName[0] = '\0';
         outSettings.fallingThresholdTimes1000 = 100;
@@ -155,9 +172,15 @@ namespace Config::SettingsManager
     }
 
     void setDefaultCalibrationData(Settings& outSettings) {
-        // Copy normals from defaults
+        // Manually fetch die type, we don't want to pull it from the settings
         auto dieType = DiceVariants::estimateDieTypeFromBoard();
+        const int dieTypeFromStore = ValueStore::readValue(ValueStore::ValueType_DieType);
+        if (dieTypeFromStore != -1) {
+            dieType = (DiceVariants::DieType)dieTypeFromStore;
+        }
         auto layout = DiceVariants::getLayout(DiceVariants::getLayoutType(dieType));
+
+        // Copy normals from defaults
         int faceCount = layout->faceCount;
         const Core::int3* defaultNormals = layout->faceNormals;
         for (int i = 0; i < faceCount; ++i) {

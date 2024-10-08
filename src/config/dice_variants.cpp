@@ -5,8 +5,6 @@
 
 using namespace Core;
 
-#define MAX_COUNT 22		// Max LED count so far is 21 (on PD6)
-                            // but we want room for one more 'fake' LED to test LED return
 namespace Config
 {
 namespace DiceVariants
@@ -36,25 +34,35 @@ namespace DiceVariants
     // Note that the normal is also a good approximation of the position of the LED on the face. In most cases
     // the leds are equidistant from the center.
     // Note: these normals are defined in the canonical face order
-    const Core::int3 D4Normals[] = {
+    const Core::int3 D4FaceNormals[] = {
         {-1000,  0000,  0000},
-        { 0000,  0000,  1000},
         { 0000,  0000, -1000},
+        { 0000,  0000,  1000},
         { 1000,  0000,  0000},
+    };
+
+    // Used for LED-based animations
+    const Core::int3 D4LEDNormals[] = {
+        {-1000,  0000,  0000},
+        { 0000,  0000, -1000},
+        { 0000,  0000,  1000},
+        { 1000,  0000,  0000},
+        { 0000, -1000,  0000},
+        { 0000,  1000,  0000},
     };
 
     // 0, 1, 2, 3, 4, 5 <-- daisy chain index
     // 1, 5, 2, 6, 4, 3 <-- face number (6-sided)
     // 1, -, -, 4, 2, 3 <-- face number (4-sided)
-    // 0, -, -, 3, 1, 2 <-- face/led index (4-sided)
+    // 0, 4, 5, 3, 1, 2 <-- led index (4-sided)
     const uint8_t D4LEDIndices[] = {
-        0, 255, 255, 3, 1, 2,
+        0, 4, 5, 3, 1, 2,
     };
 
-    // 0, 1, 2, 3 <-- face/led Index
+    // 0, 1, 2, 3, 4, 5 <-- led Index
     // 0, 4, 5, 3 <-- daisy chain index
     const uint8_t D4ElectricalIndices[] = {
-        0, 4, 5, 2,   // daisy chain index
+        0, 4, 5, 3, 1, 2,   // daisy chain index
     };
 
     const uint32_t D4Adjacency[] = {
@@ -629,10 +637,10 @@ namespace DiceVariants
     const Layout D4Layout = {
         .layoutType = LEDLayoutType::DieLayoutType_D4,
         .faceCount = 4,
-        .ledCount = 4,
+        .ledCount = 6,
         .adjacencyCount = 2,
-        .faceNormals = D4Normals,
-        .ledNormals = D4Normals,
+        .faceNormals = D4FaceNormals,
+        .ledNormals = D4LEDNormals,
         .faceIndexFromAnimFaceIndexLookup = D4Remap,
         .daisyChainIndexFromLEDIndexLookup = D4ElectricalIndices,
         .LEDIndexFromDaisyChainLookup = D4LEDIndices,
@@ -775,7 +783,6 @@ namespace DiceVariants
 
     int Layout::faceIndicesFromLEDIndex(int ledIndex, int outFaces[]) const {
         switch (layoutType) {
-            case LEDLayoutType::DieLayoutType_D4:
             case LEDLayoutType::DieLayoutType_D6_FD6:
             case LEDLayoutType::DieLayoutType_D8:
             case LEDLayoutType::DieLayoutType_D10_D00:
@@ -787,6 +794,17 @@ namespace DiceVariants
             case LEDLayoutType::DieLayoutType_PD6:
                 outFaces[0] = PD6FaceIndices[ledIndex];
                 return 1;
+            case LEDLayoutType::DieLayoutType_D4:
+                if (ledIndex == 4 || ledIndex == 5) {
+                    outFaces[0] = 0;
+                    outFaces[1] = 1;
+                    outFaces[2] = 2;
+                    outFaces[3] = 3;
+                    return 4;
+                } else {
+                    outFaces[0] = ledIndex;
+                    return 1;
+                }
             case LEDLayoutType::DieLayoutType_M20:
                 // FIXME!!!
                 outFaces[0] = 0;
