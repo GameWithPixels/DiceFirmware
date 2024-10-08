@@ -9,7 +9,7 @@
 #include "drivers_nrf/timers.h"
 
 #define GPREGRET_ID 0
-#define SLEEP_TIMEOUT_MS 30000 //  Comment to disable sleep timeout
+#define SLEEP_TIMEOUT_MS (15*60*1000) //  Comment to disable sleep timeout
 
 #define POWER_EVENT_LOG(msg) NRF_LOG_INFO("Power event! Prepare %s", msg)
 
