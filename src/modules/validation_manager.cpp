@@ -112,15 +112,14 @@ namespace Modules::ValidationManager
 
     void leaveValidation()
     {
-        // Use additional bit in UICR register to skip validation functions, perform normal functions
-        nrf_nvmc_write_byte((uint32_t)&NRF_UICR->CUSTOMER[0], 0xFC);
+        Pixel::setCurrentMode(Pixel::RunMode_User);
     }
 
     // Check if system is in validation mode
     bool inValidation()
     {
-        uint32_t *validation = (uint32_t *)&NRF_UICR->CUSTOMER[0];
-        return (*validation == 0xFFFFFFFE);
+        auto mode = Pixel::getCurrentMode();
+        return mode == Pixel::RunMode_Validation;
     }
 
     void GoToSysOffCallback(void* ignore)

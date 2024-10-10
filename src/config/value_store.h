@@ -7,6 +7,7 @@ namespace Config::ValueStore
         ValueType_None = 0,
         ValueType_DieType = 1,
         ValueType_Colorway = 2,
+        ValueType_RunMode = 3,
         ValueType_ValidationTimestampStart = 0xA0, // Start index for validation timestamps
         ValueType_ValidationTimestampFirmware = ValueType_ValidationTimestampStart,
         ValueType_ValidationTimestampBoardNoCoil,
@@ -23,7 +24,10 @@ namespace Config::ValueStore
     };
 
     // Write value to store, returns its index (or -1 if full)
-    int writeValue(uint32_t value);
+    int writeUInt32(uint32_t value);
+
+    // Write specific type of value, returns its index (or -1 if full)
+    int writeValue(ValueType type, uint32_t value);
 
     // Read value from store for the given type, returns -1 if not found
     uint32_t readValue(ValueType typeStart, ValueType typeEnd = ValueType_None);

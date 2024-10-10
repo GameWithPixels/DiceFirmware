@@ -2,6 +2,7 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "app_error.h"
+#include "value_store.h"
 #include "hardfault/hardfault.h"
 
 #if !defined(BUILD_TIMESTAMP)
@@ -62,5 +63,15 @@ namespace Pixel
 
     uint32_t getBuildTimestamp() {
         return BUILD_TIMESTAMP;
+    }
+
+    RunMode getCurrentMode() {
+        // -1 (no value stored) should be handled correctly and be cast to RunMode_Invalid
+        return (RunMode)Config::ValueStore::readValue(Config::ValueStore::ValueType_RunMode);
+    }
+
+    bool setCurrentMode(RunMode mode) {
+        int index = Config::ValueStore::writeValue(Config::ValueStore::ValueType_RunMode, mode);
+        return index != -1;
     }
 }

@@ -177,6 +177,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/modules/accelerometer.cpp \
 	$(PROJ_DIR)/src/modules/anim_controller.cpp \
 	$(PROJ_DIR)/src/modules/animation_preview.cpp \
+	$(PROJ_DIR)/src/modules/attract_mode_controller.cpp \
 	$(PROJ_DIR)/src/modules/battery_controller.cpp \
 	$(PROJ_DIR)/src/modules/behavior_controller.cpp \
 	$(PROJ_DIR)/src/modules/charger_proximity.cpp \
@@ -484,12 +485,17 @@ firmware_memory_map: firmware_mm
 .PHONY: validation_bit
 validation_bit: 
 	@echo ===== Writing validation bit =====
-	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFE
+	nrfjprog --memwr 0x100010FC --val 0x03000001
 
 .PHONY: exit_validation_bit
 exit_validation_bit: 
 	@echo ===== Writing exit validation bit =====
-	nrfjprog --memwr 0x10001080 --val 0xFFFFFFFC
+	nrfjprog --memwr 0x100010F8 --val 0x03000000
+
+.PHONY: attract_bit
+attract_bit: 
+	@echo ===== Writing validation bit =====
+	nrfjprog --memwr 0x100010FC --val 0x03000002
 
 .PHONY: hex_validation
 hex_validation: hex_release

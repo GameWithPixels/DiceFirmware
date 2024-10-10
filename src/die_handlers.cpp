@@ -232,7 +232,7 @@ namespace Die
         ack.index = -1;
 
         if (powerMsg->value) {
-            const auto result = ValueStore::writeValue(powerMsg->value);
+            const auto result = ValueStore::writeUInt32(powerMsg->value);
             if (result >= 0) {
                 ack.index = result;
                 ack.result = StoreValueResult_Success;

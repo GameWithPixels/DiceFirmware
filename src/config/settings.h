@@ -11,15 +11,6 @@
 #define MAX_CUSTOM_DESIGN_COLOR_LENGTH 31
 namespace Config
 {
-    // Flags for various debugging options
-    enum class DebugFlags : uint32_t
-    {
-        None = 0,
-        LEDsStayOff = 1,			 // Prevent LEDs for lighting up
-        OnBootToggleLEDsStayOff = 2, // Toggle above flag on firmware boot
-        LoopCycleAnimation = 4,		 // Light up LEDs one by one, forever
-    };
-
     struct Settings
     {
         // Indicates whether there is valid data

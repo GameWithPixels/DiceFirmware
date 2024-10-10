@@ -9,6 +9,7 @@
 #include "modules/battery_controller.h"
 #include "core/int3.h"
 #include "modules/accelerometer.h"
+#include "pixel.h"
 
 // Whether to use the legacy IAmADie message or the chunked one
 #define LEGACY_IMADIE_MESSAGE 1
@@ -30,6 +31,7 @@ using BatteryState = Modules::BatteryController::BatteryState;
 using BatteryControllerState = Modules::BatteryController::State;
 using RollState = Modules::Accelerometer::RollState;
 using BatteryControllerMode = Modules::BatteryController::ControllerOverrideMode;
+using RunMode = Pixel::RunMode;
 
 /// <summary>
 ///  Base class for messages from the die to the app
@@ -170,7 +172,7 @@ struct DieInfo : Chunk<DieInfo>
     DieType dieType;
     uint8_t ledCount;  // Number of LEDs
     Colorway colorway; // Physical look
-    uint8_t inValidation; // Boolean
+    RunMode runMode;   // Validation or user or attract mode at the moment
 };
 
 struct CustomDesignAndColorName : Chunk<CustomDesignAndColorName>

@@ -10,11 +10,7 @@ using namespace Modules;
 
 namespace Config::ValueStore
 {
-    int writeValue(uint32_t value) {
-        if (!ValidationManager::inValidation()) {
-            return WriteValueError_NotPermited;
-        }
-
+    int writeUInt32(uint32_t value) {
         // Search for an empty slot in UICR registers.
         // This works similarly to heap v.s. stack:
         // - other setting stored in UICR are written to registers with low indices,
@@ -32,6 +28,11 @@ namespace Config::ValueStore
             }
         }
         return WriteValueError_StoreFull;
+    }
+
+    int writeValue(ValueType type, uint32_t value) {
+        // This version writes the value type along with the value!!
+        return writeUInt32((((uint32_t)type) << 24) | (value & 0xFFFFFF));
     }
 
     uint32_t readValue(ValueType type, ValueType typeEnd /*= ValueType_None*/) {

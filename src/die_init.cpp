@@ -1,5 +1,6 @@
 #include "die.h"
 #include "die_private.h"
+#include "pixel.h"
 
 #include "app_timer.h"
 #include "app_error.h"
@@ -47,6 +48,7 @@
 #include "modules/temperature.h"
 #include "modules/validation_manager.h"
 #include "modules/led_error_indicator.h"
+#include "modules/attract_mode_controller.h"
 
 #include "utils/Utils.h"
 
@@ -230,8 +232,8 @@ namespace Die
                             // Initialize custom advertising data handler
                             CustomAdvertisingDataHandler::init();
 
-                            const bool inValidation = ValidationManager::inValidation();
-                            if (!inValidation) {
+                            auto runMode = Pixel::getCurrentMode();
+                            if (runMode == Pixel::RunMode_User || runMode == Pixel::RunMode_Invalid) {
                                 // Want to prevent sleep mode due to animations while not in validation
                                 Accelerometer::hookRollState(feed, nullptr);
                             }
@@ -258,14 +260,20 @@ namespace Die
                             ValidationManager::init();
 
                             // Entering the main loop! Play Hello! anim if in validation mode
-                            if (inValidation) {
-                                ValidationManager::onPixelInitialized();
-                            } else {
-                                initDieLogic();
-                                BehaviorController::onPixelInitialized();
-                                Timers::setDelayedCallback([](void* ignore) {
-                                    BehaviorController::EnableAccelerometerRules();
-                                }, nullptr, 1000);
+                            switch (runMode) {
+                                case Pixel::RunMode_Validation:
+                                    ValidationManager::onPixelInitialized();
+                                    break;
+                                case Pixel::RunMode_Attract:
+                                    AttractModeController::init();
+                                    break;
+                                default:
+                                    Die::initDieLogic();
+                                    BehaviorController::onPixelInitialized();
+                                    Timers::setDelayedCallback([](void* ignore) {
+                                        BehaviorController::EnableAccelerometerRules();
+                                    }, nullptr, 1000);
+                                    break;
                             }
 
                             NRF_LOG_INFO("----- Device initialized! -----");
