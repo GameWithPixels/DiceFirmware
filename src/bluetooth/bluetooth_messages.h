@@ -10,6 +10,7 @@
 #include "core/int3.h"
 #include "modules/accelerometer.h"
 #include "pixel.h"
+#include "die.h"
 
 // Whether to use the legacy IAmADie message or the chunked one
 #define LEGACY_IMADIE_MESSAGE 1
@@ -32,6 +33,7 @@ using BatteryControllerState = Modules::BatteryController::State;
 using RollState = Modules::Accelerometer::RollState;
 using BatteryControllerMode = Modules::BatteryController::ControllerOverrideMode;
 using RunMode = Pixel::RunMode;
+using UserMode = Die::UserMode;
 
 /// <summary>
 ///  Base class for messages from the die to the app
@@ -84,7 +86,7 @@ struct Message
         MessageType_TestHardware,
         MessageType_StoreValue,
         MessageType_StoreValueAck,
-        MessageType_SetTopLevelState,
+        MessageType_Unused2,                            // Unused
         MessageType_ProgramDefaultParameters,
         MessageType_ProgramDefaultParametersFinished,
         MessageType_SetDesignAndColor,
@@ -103,7 +105,7 @@ struct Message
         MessageType_RequestTemperature,
         MessageType_Temperature,
         MessageType_SetBatteryControllerMode,
-        MessageType_Unused,
+        MessageType_Unused,                             // Unused
         MessageType_Discharge,
         MessageType_BlinkId,
         MessageType_BlinkIdAck,
@@ -112,6 +114,8 @@ struct Message
         MessageType_TransferTestFinished,
         MessageType_ClearSettings,
         MessageType_ClearSettingsAck,
+        MessageType_SetUserMode,
+        MessageType_SetUserModeAck,
 
         // TESTING
         MessageType_TestBulkSend,
@@ -173,6 +177,7 @@ struct DieInfo : Chunk<DieInfo>
     uint8_t ledCount;  // Number of LEDs
     Colorway colorway; // Physical look
     RunMode runMode;   // Validation or user or attract mode at the moment
+    UserMode userMode; // If in user mode, the current user mode
 };
 
 struct CustomDesignAndColorName : Chunk<CustomDesignAndColorName>
@@ -583,12 +588,12 @@ struct MessageStoreValueAck
     MessageStoreValueAck() : Message(Message::MessageType_StoreValueAck) {}
 };
 
-struct MessageSetTopLevelState
+struct MessageSetUserMode
     : Message
 {
-    uint8_t state; // See TopLevelState enum
+    Die::UserMode userMode; // See TopLevelState enum
 
-    MessageSetTopLevelState() : Message(MessageType_SetTopLevelState) {}
+    MessageSetUserMode() : Message(MessageType_SetUserMode) {}
 };
 
 struct MessageCalibrateFace

@@ -10,6 +10,7 @@
 #include "notifications/battery.h"
 #include "notifications/roll.h"
 #include "notifications/rssi.h"
+#include "modules/behavior_controller.h"
 
 using namespace Modules;
 using namespace Bluetooth;
@@ -17,75 +18,32 @@ using namespace DriversNRF;
 
 namespace Die
 {
-    static TopLevelState currentTopLevelState = TopLevel_SoloPlay;
+    static UserMode currentUserMode = UserMode_Default;
 
-    TopLevelState getCurrentState() {
-        return currentTopLevelState;
+    UserMode getCurrentUserMode() {
+        return currentUserMode;
     }
 
-    void enterStandardState() {
-        switch (currentTopLevelState) {
-            case TopLevel_Unknown:
-            default:
-                // Reactivate playing animations based on face
-                currentTopLevelState = TopLevel_SoloPlay;
-                break;
-            case TopLevel_Animator:
-                // Animator mode had turned accelerometer off, restart it now
-                Accelerometer::start();
-                currentTopLevelState = TopLevel_SoloPlay;
-                break;
-            case TopLevel_Testing:
-                // Testing mode had anim controller off, restart it now
-                AnimController::start();
-                Accelerometer::start();
-                currentTopLevelState = TopLevel_SoloPlay;
-                break;
-            case TopLevel_SoloPlay:
-                // Nothing to do
-                break;
-       }
+    void beginRemoteControlledMode() {
+        if (currentUserMode != UserMode_RemoteControlled) {
+            // Turn off behavior controller
+            BehaviorController::DisableAccelerometerRules();
+
+            // Enter remote controlled mode
+            currentUserMode = UserMode_RemoteControlled;
+            NRF_LOG_INFO("Begin Remote Controlled Mode");
+        }
     }
 
-    void enterLEDAnimState() {
-        switch (currentTopLevelState) {
-            case TopLevel_Unknown:
-            default:
-                // Reactivate playing animations based on face
-                currentTopLevelState = TopLevel_Animator;
-                break;
-            case TopLevel_SoloPlay:
-                Accelerometer::stop();
-                currentTopLevelState = TopLevel_Animator;
-                break;
-            case TopLevel_Testing:
-                AnimController::start();
-                currentTopLevelState = TopLevel_Animator;
-                break;
-            case TopLevel_Animator:
-                // Nothing to do
-                break;
-       }
-    }
+    void exitRemoteControlledMode() {
+        if (currentUserMode == UserMode_RemoteControlled) {
+            // Turn accelerometer rules back on
+            BehaviorController::EnableAccelerometerRules();
 
-    void enterTestingState() {
-        switch (currentTopLevelState) {
-            case TopLevel_Unknown:
-            case TopLevel_SoloPlay:
-                Accelerometer::stop();
-                AnimController::stop();
-                currentTopLevelState = TopLevel_Testing;
-                break;
-            case TopLevel_Animator:
-                AnimController::stop();
-                currentTopLevelState = TopLevel_Testing;
-                break;
-            default:
-                currentTopLevelState = TopLevel_Testing;
-                break;
-            case TopLevel_Testing:
-                break;
-       }
+            // Do stuff and then exit remote controlled mode
+            currentUserMode = UserMode_Default;
+            NRF_LOG_INFO("Exitted Remote Controlled Mode");
+        }
     }
 
     void initMainLogic() {

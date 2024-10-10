@@ -9,8 +9,4 @@ namespace Die
     void initHandlers();
     void initLogicHandlers();
     void onPowerEvent(DriversNRF::PowerManager::PowerManagerEvent event);
-
-    void enterStandardState();
-    void enterLEDAnimState();
-    void enterTestingState();
 }

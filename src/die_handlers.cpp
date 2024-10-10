@@ -55,6 +55,7 @@ namespace Die
         msg.dieInfo.ledCount = (uint8_t)SettingsManager::getLayout()->ledCount;
         msg.dieInfo.colorway = SettingsManager::getColorway();
         msg.dieInfo.runMode = Pixel::getCurrentRunMode();
+        msg.dieInfo.userMode = Die::getCurrentUserMode();
         memset(msg.customDesignAndColorName.name, 0, sizeof(msg.customDesignAndColorName.name));
         memset(msg.dieName.name, 0, sizeof(msg.dieName.name));
         strncpy(msg.dieName.name, settings->name, sizeof(msg.dieName.name)); // No need to add the null terminator
@@ -131,8 +132,10 @@ namespace Die
 
     void onConnectionEvent(void* token, bool connected) {
         if (!connected) {
-            // Return to solo play
-            enterStandardState();
+            // Return to default state if necessary
+            if (getCurrentUserMode() == Die::UserMode_RemoteControlled) {
+                exitRemoteControlledMode();
+            }
             PowerManager::resume();
         } else {
             PowerManager::pause();
@@ -184,19 +187,19 @@ namespace Die
         AnimController::stopAll();
     }
 
-    void setTopLevelStateHandler(const Message *msg) {
-        auto setTopLevelStateMessage = (const MessageSetTopLevelState *)msg;
-        switch (setTopLevelStateMessage->state) {
-            case TopLevel_SoloPlay:
-                enterStandardState();
+    void setUserModeHandler(const Message *msg) {
+        auto setUserModeMsg = (const MessageSetUserMode*)msg;
+        switch (setUserModeMsg->userMode) {
+            case UserMode_RemoteControlled:
+                Die::beginRemoteControlledMode();
+                MessageService::SendMessage(Bluetooth::Message::MessageType_SetUserModeAck);
                 break;
-            case TopLevel_Animator:
-                enterLEDAnimState();
-                break;
-            case TopLevel_Testing:
-                enterTestingState();
+            case UserMode_Default:
+                Die::exitRemoteControlledMode();
+                MessageService::SendMessage(Bluetooth::Message::MessageType_SetUserModeAck);
                 break;
             default:
+                MessageService::SendMessage(Bluetooth::Message::MessageType_SetUserModeAck);
                 break;
         }
     }
@@ -267,7 +270,7 @@ namespace Die
     }
 
     void initLogicHandlers() {
-        MessageService::RegisterMessageHandler(Message::MessageType_SetTopLevelState, setTopLevelStateHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_SetUserMode, setUserModeHandler);
         ChargerProximity::hook(onChargerStateChange, nullptr);
     }
 }

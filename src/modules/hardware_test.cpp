@@ -47,13 +47,13 @@ namespace Modules::HardwareTest
             LEDs::setPixelColors(zeros);
 
             // Return the die to its standard state
-            Die::enterStandardState();
+            Die::exitRemoteControlledMode();
         };
 
         auto dischargeMsg = (const MessageDischarge*)msg;
         if (dischargeMsg->currentMA > 0) {
             // Put the die in test mode
-            Die::enterTestingState();
+            Die::beginRemoteControlledMode();
 
             // Just to be safe, add disconnection handler to reset the state
             Bluetooth::Stack::hook([](void* param, bool connected) {
