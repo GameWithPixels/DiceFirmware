@@ -232,7 +232,7 @@ namespace Die
                             // Initialize custom advertising data handler
                             CustomAdvertisingDataHandler::init();
 
-                            auto runMode = Pixel::getCurrentMode();
+                            auto runMode = Pixel::getCurrentRunMode();
                             if (runMode == Pixel::RunMode_User || runMode == Pixel::RunMode_Invalid) {
                                 // Want to prevent sleep mode due to animations while not in validation
                                 Accelerometer::hookRollState(feed, nullptr);

@@ -54,7 +54,7 @@ namespace Die
         msg.dieInfo.dieType = SettingsManager::getDieType();
         msg.dieInfo.ledCount = (uint8_t)SettingsManager::getLayout()->ledCount;
         msg.dieInfo.colorway = SettingsManager::getColorway();
-        msg.dieInfo.inValidation = ValidationManager::inValidation();
+        msg.dieInfo.runMode = Pixel::getCurrentRunMode();
         memset(msg.customDesignAndColorName.name, 0, sizeof(msg.customDesignAndColorName.name));
         memset(msg.dieName.name, 0, sizeof(msg.dieName.name));
         strncpy(msg.dieName.name, settings->name, sizeof(msg.dieName.name)); // No need to add the null terminator

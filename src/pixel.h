@@ -15,6 +15,6 @@ namespace Pixel
     uint32_t getDeviceID();
     uint32_t getBuildTimestamp();
 
-    RunMode getCurrentMode();
-    bool setCurrentMode(RunMode mode);
+    RunMode getCurrentRunMode();
+    bool setCurrentRunMode(RunMode mode);
 }

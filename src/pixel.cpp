@@ -65,12 +65,12 @@ namespace Pixel
         return BUILD_TIMESTAMP;
     }
 
-    RunMode getCurrentMode() {
+    RunMode getCurrentRunMode() {
         // -1 (no value stored) should be handled correctly and be cast to RunMode_Invalid
         return (RunMode)Config::ValueStore::readValue(Config::ValueStore::ValueType_RunMode);
     }
 
-    bool setCurrentMode(RunMode mode) {
+    bool setCurrentRunMode(RunMode mode) {
         int index = Config::ValueStore::writeValue(Config::ValueStore::ValueType_RunMode, mode);
         return index != -1;
     }

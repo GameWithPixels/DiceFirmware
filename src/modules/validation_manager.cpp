@@ -112,13 +112,13 @@ namespace Modules::ValidationManager
 
     void leaveValidation()
     {
-        Pixel::setCurrentMode(Pixel::RunMode_User);
+        Pixel::setCurrentRunMode(Pixel::RunMode_User);
     }
 
     // Check if system is in validation mode
     bool inValidation()
     {
-        auto mode = Pixel::getCurrentMode();
+        auto mode = Pixel::getCurrentRunMode();
         return mode == Pixel::RunMode_Validation;
     }
 
