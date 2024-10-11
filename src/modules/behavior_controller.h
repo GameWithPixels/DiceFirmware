@@ -5,10 +5,17 @@
 /// </summary>
 namespace Modules::BehaviorController
 {
-    void init();
+    void init(bool enableAccelerometerRules, bool enableBatteryRules, bool enableConnectionRules);
+    
     void onPixelInitialized();
     bool forceCheckBatteryState();
 
     void DisableAccelerometerRules();
     void EnableAccelerometerRules();
+
+    void DisableBatteryRules();
+    void EnableBatteryRules();
+
+    void DisableConnectionRules();
+    void EnableConnectionRules();
 }

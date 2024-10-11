@@ -27,14 +27,70 @@ namespace Modules::BehaviorController
     void onRollStateChange(void* param, Accelerometer::RollState prevState, int prevFace, Accelerometer::RollState newState, int newFace);
 
     int lastRollStateTimestamp;
+    int disableAccelerometerRulesCount;
+    int disableBatteryRulesCount;
+    int disableConnectionRulesCount;
 
-    void init() {
+    void init(bool enableAccelerometerRules, bool enableBatteryRules, bool enableConnectionRules) {
 
         // Hook up the behavior controller to all the events it needs to know about to do its job!
-        Bluetooth::Stack::hook(onConnectionEvent, nullptr);
-        BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
         lastRollStateTimestamp = Timers::millis();
+        disableAccelerometerRulesCount = 1;
+        if (enableAccelerometerRules) {
+            EnableAccelerometerRules();
+        }
+        disableBatteryRulesCount = 1;
+        if (enableBatteryRules) {
+            EnableBatteryRules();
+        }
+        disableConnectionRulesCount = 1;
+        if (enableConnectionRules) {
+            EnableConnectionRules();
+        }
+
         NRF_LOG_DEBUG("Behavior Controller init");
+    }
+
+    void DisableAccelerometerRules() {
+        disableAccelerometerRulesCount += 1;
+        if (disableAccelerometerRulesCount == 1) {
+            Accelerometer::unHookRollState(onRollStateChange);
+        }
+    }
+
+    void EnableAccelerometerRules() {
+        disableAccelerometerRulesCount -= 1;
+        if (disableAccelerometerRulesCount == 0) {
+            Accelerometer::hookRollState(onRollStateChange, nullptr);
+        }
+    }
+
+    void DisableBatteryRules() {
+        disableBatteryRulesCount += 1;
+        if (disableBatteryRulesCount == 1) {
+            BatteryController::unHookBatteryState(onBatteryStateChange);
+        }
+    }
+
+    void EnableBatteryRules() {
+        disableBatteryRulesCount -= 1;
+        if (disableBatteryRulesCount == 0) {
+            BatteryController::hookBatteryState(onBatteryStateChange, nullptr);
+        }
+    }
+
+    void DisableConnectionRules() {
+        disableConnectionRulesCount += 1;
+        if (disableConnectionRulesCount == 1) {
+            Bluetooth::Stack::unHook(onConnectionEvent);
+        }
+    }
+
+    void EnableConnectionRules() {
+        disableConnectionRulesCount -= 1;
+        if (disableConnectionRulesCount == 0) {
+            Bluetooth::Stack::hook(onConnectionEvent, nullptr);
+        }
     }
 
     void onPixelInitialized() {
@@ -145,15 +201,6 @@ namespace Modules::BehaviorController
             }
         }
     }
-
-    void DisableAccelerometerRules() {
-        Accelerometer::unHookRollState(onRollStateChange);
-    }
-
-    void EnableAccelerometerRules() {
-        Accelerometer::hookRollState(onRollStateChange, nullptr);
-    }
-
 
     void onRollStateChange(void* param, Accelerometer::RollState prevState, int prevFace, Accelerometer::RollState newState, int newFace) {
 

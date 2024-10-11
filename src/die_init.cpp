@@ -239,10 +239,7 @@ namespace Die
                             }
 
                             // Behavior Controller relies on all the modules
-                            BehaviorController::init();
-
-                            // Animation Preview depends on bluetooth
-                            AnimationPreview::init();
+                            BehaviorController::init(false, true, true);
 
                             // Instant Animation Controller preview depends on bluetooth
                             InstantAnimationController::init();
