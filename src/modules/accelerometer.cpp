@@ -168,7 +168,8 @@ namespace Modules::Accelerometer
 
         bool startMoving = newSigmaTimes1000 > settings->startMovingThresholdTimes1000;
         bool stopMoving = newSigmaTimes1000 < settings->stopMovingThresholdTimes1000;
-        // bool onFace = newFaceConfidenceTimes1000 > settings->faceThresholdTimes1000;
+        bool onFace = newFaceConfidenceTimes1000 > settings->faceThresholdTimes1000
+            || SettingsManager::getDieType() != DiceVariants::DieType_D4;
         bool zeroG = acc.sqrMagnitudeTimes1000() < (settings->fallingThresholdTimes1000 * settings->fallingThresholdTimes1000 / 1000);
         bool shock = acc.sqrMagnitudeTimes1000() > (settings->shockThresholdTimes1000 * settings->shockThresholdTimes1000 / 1000);
 
@@ -197,7 +198,7 @@ namespace Modules::Accelerometer
                 }
                 else if (stopMoving)
                 {
-                    newRollState = RollState_OnFace;
+                    newRollState = onFace ? RollState_OnFace : RollState_Crooked;
                 }
             }
             break;
@@ -205,7 +206,7 @@ namespace Modules::Accelerometer
             // If we stop moving we may be on a face
             if (stopMoving)
             {
-                newRollState = RollState_OnFace;
+                newRollState = onFace ? RollState_OnFace : RollState_Crooked;
             }
             break;
         default:
@@ -257,7 +258,12 @@ namespace Modules::Accelerometer
                     currentFrame.jerk = Core::int3::zero();
                     currentFrame.sigmaTimes1000 = 0;
                     currentFrame.face = determineFace(currentFrame.acc, &currentFrame.faceConfidenceTimes1000);
-                    currentFrame.rollState = RollState_OnFace;
+
+                    // Determine what state we're in to begin with
+                    auto settings = SettingsManager::getSettings();
+                    bool onFace = currentFrame.faceConfidenceTimes1000 > settings->faceThresholdTimes1000
+                        || SettingsManager::getDieType() != DiceVariants::DieType_D4;
+                    currentFrame.rollState = onFace ? RollState_OnFace : RollState_Crooked;
 
                     // Unhook first to avoid being hooked more than once if start() is called multiple times
                     AccelChip::unHook(accHandler);

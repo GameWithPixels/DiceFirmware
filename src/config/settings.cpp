@@ -168,7 +168,7 @@ namespace Config::SettingsManager
         outSettings.sigmaDecayTimes1000 = 500;
         outSettings.startMovingThresholdTimes1000 = 5000;
         outSettings.stopMovingThresholdTimes1000 = 500;
-        outSettings.faceThresholdTimes1000 = 980;
+        outSettings.faceThresholdTimes1000 = 800; // About 35 degrees to account for D4s with tilted accelerometer
         outSettings.fallingThresholdTimes1000 = 100;
         outSettings.shockThresholdTimes1000 = 7500;
         outSettings.accDecayTimes1000 = 900;
