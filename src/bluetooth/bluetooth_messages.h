@@ -57,9 +57,9 @@ struct Message
         MessageType_TransferSettings,
         MessageType_TransferSettingsAck,
         MessageType_TransferSettingsFinished,
-        MessageType_TransferTestAnimSet,
-        MessageType_TransferTestAnimSetAck,
-        MessageType_TransferTestAnimSetFinished,
+        MessageType_Unused3,                            // Unused
+        MessageType_Unused4,                            // Unused
+        MessageType_Unused5,                            // Unused
         MessageType_DebugLog,
         MessageType_PlayAnim,
         MessageType_PlayAnimEvent,
@@ -350,38 +350,6 @@ struct MessageTransferAnimSetAck
     MessageTransferAnimSetAck() : Message(Message::MessageType_TransferAnimSetAck) {}
 };
 
-struct MessageTransferTestAnimSet
-    : Message
-{
-    uint16_t paletteSize;
-    uint16_t rgbKeyFrameCount;
-    uint16_t rgbTrackCount;
-    uint16_t keyFrameCount;
-    uint16_t trackCount;
-
-    uint16_t animationCount;
-    uint16_t animationSize;
-
-    uint32_t hash;
-
-    MessageTransferTestAnimSet() : Message(Message::MessageType_TransferTestAnimSet) {}
-};
-
-enum TransferInstantAnimSetAckType : uint8_t
-{
-    TransferInstantAnimSetAck_Download = 0,
-    TransferInstantAnimSetAck_UpToDate,
-    TransferInstantAnimSetAck_NoMemory
-};
-
-struct MessageTransferTestAnimSetAck
-    : Message
-{
-    TransferInstantAnimSetAckType ackType;
-
-    MessageTransferTestAnimSetAck() : Message(Message::MessageType_TransferTestAnimSetAck) {}
-};
-
 struct MessageDebugLog
     : Message
 {
@@ -650,6 +618,13 @@ struct MessageTransferInstantAnimSet
     uint32_t hash;
 
     MessageTransferInstantAnimSet() : Message(Message::MessageType_TransferInstantAnimSet) {}
+};
+
+enum TransferInstantAnimSetAckType : uint8_t
+{
+    TransferInstantAnimSetAck_Download = 0,
+    TransferInstantAnimSetAck_UpToDate,
+    TransferInstantAnimSetAck_NoMemory
 };
 
 struct MessageTransferInstantAnimSetAck

@@ -176,7 +176,6 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/drivers_nrf/watchdog.cpp \
 	$(PROJ_DIR)/src/modules/accelerometer.cpp \
 	$(PROJ_DIR)/src/modules/anim_controller.cpp \
-	$(PROJ_DIR)/src/modules/animation_preview.cpp \
 	$(PROJ_DIR)/src/modules/attract_mode_controller.cpp \
 	$(PROJ_DIR)/src/modules/battery_controller.cpp \
 	$(PROJ_DIR)/src/modules/behavior_controller.cpp \

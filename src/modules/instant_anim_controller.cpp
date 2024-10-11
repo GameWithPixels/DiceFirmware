@@ -35,7 +35,7 @@ namespace Modules::InstantAnimationController
     void init()
     {
         MessageService::RegisterMessageHandler(Message::MessageType_TransferInstantAnimSet, ReceiveInstantAnimSetHandler);
-        Bluetooth::MessageService::RegisterMessageHandler(Message::MessageType_PlayInstantAnim, PlayInstantAnimHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_PlayInstantAnim, PlayInstantAnimHandler);
         clearData();
 
         NRF_LOG_DEBUG("Instant Animation Controller init");
