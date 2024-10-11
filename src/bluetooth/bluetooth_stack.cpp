@@ -53,7 +53,7 @@ namespace Bluetooth::Stack
     #define SEC_PARAM_MIN_KEY_SIZE          7                                       /**< Minimum encryption key size. */
     #define SEC_PARAM_MAX_KEY_SIZE          16                                      /**< Maximum encryption key size. */
 
-    #define MAX_CLIENTS 4
+    #define MAX_CLIENTS 8
     #define MAX_RSSI_CLIENTS 2
 
     #define RSSI_THRESHOLD_DBM 1

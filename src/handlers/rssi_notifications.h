@@ -1,4 +1,4 @@
-namespace Notifications::Rssi
+namespace Handlers::RssiNotifications
 {
     void init();
     void notifyConnectionEvent(bool connected);

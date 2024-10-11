@@ -9,6 +9,7 @@
 #include "modules/battery_controller.h"
 #include "core/int3.h"
 #include "modules/accelerometer.h"
+#include "modules/user_mode_controller.h"
 #include "pixel.h"
 #include "die.h"
 
@@ -33,7 +34,7 @@ using BatteryControllerState = Modules::BatteryController::State;
 using RollState = Modules::Accelerometer::RollState;
 using BatteryControllerMode = Modules::BatteryController::ControllerOverrideMode;
 using RunMode = Pixel::RunMode;
-using UserMode = Die::UserMode;
+using UserMode = Modules::UserModeController::UserMode;
 
 /// <summary>
 ///  Base class for messages from the die to the app
@@ -177,7 +178,6 @@ struct DieInfo : Chunk<DieInfo>
     uint8_t ledCount;  // Number of LEDs
     Colorway colorway; // Physical look
     RunMode runMode;   // Validation or user or attract mode at the moment
-    UserMode userMode; // If in user mode, the current user mode
 };
 
 struct CustomDesignAndColorName : Chunk<CustomDesignAndColorName>
@@ -559,7 +559,7 @@ struct MessageStoreValueAck
 struct MessageSetUserMode
     : Message
 {
-    Die::UserMode userMode; // See TopLevelState enum
+    UserMode userMode; // See TopLevelState enum
 
     MessageSetUserMode() : Message(MessageType_SetUserMode) {}
 };

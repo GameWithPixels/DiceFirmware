@@ -1,4 +1,4 @@
-#include "rssi.h"
+#include "rssi_notifications.h"
 #include "bluetooth/bluetooth_stack.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "drivers_nrf/timers.h"
@@ -6,7 +6,7 @@
 
 using namespace Bluetooth;
 
-namespace Notifications::Rssi
+namespace Handlers::RssiNotifications
 {
     static TelemetryRequestMode requestMode = TelemetryRequestMode_Off;
     static int8_t lastRssi = 0;
@@ -24,7 +24,7 @@ namespace Notifications::Rssi
         NRF_LOG_DEBUG("RSSI notifications init");
     }
 
-    void notifyConnectionEvent(bool connected) {
+    void onConnectionEvent(void* param, bool connected) {
         if (!connected) {
             stop();
         }
@@ -38,6 +38,9 @@ namespace Notifications::Rssi
             NRF_LOG_INFO("Starting sending RSSI");
             if (requestMode == TelemetryRequestMode_Off) {
                 Stack::hookRssi(onRssi, nullptr);
+
+                // Make sure we auto-stop on disconnect
+                Stack::hook(onConnectionEvent, nullptr);
             }
             requestMode = reqRssi->requestMode;
             minIntervalMs = reqRssi->minInterval;
@@ -56,6 +59,7 @@ namespace Notifications::Rssi
             NRF_LOG_INFO("Stopping sending RSSI");
             requestMode = TelemetryRequestMode_Off;
             Stack::unHookRssi(onRssi);
+            Stack::unHook(onConnectionEvent);
         }
     }
 

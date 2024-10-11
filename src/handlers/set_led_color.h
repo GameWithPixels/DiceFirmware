@@ -3,7 +3,7 @@
 /// <summary>
 /// For figuring out good led colors
 /// </summary>
-namespace Modules::LEDColorTester
+namespace Handlers::SetLEDColor
 {
     void init();
 }

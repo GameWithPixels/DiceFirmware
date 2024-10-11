@@ -1,4 +1,4 @@
-#include "led_color_tester.h"
+#include "set_led_color.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "utils/utils.h"
@@ -9,7 +9,9 @@
 #include "config/board_config.h"
 #include "config/settings.h"
 #include "config/dice_variants.h"
-#include "leds.h"
+#include "modules/leds.h"
+#include "animations/blink.h"
+#include "animations/animation_blinkid.h"
 
 using namespace Modules;
 using namespace Bluetooth;
@@ -17,17 +19,21 @@ using namespace Utils;
 using namespace Animations;
 using namespace Config;
 
-namespace Modules::LEDColorTester
+namespace Handlers::SetLEDColor
 {
     void SetLEDToColorHandler(const Message* msg);
     void SetAllLEDsToColorHandler(const Message* msg);
     void LightUpFaceHandler(const Message* msg);
+    void BlinkLEDsHandler(const Message *msg);
+    void BlinkIdHandler(const Message *msg);
 
     void init() {
         MessageService::RegisterMessageHandler(Message::MessageType_SetLEDToColor, SetLEDToColorHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_SetAllLEDsToColor, SetAllLEDsToColorHandler);
         MessageService::RegisterMessageHandler(Message::MessageType_LightUpFace, LightUpFaceHandler);
-        NRF_LOG_DEBUG("LED Color tester ini");
+        MessageService::RegisterMessageHandler(Message::MessageType_Blink, BlinkLEDsHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_BlinkId, BlinkIdHandler);
+        NRF_LOG_DEBUG("LED Color tester init");
     }
 
     void SetLEDToColorHandler(const Message* msg) {
@@ -74,6 +80,41 @@ namespace Modules::LEDColorTester
         BLE_LOG_INFO("ledIndex: %d", ledIndex);
 
         LEDs::setPixelColor(ledIndex, lufmsg->color);
+    }
+
+    void BlinkLEDsHandler(const Message* msg) 
+    {
+        auto *message = (const MessageBlink *)msg;
+        NRF_LOG_DEBUG("Received request to blink the LEDs %d times with duration of %d ms", message->count, message->duration);
+
+        // Create and initialize animation data
+        // We keep the data in a static variable so it stays valid after this call returns
+        // Note: we keep the data in a static variable so it stays valid after this call returns
+        static Blink blink;
+        blink.play(message->color, message->duration, message->count, message->fade, message->faceMask, message->loopCount);
+
+        MessageService::SendMessage(Message::MessageType_BlinkAck);
+    }
+
+    void BlinkIdHandler(const Message* msg)
+    {
+        auto *message = (const MessageBlinkId *)msg;
+        NRF_LOG_DEBUG("Received request to blink id with brightness=%d and loopCount=%d", message->brightness, message->loopCount);
+
+        // Create and initialize animation data
+        // Note: we keep the data in a static variable so it stays valid after this call returns
+        static AnimationBlinkId blinkId;
+        blinkId.type = Animation_BlinkId;
+        blinkId.framesPerBlink = 3; // 3 animation frames per blink
+        blinkId.setDuration(1000);
+        blinkId.brightness = message->brightness;
+
+        // Stop previous instance in case it was still playing
+        Modules::AnimController::stop(&blinkId);
+        // And play new animation
+        Modules::AnimController::play(&blinkId, nullptr, 0, message->loopCount);
+
+        MessageService::SendMessage(Message::MessageType_BlinkIdAck);
     }
 
 }

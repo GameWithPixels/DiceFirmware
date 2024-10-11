@@ -126,7 +126,6 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/pixel.cpp \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \
-	$(PROJ_DIR)/src/die_handlers.cpp \
 	$(PROJ_DIR)/src/animations/animation.cpp \
 	$(PROJ_DIR)/src/animations/animation_simple.cpp \
 	$(PROJ_DIR)/src/animations/animation_gradient.cpp \
@@ -174,22 +173,26 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/drivers_nrf/rng.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/timers.cpp \
 	$(PROJ_DIR)/src/drivers_nrf/watchdog.cpp \
+	$(PROJ_DIR)/src/handlers/power_event.cpp \
+	$(PROJ_DIR)/src/handlers/set_led_color.cpp \
+	$(PROJ_DIR)/src/handlers/store_value.cpp \
+	$(PROJ_DIR)/src/handlers/who_are_you.cpp \
+	$(PROJ_DIR)/src/handlers/battery_notifications.cpp \
+	$(PROJ_DIR)/src/handlers/roll_notifications.cpp \
+	$(PROJ_DIR)/src/handlers/rssi_notifications.cpp \
 	$(PROJ_DIR)/src/modules/accelerometer.cpp \
 	$(PROJ_DIR)/src/modules/anim_controller.cpp \
 	$(PROJ_DIR)/src/modules/attract_mode_controller.cpp \
 	$(PROJ_DIR)/src/modules/battery_controller.cpp \
 	$(PROJ_DIR)/src/modules/behavior_controller.cpp \
 	$(PROJ_DIR)/src/modules/charger_proximity.cpp \
-	$(PROJ_DIR)/src/modules/hardware_test.cpp \
+	$(PROJ_DIR)/src/modules/discharge_controller.cpp \
 	$(PROJ_DIR)/src/modules/instant_anim_controller.cpp \
-	$(PROJ_DIR)/src/modules/led_color_tester.cpp \
 	$(PROJ_DIR)/src/modules/led_error_indicator.cpp \
 	$(PROJ_DIR)/src/modules/leds.cpp \
 	$(PROJ_DIR)/src/modules/temperature.cpp \
+	$(PROJ_DIR)/src/modules/user_mode_controller.cpp \
 	$(PROJ_DIR)/src/modules/validation_manager.cpp \
-	$(PROJ_DIR)/src/notifications/battery_notifications.cpp \
-	$(PROJ_DIR)/src/notifications/roll_notifications.cpp \
-	$(PROJ_DIR)/src/notifications/rssi_notifications.cpp \
 	$(PROJ_DIR)/src/utils/abi.cpp \
 	$(PROJ_DIR)/src/utils/int3_utils.cpp \
 	$(PROJ_DIR)/src/utils/rainbow.cpp \

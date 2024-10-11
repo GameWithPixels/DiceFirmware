@@ -47,6 +47,9 @@ namespace Modules::AnimController
     uint32_t getColorForAnim(void* token, uint32_t colorIndex);
     void onProgrammingEvent(void* context, Flash::ProgrammingEventType evt);
     void printAnimControllerStateHandler(const Message *msg);
+    void playLEDAnimHandler(const Message* msg);
+    void stopLEDAnimHandler(const Message* msg);
+    void stopAllLEDAnimsHandler(const Message* msg);
 
     // Update timer
     APP_TIMER_DEF(animControllerTimer);
@@ -67,6 +70,9 @@ namespace Modules::AnimController
         currentState = State_Initializing;
         Flash::hookProgrammingEvent(onProgrammingEvent, nullptr);
         MessageService::RegisterMessageHandler(Message::MessageType_PrintAnimControllerState, printAnimControllerStateHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_PlayAnim, playLEDAnimHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_StopAnim, stopLEDAnimHandler);
+        MessageService::RegisterMessageHandler(Message::MessageType_StopAllAnims, stopAllLEDAnimsHandler);
         Timers::createTimer(&animControllerTimer, APP_TIMER_MODE_REPEATED, animationControllerUpdate);
 
         NRF_LOG_DEBUG("Anim Controller init");
@@ -323,6 +329,31 @@ namespace Modules::AnimController
             NRF_LOG_DEBUG("Anim %d is of type %d, duration %d", i, anim->animationPreset->type, anim->animationPreset->duration);
             NRF_LOG_DEBUG("StartTime %d, remapFace %d, loopCount %d", anim->startTime, anim->remapFace, anim->loopCount);
         }
+    }
+
+    void playLEDAnimHandler(const Message* msg) {
+        auto playAnimMessage = (const MessagePlayAnim*)msg;
+        NRF_LOG_DEBUG("Playing animation %d", playAnimMessage->animation);
+        auto animationPreset = DataSet::getAnimation((int)playAnimMessage->animation);
+        play(
+            animationPreset,
+            DataSet::getAnimationBits(),
+            playAnimMessage->remapFace,
+            playAnimMessage->loopCount,
+            Animations::AnimationTag_BluetoothMessage);
+    }
+
+    void stopLEDAnimHandler(const Message* msg) {
+        auto stopAnimMessage = (const MessageStopAnim*)msg;
+        NRF_LOG_DEBUG("Stopping animation %d", stopAnimMessage->animation);
+        // Find the preset for this animation Index
+        auto animationPreset = DataSet::getAnimation((int)stopAnimMessage->animation);
+        stop(animationPreset, stopAnimMessage->remapFace);
+    }
+
+    void stopAllLEDAnimsHandler(const Message* msg) {
+        NRF_LOG_DEBUG("Stopping all animations");
+        stopAll();
     }
 
     /// <summary>

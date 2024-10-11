@@ -33,6 +33,7 @@ namespace Config::SettingsManager
     void SetDesignTypeAndColorHandler(const Message* msg);
     void SetNameHandler(const Message* msg);
     void SetDebugFlagsHandler(const Message* msg);
+    void clearSettingsHandler(const Message* msg);
     
     #if BLE_LOG_ENABLED
     void PrintNormals(const Message* msg) {
@@ -56,6 +57,7 @@ namespace Config::SettingsManager
             MessageService::RegisterMessageHandler(Message::MessageType_ProgramDefaultParameters, ProgramDefaultParametersHandler);
             MessageService::RegisterMessageHandler(Message::MessageType_SetDesignAndColor, SetDesignTypeAndColorHandler);
             MessageService::RegisterMessageHandler(Message::MessageType_SetName, SetNameHandler);
+            MessageService::RegisterMessageHandler(Message::MessageType_ClearSettings, clearSettingsHandler);
             
             #if BLE_LOG_ENABLED
             MessageService::RegisterMessageHandler(Message::MessageType_PrintNormals, PrintNormals);
@@ -118,29 +120,6 @@ namespace Config::SettingsManager
 
     const DiceVariants::Layout* getLayout() {
         return DiceVariants::getLayout(getLayoutType());
-    }
-
-    void ProgramDefaultParametersHandler(const Message* msg) {
-        programDefaultParameters([] (bool result) {
-            // Ignore result for now
-            Bluetooth::MessageService::SendMessage(Message::MessageType_ProgramDefaultParametersFinished);
-        });
-    }
-
-    void SetDesignTypeAndColorHandler(const Message* msg) {
-        auto designMsg = (const MessageSetDesignAndColor*)msg;
-        NRF_LOG_DEBUG("Received request to set die type to %d and colorway to %d", designMsg->dieType, designMsg->colorway);
-        programDesignAndColor(designMsg->dieType, designMsg->colorway, [](bool result) {
-            MessageService::SendMessage(Message::MessageType_SetDesignAndColorAck);
-        });
-    }
-
-    void SetNameHandler(const Message* msg) {
-        auto nameMsg = (const MessageSetName*)msg;
-        NRF_LOG_DEBUG("Received request to rename die to %s", nameMsg->name);
-        programName(nameMsg->name, [](bool result) {
-            MessageService::SendMessage(Message::MessageType_SetNameAck);
-        });
     }
 
     void setDefaultParameters(Settings& outSettings) {
@@ -290,4 +269,34 @@ namespace Config::SettingsManager
             callback(true);
         }
     }
+
+    void ProgramDefaultParametersHandler(const Message* msg) {
+        programDefaultParameters([] (bool result) {
+            // Ignore result for now
+            Bluetooth::MessageService::SendMessage(Message::MessageType_ProgramDefaultParametersFinished);
+        });
+    }
+
+    void SetDesignTypeAndColorHandler(const Message* msg) {
+        auto designMsg = (const MessageSetDesignAndColor*)msg;
+        NRF_LOG_DEBUG("Received request to set die type to %d and colorway to %d", designMsg->dieType, designMsg->colorway);
+        programDesignAndColor(designMsg->dieType, designMsg->colorway, [](bool result) {
+            MessageService::SendMessage(Message::MessageType_SetDesignAndColorAck);
+        });
+    }
+
+    void SetNameHandler(const Message* msg) {
+        auto nameMsg = (const MessageSetName*)msg;
+        NRF_LOG_DEBUG("Received request to rename die to %s", nameMsg->name);
+        programName(nameMsg->name, [](bool result) {
+            MessageService::SendMessage(Message::MessageType_SetNameAck);
+        });
+    }
+
+    void clearSettingsHandler(const Message* msg) {
+        programDefaults([](bool ignore) {
+            MessageService::SendMessage(Bluetooth::Message::MessageType_ClearSettingsAck);
+        });
+    }
+
 }

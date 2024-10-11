@@ -1,4 +1,4 @@
-#include "battery.h"
+#include "battery_notifications.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "modules/battery_controller.h"
@@ -7,7 +7,7 @@
 using namespace Bluetooth;
 using namespace Modules;
 
-namespace Notifications::Battery
+namespace Handlers::BatteryNotifications
 {
     void requestBatteryLevelHandler(const Message *message);
     void onBatteryStateChange(void *token, BatteryController::BatteryState newState);

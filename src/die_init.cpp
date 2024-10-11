@@ -1,5 +1,4 @@
 #include "die.h"
-#include "die_private.h"
 #include "pixel.h"
 
 #include "app_timer.h"
@@ -35,20 +34,27 @@
 #include "animations/animation_cycle.h"
 #include "data_set/data_set.h"
 
-#include "modules/led_color_tester.h"
+#include "handlers/battery_notifications.h"
+#include "handlers/roll_notifications.h"
+#include "handlers/rssi_notifications.h"
+#include "handlers/power_event.h"
+#include "handlers/set_led_color.h"
+#include "handlers/store_value.h"
+#include "handlers/who_are_you.h"
+
 #include "modules/leds.h"
 #include "modules/accelerometer.h"
 #include "modules/anim_controller.h"
-#include "modules/animation_preview.h"
 #include "modules/instant_anim_controller.h"
 #include "modules/battery_controller.h"
 #include "modules/behavior_controller.h"
 #include "modules/charger_proximity.h"
-#include "modules/hardware_test.h"
 #include "modules/temperature.h"
 #include "modules/validation_manager.h"
 #include "modules/led_error_indicator.h"
 #include "modules/attract_mode_controller.h"
+#include "modules/user_mode_controller.h"
+#include "modules/discharge_controller.h"
 
 #include "utils/Utils.h"
 
@@ -211,11 +217,6 @@ namespace Die
                         // Animation set needs flash and board info
                         DataSet::init([] () {
 
-                        #if defined(DEBUG)
-                            // Useful for development
-                            LEDColorTester::init();
-                        #endif
-
                             // Telemetry depends on accelerometer
                             Telemetry::init();
 
@@ -244,17 +245,29 @@ namespace Die
                             // Instant Animation Controller preview depends on bluetooth
                             InstantAnimationController::init();
 
-                            // Get ready for handling hardware test messages
-                            HardwareTest::init();
+                            // Another module used in testing
+                            DischargeController::init();
 
-                            // Start advertising!
-                            Stack::startAdvertising();
+                            // Allow the die to go "silent" and not play animations based on behavior rules, but only when told to
+                            UserModeController::init();
 
-                            // Initialize common logic
-                            initMainLogic();
+                            // Initialize various message handlers
+                            Handlers::PowerEvent::init();
+                            Handlers::SetLEDColor::init();
+                            Handlers::StoreValue::init();
+                            Handlers::WhoAreYou::init();
+                            Handlers::BatteryNotifications::init();
+                            Handlers::RollNotifications::init();
+                            Handlers::RssiNotifications::init();
+
+                            // Initialize common message handlers
+                            Die::initMainLogic();
 
                             // Always init validation manager so it handles the ExitValidation message
                             ValidationManager::init();
+
+                            // Start advertising!
+                            Stack::startAdvertising();
 
                             // Entering the main loop! Play Hello! anim if in validation mode
                             switch (runMode) {

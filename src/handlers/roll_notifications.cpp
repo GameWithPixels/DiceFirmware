@@ -1,4 +1,4 @@
-#include "roll.h"
+#include "roll_notifications.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "modules/accelerometer.h"
@@ -7,7 +7,7 @@
 using namespace Bluetooth;
 using namespace Modules;
 
-namespace Notifications::Roll
+namespace Handlers::RollNotifications
 {
     void requestRollStateHandler(const Message *message);
     void onRollStateChange(void *token, Accelerometer::RollState prevRollState, int prevFace, Accelerometer::RollState newRollState, int newFace);

@@ -1,25 +1,24 @@
-#include "hardware_test.h"
-#include "die_private.h"
+#include "discharge_controller.h"
 #include "nrf_log.h"
 #include "bluetooth/bluetooth_message_service.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_stack.h"
 #include "modules/leds.h"
 #include "utils/Utils.h"
+#include "modules/behavior_controller.h"
+#include "modules/anim_controller.h"
 
 using namespace Bluetooth;
+using namespace Modules;
 
-namespace Modules::HardwareTest
+namespace Modules::DischargeController
 {
-    void HardwareTestHandler(const Message* msg);
     void DischargeHandler(const Message *msg);
+    int currentMA;
 
     void init() {
         MessageService::RegisterMessageHandler(Message::MessageType_Discharge, DischargeHandler);
-        #if defined(DEBUG)
-        //MessageService::RegisterMessageHandler(Message::MessageType_TestHardware, nullptr, HardwareTestHandler);
-        #endif
-        NRF_LOG_DEBUG("Hardware Test init");
+        currentMA = 0;
     }
 
     void DischargeHandler(const Message *msg) {
@@ -47,13 +46,21 @@ namespace Modules::HardwareTest
             LEDs::setPixelColors(zeros);
 
             // Return the die to its standard state
-            Die::exitRemoteControlledMode();
+            BehaviorController::EnableAccelerometerRules();
+            AnimController::start();
+
+            currentMA = 0;
         };
 
         auto dischargeMsg = (const MessageDischarge*)msg;
         if (dischargeMsg->currentMA > 0) {
-            // Put the die in test mode
-            Die::beginRemoteControlledMode();
+
+            // Store the current being discharged
+            currentMA = dischargeMsg->currentMA;
+
+            // Put the die in special mode
+            BehaviorController::DisableAccelerometerRules();
+            AnimController::stop();
 
             // Just to be safe, add disconnection handler to reset the state
             Bluetooth::Stack::hook([](void* param, bool connected) {
@@ -77,5 +84,13 @@ namespace Modules::HardwareTest
         } else {
             stopDischarge();
         }
+    }
+
+    int getDischargeCurrent() {
+        return currentMA;
+    }
+
+    bool isDischarging() {
+        return currentMA > 0;
     }
 }
