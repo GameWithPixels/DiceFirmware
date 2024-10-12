@@ -17,10 +17,10 @@ namespace DiceVariants
     // Note: this remapping happens in the canonical face space, meaning in this case the face index
     // is one less than the number printed on the dice faces.
     const uint8_t D4Remap[] = {
-        3, 2, 1, 0,
-        2, 3, 0, 1,
-        1, 0, 3, 2,
-        0, 1, 2, 3,
+        3, 2, 1, 0, // Face 1 up
+        1, 3, 0, 2, // Face 3 up
+        2, 0, 3, 1, // Face 2 up
+        0, 1, 2, 3, // Face 4 up
     };
 
     // const uint8_t D4ReverseRemap[] = {

@@ -144,6 +144,7 @@ namespace Config::SettingsManager
         }
         outSettings.colorway = DiceVariants::Colorway::Colorway_Unknown;
         outSettings.customColorwayName[0] = '\0';
+        outSettings.faceThresholdTimes1000 = 800; // About 35 degrees to account for D4s with tilted accelerometer
         outSettings.fallingThresholdTimes1000 = 100;
         outSettings.lowerThresholdTimes1000 = 100;
         outSettings.middleThresholdTimes1000 = 300;

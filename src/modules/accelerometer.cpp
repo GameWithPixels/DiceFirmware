@@ -157,9 +157,11 @@ namespace Modules::Accelerometer
         frames[0].agitationTimes1000 = agitation(acc, frames[1].acc);
         frames[0].face = determineFace(acc, &frames[0].faceConfidenceTimes1000, frames[1].face);
 
+        bool onFace = frames[0].faceConfidenceTimes1000 > settings->faceThresholdTimes1000
+            || SettingsManager::getDieType() != DiceVariants::DieType_D4;
         // Calculate the estimated roll state
         if (frames[0].agitationTimes1000 < settings->lowerThresholdTimes1000) {
-            frames[0].estimatedRollState = RollState_OnFace;
+            frames[0].estimatedRollState = onFace ? RollState_OnFace : RollState_Crooked;
         } else if (frames[0].agitationTimes1000 >= settings->lowerThresholdTimes1000 && frames[0].agitationTimes1000 < settings->middleThresholdTimes1000) {
             // Medium amount of agitation... we're handling (or finishing to roll)
             if (frames[1].estimatedRollState != RollState_Rolling) {
@@ -235,11 +237,12 @@ namespace Modules::Accelerometer
 
                     // Initialize the acceleration data
                     readAccelerometer(&frames[0].acc);
-                    frames[0].face = 0;
-                    frames[0].faceConfidenceTimes1000 = 0;
+                    frames[0].face = determineFace(frames[0].acc, &frames[0].faceConfidenceTimes1000);
                     frames[0].time = DriversNRF::Timers::millis();
                     frames[0].agitationTimes1000 = 0;
-                    frames[0].estimatedRollState = RollState_OnFace;
+                    bool onFace = frames[0].faceConfidenceTimes1000 > settings->faceThresholdTimes1000
+                        || SettingsManager::getDieType() != DiceVariants::DieType_D4;
+                    frames[0].estimatedRollState = onFace ? RollState_OnFace : RollState_Crooked;
                     memcpy(&frames[1], &frames[0], sizeof(AccelFrame));
                     memcpy(&frames[2], &frames[0], sizeof(AccelFrame));
 
