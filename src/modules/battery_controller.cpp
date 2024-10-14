@@ -10,6 +10,9 @@
 #include "leds.h"
 #include "temperature.h"
 
+#ifdef NRF_LOG_ENABLED
+#undef NRF_LOG_ENABLED
+#endif
 #define NRF_LOG_ENABLED 0
 
 using namespace DriversHW;

@@ -1,6 +1,7 @@
 #include "who_are_you.h"
 #include "bluetooth/bluetooth_messages.h"
 #include "bluetooth/bluetooth_message_service.h"
+#include "drivers_nrf/flash.h"
 #include "nrf_log.h"
 #include "config/settings.h"
 #include "data_set/data_set.h"
@@ -8,6 +9,7 @@
 using namespace Bluetooth;
 using namespace Modules;
 using namespace Config;
+using namespace DriversNRF;
 
 namespace Handlers::WhoAreYou
 {
