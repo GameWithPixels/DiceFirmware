@@ -13,9 +13,6 @@
 #include "pixel.h"
 #include "die.h"
 
-// Whether to use the legacy IAmADie message or the chunked one
-#define LEGACY_IMADIE_MESSAGE 1
-
 // FW version of last settings struct change
 #define SETTINGS_VERSION 0x100
 
