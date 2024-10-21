@@ -14,11 +14,19 @@ namespace Modules::Accelerometer
     enum RollState : uint8_t
     {
         RollState_Unknown = 0,
-        RollState_OnFace,
-        RollState_Handling,
-        RollState_Rolling,
-        RollState_Crooked,  // Unused
+        RollState_OnFace,   // We are not moving, and as far as we know, either we never moved,
+                            // or as far as we can tell, we didn't move enough to consider this state "rolled".
+        RollState_Handling, // Currently being handled
+        RollState_Rolling,  // Currently being rolled
+        RollState_Rolled,   // We finished rolling and are now on a face, and it looked like a proper roll
+        RollState_Crooked,  // We finished rolling but are not on a valid face
         RollState_Count
+    };
+
+    enum EstimatedRollState : uint8_t {
+        EstimatedRollState_OnFace = 1,  // We are not moving
+        EstimatedRollState_Handling,    // Currently being handled
+        EstimatedRollState_Rolling,     // Currently being rolled
     };
 
     #pragma pack(push, 1)
@@ -33,7 +41,7 @@ namespace Modules::Accelerometer
         uint32_t time;
         int3 acc;
         int agitationTimes1000;
-        RollState estimatedRollState;
+        EstimatedRollState estimatedRollState;
         uint8_t face;
         int16_t faceConfidenceTimes1000;
         RollState determinedRollState;

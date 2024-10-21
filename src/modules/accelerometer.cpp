@@ -161,16 +161,16 @@ namespace Modules::Accelerometer
             || SettingsManager::getDieType() != DiceVariants::DieType_D4;
         // Calculate the estimated roll state
         if (frames[0].agitationTimes1000 < settings->lowerThresholdTimes1000) {
-            frames[0].estimatedRollState = onFace ? RollState_OnFace : RollState_Crooked;
+            frames[0].estimatedRollState = EstimatedRollState_OnFace;
         } else if (frames[0].agitationTimes1000 >= settings->lowerThresholdTimes1000 && frames[0].agitationTimes1000 < settings->middleThresholdTimes1000) {
             // Medium amount of agitation... we're handling (or finishing to roll)
-            if (frames[1].estimatedRollState != RollState_Rolling) {
-                frames[0].estimatedRollState = RollState_Handling;
+            if (frames[1].estimatedRollState != EstimatedRollState_Rolling) {
+                frames[0].estimatedRollState = EstimatedRollState_Handling;
             } else {
-                frames[0].estimatedRollState = RollState_Rolling;
+                frames[0].estimatedRollState = EstimatedRollState_Rolling;
             }
         } else {
-            frames[0].estimatedRollState = RollState_Rolling;
+            frames[0].estimatedRollState = EstimatedRollState_Rolling;
         }
         
         // If the time between the last and current time is zero, log it
@@ -204,7 +204,18 @@ namespace Modules::Accelerometer
 
         frames[0].determinedRollState = frames[1].determinedRollState;
         if (onFaceCount == 3) {
-            frames[0].determinedRollState = RollState_OnFace;
+            // Are we on a valid face?
+            if (onFace) {
+                // Is it a valid roll?
+                if (frames[1].determinedRollState == RollState_Rolling) {
+                    // We were rolling, and now we're on face, so we rolled
+                    frames[0].determinedRollState = RollState_Rolled;
+                } else {
+                    frames[0].determinedRollState = RollState_OnFace;
+                }
+            } else {
+                frames[0].determinedRollState = RollState_Crooked;
+            }
         } else if (handlingCount == 3) {
             frames[0].determinedRollState = RollState_Handling;
         } else if ((rollingCount >= 2) && (agitationCount > 0)) {
@@ -237,12 +248,10 @@ namespace Modules::Accelerometer
 
                     // Initialize the acceleration data
                     readAccelerometer(&frames[0].acc);
-                    frames[0].face = determineFace(frames[0].acc, &frames[0].faceConfidenceTimes1000);
+                    frames[0].face = determineFace(frames[0].acc, &frames[0].faceConfidenceTimes1000, 0);
                     frames[0].time = DriversNRF::Timers::millis();
                     frames[0].agitationTimes1000 = 0;
-                    bool onFace = frames[0].faceConfidenceTimes1000 > settings->faceThresholdTimes1000
-                        || SettingsManager::getDieType() != DiceVariants::DieType_D4;
-                    frames[0].estimatedRollState = onFace ? RollState_OnFace : RollState_Crooked;
+                    frames[0].estimatedRollState = EstimatedRollState_OnFace;
                     memcpy(&frames[1], &frames[0], sizeof(AccelFrame));
                     memcpy(&frames[2], &frames[0], sizeof(AccelFrame));
 

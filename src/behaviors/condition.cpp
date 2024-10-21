@@ -59,8 +59,7 @@ namespace Behaviors
     /// </summary>
     bool ConditionRolled::checkTrigger(Modules::Accelerometer::RollState prevState, int prevFaceIndex, Modules::Accelerometer::RollState newState, int newFaceIndex) const {
         bool ret = false;
-        // Only trigger if we switch from rolling to on face, as otherwise it just means we moved the die but didn't roll it.
-        if (prevState == Modules::Accelerometer::RollState_Rolling && newState == Modules::Accelerometer::RollState_OnFace) {
+        if (newState == Modules::Accelerometer::RollState_Rolled) {
             ret = (faceMask & (1 << newFaceIndex)) != 0;
         }
         return ret;

@@ -30,6 +30,7 @@ namespace Config
         char name[MAX_NAME_LENGTH + 1]; // One extra byte for the zero terminator
 
         // Parameters for the roll detection. Might have to be adjusted based on future experience:
+        int faceThresholdTimes1000;
         int lowerThresholdTimes1000;
         int middleThresholdTimes1000;
         int upperThresholdTimes1000;
