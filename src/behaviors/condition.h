@@ -18,7 +18,7 @@ namespace Behaviors
         Condition_HelloGoodbye,
         Condition_Handling,
         Condition_Rolling,
-        Condition_FaceCompare,
+        Condition_Unused1,
         Condition_Crooked,
         Condition_ConnectionState,
         Condition_BatteryState,
@@ -82,29 +82,6 @@ namespace Behaviors
         uint8_t padding2;
         uint8_t padding3;
         // No parameter for now
-        bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
-    };
-
-    /// <summary>
-    /// Flags used to indicate how we treat the face, whether we want to trigger if the
-    /// value is greater than the parameter, less, or equal, or any combination
-    /// </summary>
-    enum ConditionFaceCompare_Flags : uint8_t
-    {
-        ConditionFaceCompare_Less    = 1 << 0,
-        ConditionFaceCompare_Equal   = 1 << 1,
-        ConditionFaceCompare_Greater = 1 << 2
-    };
-
-    /// <summary>
-    /// Condition that triggers when the die has landed on a face
-    /// </summary>
-    struct ConditionFaceCompare
-        : public Condition
-    {
-        uint8_t faceIndex;
-        uint8_t flags; // ConditionFaceCompare_Flags
-        uint8_t paddingFlags;
         bool checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const;
     };
 

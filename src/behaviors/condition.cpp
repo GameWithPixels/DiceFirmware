@@ -35,28 +35,6 @@ namespace Behaviors
     /// <summary>
     /// Called by the Behavior Controller when a roll state event happens to see if this condition should trigger
     /// </summary>
-    bool ConditionFaceCompare::checkTrigger(Modules::Accelerometer::RollState newState, int newFaceIndex) const {
-        bool ret = false;
-        if (newState == Modules::Accelerometer::RollState_OnFace) {
-            if (flags & ConditionFaceCompare_Less) {
-                // The flag says we should trigger if the face is less than our parameter
-                ret = ret || (newFaceIndex < faceIndex);
-            }
-            if (flags & ConditionFaceCompare_Equal) {
-                // The flag says we should trigger if the face is equal to our parameter
-                ret = ret || (newFaceIndex == faceIndex);
-            }
-            if (flags & ConditionFaceCompare_Greater) {
-                // The flag says we should trigger if the face is greater than our parameter
-                ret = ret || (newFaceIndex > faceIndex);
-            }
-        }
-        return ret;
-    }
-
-    /// <summary>
-    /// Called by the Behavior Controller when a roll state event happens to see if this condition should trigger
-    /// </summary>
     bool ConditionRolled::checkTrigger(Modules::Accelerometer::RollState prevState, int prevFaceIndex, Modules::Accelerometer::RollState newState, int newFaceIndex) const {
         bool ret = false;
         if (newState == Modules::Accelerometer::RollState_Rolled) {

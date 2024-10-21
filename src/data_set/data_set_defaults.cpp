@@ -110,7 +110,7 @@ namespace DataSet
             sizeof(ConditionHelloGoodbye) + 
             sizeof(ConditionConnectionState) +
             sizeof(ConditionRolling) +
-            sizeof(ConditionFaceCompare) + 
+            sizeof(ConditionRolled) + 
             sizeof(ConditionBatteryState) +
             sizeof(ConditionBatteryState) +
             sizeof(ConditionBatteryState) +
@@ -352,14 +352,13 @@ namespace DataSet
         writeActions[2].faceIndex = FACE_INDEX_CURRENT_FACE;
         writeActions[2].loopCount = 1;
 
-        // Add OnFace condition (index 3)
-        ConditionFaceCompare* face = reinterpret_cast<ConditionFaceCompare*>(address);
-        face->type = Condition_FaceCompare;
-        face->flags = ConditionFaceCompare_Equal | ConditionFaceCompare_Greater;
-        face->faceIndex = 0;
+        // Add Rolled condition (index 3)
+        ConditionRolled* rolled = reinterpret_cast<ConditionRolled*>(address);
+        rolled->type = Condition_Rolled;
+        rolled->faceMask = ANIM_FACEMASK_ALL_LEDS;
         writeConditionsOffsets[3] = offset;
-        offset += sizeof(ConditionFaceCompare);
-        address += sizeof(ConditionFaceCompare);
+        offset += sizeof(ConditionRolled);
+        address += sizeof(ConditionRolled);
         // And matching action
         writeActions[3].type = Action_PlayAnimation;
         writeActions[3].animIndex = 6; // face led green

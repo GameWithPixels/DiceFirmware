@@ -233,9 +233,6 @@ namespace Modules::BehaviorController
                 case Behaviors::Condition_Crooked:
                     conditionTriggered = static_cast<const Behaviors::ConditionCrooked*>(condition)->checkTrigger(newState, newFace);
                     break;
-                case Behaviors::Condition_FaceCompare:
-                    conditionTriggered = static_cast<const Behaviors::ConditionFaceCompare*>(condition)->checkTrigger(newState, newFace);
-                    break;
                 case Behaviors::Condition_Rolled:
                     conditionTriggered = static_cast<const Behaviors::ConditionRolled*>(condition)->checkTrigger(prevState, prevFace, newState, newFace);
                     break;
