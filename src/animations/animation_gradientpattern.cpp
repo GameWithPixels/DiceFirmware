@@ -74,8 +74,8 @@ namespace Animations
         // The assumption is that led indices don't overlap between tracks of a single animation,
         // so there will always be enough room in the return arrays.
         int totalCount = 0;
-        int indices[MAX_COUNT];
-        uint32_t colors[MAX_COUNT];
+        int indices[MAX_LED_COUNT];
+        uint32_t colors[MAX_LED_COUNT];
         for (int i = 0; i < preset->trackCount; ++i)
         {
             auto track = animationBits->getTrack((uint16_t)(preset->tracksOffset + i)); 
@@ -100,7 +100,7 @@ namespace Animations
         // The assumption is that led indices don't overlap between tracks of a single animation,
         // so there will always be enough room in the return arrays.
         int totalCount = 0;
-        int indices[MAX_COUNT];
+        int indices[MAX_LED_COUNT];
         for (int i = 0; i < preset->trackCount; ++i)
         {
             auto track = animationBits->getTrack((uint16_t)(preset->tracksOffset + i)); 

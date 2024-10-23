@@ -101,7 +101,7 @@ namespace Modules::AnimController
             });
 
             // Current animations will write their color into this array
-            uint32_t allDaisyChainColors[MAX_COUNT];
+            uint32_t allDaisyChainColors[MAX_LED_COUNT];
             memset(allDaisyChainColors, 0, sizeof(uint32_t) * l->ledCount);
 
             for (int i = 0; i < animationCount; ++i) {
@@ -141,7 +141,7 @@ namespace Modules::AnimController
                 else
                 {
                     // Collect color values from the animations
-                    uint32_t daisyChainColors[MAX_COUNT];
+                    uint32_t daisyChainColors[MAX_LED_COUNT];
                     memset(daisyChainColors, 0, sizeof(uint32_t) * l->ledCount);
                     anim->updateDaisyChainLEDs(ms, daisyChainColors);
 

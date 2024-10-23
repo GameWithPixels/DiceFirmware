@@ -5,10 +5,11 @@
 #include "core/int3.h"
 #include "dice_variants.h"
 
-#define MAX_COUNT 22		// Max LED count so far is 21 (on PD6)
+#define MAX_LED_COUNT 22	// Max LED count so far is 21 (on PD6)
                             // but we want room for one more 'fake' LED to test LED return
-#define MAX_NAME_LENGTH 31
+#define MAX_NAME_LENGTH 31  // See BLE_GAP_DEVNAME_DEFAULT_LEN
 #define MAX_CUSTOM_DESIGN_COLOR_LENGTH 31
+
 namespace Config
 {
     struct Settings
@@ -37,7 +38,7 @@ namespace Config
         int fallingThresholdTimes1000;
 
         // Calibration data
-        Core::int3 faceNormals[MAX_COUNT];
+        Core::int3 faceNormals[MAX_LED_COUNT];
 
         // Indicates whether there is valid data
         uint32_t tailMarker;

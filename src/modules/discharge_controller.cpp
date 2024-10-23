@@ -39,8 +39,8 @@ namespace Modules::DischargeController
             Bluetooth::Stack::unHookWithParam((void*)0x1E511E51); // No meaning, just a token to make unhooking easy. It does look like 'TESTTEST'
 
             // Turn off LEDs
-            uint32_t zeros[MAX_COUNT];
-            for (int px = 0; px < MAX_COUNT; ++px) {
+            uint32_t zeros[MAX_LED_COUNT];
+            for (int px = 0; px < MAX_LED_COUNT; ++px) {
                 zeros[px] = 0;
             }
             LEDs::setPixelColors(zeros);
@@ -73,13 +73,13 @@ namespace Modules::DischargeController
             int count = (-76900 + 5580 * dischargeMsg->currentMA + 53 * dischargeMsg->currentMA * dischargeMsg->currentMA) / 100000; // using fixed point math
             if (count < 1)
                 count = 1;
-            if (count > MAX_COUNT)
-                count = MAX_COUNT;
-            uint32_t colors[MAX_COUNT];
+            if (count > MAX_LED_COUNT)
+                count = MAX_LED_COUNT;
+            uint32_t colors[MAX_LED_COUNT];
             uint32_t c = Utils::toColor(112,112,112); // This colors consumes ~10mA per LED
             int px = 0;
             for (; px < count; ++px) { colors[px] = c; }
-            for (; px < MAX_COUNT; ++px) { colors[px] = 0; }
+            for (; px < MAX_LED_COUNT; ++px) { colors[px] = 0; }
             LEDs::setPixelColors(colors);
         } else {
             stopDischarge();

@@ -38,7 +38,7 @@ namespace Animations
 
     private:
         const AnimationWorm *getPreset() const;
-        uint8_t indices[MAX_COUNT];
+        uint8_t indices[MAX_LED_COUNT];
     };
 }
 

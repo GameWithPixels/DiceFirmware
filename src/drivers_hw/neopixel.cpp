@@ -27,7 +27,7 @@ namespace DriversHW
     namespace NeoPixel
     {
         static nrf_drv_pwm_t m_pwm0;
-        static nrf_pwm_values_common_t pwm_sequence_values[MAX_COUNT * NEOPIXEL_BYTES + 1];
+        static nrf_pwm_values_common_t pwm_sequence_values[MAX_LED_COUNT * NEOPIXEL_BYTES + 1];
         static uint8_t numLEDs;
         static uint8_t dataPin;
 

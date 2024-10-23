@@ -65,7 +65,7 @@ namespace Animations
         }
 
         auto layout = SettingsManager::getLayout();
-        int reverseMapping[MAX_COUNT];
+        int reverseMapping[MAX_LED_COUNT];
         // TODO We should do this expensive reverse mapping only once
         for (int f = 0; f < layout->faceCount; ++f) {
             for (int ff = 0; ff < layout->faceCount; ++ff) {

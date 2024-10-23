@@ -51,9 +51,9 @@ namespace Animations
         
         const AnimationNoise* getPreset() const;
         int nextBlinkTime;
-        int blinkStartTimes[MAX_COUNT];		// state that keeps track of the start of every individual blink so as to know how to fade it based on the time
-        int blinkDurations[MAX_COUNT];	// keeps track of the duration of each individual blink, so as to add a bit of variation 
-        uint32_t blinkColors[MAX_COUNT];
+        int blinkStartTimes[MAX_LED_COUNT];		// state that keeps track of the start of every individual blink so as to know how to fade it based on the time
+        int blinkDurations[MAX_LED_COUNT];	// keeps track of the duration of each individual blink, so as to add a bit of variation 
+        uint32_t blinkColors[MAX_LED_COUNT];
         int ledCount; 					// int that keeps track of how many led's the circuit board has
         int blinkInterValMinMs;
         int blinkInterValDeltaMs;

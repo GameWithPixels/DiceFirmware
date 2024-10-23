@@ -60,7 +60,7 @@ namespace Animations
         blinkInterValDeltaMs = MAX(blinkInterValMaxMs - blinkInterValMinMs, 1);
 
         // initializing the durations and times of each blink
-        for(int i = 0; i < MAX_COUNT; i++){
+        for(int i = 0; i < MAX_LED_COUNT; i++){
             blinkStartTimes[i] = 0;
             blinkDurations[i] = 0;
         }

@@ -32,8 +32,8 @@ namespace Modules::LEDErrorIndicator
 
     void SetColor(uint32_t color) {
         // Color buffers
-        uint32_t colors[MAX_COUNT];
-        for (int i = 0; i < MAX_COUNT; ++i) {
+        uint32_t colors[MAX_LED_COUNT];
+        for (int i = 0; i < MAX_LED_COUNT; ++i) {
             colors[i] = color;
         }
         NeoPixel::show(colors);
@@ -41,9 +41,9 @@ namespace Modules::LEDErrorIndicator
 
     void BlinkColor(uint32_t color, uint32_t onTimeMillis, uint32_t offTimeMillis, int count) {
         // Color buffers
-        uint32_t colors[MAX_COUNT];
-        uint32_t zeros[MAX_COUNT];
-        for (int i = 0; i < MAX_COUNT; ++i) {
+        uint32_t colors[MAX_LED_COUNT];
+        uint32_t zeros[MAX_LED_COUNT];
+        for (int i = 0; i < MAX_LED_COUNT; ++i) {
             colors[i] = color;
             zeros[i] = 0;
         }
@@ -57,9 +57,9 @@ namespace Modules::LEDErrorIndicator
 
     void BlinkSingle(uint32_t color, uint32_t onTimeMillis, uint32_t offTimeMillis, int count) {
         // Color buffers
-        uint32_t colors[MAX_COUNT];
-        uint32_t zeros[MAX_COUNT];
-        for (int i = 0; i < MAX_COUNT; ++i) {
+        uint32_t colors[MAX_LED_COUNT];
+        uint32_t zeros[MAX_LED_COUNT];
+        for (int i = 0; i < MAX_LED_COUNT; ++i) {
             colors[i] = 0;
             zeros[i] = 0;
         }

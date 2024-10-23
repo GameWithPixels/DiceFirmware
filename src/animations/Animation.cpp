@@ -111,12 +111,12 @@ namespace Animations
         auto layout = SettingsManager::getLayout();
 
         // Update the (derived) animation instance
-        int animIndices[MAX_COUNT];
-        uint32_t animColors[MAX_COUNT];
+        int animIndices[MAX_LED_COUNT];
+        uint32_t animColors[MAX_LED_COUNT];
         int animColorCount = update(ms, animIndices, animColors);
 
         // Flatten the colors
-        memset(outFaces, 0, sizeof(uint32_t) * MAX_COUNT);
+        memset(outFaces, 0, sizeof(uint32_t) * MAX_LED_COUNT);
         for (int i = 0; i < animColorCount; ++i) {
             int face = animIndices[i];
             if (face < layout->faceCount) {
@@ -130,8 +130,8 @@ namespace Animations
     /*virtual*/ 
     void AnimationInstance::updateLEDs(int ms, uint32_t* outLEDs) {
 
-        uint32_t faceColors[MAX_COUNT];
-        memset(faceColors, 0, sizeof(uint32_t) * MAX_COUNT);
+        uint32_t faceColors[MAX_LED_COUNT];
+        memset(faceColors, 0, sizeof(uint32_t) * MAX_LED_COUNT);
         updateFaces(ms, faceColors);
 
         // Do a bunch of remapping / blending based on the animation flags and layout
@@ -181,8 +181,8 @@ namespace Animations
         // Do a bunch of remapping / blending based on the animation flags and layout
         auto layout = SettingsManager::getLayout();
 
-        uint32_t ledColors[MAX_COUNT];
-        memset(ledColors, 0, sizeof(uint32_t) * MAX_COUNT);
+        uint32_t ledColors[MAX_LED_COUNT];
+        memset(ledColors, 0, sizeof(uint32_t) * MAX_LED_COUNT);
         updateLEDs(ms, ledColors);
 
         // Remap "electrical" index (daisy chain index) to "logical" led index
