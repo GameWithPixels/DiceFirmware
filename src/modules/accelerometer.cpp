@@ -223,7 +223,9 @@ namespace Modules::Accelerometer
         }
 
         bool faceChanged = frames[0].face != frames[1].face;
-        bool stateChanged = frames[0].determinedRollState != frames[1].determinedRollState;
+        bool stateChanged = frames[0].determinedRollState != frames[1].determinedRollState &&
+                            // Avoid notifying onface just after a valid roll on the same face
+                            (frames[0].determinedRollState != RollState_OnFace || frames[1].determinedRollState != RollState_Rolled);
         if (faceChanged || stateChanged) {
             for (int i = 0; i < rollStateClients.Count(); ++i) {
                 rollStateClients[i].handler(rollStateClients[i].token, frames[1].determinedRollState, frames[1].face, frames[0].determinedRollState, frames[0].face);
