@@ -14,12 +14,12 @@ namespace Modules::Accelerometer
     enum RollState : uint8_t
     {
         RollState_Unknown = 0,
-        RollState_OnFace,   // We are not moving, and as far as we know, either we never moved,
-                            // or as far as we can tell, we didn't move enough to consider this state "rolled".
+        RollState_Rolled,   // We finished rolling and are now on a face, and it looked like a proper roll
         RollState_Handling, // Currently being handled
         RollState_Rolling,  // Currently being rolled
-        RollState_Rolled,   // We finished rolling and are now on a face, and it looked like a proper roll
         RollState_Crooked,  // We finished rolling but are not on a valid face
+        RollState_OnFace,   // We are not moving, and as far as we know, either we never moved,
+                            // or as far as we can tell, we didn't move enough to consider this state "rolled".
         RollState_Count
     };
 

@@ -185,13 +185,13 @@ namespace Modules::Accelerometer
         int agitationCount = 0;
         for (int i = 0; i < MAX_ACCELERATION_FRAMES; ++i) {
             switch (frames[i].estimatedRollState) {
-                case RollState_OnFace:
+                case EstimatedRollState_OnFace:
                     onFaceCount++;
                     break;
-                case RollState_Handling:
+                case EstimatedRollState_Handling:
                     handlingCount++;
                     break;
-                case RollState_Rolling:
+                case EstimatedRollState_Rolling:
                     rollingCount++;
                     break;
                 default:
@@ -339,14 +339,16 @@ namespace Modules::Accelerometer
         case RollState_Unknown:
         default:
             return "Unknown";
-        case RollState_OnFace:
-            return "OnFace";
+        case RollState_Rolled:
+            return "Rolled";
         case RollState_Handling:
             return "Handling";
         case RollState_Rolling:
             return "Rolling";
         case RollState_Crooked:
             return "Crooked";
+        case RollState_OnFace:
+            return "OnFace";
         }
 #else
         return "";
