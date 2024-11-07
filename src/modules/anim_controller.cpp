@@ -141,8 +141,6 @@ namespace Modules::AnimController
                 else
                 {
                     // Collect color values from the animations
-                    // Allow for more indices than leds in case animations try to drive the same leds multiple times.
-                    // It doesn't really make sense but it's not a problem.
                     uint32_t daisyChainColors[MAX_COUNT];
                     memset(daisyChainColors, 0, sizeof(uint32_t) * l->ledCount);
                     anim->updateDaisyChainLEDs(ms, daisyChainColors);

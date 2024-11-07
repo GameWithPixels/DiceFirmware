@@ -27,7 +27,6 @@ void operator delete(void* ptr, unsigned int) { free(ptr); }
 
 
 #define MAX_LEVEL (256)
-#define MAX_BLENDED_COLORS (8)
 
 using namespace Utils;
 using namespace DataSet;
@@ -190,7 +189,7 @@ namespace Animations
         for (int l = 0; l < layout->ledCount; ++l) {
 
             int ll = layout->LEDIndexFromDaisyChainIndex(l);
-            outDaisyChainColors[l] = (ll != 255) ? ledColors[ll] : 0;
+            outDaisyChainColors[l] = ledColors[ll];
         }
     }
 

@@ -64,19 +64,39 @@ namespace Animations
             intensity = (uint8_t)((preset->duration - time) * preset->intensity / fadeTime);
         }
 
-        // Fill the indices and colors for the anim controller to know how to update leds
-        if (preset->animFlags & AnimationFlags_Traveling) {
-            for (int i = 0; i < c; ++i) {
-                if ((preset->faceMask & (1 << i)) != 0) {
-                    outDaisyChainColors[i] = Rainbow::wheel((uint8_t)((wheelPos + i * 256 * preset->cyclesTimes10 / (c * 10)) % 256), intensity);
+        auto layout = SettingsManager::getLayout();
+        int reverseMapping[MAX_COUNT];
+        // TODO We should do this expensive reverse mapping only once
+        for (int f = 0; f < layout->faceCount; ++f) {
+            for (int ff = 0; ff < layout->faceCount; ++ff) {
+                if (f == layout->remapFaceIndexBasedOnUpFace(remapFace, ff)) {
+                    reverseMapping[f] = ff;
+                    break;
                 }
             }
-        } else {
+        }
+
+        // Fill the indices and colors for the anim controller to know how to update leds
+        bool traveling = (preset->animFlags & AnimationFlags_Traveling) != 0;
+        if (!traveling) {
             // All leds same color
             color = Rainbow::wheel((uint8_t)wheelPos, intensity);
-            for (int i = 0; i < c; ++i) {
-                if ((preset->faceMask & (1 << i)) != 0) {
-                    outDaisyChainColors[i] = color;
+        }
+        for (int l = 0; l < layout->ledCount; ++l) {
+            // Get the corresponding faces
+            int faces[MAX_BLENDED_COLORS];
+            int faceCount = layout->faceIndicesFromLEDIndex(l, faces);
+            for (int f = 0; f < faceCount; ++f) {
+                // Inverse remap face based on face up
+                int face = faces[f];
+                // Check if the face is included in the face mask
+                if ((preset->faceMask & (1 << reverseMapping[face])) != 0) {
+                    // And compute color using the daisy chain index
+                    int i = layout->daisyChainIndexFromLEDIndex(l);
+                    outDaisyChainColors[i] = traveling
+                        ? Rainbow::wheel((uint8_t)((wheelPos + i * 256 * preset->cyclesTimes10 / (c * 10)) % 256), intensity)
+                        : color;
+                    break;
                 }
             }
         }

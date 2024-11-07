@@ -759,28 +759,6 @@ namespace DiceVariants
         return faceIndexFromAnimFaceIndexLookup[upFace * faceCount + faceIndex];
     }
 
-    int Layout::remapLEDIndexBasedOnUpFace(int upFace, int ledIndex, int outFaces[]) const {
-        switch (layoutType) {
-            case LEDLayoutType::DieLayoutType_D4:
-            case LEDLayoutType::DieLayoutType_D6_FD6:
-            case LEDLayoutType::DieLayoutType_D8:
-            case LEDLayoutType::DieLayoutType_D10_D00:
-            case LEDLayoutType::DieLayoutType_D12:
-            case LEDLayoutType::DieLayoutType_D20:
-                // For all these, led index == face index
-                outFaces[0] = faceIndexFromAnimFaceIndexLookup[upFace * faceCount + ledIndex];
-                return 1;
-            case LEDLayoutType::DieLayoutType_PD6:
-                // FIXME!!!
-                return 0;
-            case LEDLayoutType::DieLayoutType_M20:
-                // FIXME!!!
-                return 0;
-            default:
-                return 0;
-        }
-    }
-
     int Layout::faceIndicesFromLEDIndex(int ledIndex, int outFaces[]) const {
         switch (layoutType) {
             case LEDLayoutType::DieLayoutType_D6_FD6:

@@ -70,7 +70,6 @@ namespace Config::DiceVariants
         int LEDIndexFromDaisyChainIndex(int daisyChainIndex) const;
 
         int remapFaceIndexBasedOnUpFace(int upFace, int faceIndex) const;
-        int remapLEDIndexBasedOnUpFace(int upFace, int ledIndex, int outFaces[]) const;
         int faceIndicesFromLEDIndex(int ledIndex, int outFaces[]) const;
 
         uint32_t getTopFaceMask() const;

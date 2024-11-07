@@ -11,6 +11,7 @@ namespace DataSet
 }
 
 #define ANIM_FACEMASK_ALL_LEDS 0xFFFFFFFF
+#define MAX_BLENDED_COLORS (8)
 
 namespace Animations
 {
