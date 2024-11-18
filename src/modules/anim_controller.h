@@ -4,7 +4,7 @@
 #include "animations/Animation.h"
 
 // Frame duration = time between each animation update, in ms.
-#define ANIM_FRAME_DURATION 33
+#define ANIM_FRAME_DURATION_MS 33
 
 namespace Animations
 {

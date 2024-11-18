@@ -106,7 +106,7 @@ namespace AccelChip
         _callback = callback;
 
         // Timers::createTimer(&checkTimer, APP_TIMER_MODE_REPEATED, checkTimerHandler);
-        // Timers::startTimer(checkTimer, 1000, nullptr);
+        // Timers::startTimer(checkTimer, 1000);
 
         // Reset the device
         standby();

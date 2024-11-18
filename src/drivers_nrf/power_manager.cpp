@@ -36,7 +36,7 @@ namespace DriversNRF::PowerManager
 
         #if defined(SLEEP_TIMEOUT_MS)
             Timers::createTimer(&sleepTimer, APP_TIMER_MODE_SINGLE_SHOT, triggerSleepMode);
-            Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+            Timers::startTimer(sleepTimer, SLEEP_TIMEOUT_MS);
         #endif
 
         state = PowerManagerState_Normal;
@@ -92,7 +92,7 @@ namespace DriversNRF::PowerManager
         // Restart the timer
         #if defined(SLEEP_TIMEOUT_MS)
             Timers::stopTimer(sleepTimer);
-            Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+            Timers::startTimer(sleepTimer, SLEEP_TIMEOUT_MS);
         #endif
         }
     }
@@ -126,7 +126,7 @@ namespace DriversNRF::PowerManager
 
         // Restart the sleep timer
         #if defined(SLEEP_TIMEOUT_MS)
-            Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+            Timers::startTimer(sleepTimer, SLEEP_TIMEOUT_MS);
         #endif
     }
 
@@ -162,7 +162,7 @@ namespace DriversNRF::PowerManager
         if (state == PowerManagerState_Paused) {
         // Restart the sleep timer
         #if defined(SLEEP_TIMEOUT_MS)
-            Timers::startTimer(sleepTimer, APP_TIMER_TICKS(SLEEP_TIMEOUT_MS), NULL);
+            Timers::startTimer(sleepTimer, SLEEP_TIMEOUT_MS);
         #endif
             state = PowerManagerState_Normal;
         }

@@ -58,7 +58,7 @@ namespace Modules::AnimController
     void animationControllerUpdate(void* param)
     {
         animControllerTicks++;
-        int timeMs = animControllerTicks * ANIM_FRAME_DURATION;
+        int timeMs = animControllerTicks * ANIM_FRAME_DURATION_MS;
         update(timeMs);
     }
 
@@ -193,7 +193,7 @@ namespace Modules::AnimController
         switch (currentState) {
             case State_Off:
                 NRF_LOG_DEBUG("Starting anim controller");
-                Timers::startTimer(animControllerTimer, ANIM_FRAME_DURATION, NULL);
+                Timers::startTimer(animControllerTimer, ANIM_FRAME_DURATION_MS);
                 currentState = State_On;
                 break;
             default:
@@ -215,7 +215,7 @@ namespace Modules::AnimController
             }
         }
 
-        int ms = animControllerTicks * ANIM_FRAME_DURATION;
+        int ms = animControllerTicks * ANIM_FRAME_DURATION_MS;
         if (prevAnimIndex < animationCount)
         {
             // Fade out the previous animation pretty quickly
@@ -264,7 +264,7 @@ namespace Modules::AnimController
     void fadeOutAnimsWithTag(Animations::AnimationTag tagToStop, int fadeOutTimeMs) {
 
         // Is there already an animation for this?
-        int ms = animControllerTicks * ANIM_FRAME_DURATION;
+        int ms = animControllerTicks * ANIM_FRAME_DURATION_MS;
         for (int prevAnimIndex = 0; prevAnimIndex < animationCount; ++prevAnimIndex)
         {
             auto prevAnim = animations[prevAnimIndex];

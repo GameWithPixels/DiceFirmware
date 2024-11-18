@@ -46,7 +46,7 @@ namespace Modules::Temperature
             MessageService::RegisterMessageHandler(Message::MessageType_RequestTemperature, getTemperatureHandler);
 
             Timers::createTimer(&temperatureTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
-            Timers::startTimer(temperatureTimer, APP_TIMER_TICKS(temperatureTimerMs), NULL);
+            Timers::startTimer(temperatureTimer, temperatureTimerMs);
 
             // Check that the measured voltages are in a valid range
             bool success = currentMCUTemperature > MCU_TEMPERATURE_LOW_THRESHOLD && currentMCUTemperature < MCU_TEMPERATURE_HIGH_THRESHOLD &&
@@ -96,10 +96,10 @@ namespace Modules::Temperature
             }
 
             // Restart the timer in any case
-            Timers::startTimer(temperatureTimer, APP_TIMER_TICKS(temperatureTimerMs), NULL);
+            Timers::startTimer(temperatureTimer, temperatureTimerMs);
         })) {
             NRF_LOG_WARNING("Unable to measure NTC temperature");
-            Timers::startTimer(temperatureTimer, APP_TIMER_TICKS(temperatureTimerMs), NULL);
+            Timers::startTimer(temperatureTimer, temperatureTimerMs);
         }
     }
 

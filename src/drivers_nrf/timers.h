@@ -10,7 +10,7 @@ namespace DriversNRF
     {
         void init();
         void createTimer(app_timer_id_t const * p_timer_id, app_timer_mode_t mode, app_timer_timeout_handler_t timeout_handler);
-        void startTimer(app_timer_id_t timer_id, uint32_t timeout_ms, void * p_context);
+        void startTimer(app_timer_id_t timer_id, uint32_t timeout_ms, void * p_context = nullptr);
         void stopTimer(app_timer_id_t timer_id);
         void stopAll(void);
         void pause(void);

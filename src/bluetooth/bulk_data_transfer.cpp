@@ -40,7 +40,7 @@ namespace Bluetooth
         void sendSetupMessage() {
             NRF_LOG_DEBUG("Sending Setup Message");
             // Start the timeout timer before anything else
-            Timers::startTimer(timeoutTimer, RETRY_MS, nullptr);
+            Timers::startTimer(timeoutTimer, RETRY_MS);
 
             // Then send the message
             MessageBulkSetup setupMsg;
@@ -51,7 +51,7 @@ namespace Bluetooth
         void sendCurrentChunk() {
             NRF_LOG_DEBUG("Sending Chunk (offset: %d)", currentOffset);
             // Start the timeout timer before anything else
-            Timers::startTimer(timeoutTimer, RETRY_MS, nullptr);
+            Timers::startTimer(timeoutTimer, RETRY_MS);
 
             // Then send the data chunk
             MessageBulkData dataMsg;
@@ -216,7 +216,7 @@ namespace Bluetooth
         void sendSetupAckMessage() {
             NRF_LOG_DEBUG("Sending Setup Ack Message");
             // Start the timeout timer before anything else
-            Timers::startTimer(timeoutTimer, RETRY_MS, nullptr);
+            Timers::startTimer(timeoutTimer, RETRY_MS);
 
             // Then send the message
             MessageService::SendMessage(Message::MessageType_BulkSetupAck);

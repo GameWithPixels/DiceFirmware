@@ -18,7 +18,7 @@ namespace Animations
     void AnimationBlinkId::setDuration(uint16_t preambleDuration)
     {
         // Add preamble duration to time it takes to blink the header and the device id
-        duration = preambleDuration + ANIM_FRAME_DURATION * framesPerBlink * (HEADER_BITS_COUNT + DEVICE_BITS_COUNT);
+        duration = preambleDuration + ANIM_FRAME_DURATION_MS * framesPerBlink * (HEADER_BITS_COUNT + DEVICE_BITS_COUNT);
     }
 
     /// <summary>
@@ -88,9 +88,9 @@ namespace Animations
         // Compute color
         uint32_t color = 0;
         const uint32_t brightness = (uint32_t)preset->brightness;
-        const uint32_t frameCounter = (ms - startTime) / ANIM_FRAME_DURATION;
+        const uint32_t frameCounter = (ms - startTime) / ANIM_FRAME_DURATION_MS;
         const uint32_t tick = frameCounter / preset->framesPerBlink;
-        const uint32_t totalTicks = preset->duration / preset->framesPerBlink / ANIM_FRAME_DURATION;
+        const uint32_t totalTicks = preset->duration / preset->framesPerBlink / ANIM_FRAME_DURATION_MS;
         const uint32_t preambleNumTicks = totalTicks - DEVICE_BITS_COUNT - HEADER_BITS_COUNT - CRC_BITS_COUNT;
 
         if (tick < preambleNumTicks || tick >= totalTicks)

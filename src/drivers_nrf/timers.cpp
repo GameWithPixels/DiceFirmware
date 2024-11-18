@@ -79,6 +79,7 @@ namespace DriversNRF::Timers
         APP_ERROR_CHECK(err_code);
     }
 
+
     void stopAll(void) {
         ret_code_t err_code = app_timer_stop_all();
         APP_ERROR_CHECK(err_code);
@@ -121,7 +122,7 @@ namespace DriversNRF::Timers
 
         if (delayedCallbacksCount > 0) {
             // Set the timer for the next call
-            startTimer(delayedCallbacksTimer, delayedCallbacks[0].callbackTime - time, nullptr);
+            startTimer(delayedCallbacksTimer, delayedCallbacks[0].callbackTime - time);
         }
     }
 
@@ -157,7 +158,7 @@ namespace DriversNRF::Timers
 
             if (insertIndex == 0) {
                 // Start the timer
-                startTimer(delayedCallbacksTimer, periodMs, nullptr);
+                startTimer(delayedCallbacksTimer, periodMs);
             }
         }
         return ret;
@@ -173,7 +174,7 @@ namespace DriversNRF::Timers
                     if (delayedCallbacksCount > 1) {
                         int nextMs = delayedCallbacks[1].callbackTime - delayedCallbacks[0].callbackTime;
                         // Start the timer
-                        startTimer(delayedCallbacksTimer, nextMs, nullptr);
+                        startTimer(delayedCallbacksTimer, nextMs);
                     }
                 }
                 for (int j = i; j < delayedCallbacksCount - 1; ++j) {
@@ -197,7 +198,7 @@ namespace DriversNRF::Timers
                     if (delayedCallbacksCount > 1) {
                         int nextMs = delayedCallbacks[1].callbackTime - delayedCallbacks[0].callbackTime;
                         // Start the timer
-                        startTimer(delayedCallbacksTimer, nextMs, nullptr);
+                        startTimer(delayedCallbacksTimer, nextMs);
                     }
                 }
                 for (int j = i; j < delayedCallbacksCount - 1; ++j) {
@@ -271,8 +272,8 @@ namespace DriversNRF::Timers
         NRF_LOG_INFO("Creating timers, press any key to abort");
         Log::process();
 
-        startTimer(ticTocTimer, 1000, nullptr);
-        startTimer(fastTimer, 100, nullptr);
+        startTimer(ticTocTimer, 1000);
+        startTimer(fastTimer, 100);
         while (!Log::hasKey()) {
             Log::process();
             PowerManager::update();

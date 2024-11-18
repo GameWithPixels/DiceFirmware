@@ -203,10 +203,10 @@ namespace Modules::LEDs
                 // Turn power on so we display something!!!
                 setPowerOn([](void* ignore) {
                     // Check battery and coil voltage to determine if we should turn leds on
-                    if (BatteryController::getState() == BatteryController::State_Low ||
-                        BatteryController::getState() == BatteryController::State_ChargingLow) {
-                        clampColors();
-                    }
+                    // if (BatteryController::getState() == BatteryController::State_Low ||
+                    //     BatteryController::getState() == BatteryController::State_ChargingLow) {
+                    //     clampColors();
+                    // }
                     NeoPixel::show(pixels);
                 }, nullptr);
             }

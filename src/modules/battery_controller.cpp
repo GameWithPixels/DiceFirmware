@@ -165,7 +165,7 @@ namespace Modules::BatteryController
         currentBatteryState = computeNewBatteryState();
         
         Timers::createTimer(&batteryControllerTimer, APP_TIMER_MODE_SINGLE_SHOT, update);
-        Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
+        Timers::startTimer(batteryControllerTimer, batteryTimerMs);
 
         MessageService::RegisterMessageHandler(Message::MessageType_SetBatteryControllerMode, onSetBatteryControllerModeHandler);
 
@@ -567,7 +567,7 @@ namespace Modules::BatteryController
             }
         }
 
-        Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
+        Timers::startTimer(batteryControllerTimer, batteryTimerMs);
     }
 
     void setUpdateRate(UpdateRate rate) {
@@ -597,7 +597,7 @@ namespace Modules::BatteryController
             Timers::stopTimer(batteryControllerTimer);
 
             // Restart the timer
-            Timers::startTimer(batteryControllerTimer, batteryTimerMs, NULL);
+            Timers::startTimer(batteryControllerTimer, batteryTimerMs);
         }
     }
 
