@@ -5,6 +5,7 @@
 #include "data_set/data_set.h"
 #include "drivers_nrf/power_manager.h"
 #include "animations/blink.h"
+#include "modules/battery_controller.h"
 
 using namespace DriversNRF;
 using namespace Modules;
@@ -39,7 +40,7 @@ namespace Modules::AttractModeController
         nextAnimationIndex = 1 % DataSet::getAnimationCount();
         nextAnimationStartMs = Timers::millis() + anim->duration;
         AnimController::play(anim, DataSet::getAnimationBits(), Accelerometer::currentFace());
-
+        BatteryController::setControllerOverrideMode(BatteryController::ControllerOverrideMode_ForceEnableCharging);
         currentState = State_Attract;
 
         NRF_LOG_INFO("Attract Mode init");
@@ -102,7 +103,7 @@ namespace Modules::AttractModeController
                         break;
                     case BatteryController::BatteryState_Charging:
                     case BatteryController::BatteryState_Done:
-                        if (BatteryController::getLevelPercent() < 10) {
+                        if (BatteryController::getLevelPercent() < 50) {
                             // Go to recharging mode
                             currentState = State_Recharging;
                         } else {
