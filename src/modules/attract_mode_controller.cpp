@@ -11,6 +11,8 @@ using namespace DriversNRF;
 using namespace Modules;
 
 #define ATTRACT_MODE_TIMER_MS 1000
+#define MIN_BATTERY_LEVEL_PERCENT 20
+#define MAX_BATTERY_LEVEL_PERCENT 50
 
 namespace Modules::AttractModeController
 {
@@ -68,15 +70,18 @@ namespace Modules::AttractModeController
                 switch (BatteryController::getBatteryState()) {
                     case BatteryController::BatteryState_Charging:
                     case BatteryController::BatteryState_BadCharging:
-                        {
-                        // Blink repeatedly
-                        int millis = Timers::millis();
-                        if (millis > nextAnimationStartMs) {
-                            nextAnimationStartMs = millis + 3000;
-                            static Blink blink;
-                            auto layout = Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType());
-                            blink.play(0x040000, 1000, 1, 255, layout->getTopFace(), 1);
-                        }
+                        if (BatteryController::getLevelPercent() > MAX_BATTERY_LEVEL_PERCENT) {
+                            // Go to recharging mode
+                            currentState = State_Recharging;
+                        } else {
+                            // Blink repeatedly
+                            int millis = Timers::millis();
+                            if (millis > nextAnimationStartMs) {
+                                nextAnimationStartMs = millis + 3000;
+                                static Blink blink;
+                                auto layout = Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType());
+                                blink.play(0x040000, 1000, 1, 255, layout->getTopFace(), 1);
+                            }
                         }
                         break;
                     case BatteryController::BatteryState_Ok:
@@ -103,7 +108,7 @@ namespace Modules::AttractModeController
                         break;
                     case BatteryController::BatteryState_Charging:
                     case BatteryController::BatteryState_Done:
-                        if (BatteryController::getLevelPercent() < 50) {
+                        if (BatteryController::getLevelPercent() < MIN_BATTERY_LEVEL_PERCENT) {
                             // Go to recharging mode
                             currentState = State_Recharging;
                         } else {
