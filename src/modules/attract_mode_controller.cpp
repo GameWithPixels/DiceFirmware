@@ -6,6 +6,7 @@
 #include "drivers_nrf/power_manager.h"
 #include "animations/blink.h"
 #include "modules/battery_controller.h"
+#include "drivers_nrf/rng.h"
 
 using namespace DriversNRF;
 using namespace Modules;
@@ -13,6 +14,8 @@ using namespace Modules;
 #define ATTRACT_MODE_TIMER_MS 1000
 #define MIN_BATTERY_LEVEL_PERCENT 20
 #define MAX_BATTERY_LEVEL_PERCENT 50
+#define VCOIL_OFF_THRESHOLD 3000 // milliVolts
+#define VCOIL_ON_THRESHOLD 4000 // milliVolts
 
 namespace Modules::AttractModeController
 {
@@ -49,79 +52,58 @@ namespace Modules::AttractModeController
     }
 
     void update(void* context) {
+        auto coil = BatteryController::getCoilVoltageMilli();
+        auto battery = BatteryController::getLevelPercent();
         switch (currentState) {
             case State_Off:
                 // We are waiting for the die to be put on the charger
-                switch (BatteryController::getBatteryState()) {
-                    case BatteryController::BatteryState_Ok:
-                    case BatteryController::BatteryState_Low:
-                    case BatteryController::BatteryState_Error:
-                    case BatteryController::BatteryState_BadCharging:
-                        // Do nothing
-                        break;
-                    case BatteryController::BatteryState_Charging:
-                    case BatteryController::BatteryState_Done:
+                if (coil > VCOIL_ON_THRESHOLD) {
+                    if (battery > MIN_BATTERY_LEVEL_PERCENT) {
                         currentState = State_Attract;
-                        break;
+                    } else {
+                        currentState = State_Recharging;
+                    }
                 }
+                // Else stay here
                 break;
             case State_Recharging:
-                // We are waiting for the recharge to be done
-                switch (BatteryController::getBatteryState()) {
-                    case BatteryController::BatteryState_Charging:
-                    case BatteryController::BatteryState_BadCharging:
-                        if (BatteryController::getLevelPercent() > MAX_BATTERY_LEVEL_PERCENT) {
-                            // Go to recharging mode
-                            currentState = State_Recharging;
-                        } else {
-                            // Blink repeatedly
-                            int millis = Timers::millis();
-                            if (millis > nextAnimationStartMs) {
-                                nextAnimationStartMs = millis + 3000;
-                                static Blink blink;
-                                auto layout = Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType());
-                                blink.play(0x040000, 1000, 1, 255, layout->getTopFace(), 1);
-                            }
-                        }
-                        break;
-                    case BatteryController::BatteryState_Ok:
-                    case BatteryController::BatteryState_Low:
-                    case BatteryController::BatteryState_Error:
-                        // Removed from the charger, so go back to off state
-                        currentState = State_Off;
-                        break;
-                    case BatteryController::BatteryState_Done:
-                        // Done charging, so go to attract mode
+                if (coil > VCOIL_OFF_THRESHOLD) {
+                    if (battery > MAX_BATTERY_LEVEL_PERCENT) {
                         currentState = State_Attract;
-                        break;
+                    } else {
+                        // Else stay here
+                        // Blink repeatedly
+                        int millis = Timers::millis();
+                        if (millis > nextAnimationStartMs) {
+                            nextAnimationStartMs = millis + 3000;
+                            static Blink blink;
+                            auto layout = Config::DiceVariants::getLayout(Config::SettingsManager::getLayoutType());
+                            blink.play(0x040000, 1000, 1, 255, layout->getTopFace(), 1);
+                        }
+                    }
+                } else {
+                    // Came off the coil
+                    currentState = State_Off;
                 }
                 break;
             case State_Attract:
-                // Do attract mode stuff unless we're removed from the charger
-                switch (BatteryController::getBatteryState()) {
-                    case BatteryController::BatteryState_BadCharging:
-                    case BatteryController::BatteryState_Ok:
-                    case BatteryController::BatteryState_Low:
-                    case BatteryController::BatteryState_Error:
-                        // Go to off mode
-                        currentState = State_Off;
-                        break;
-                    case BatteryController::BatteryState_Charging:
-                    case BatteryController::BatteryState_Done:
-                        if (BatteryController::getLevelPercent() < MIN_BATTERY_LEVEL_PERCENT) {
-                            // Go to recharging mode
-                            currentState = State_Recharging;
-                        } else {
-                            // Do attract mode stuff
-                            int millis = Timers::millis();
-                            if (millis > nextAnimationStartMs) {
-                                auto anim = DataSet::getAnimation(nextAnimationIndex);
-                                nextAnimationIndex = (nextAnimationIndex + 1) % DataSet::getAnimationCount();
-                                nextAnimationStartMs = millis + anim->duration;
-                                AnimController::play(anim, DataSet::getAnimationBits(), Accelerometer::currentFace());
-                            }
+                if (coil > VCOIL_OFF_THRESHOLD) {
+                    if (battery > MIN_BATTERY_LEVEL_PERCENT) {
+                        // Play animations
+                        int millis = Timers::millis();
+                        if (millis > nextAnimationStartMs) {
+                            auto anim = DataSet::getAnimation(nextAnimationIndex);
+                            nextAnimationIndex = RNG::randomUInt32() % DataSet::getAnimationCount();
+                            nextAnimationStartMs = millis + anim->duration;
+                            AnimController::play(anim, DataSet::getAnimationBits(), Accelerometer::currentFace());
                         }
-                        break;
+                    } else {
+                        // Go to recharging mode
+                        currentState = State_Recharging;
+                    }
+                } else {
+                    // Came off the coil
+                    currentState = State_Off;
                 }
                 break;
             case State_AttractCooldown:
