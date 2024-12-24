@@ -467,7 +467,11 @@ flash_board: erase flash_softdevice flash_bootloader flash_release
 .PHONY: flash_ble
 flash_ble: zip
 	@echo Flashing: $(ZIP_FILE) over BLE DFU
-	nrfutil dfu ble -cd 0 -ic NRF52 -p COM5 -snr 680120179 -f -n $(DICE) -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
+	nrfutil dfu ble -p COM8 -ic NRF52 -n Pixel0ef5b19c -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
+	nrfutil dfu ble -p COM8 -ic NRF52 -n Pixel606b7815 -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
+	nrfutil dfu ble -p COM8 -ic NRF52 -n Pixelc8a54c9a -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
+	nrfutil dfu ble -p COM8 -ic NRF52 -n Pixel49237396 -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
+	nrfutil dfu ble -p COM8 -ic NRF52 -n Pixel16388aeb -pkg $(OUTPUT_DIRECTORY)/$(ZIP_FILE)
 
 .PHONY: firmware_memory_map
 firmware_memory_map: firmware_mm

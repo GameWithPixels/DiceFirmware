@@ -242,7 +242,15 @@ namespace Battery
     }
 
     int32_t checkVCoilTimes1000() {
+        bool prevDisableCharging = getDisableChargingOverride();
+        if (prevDisableCharging) {
+            setDisableChargingOverride(false);
+            nrf_delay_us(10);
+        }
         int32_t ret = A2D::read5VTimes1000() * vCoilMultTimes1000 / 1000;
+        if (prevDisableCharging) {
+            setDisableChargingOverride(true);
+        }
         return ret;
     }
 
