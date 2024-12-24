@@ -41,8 +41,8 @@ using namespace Utils;
 #define TRANSITION_OFF_TOO_LONG_DURATION_SLOW_MS (BATTERY_TIMER_MS_SLOW + 100) // 5s
 #define TEMPERATURE_TOO_COLD 0   // degrees C
 #define TEMPERATURE_TOO_HOT 6000 // degrees C
-#define TEMPERATURE_COOLDOWN_ENTER 5500 // degrees C
-#define TEMPERATURE_COOLDOWN_LEAVE 4500 // degrees C
+#define TEMPERATURE_COOLDOWN_ENTER 4500 // degrees C
+#define TEMPERATURE_COOLDOWN_LEAVE 4000 // degrees C
 #define LEVEL_SMOOTHING_RATIO 5
 #define MAX_V_MILLIS 10000
 #define MAX_CHARGE_START_TIME 3000 //ms
@@ -216,21 +216,21 @@ namespace Modules::BatteryController
         }
 
         CoilState coilState = CoilState::CoilState_Medium;
-        // if (Battery::getDisableChargingOverride()) {
-        //     // Weird behavior from the circuit makes coil voltage ~2.0V even when off the coil
-        //     // So we can't really know that it's partially off
-        //     if (vCoilMilli < VCOIL_OFF_THRESHOLD) {
-        //         coilState = CoilState::CoilState_Low;
-        //     } else {
-        //         coilState = CoilState::CoilState_High;
-        //     }
-        // } else {
+        if (Battery::getDisableChargingOverride()) {
+            // Weird behavior from the circuit makes coil voltage ~2.0V even when off the coil
+            // So we can't really know that it's partially off
+            if (vCoilMilli < VCOIL_OFF_THRESHOLD) {
+                coilState = CoilState::CoilState_Low;
+            } else {
+                coilState = CoilState::CoilState_High;
+            }
+        } else {
             if (vCoilMilli < VCOIL_ON_THRESHOLD) {
                 coilState = CoilState::CoilState_Low;
             } else if (vCoilMilli > VCOIL_OFF_THRESHOLD) {
                 coilState = CoilState::CoilState_High;
             }
-        // }
+        }
 
         switch (currentBatteryTempState) {
             case BatteryTemperatureState_Normal:
@@ -321,26 +321,52 @@ namespace Modules::BatteryController
                     }
                     break;
                 case CoilState::CoilState_Medium:
-                    // Partially on coil, or charger still pinging
-                    switch (capacityState) {
-                        case CapacityState::CapacityState_Empty:
-                            ret = State::State_Empty;
-                            break;
-                        case CapacityState::CapacityState_Low:
-                            ret = State::State_Low;
-                            break;
-                        case CapacityState::CapacityState_Average:
-                            ret = State::State_Ok;
-                            break;
-                        case CapacityState::CapacityState_Full:
-                            switch (currentState) {
-                                case State_Done:
-                                case State_Trickle:
-                                    break;
-                                default:
-                                    ret = State::State_Done;
-                                    break;
+                    // Partially on coil
+                    switch (currentState) {
+                        case State_TransitionOn:
+                            {
+                                uint32_t maxTransitionTime = TRANSITION_ON_TOO_LONG_DURATION_MS;
+                                if (currentUpdateRate == UpdateRate_Slow) {
+                                    maxTransitionTime = TRANSITION_ON_TOO_LONG_DURATION_SLOW_MS;
+                                }
+                                if (Timers::millis() - currentStateStartTime > maxTransitionTime) {
+                                    // "She's dead Jim!"
+                                    ret = State::State_BadCharging;
+                                } // else it hasn't been long enough to know for sure
                             }
+                            break;
+                        case State_TransitionOff:
+                            {
+                                uint32_t maxTransitionTime = TRANSITION_OFF_TOO_LONG_DURATION_MS;
+                                if (currentUpdateRate == UpdateRate_Slow) {
+                                    maxTransitionTime = TRANSITION_OFF_TOO_LONG_DURATION_SLOW_MS;
+                                }
+                                if (Timers::millis() - currentStateStartTime > maxTransitionTime) {
+                                    // "She's dead Jim!"
+                                    ret = State::State_BadCharging;
+                                } // else it hasn't been long enough to know for sure
+                            }
+                            break;
+                        case State::State_Ok:
+                        case State::State_Low:
+                        case State::State_Empty:
+                            // Not fully on coil yet
+                            ret = State_TransitionOn;
+                            break;
+                        case State::State_ChargingLow:
+                        case State::State_Charging:
+                        case State::State_Trickle:
+                        case State::State_Cooldown:
+                        case State::State_Done:
+                            // On coil but coming off
+                            ret = State_TransitionOff;
+                            break;
+                        case State::State_BadCharging:
+                        case State::State_Unknown:
+                        case State::State_Error:
+                        case State::State_LowTemp:
+                        case State::State_HighTemp:
+                            // Already in error state, stay there!
                             break;
                     }
                     break;
@@ -462,20 +488,6 @@ namespace Modules::BatteryController
         const auto newState = computeNewState();
         const bool stateChanged = newState != currentState;
         if (stateChanged) {
-
-            // Check if we should override charging
-            if (newState != State_LowTemp && newState != State_HighTemp) {
-                bool currentStateIsFull = currentState == State_Trickle || currentState == State_Done;
-                bool newStateIsFull = newState == State_Trickle || newState == State_Done;
-                if (currentStateIsFull != newStateIsFull) {
-                    if (newStateIsFull) {
-                        Battery::setDisableChargingOverride(true);
-                    } else {
-                        Battery::setDisableChargingOverride(false);
-                    }
-                }
-            }
-
             // Update current state time
             currentStateStartTime = DriversNRF::Timers::millis();
             switch (newState) {
