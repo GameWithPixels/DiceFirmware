@@ -28,17 +28,12 @@ using namespace Config;
 #define VBAT_LOW_THRESHOLD 1000 // mV
 #define VBAT_HIGH_THRESHOLD 6000 // mV
 
-// Coil voltage is 0.0V or 5.0V nominal (can't go negative)
-#define VCOIL_LOW_THRESHOLD (-1000) // mV
-#define VCOIL_HIGH_THRESHOLD 7000 // mV
-
 namespace DriversHW
 {
 namespace Battery
 {
     const int32_t vBatMultTimes1000 = 1400; // Voltage divider 10M over 4M
     const int32_t vLEDMultTimes1000 = 1400; // Voltage divider 10M over 4M
-    const int32_t vCoilMultTimes1000 = 2000; // Voltage divider 4M over 4M
 
     DelegateArray<ClientMethod, MAX_BATTERY_CLIENTS> clients;
 
@@ -47,7 +42,7 @@ namespace Battery
     static nrf_drv_gpiote_in_config_t in_config;
     static uint8_t statePin = 0xFF; // Cached from board manager in init
     bool charging = false;
-    bool forceDisableChargingState = false;
+    bool disableChargingState = false;
 
     void battTimerHandler(nrf_timer_event_t event_type, void* p_context);
     void pinHiToLoHandler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
@@ -164,7 +159,7 @@ namespace Battery
         charging = checkChargingInternal();
 
         // By default we don't want to touch anything wrt charge programming
-        setDisableChargingOverride(false);
+        setDisableCharging(false);
 
         // We'll re-use this config struct over and over, set up the starting parameters now
         in_config.sense = NRF_GPIOTE_POLARITY_HITOLO;
@@ -198,7 +193,6 @@ namespace Battery
         auto charge_state_pin_event = nrf_drv_gpiote_in_event_addr_get(statePin);
         auto timer_clear_counter_task = nrf_drv_timer_task_address_get(&battTimer, NRF_TIMER_TASK_CLEAR);
         err_code = nrf_drv_ppi_channel_assign(m_ppi_channel1, charge_state_pin_event, timer_clear_counter_task);
-        APP_ERROR_CHECK(err_code);
 
         // Setup our timer now, we'll reset and start / stop as needed
         nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG;
@@ -214,19 +208,16 @@ namespace Battery
         // Enable gpio event so we get an interrupt when the state pin toggles
         nrf_drv_gpiote_in_event_enable(statePin, true);
 
-        int32_t vCoilTimes1000 = checkVCoilTimes1000();
         int32_t vBatTimes1000 = checkVBatTimes1000();
 
         // Check that the measured voltages are in a valid range
-        bool success = vBatTimes1000 > VBAT_LOW_THRESHOLD && vBatTimes1000 < VBAT_HIGH_THRESHOLD &&
-                       vCoilTimes1000 > VCOIL_LOW_THRESHOLD && vCoilTimes1000 < VCOIL_HIGH_THRESHOLD;
+        bool success = vBatTimes1000 > VBAT_LOW_THRESHOLD && vBatTimes1000 < VBAT_HIGH_THRESHOLD;
         if (!success) {
-            NRF_LOG_ERROR("Battery or Vcoil Voltage invalid, VBat: %d.%03d, VCoil: %d.%03d", vBatTimes1000 / 1000, vBatTimes1000 % 1000, vCoilTimes1000 / 1000, vCoilTimes1000 % 1000);
+            NRF_LOG_ERROR("Battery Voltage invalid, VBat: %d.%03d", vBatTimes1000 / 1000, vBatTimes1000 % 1000);
         }
 
         NRF_LOG_INFO("Battery init");
         NRF_LOG_INFO("  Voltage: %d.%03d", vBatTimes1000 / 1000, vBatTimes1000 % 1000);
-        NRF_LOG_INFO("  VCoil: %d.%03d", vCoilTimes1000 / 1000, vCoilTimes1000 % 1000);
         NRF_LOG_INFO("  Charging: %d", (charging ? 1 : 0));
 
         #if DICE_SELFTEST && BATTERY_SELFTEST
@@ -238,11 +229,6 @@ namespace Battery
 
     int32_t checkVBatTimes1000() {
         int32_t ret = A2D::readVBatTimes1000() * vBatMultTimes1000 / 1000;
-        return ret;
-    }
-
-    int32_t checkVCoilTimes1000() {
-        int32_t ret = A2D::read5VTimes1000() * vCoilMultTimes1000 / 1000;
         return ret;
     }
 
@@ -272,23 +258,24 @@ namespace Battery
         }
     }
 
-    void setDisableChargingOverride(bool disable) {
-        auto progPin = BoardManager::getBoard()->progPin;
-        if (progPin != 0xFF) {
-            forceDisableChargingState = disable;
-            if (disable) {
-                nrf_gpio_cfg_output(progPin);
-                nrf_gpio_pin_set(progPin);
-            } else {
-                nrf_gpio_cfg_default(progPin);
+    void setDisableCharging(bool disable) {
+        if (disable != disableChargingState) {
+            disableChargingState = disable;
+            auto progPin = BoardManager::getBoard()->progPin;
+            if (progPin != 0xFF) {
+                if (disableChargingState) {
+                    nrf_gpio_cfg_output(progPin);
+                    nrf_gpio_pin_set(progPin);
+                } else {
+                    nrf_gpio_cfg_default(progPin);
+                }
             }
         }
     }
 
-    bool getDisableChargingOverride() {
-        return forceDisableChargingState;
+    bool getDisableCharging() {
+        return disableChargingState;
     }
-
 
     /// <summary>
     /// Method used by clients to request callbacks when battery changes state

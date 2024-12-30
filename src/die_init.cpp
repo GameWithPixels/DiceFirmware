@@ -23,6 +23,7 @@
 #include "config/value_store.h"
 
 #include "drivers_hw/battery.h"
+#include "drivers_hw/coil.h"
 #include "drivers_hw/ntc.h"
 
 #include "bluetooth/bluetooth_stack.h"
@@ -167,6 +168,9 @@ namespace Die
             static bool batteryInitRet = false;
             batteryInitRet = Battery::init();
 
+            static bool coilInitRet = false;
+            coilInitRet = Coil::init();
+
             // Accel pins depend on the board info
             // on fail blink 2 short times then power off
             static bool accInitRet = false;
@@ -206,7 +210,7 @@ namespace Die
                         }
 
                         // Now that we have LEDs, indicate battery or acc errors
-                        if (!batteryInitRet) {
+                        if (!batteryInitRet || !coilInitRet) {
                             LEDErrorIndicator::ShowErrorAndHalt(LEDErrorIndicator::ErrorType_BatterySense);
                         }
 
