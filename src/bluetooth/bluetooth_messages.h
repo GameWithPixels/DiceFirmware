@@ -271,6 +271,8 @@ struct MessageTelemetry
     BatteryControllerState batteryControllerState;
     uint8_t voltageTimes50;
     uint8_t vCoilTimes50;
+    uint8_t vCoilMinTimes50;
+    uint8_t vCoilMaxTimes50;
 
     // RSSI
     int8_t rssi;

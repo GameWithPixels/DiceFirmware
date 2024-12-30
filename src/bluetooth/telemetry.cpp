@@ -15,6 +15,7 @@
 #include "drivers_nrf/mcu_temperature.h"
 #include "drivers_hw/ntc.h"
 #include "drivers_hw/battery.h"
+#include "drivers_hw/coil.h"
 #include "utils/utils.h"
 #include "config/board_config.h"
 #include "modules/leds.h"
@@ -23,6 +24,7 @@ using namespace Modules;
 using namespace Bluetooth;
 using namespace Utils;
 using namespace Config;
+using namespace DriversHW;
 
 namespace Bluetooth::Telemetry
 {
@@ -72,7 +74,9 @@ namespace Bluetooth::Telemetry
 
                 // Voltage and current
                 teleMessage.voltageTimes50 = BatteryController::getVoltageMilli() / 20;
-                teleMessage.vCoilTimes50 = BatteryController::getCoilVoltageMilli() / 20;
+                teleMessage.vCoilTimes50 = Coil::getVCoilTimes1000() / 20;
+                teleMessage.vCoilMinTimes50 = Coil::getVCoilMinTimes1000() / 20;
+                teleMessage.vCoilMaxTimes50 = Coil::getVCoilMaxTimes1000() / 20;
                 teleMessage.ledCurrent = LEDs::computeCurrentEstimate();
 
                 // Send the message

@@ -11,9 +11,9 @@ BUILD_TIMESTAMP := $(shell python -c 'import time; print(round(time.time()))')
 # Format timestamp like this: 2022-07-14T0923+0200
 # No semicolon between hours and minutes because the date/time string is used in filenames.
 # This format is ISO 8601 conformant.
-BUILD_DATE_TIME := $(shell python -c 'from datetime import datetime; \
-    tzinfo = datetime.utcnow().astimezone().tzinfo; \
-	dt = datetime.fromtimestamp($(BUILD_TIMESTAMP), tz=tzinfo); \
+BUILD_DATE_TIME := $(shell python -c 'import datetime; \
+    tzinfo = datetime.datetime.now(datetime.UTC).astimezone().tzinfo; \
+	dt = datetime.datetime.fromtimestamp($(BUILD_TIMESTAMP), tz=tzinfo); \
 	print(dt.strftime("$(PERCENT)Y-$(PERCENT)m-$(PERCENT)dT$(PERCENT)H$(PERCENT)M$(PERCENT)z")) \
 	')
 
@@ -156,6 +156,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/src/data_set/data_set.cpp \
 	$(PROJ_DIR)/src/data_set/data_set_defaults.cpp \
 	$(PROJ_DIR)/src/drivers_hw/battery.cpp \
+	$(PROJ_DIR)/src/drivers_hw/coil.cpp \
 	$(PROJ_DIR)/src/drivers_hw/neopixel.cpp \
 	$(PROJ_DIR)/src/drivers_hw/ntc.cpp \
 	$(PROJ_DIR)/src/drivers_hw/kxtj3-1057.cpp \
