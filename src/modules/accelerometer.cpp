@@ -54,16 +54,11 @@ namespace Modules::Accelerometer
     };
     State currentState = State_Unknown;
 
-    void updateState();
-    void pauseNotifications();
-    void resumeNotifications();
-
     void calibrateHandler(const Message *msg);
     void calibrateFaceHandler(const Message *msg);
     void onSettingsProgrammingEvent(void *context, Flash::ProgrammingEventType evt);
     void readAccelerometer(int3 *acc);
     void accHandler(const int3 &acc);
-
     void update(void *context);
 
     // Given two vectors, return the absolute difference in the axis that changed the most.

@@ -271,8 +271,6 @@ struct MessageTelemetry
     BatteryControllerState batteryControllerState;
     uint8_t voltageTimes50;
     uint8_t vCoilTimes50;
-    uint8_t vCoilMinTimes50;
-    uint8_t vCoilMaxTimes50;
 
     // RSSI
     int8_t rssi;
@@ -288,6 +286,10 @@ struct MessageTelemetry
 
     // LEDs
     uint8_t ledCurrent;
+
+    // More battery states, added in FW 2025-01-03
+    uint8_t vCoilMinTimes50;
+    uint8_t vCoilMaxTimes50;
 
     MessageTelemetry() : Message(Message::MessageType_Telemetry) {}
 };
