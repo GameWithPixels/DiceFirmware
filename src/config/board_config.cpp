@@ -35,6 +35,24 @@ namespace BoardManager
             .name = "PD6v3-BadR9",
         },
         {
+            .boardResistorValueInKOhms = 50, // 50.0k Resistor, at VCC = 3.1V, this means 3.1V * 50k / 150k = 1.03V
+            .ledDataPin = 1,
+            .ledPowerPin = 0,
+            .ledReturnPin = 10  ,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .ntcSensePin = NRF_SAADC_INPUT_AIN6,
+            .progPin = 9,
+            .ledCount = 21,
+            .debugLedIndex = 20,
+            .model = D6BoardV9,
+            .name = "D6v9",
+        },
+        {
             .boardResistorValueInKOhms = 62, // 62.0k Resistor, at VCC = 3.1V, this means 3.1V * 62k / 162k = 1.18V
             .ledDataPin = 1,
             .ledPowerPin = 0,
@@ -141,6 +159,24 @@ namespace BoardManager
             .debugLedIndex = 6,
             .model = D12BoardV2,
             .name = "D12v1",
+        },
+        {
+            .boardResistorValueInKOhms = 220, // 220.0k Resistor, at VCC = 3.1V, this means 3.1V * 220k / 320k = 2.13V
+            .ledDataPin = 0,
+            .ledPowerPin = 10,
+            .ledReturnPin = 1,
+            .i2cDataPin = 14,
+            .i2cClockPin = 15,
+            .accInterruptPin = 12,
+            .chargingStatePin = 6,
+            .coilSensePin = NRF_SAADC_INPUT_AIN2,
+            .vbatSensePin = NRF_SAADC_INPUT_AIN3,
+            .ntcSensePin = NRF_SAADC_INPUT_AIN6,
+            .progPin = 9,
+            .ledCount = 19,
+            .debugLedIndex = 18,
+            .model = D00BoardV1,
+            .name = "D00v1",
         },
         {
             .boardResistorValueInKOhms = 270, // 270.0k Resistor, at VCC = 3.1V, this means 3.1V * 270k / 370k = 2.26V
