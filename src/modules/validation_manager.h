@@ -19,6 +19,6 @@ namespace Modules::ValidationManager
     void init();
     void onPixelInitialized();
 
-    void leaveValidation();
+    bool leaveValidation();
     bool inValidation();
 }

@@ -238,7 +238,7 @@ namespace Die
                             CustomAdvertisingDataHandler::init();
 
                             auto runMode = Pixel::getCurrentRunMode();
-                            if (runMode == Pixel::RunMode_User || runMode == Pixel::RunMode_Invalid) {
+                            if (runMode == Pixel::RunMode_User) {
                                 // Want to prevent sleep mode due to animations while not in validation
                                 Accelerometer::hookRollState(feed, nullptr);
                             }
@@ -273,7 +273,7 @@ namespace Die
                             // Start advertising!
                             Stack::startAdvertising();
 
-                            // Entering the main loop! Play Hello! anim if in validation mode
+                            // Entering the main loop! Play Hello! anim if in user mode
                             switch (runMode) {
                                 case Pixel::RunMode_Validation:
                                     ValidationManager::onPixelInitialized();

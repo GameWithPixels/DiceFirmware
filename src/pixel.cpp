@@ -66,12 +66,12 @@ namespace Pixel
     }
 
     RunMode getCurrentRunMode() {
-        // -1 (no value stored) should be handled correctly and be cast to RunMode_Invalid
-        return (RunMode)Config::ValueStore::readValue(Config::ValueStore::ValueType_RunMode);
+        const auto mode = Config::ValueStore::readValue(Config::ValueStore::ValueType_RunMode);
+        return mode < RunMode_Count ? (RunMode)mode : RunMode_User;
     }
 
     bool setCurrentRunMode(RunMode mode) {
-        int index = Config::ValueStore::writeValue(Config::ValueStore::ValueType_RunMode, mode);
-        return index != -1;
+        return getCurrentRunMode() == mode || // Already set
+            Config::ValueStore::writeValue(Config::ValueStore::ValueType_RunMode, mode) != -1;
     }
 }

@@ -106,20 +106,20 @@ namespace Modules::ValidationManager
     // Clear bits to signal exit of validation mode, go to sleep
     void exitValidationModeHandler(const Message *msg)
     {
-        leaveValidation();
-        PowerManager::reset();
+        if (leaveValidation()) {
+            PowerManager::reset();
+        }
     }
 
-    void leaveValidation()
+    bool leaveValidation()
     {
-        Pixel::setCurrentRunMode(Pixel::RunMode_User);
+        return Pixel::setCurrentRunMode(Pixel::RunMode_User);
     }
 
     // Check if system is in validation mode
     bool inValidation()
     {
-        auto mode = Pixel::getCurrentRunMode();
-        return mode == Pixel::RunMode_Validation;
+        return Pixel::getCurrentRunMode() == Pixel::RunMode_Validation;
     }
 
     void GoToSysOffCallback(void* ignore)
