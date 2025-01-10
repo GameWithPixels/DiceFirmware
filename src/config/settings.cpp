@@ -115,7 +115,7 @@ namespace Config::SettingsManager
     }
 
     DiceVariants::LEDLayoutType getLayoutType() {
-        return DiceVariants::getLayoutType(getDieType());
+        return DiceVariants::getLayoutType(getDieType(), (BoardModel)(BoardManager::getBoard()->model));
     }
 
     const DiceVariants::Layout* getLayout() {
@@ -158,7 +158,7 @@ namespace Config::SettingsManager
         if (dieTypeFromStore != -1) {
             dieType = (DiceVariants::DieType)dieTypeFromStore;
         }
-        auto layout = DiceVariants::getLayout(DiceVariants::getLayoutType(dieType));
+        auto layout = DiceVariants::getLayout(DiceVariants::getLayoutType(dieType, (BoardModel)(BoardManager::getBoard()->model)));
 
         // Copy normals from defaults
         int faceCount = layout->faceCount;

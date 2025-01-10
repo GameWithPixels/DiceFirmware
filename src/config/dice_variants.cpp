@@ -568,6 +568,71 @@ namespace DiceVariants
         {  446, -850,  276}, // FIXME
     };
 
+    const Core::int3 D6V9LEDNormals[] = {
+        {-1000,  0000,  0000}, // FIXME
+        { 0000, -1000,  0000}, // FIXME
+        { 0000,  0000, -1000}, // FIXME
+        { 0000,  0000,  1000}, // FIXME
+        { 0000,  1000,  0000}, // FIXME
+        { 1000,  0000,  0000}, // FIXME
+        {-1000,  0000,  0000}, // FIXME
+        { 0000, -1000,  0000}, // FIXME
+        { 0000,  0000, -1000}, // FIXME
+        { 0000,  0000,  1000}, // FIXME
+        { 0000,  1000,  0000}, // FIXME
+        { 1000,  0000,  0000}, // FIXME
+        {-1000,  0000,  0000}, // FIXME
+        { 0000, -1000,  0000}, // FIXME
+        { 0000,  0000, -1000}, // FIXME
+        { 0000,  0000,  1000}, // FIXME
+        { 0000,  1000,  0000}, // FIXME
+        { 1000,  0000,  0000}, // FIXME
+        { 1000,  0000,  0000}, // FIXME
+        { 1000,  0000,  0000}, // FIXME
+        { 1000,  0000,  0000}, // FIXME
+    };
+
+    const uint8_t D6V9LEDIndices[] = {
+        // FIXME
+        0,	1, 2, 3, 4, 5, 6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+    };
+
+    const uint8_t D6V9ElectricalIndices[] = {
+        // FIXME
+        0,	1, 2, 3, 4, 5, 6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19, 20,
+    };
+
+    const Core::int3 D00LEDNormals[] = {
+        // FIXME!!!
+        {-065,  996,  055}, // 00
+        {-065,  996,  055}, // 00
+        { 165, -617,  768}, // 10
+        { 165, -617,  768}, // 10
+        { 489, -  8, -871}, // 20
+        { 489, -  8, -871}, // 20
+        {-993,  017,  111}, // ...
+        {-993,  017,  111}, // ...
+        { 650,  603,  461}, 
+        { 650,  603,  461}, 
+        {-650, -603, -461}, 
+        {-650, -603, -461}, 
+        { 993, -017, -111}, 
+        { 993, -017, -111}, 
+        {-489,    8,  871}, 
+        {-489,    8,  871}, 
+        {-165,  617, -768}, 
+        {-165,  617, -768}, 
+        { 065, -996, -055}, 
+    };
+
+    const uint8_t D00LEDIndices[] = {
+         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+    };
+
+    const uint8_t D00ElectricalIndices[] = {
+         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+    };
+
 
     const Layout D20Layout = {
         .layoutType = LEDLayoutType::DieLayoutType_D20,
@@ -674,19 +739,58 @@ namespace DiceVariants
         .faceAdjacencyMap = D20Adjacency,
     };
 
+    const Layout D6V9Layout = {
+        .layoutType = LEDLayoutType::DieLayoutType_D6V9,
+        .faceCount = 6,
+        .ledCount = 21,
+        .adjacencyCount = 4,
+        .faceNormals = D6Normals,
+        .ledNormals = D6V9LEDNormals,
+        .faceIndexFromAnimFaceIndexLookup = D6Remap,
+        .daisyChainIndexFromLEDIndexLookup = D6V9ElectricalIndices,
+        .LEDIndexFromDaisyChainLookup = D6V9LEDIndices,
+        .faceAdjacencyMap = D6Adjacency,
+    };
+
+    const Layout D00Layout = {
+        .layoutType = LEDLayoutType::DieLayoutType_D00,
+        .faceCount = 10,
+        .ledCount = 19,
+        .adjacencyCount = 4,
+        .faceNormals = D10Normals,
+        .ledNormals = D00LEDNormals,
+        .faceIndexFromAnimFaceIndexLookup = D10Remap,
+        .daisyChainIndexFromLEDIndexLookup = D00ElectricalIndices,
+        .LEDIndexFromDaisyChainLookup = D00LEDIndices,
+        .faceAdjacencyMap = D10Adjacency,
+    };
+
+
     // Given a die type, return the matching layout (for normals, face ordering, remapping, etc...)
-    LEDLayoutType getLayoutType(DieType dieType) {
+    LEDLayoutType getLayoutType(DieType dieType, BoardModel boardModel) {
         switch (dieType) {
         case DieType::DieType_D4:
-            return LEDLayoutType::DieLayoutType_D4;
+            if (boardModel == BoardModel::D6BoardV9) {
+                return LEDLayoutType::DieLayoutType_D6V9;
+            } else {
+                return LEDLayoutType::DieLayoutType_D4;
+            }
         case DieType::DieType_D6:
         case DieType::DieType_FD6:
-            return LEDLayoutType::DieLayoutType_D6_FD6;
+            if (boardModel == BoardModel::D6BoardV9) {
+                return LEDLayoutType::DieLayoutType_D6V9;
+            } else {
+                return LEDLayoutType::DieLayoutType_D6_FD6;
+            }
         case DieType::DieType_D8:
             return LEDLayoutType::DieLayoutType_D8;
         case DieType::DieType_D10:
         case DieType::DieType_D00:
+        if (boardModel == BoardModel::D00BoardV1) {
+            return LEDLayoutType::DieLayoutType_D00;
+        } else {
             return LEDLayoutType::DieLayoutType_D10_D00;
+        }
         case DieType::DieType_D12:
             return LEDLayoutType::DieLayoutType_D12;
         case DieType::DieType_D20:
@@ -718,6 +822,10 @@ namespace DiceVariants
                 return &PD6Layout;
             case LEDLayoutType::DieLayoutType_M20:
                 return &M20Layout;
+            case LEDLayoutType::DieLayoutType_D6V9:
+                return &D6V9Layout;
+            case LEDLayoutType::DieLayoutType_D00:
+                return &D00Layout;
             default:
                 return nullptr;
         }
@@ -729,6 +837,7 @@ namespace DiceVariants
                 return DieType_D20;
             case BoardModel::D6BoardV4:
             case BoardModel::D6BoardV6:
+            case BoardModel::D6BoardV9:
                 return DieType_D6;
             case BoardModel::D12BoardV2:
                 return DieType_D12;
@@ -739,6 +848,8 @@ namespace DiceVariants
                 return DieType_D10;
             case BoardModel::D8BoardV2:
                 return DieType_D8;
+            case BoardModel::D00BoardV1:
+                return DieType_D00;
             case BoardModel::Unsupported:
             default:
                 return DieType_Unknown;

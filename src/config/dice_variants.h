@@ -2,6 +2,7 @@
 
 #include "core/int3.h"
 #include "stdint.h"
+#include "board_config.h"
 
 namespace Config::DiceVariants
 {
@@ -44,6 +45,8 @@ namespace Config::DiceVariants
         DieLayoutType_D20,
         DieLayoutType_PD6,
         DieLayoutType_M20,
+        DieLayoutType_D6V9,
+        DieLayoutType_D00,
     };
 
     struct Layout
@@ -77,7 +80,7 @@ namespace Config::DiceVariants
         uint8_t getAdjacentFaces(uint8_t face, uint8_t retFaces[]) const;
     };
 
-    LEDLayoutType getLayoutType(DieType dieType);
+    LEDLayoutType getLayoutType(DieType dieType, BoardModel boardModel);
     const Layout* getLayout(LEDLayoutType layoutType);
 
     DieType estimateDieTypeFromBoard();
