@@ -1,12 +1,15 @@
 #include "animation_blinkid.h"
 #include "modules/anim_controller.h"
 #include "pixel.h"
+#include "settings.h"
 
 #define HEADER_BITS_COUNT 3
 #define DEVICE_BITS_COUNT (8 * sizeof(Pixel::getDeviceID()))
 #define CRC_BITS_COUNT 3
 #define CRC_DIVISOR 0xB // = 1011
 #define CRC_MASK 0x7
+
+using namespace Config;
 
 namespace Animations
 {
@@ -77,11 +80,7 @@ namespace Animations
     /// <summary>
     /// Computes the list of LEDs that need to be on, and what their intensities should be.
     /// </summary>
-    /// <param name="ms">The animation time (in milliseconds)</param>
-    /// <param name="retIndices">the return list of LED indices to fill, max size should be at least 21, the max number of leds</param>
-    /// <param name="retColors">the return list of LED color to fill, max size should be at least 21, the max number of leds</param>
-    /// <returns>The number of leds/intensities added to the return array</returns>
-    int AnimationInstanceBlinkId::update(int ms, int retIndices[], uint32_t retColors[])
+    void AnimationInstanceBlinkId::updateDaisyChainLEDs(int ms, uint32_t* outDaisyChainColors)
     {
         auto preset = getPreset();
 
@@ -120,8 +119,11 @@ namespace Animations
             color = brightness << (16 - 8 * colorIndex);
         }
 
-        // Fill the indices and colors for the anim controller to know how to update leds
-        return setColor(color, ANIM_FACEMASK_ALL_LEDS, retIndices, retColors);
+        auto layout = SettingsManager::getLayout();
+        for (int i = 0; i < layout->ledCount; ++i)
+        {
+            outDaisyChainColors[i] = color;
+        }
     }
 
     /// <summary>
