@@ -1,8 +1,18 @@
+# SDK 17 path
+SDK_VER := 17
+SDK_ROOT := C:/nRF5_SDK
+
+# SoftDevice image filename and path
+# Download latest SoftDevice here: https://www.nordicsemi.com/Products/Development-software/s112/download
+# but do not update the SDK header files!
+SOFTDEVICE_IDENTIFIER := S112
+SOFTDEVICE_HEX_FILE := s112_nrf52_7.3.0_softdevice.hex
+SOFTDEVICE_HEX_PATHNAME := $(SDK_ROOT)/components/softdevice/$(SOFTDEVICE_IDENTIFIER)/hex/$(SOFTDEVICE_HEX_FILE)
+
 TARGETS := firmware_d firmware firmware_mm # debug, release and memory map
 OUTPUT_DIRECTORY := _build
 PUBLISH_DIRECTORY := binaries
 PROJ_DIR := .
-SDK_VER := 17
 
 # Percent character is escaped in some versions of make when using the shell commands below
 PERCENT := %
@@ -22,22 +32,13 @@ BUILD_DATE_TIME := $(shell python -c 'import datetime; \
 FW_VER := 0x100 # 1.0
 BL_VER := 0x203 # 2.3
   
-# SDK 17 path
-SDK_ROOT := C:/nRF5_SDK
-
-# SoftDevice image filename and path
-# Download latest SoftDevice here: https://www.nordicsemi.com/Products/Development-software/s112/download
-# but do not update the SDK header files!
-#SOFTDEVICE_HEX_FILE := s112_nrf52_7.0.1_softdevice.hex
-#SOFTDEVICE_HEX_FILE := s112_nrf52_7.2.0_softdevice.hex
-SOFTDEVICE_HEX_FILE := s112_nrf52_7.3.0_softdevice.hex
-SOFTDEVICE_HEX_PATHNAME := $(SDK_ROOT)/components/softdevice/s112/hex/$(SOFTDEVICE_HEX_FILE)
 SD_REQ_ID := 0xCD,0x103,0x126
 # Any version: 0xFFFE
 
 # Bootloader image filename and path
 BOOTLOADER_ROOT := $(PROJ_DIR)/../DiceBootloader
-BOOTLOADER_HEX_FILE := nrf52810_xxaa_s112.hex
+BOOTLOADER_NAME := nrf52810_xxaa_$(SOFTDEVICE_IDENTIFIER)
+BOOTLOADER_HEX_FILE := $(BOOTLOADER_NAME).hex
 BOOTLOADER_HEX_PATHNAME := $(BOOTLOADER_ROOT)/_build/$(BOOTLOADER_HEX_FILE)
 
 # Filenames for the full firmware hex files (= bootload + SoftDevice + Firmware)
@@ -221,7 +222,7 @@ INC_FOLDERS += \
 	$(SDK_ROOT)/components/boards \
 	$(SDK_ROOT)/components/softdevice/common \
 	$(SDK_ROOT)/components/softdevice/mbr/headers \
-	$(SDK_ROOT)/components/softdevice/s112/headers \
+	$(SDK_ROOT)/components/softdevice/$(SOFTDEVICE_IDENTIFIER)/headers \
 	$(SDK_ROOT)/components/libraries \
 	$(SDK_ROOT)/components/libraries/bootloader \
 	$(SDK_ROOT)/components/libraries/bootloader/dfu \
@@ -273,7 +274,7 @@ COMMON_FLAGS += -DBOARD_CUSTOM
 #COMMON_FLAGS += -DCONFIG_GPIO_AS_PINRESET
 #COMMON_FLAGS += -DFLOAT_ABI_SOFT
 COMMON_FLAGS += -DNRF52810_XXAA
-COMMON_FLAGS += -DS112
+COMMON_FLAGS += -D$(SOFTDEVICE_IDENTIFIER)
 COMMON_FLAGS += -DSOFTDEVICE_PRESENT
 COMMON_FLAGS += -DSWI_DISABLE0
 COMMON_FLAGS += -mcpu=cortex-m4
@@ -368,10 +369,10 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 SETTINGS_FLAGS := --family NRF52810 --application-version $(FW_VER) --bootloader-version $(BL_VER) --bl-settings-version 1
 
 settings_d: firmware_d
-	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware_d.hex $(OUTPUT_DIRECTORY)/firmware_settings_d.hex
+	nrfutil settings generate $(SETTINGS_FLAGS) --no-backup --application $(OUTPUT_DIRECTORY)/firmware_d.hex $(OUTPUT_DIRECTORY)/firmware_settings_d.hex
 
 settings: firmware
-	nrfutil settings generate $(SETTINGS_FLAGS) --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
+	nrfutil settings generate $(SETTINGS_FLAGS) --no-backup --application $(OUTPUT_DIRECTORY)/firmware.hex $(OUTPUT_DIRECTORY)/firmware_settings.hex
 
 #
 # Common commands
