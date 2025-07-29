@@ -19,6 +19,7 @@ namespace Config::DiceVariants
         DieType_PD6,
         DieType_FD6,
         DieType_M20,
+        DieType_Pyre,
     };
 
     // This enum describes what the dice looks like, so the App can use the appropriate 3D model/color
@@ -47,6 +48,7 @@ namespace Config::DiceVariants
         DieLayoutType_M20,
         DieLayoutType_D6V9,
         DieLayoutType_D00,
+        DieLayoutType_Pyre,
     };
 
     struct Layout

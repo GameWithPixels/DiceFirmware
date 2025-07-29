@@ -633,6 +633,19 @@ namespace DiceVariants
          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
     };
 
+    const Core::int3 PyreLEDNormals[] = {
+        { 335, -937,   92},
+        { 335, -937,   92},
+        { 335, -937,   92},
+    };
+
+    const uint8_t PyreElectricalIndices[] = {
+        0, 1, 2
+    };
+
+    const uint8_t PyreLEDIndices[] = {
+        0, 1, 2
+    };
 
     const Layout D20Layout = {
         .layoutType = LEDLayoutType::DieLayoutType_D20,
@@ -765,6 +778,19 @@ namespace DiceVariants
         .faceAdjacencyMap = D10Adjacency,
     };
 
+    const Layout PyreLayout = {
+        .layoutType = LEDLayoutType::DieLayoutType_Pyre,
+        .faceCount = 20,
+        .ledCount = 3,
+        .adjacencyCount = 3,
+        .faceNormals = D20Normals,
+        .ledNormals = PyreLEDNormals,
+        .faceIndexFromAnimFaceIndexLookup = D20Remap,
+        .daisyChainIndexFromLEDIndexLookup = PyreElectricalIndices,
+        .LEDIndexFromDaisyChainLookup = PyreLEDIndices,
+        .faceAdjacencyMap = D20Adjacency,
+    };
+
 
     // Given a die type, return the matching layout (for normals, face ordering, remapping, etc...)
     LEDLayoutType getLayoutType(DieType dieType, BoardModel boardModel) {
@@ -799,6 +825,8 @@ namespace DiceVariants
             return LEDLayoutType::DieLayoutType_PD6;
         case DieType::DieType_M20:
             return LEDLayoutType::DieLayoutType_M20;
+        case DieType::DieType_Pyre:
+            return LEDLayoutType::DieLayoutType_Pyre;
         default:
             return LEDLayoutType::DieLayoutType_Unknown;
         }
@@ -826,6 +854,8 @@ namespace DiceVariants
                 return &D6V9Layout;
             case LEDLayoutType::DieLayoutType_D00:
                 return &D00Layout;
+            case LEDLayoutType::DieLayoutType_Pyre:
+                return &PyreLayout;
             default:
                 return nullptr;
         }
@@ -850,6 +880,8 @@ namespace DiceVariants
                 return DieType_D8;
             case BoardModel::D00BoardV1:
                 return DieType_D00;
+            case BoardModel::PyreV1:
+                return DieType_Pyre;
             case BoardModel::Unsupported:
             default:
                 return DieType_Unknown;
@@ -902,6 +934,10 @@ namespace DiceVariants
                 outFaces[3] = 3;
                 outFaces[4] = 4;
                 return 5;
+            case LEDLayoutType::DieLayoutType_Pyre:
+                // All leds maps to face 20 (index 19)
+                outFaces[0] = 19;
+                return 1;
             default:
                 return 0;
         }
@@ -919,6 +955,8 @@ namespace DiceVariants
                 return 1 << getTopFace();
             case LEDLayoutType::DieLayoutType_PD6:
                 return 0b111111 << 15;
+            case LEDLayoutType::DieLayoutType_Pyre:
+                return 0b111;
             default:
                 return 0xFFFFFFFF;
         }
@@ -938,6 +976,7 @@ namespace DiceVariants
             case LEDLayoutType::DieLayoutType_D12:
                 return 11;
             case LEDLayoutType::DieLayoutType_D20:
+            case LEDLayoutType::DieLayoutType_Pyre:
                 return 19;
             default:
                 return 0;

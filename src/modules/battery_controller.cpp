@@ -11,10 +11,10 @@
 #include "leds.h"
 #include "temperature.h"
 
-#ifdef NRF_LOG_ENABLED
-#undef NRF_LOG_ENABLED
-#endif
-#define NRF_LOG_ENABLED 0
+// #ifdef NRF_LOG_ENABLED
+// #undef NRF_LOG_ENABLED
+// #endif
+// #define NRF_LOG_ENABLED 0
 
 using namespace DriversHW;
 using namespace DriversNRF;
@@ -138,15 +138,15 @@ namespace Modules::BatteryController
         int ntcTimes100 = Temperature::getNTCTemperatureTimes100();
         if (ntcTimes100 <= -2000 || ntcTimes100 >= 10000) {
             currentBatteryTempState = BatteryTemperatureState_Disabled;
-            NRF_LOG_WARNING("  Battery ntc invalid, temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
+//            NRF_LOG_WARNING("  Battery ntc invalid, temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
         } else if (ntcTimes100 < TEMPERATURE_TOO_COLD) {
             currentBatteryTempState = BatteryTemperatureState_Low;
             setDisableChargingTemperature(true);
-            NRF_LOG_INFO("  Battery too cold! Temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
+//            NRF_LOG_INFO("  Battery too cold! Temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
         } else if (ntcTimes100 > TEMPERATURE_TOO_HOT) {
             currentBatteryTempState = BatteryTemperatureState_Hot;
             setDisableChargingTemperature(true);
-            NRF_LOG_INFO("  Battery too hot! Temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
+//            NRF_LOG_INFO("  Battery too hot! Temp: %d.%02d", ntcTimes100 / 100, ntcTimes100 % 100);
         } else {
             currentBatteryTempState = BatteryTemperatureState_Normal;
         }
@@ -165,7 +165,7 @@ namespace Modules::BatteryController
 
         MessageService::RegisterMessageHandler(Message::MessageType_SetBatteryControllerMode, onSetBatteryControllerModeHandler);
 
-        NRF_LOG_INFO("Battery Controller init: %d%%", levelPercent);
+//        NRF_LOG_INFO("Battery Controller init: %d%%", levelPercent);
     }
 
     void readBatteryValues() {
@@ -221,7 +221,7 @@ namespace Modules::BatteryController
                 default:
                     if (charging) {
                         // Battery is charging but we're not detecting any coil voltage? How is that possible?
-                        NRF_LOG_ERROR("Battery Controller: Not on Coil yet still charging?");
+//                        NRF_LOG_ERROR("Battery Controller: Not on Coil yet still charging?");
                         ret = State::State_Error;
                     } else {
                         // Not on charger, not charging, that's perfectly normal, just check the battery level
@@ -381,7 +381,7 @@ namespace Modules::BatteryController
 
         // Measure new values
         readBatteryValues();
-        //NRF_LOG_INFO("vcoil " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(vCoilMilli));
+        NRF_LOG_INFO("vcoil %d, charging: %d", vCoilMilli, charging);
         const uint8_t prevLevel = levelPercent;
         updateLevelPercent();
 
@@ -398,26 +398,26 @@ namespace Modules::BatteryController
                     if (temperatureTimes100 > TEMPERATURE_TOO_HOT) {
                         currentBatteryTempState = BatteryTemperatureState_Hot;
                         setDisableChargingTemperature(true);
-                        NRF_LOG_INFO("Battery too hot, Preventing Charge");
+//                        NRF_LOG_INFO("Battery too hot, Preventing Charge");
                     } else if (temperatureTimes100 > TEMPERATURE_COOLDOWN_ENTER) {
                         currentBatteryTempState = BatteryTemperatureState_Cooldown;
                         setDisableChargingTemperature(true);
-                        NRF_LOG_INFO("Battery hot, Preventing Charge to cooldown");
+//                        NRF_LOG_INFO("Battery hot, Preventing Charge to cooldown");
                     } else if (temperatureTimes100 < TEMPERATURE_TOO_COLD) {
                         currentBatteryTempState = BatteryTemperatureState_Low;
                         setDisableChargingTemperature(true);
-                        NRF_LOG_INFO("Battery too cold, Preventing Charge");
+//                        NRF_LOG_INFO("Battery too cold, Preventing Charge");
                     }
                     // Else stay in normal mode
                     break;
                 case BatteryTemperatureState_Cooldown:
                     if (temperatureTimes100 > TEMPERATURE_TOO_HOT) {
                         currentBatteryTempState = BatteryTemperatureState_Hot;
-                        NRF_LOG_INFO("Battery still getting too hot");
+//                        NRF_LOG_INFO("Battery still getting too hot");
                     } else if (temperatureTimes100 < TEMPERATURE_COOLDOWN_LEAVE) {
                         currentBatteryTempState = BatteryTemperatureState_Normal;
                         setDisableChargingTemperature(false);
-                        NRF_LOG_INFO("Battery cooled down, Allowing Charge");
+//                        NRF_LOG_INFO("Battery cooled down, Allowing Charge");
                     }
                     // Else stay in normal mode
                     break;
@@ -425,14 +425,14 @@ namespace Modules::BatteryController
                     if (temperatureTimes100 < TEMPERATURE_COOLDOWN_LEAVE) {
                         currentBatteryTempState = BatteryTemperatureState_Normal;
                         setDisableChargingTemperature(false);
-                        NRF_LOG_INFO("Battery cooled down, Allowing Charge");
+//                        NRF_LOG_INFO("Battery cooled down, Allowing Charge");
                     }
                     break;
                 case BatteryTemperatureState_Low:
                     if (temperatureTimes100 > TEMPERATURE_TOO_COLD) {
                         currentBatteryTempState = BatteryTemperatureState_Normal;
                         setDisableChargingTemperature(false);
-                        NRF_LOG_INFO("Battery warmed up, Allowing Charge");
+//                        NRF_LOG_INFO("Battery warmed up, Allowing Charge");
                     }
                     break;
             }
@@ -447,57 +447,57 @@ namespace Modules::BatteryController
 
             // Update current state time
             currentStateStartTime = DriversNRF::Timers::millis();
-            switch (newState) {
-                case State_Done:
-                    NRF_LOG_INFO("Battery finished charging");
-                    break;
-                case State_Ok:
-                    NRF_LOG_INFO("Battery is now Ok");
-                    break;
-                case State_ChargingLow:
-                    NRF_LOG_INFO("Battery is now Charging, but still low");
-                    break;
-                case State_Charging:
-                    NRF_LOG_INFO("Battery is now Charging");
-                    break;
-                case State_Cooldown:
-                    NRF_LOG_INFO("Battery is now cooling");
-                    break;
-                case State_Trickle:
-                    NRF_LOG_INFO("Battery is now Trickle Charging");
-                    break;
-                case State_TransitionOn:
-                    NRF_LOG_INFO("Die is being moved on charger");
-                    break;
-                case State_TransitionOff:
-                    NRF_LOG_INFO("Die is being moved off charger");
-                    break;
-                case State_BadCharging:
-                    NRF_LOG_ERROR("Die is likely poorly positioned on charger");
-                    break;
-                case State_Empty:
-                    NRF_LOG_INFO("Battery is Empty");
-                    break;
-                case State_Low:
-                    NRF_LOG_INFO("Battery is Low");
-                    break;
-                case State_Error:
-                    NRF_LOG_INFO("Battery is in an error state");
-                    break;
-                case State_LowTemp:
-                    NRF_LOG_INFO("Battery is too cold");
-                    break;
-                case State_HighTemp:
-                    NRF_LOG_INFO("Battery is too hot");
-                    break;
-                default:
-                    NRF_LOG_INFO("Battery state is Unknown");
-                    break;
-            }
-            NRF_LOG_DEBUG("    vBat: %d mV", vBatMilli);
-            NRF_LOG_DEBUG("    vCoil: %d mV", vCoilMilli);
-            NRF_LOG_DEBUG("    charging: %d", charging);
-            NRF_LOG_DEBUG("    level: %d%%", levelPercent);
+            // switch (newState) {
+            //     case State_Done:
+            //         NRF_LOG_INFO("Battery finished charging");
+            //         break;
+            //     case State_Ok:
+            //         NRF_LOG_INFO("Battery is now Ok");
+            //         break;
+            //     case State_ChargingLow:
+            //         NRF_LOG_INFO("Battery is now Charging, but still low");
+            //         break;
+            //     case State_Charging:
+            //         NRF_LOG_INFO("Battery is now Charging");
+            //         break;
+            //     case State_Cooldown:
+            //         NRF_LOG_INFO("Battery is now cooling");
+            //         break;
+            //     case State_Trickle:
+            //         NRF_LOG_INFO("Battery is now Trickle Charging");
+            //         break;
+            //     case State_TransitionOn:
+            //         NRF_LOG_INFO("Die is being moved on charger");
+            //         break;
+            //     case State_TransitionOff:
+            //         NRF_LOG_INFO("Die is being moved off charger");
+            //         break;
+            //     case State_BadCharging:
+            //         NRF_LOG_ERROR("Die is likely poorly positioned on charger");
+            //         break;
+            //     case State_Empty:
+            //         NRF_LOG_INFO("Battery is Empty");
+            //         break;
+            //     case State_Low:
+            //         NRF_LOG_INFO("Battery is Low");
+            //         break;
+            //     case State_Error:
+            //         NRF_LOG_INFO("Battery is in an error state");
+            //         break;
+            //     case State_LowTemp:
+            //         NRF_LOG_INFO("Battery is too cold");
+            //         break;
+            //     case State_HighTemp:
+            //         NRF_LOG_INFO("Battery is too hot");
+            //         break;
+            //     default:
+            //         NRF_LOG_INFO("Battery state is Unknown");
+            //         break;
+            // }
+            // NRF_LOG_DEBUG("    vBat: %d mV", vBatMilli);
+            // NRF_LOG_DEBUG("    vCoil: %d mV", vCoilMilli);
+            // NRF_LOG_DEBUG("    charging: %d", charging);
+            // NRF_LOG_DEBUG("    level: %d%%", levelPercent);
 
             currentState = newState;
         }
@@ -595,7 +595,7 @@ namespace Modules::BatteryController
     /// </summary>
     void hookControllerState(BatteryControllerStateChangeHandler callback, void* parameter) {
         if (!clients.Register(parameter, callback)) {
-            NRF_LOG_ERROR("Too many battery level hooks registered.");
+//            NRF_LOG_ERROR("Too many battery level hooks registered.");
         }
     }
 
@@ -617,7 +617,7 @@ namespace Modules::BatteryController
     void hookBatteryState(BatteryStateChangeHandler callback, void* parameter) {
         if (!batteryClients.Register(parameter, callback))
         {
-            NRF_LOG_ERROR("Too many battery level hooks registered.");
+//            NRF_LOG_ERROR("Too many battery level hooks registered.");
         }
     }
 
@@ -637,7 +637,7 @@ namespace Modules::BatteryController
     /// </summary>
     void hookLevel(BatteryLevelChangeHandler callback, void* parameter) {
         if (!levelClients.Register(parameter, callback)) {
-            NRF_LOG_ERROR("Too many battery state hooks registered.");
+//            NRF_LOG_ERROR("Too many battery state hooks registered.");
         }
     }
 

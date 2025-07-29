@@ -85,6 +85,7 @@ SRC_FILES += \
 	$(SDK_ROOT)/components/libraries/fstorage/nrf_fstorage.c \
 	$(SDK_ROOT)/components/libraries/fstorage/nrf_fstorage_sd.c \
 	$(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \
+	$(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
 	$(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
 	$(SDK_ROOT)/components/libraries/log/src/nrf_log_default_backends.c \
 	$(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
@@ -124,6 +125,7 @@ SRC_FILES += \
 	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
 	$(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
 	$(SDK_ROOT)/components/libraries/hardfault/nrf52/handler/hardfault_handler_gcc.c \
+	$(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
 	$(PROJ_DIR)/src/pixel.cpp \
 	$(PROJ_DIR)/src/die_init.cpp \
 	$(PROJ_DIR)/src/die_main.cpp \

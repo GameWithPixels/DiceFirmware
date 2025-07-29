@@ -84,7 +84,7 @@ namespace Modules::Accelerometer
 
                 currentState = State_Off;
                 start();
-                NRF_LOG_DEBUG("Acc init");
+                NRF_LOG_INFO("Acc init");
             }
             _callback(result);
         });

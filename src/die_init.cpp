@@ -156,7 +156,7 @@ namespace Die
         SettingsManager::init([] () {
 
             // I2C is needed for the accelerometer, but depends on the board info to know which pins to use
-            I2C::init();
+             I2C::init();
 
             //--------------------
             // Initialize Hardware drivers

@@ -78,63 +78,63 @@
 #define NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED 1
 
 
-#define NRF_LOG_BACKEND_UART_ENABLED 1
+// #define NRF_LOG_BACKEND_UART_ENABLED 1
 
-#define NRF_LOG_BACKEND_UART_TX_PIN 16
+// #define NRF_LOG_BACKEND_UART_TX_PIN 16
  
-#define NRF_LOG_BACKEND_UART_BAUDRATE 30924800 //115200bps
+// #define NRF_LOG_BACKEND_UART_BAUDRATE 30924800 //115200bps
  
-#define NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE 256
+// #define NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE 256
 
-// //==========================================================
-// // <h> nRF_Segger_RTT 
-// //==========================================================
+//==========================================================
+// <h> nRF_Segger_RTT 
+//==========================================================
 
-// // <o> SEGGER_RTT_CONFIG_BUFFER_SIZE_UP - Size of upstream buffer. 
-// // <i> Note that either @ref NRF_LOG_BACKEND_RTT_OUTPUT_BUFFER_SIZE
-// // <i> or this value is actually used. It depends on which one is bigger.
-// #define SEGGER_RTT_CONFIG_BUFFER_SIZE_UP 1024
+// <o> SEGGER_RTT_CONFIG_BUFFER_SIZE_UP - Size of upstream buffer. 
+// <i> Note that either @ref NRF_LOG_BACKEND_RTT_OUTPUT_BUFFER_SIZE
+// <i> or this value is actually used. It depends on which one is bigger.
+#define SEGGER_RTT_CONFIG_BUFFER_SIZE_UP 1024
 
-// // <o> SEGGER_RTT_CONFIG_MAX_NUM_UP_BUFFERS - Size of upstream buffer. 
-// #define SEGGER_RTT_CONFIG_MAX_NUM_UP_BUFFERS 2
+// <o> SEGGER_RTT_CONFIG_MAX_NUM_UP_BUFFERS - Size of upstream buffer. 
+#define SEGGER_RTT_CONFIG_MAX_NUM_UP_BUFFERS 2
 
-// // <o> SEGGER_RTT_CONFIG_BUFFER_SIZE_DOWN - Size of upstream buffer. 
-// #define SEGGER_RTT_CONFIG_BUFFER_SIZE_DOWN 16
+// <o> SEGGER_RTT_CONFIG_BUFFER_SIZE_DOWN - Size of upstream buffer. 
+#define SEGGER_RTT_CONFIG_BUFFER_SIZE_DOWN 16
 
-// // <o> SEGGER_RTT_CONFIG_MAX_NUM_DOWN_BUFFERS - Size of upstream buffer. 
-// #define SEGGER_RTT_CONFIG_MAX_NUM_DOWN_BUFFERS 2
+// <o> SEGGER_RTT_CONFIG_MAX_NUM_DOWN_BUFFERS - Size of upstream buffer. 
+#define SEGGER_RTT_CONFIG_MAX_NUM_DOWN_BUFFERS 2
 
-// // <o> SEGGER_RTT_CONFIG_DEFAULT_MODE  - RTT behavior if the buffer is full.
-// // <i> The following modes are supported:
-// // <0=> - SKIP  - Do not block, output nothing.
-// // <1=> - TRIM  - Do not block, output as much as fits.
-// // <2=> - BLOCK - Wait until there is space in the buffer.
-// #define SEGGER_RTT_CONFIG_DEFAULT_MODE 0
+// <o> SEGGER_RTT_CONFIG_DEFAULT_MODE  - RTT behavior if the buffer is full.
+// <i> The following modes are supported:
+// <0=> - SKIP  - Do not block, output nothing.
+// <1=> - TRIM  - Do not block, output as much as fits.
+// <2=> - BLOCK - Wait until there is space in the buffer.
+#define SEGGER_RTT_CONFIG_DEFAULT_MODE 0
 
 
-// //==========================================================
-// // nrf_log_backend_rtt - Log RTT backend
-// //==========================================================
-// // <e> NRF_LOG_BACKEND_RTT_ENABLED - nrf_log_backend_rtt - Log RTT backend
-// #define NRF_LOG_BACKEND_RTT_ENABLED 1
+//==========================================================
+// nrf_log_backend_rtt - Log RTT backend
+//==========================================================
+// <e> NRF_LOG_BACKEND_RTT_ENABLED - nrf_log_backend_rtt - Log RTT backend
+#define NRF_LOG_BACKEND_RTT_ENABLED 1
 
-// // <o> NRF_LOG_BACKEND_RTT_TEMP_BUFFER_SIZE - Size of buffer for partially processed strings. 
-// // <i> Size of the buffer is a trade-off between RAM usage and processing.
-// // <i> if buffer is smaller then strings will often be fragmented.
-// // <i> It is recommended to use size which will fit typical log and only the
-// // <i> longer one will be fragmented.
-// #define NRF_LOG_BACKEND_RTT_TEMP_BUFFER_SIZE 64
+// <o> NRF_LOG_BACKEND_RTT_TEMP_BUFFER_SIZE - Size of buffer for partially processed strings. 
+// <i> Size of the buffer is a trade-off between RAM usage and processing.
+// <i> if buffer is smaller then strings will often be fragmented.
+// <i> It is recommended to use size which will fit typical log and only the
+// <i> longer one will be fragmented.
+#define NRF_LOG_BACKEND_RTT_TEMP_BUFFER_SIZE 64
 
-// // <o> NRF_LOG_BACKEND_RTT_TX_RETRY_DELAY_MS - Period before retrying writing to RTT 
-// #define NRF_LOG_BACKEND_RTT_TX_RETRY_DELAY_MS 1
+// <o> NRF_LOG_BACKEND_RTT_TX_RETRY_DELAY_MS - Period before retrying writing to RTT 
+#define NRF_LOG_BACKEND_RTT_TX_RETRY_DELAY_MS 1
 
-// // <o> NRF_LOG_BACKEND_RTT_TX_RETRY_CNT - Writing to RTT retries. 
-// // <i> If RTT fails to accept any new data after retries
-// // <i> module assumes that host is not active and on next
-// // <i> request it will perform only one write attempt.
-// // <i> On successful writing, module assumes that host is active
-// // <i> and scheme with retry is applied again.
-// #define NRF_LOG_BACKEND_RTT_TX_RETRY_CNT 3
+// <o> NRF_LOG_BACKEND_RTT_TX_RETRY_CNT - Writing to RTT retries. 
+// <i> If RTT fails to accept any new data after retries
+// <i> module assumes that host is not active and on next
+// <i> request it will perform only one write attempt.
+// <i> On successful writing, module assumes that host is active
+// <i> and scheme with retry is applied again.
+#define NRF_LOG_BACKEND_RTT_TX_RETRY_CNT 3
 
 
 #define NRFX_CLOCK_CONFIG_LOG_ENABLED 0

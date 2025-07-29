@@ -74,27 +74,29 @@ namespace DriversHW::NTC
 
     bool measure(TemperatureClientMethod callback) {
         // Sample adc board pin
+        callback(2500);
+        return true;
 
-        // Turn VDD on
-        BoardManager::setNTC_ID_VDD(true);
+        // // Turn VDD on
+        // BoardManager::setNTC_ID_VDD(true);
 
-        // Workaround for early D20V15
-        int delayMs = 50;
+        // // Workaround for early D20V15
+        // int delayMs = 50;
 
-        // Wait for voltage to rise
-        return Timers::setDelayedCallback([](void* delayCallbackParam) {
+        // // Wait for voltage to rise
+        // return Timers::setDelayedCallback([](void* delayCallbackParam) {
 
-            // Read voltage divider
-            int32_t vntcTimes1000 = A2D::readVNTCTimes1000();
+        //     // Read voltage divider
+        //     int32_t vntcTimes1000 = A2D::readVNTCTimes1000();
 
-            // Now that we're done reading, we can turn off the drive pin
-            BoardManager::setNTC_ID_VDD(false);
+        //     // Now that we're done reading, we can turn off the drive pin
+        //     BoardManager::setNTC_ID_VDD(false);
 
-            // Calculate temperature from voltage
-            TemperatureClientMethod the_callback = (TemperatureClientMethod)delayCallbackParam;
-            the_callback(getNTCTemperatureTimes100(vntcTimes1000));
+        //     // Calculate temperature from voltage
+        //     TemperatureClientMethod the_callback = (TemperatureClientMethod)delayCallbackParam;
+        //     the_callback(getNTCTemperatureTimes100(vntcTimes1000));
 
-        }, (void*)callback, delayMs);
+        // }, (void*)callback, delayMs);
     }
 
 }

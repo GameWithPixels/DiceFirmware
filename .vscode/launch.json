@@ -20,7 +20,7 @@
             "interface": "swd",
             "ipAddress": null,
             "armToolchainPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/bin",
-            "serverpath": "C:/Program Files/SEGGER/JLink/JLinkGDBServerCL.exe",
+            "serverpath": "C:/Program Files/SEGGER/JLink_V794i/JLinkGDBServerCL.exe",
             //"showDevDebugOutput": "raw"
         },
         {
@@ -34,7 +34,7 @@
             "interface": "swd",
             "ipAddress": null,
             "armToolchainPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/bin",
-            "serverpath": "C:/Program Files/SEGGER/JLink/JLinkGDBServerCL.exe",
+            "serverpath": "C:/Program Files/SEGGER/JLink_V794i/JLinkGDBServerCL.exe",
             //"showDevDebugOutput": "raw"
         },
         {
@@ -48,7 +48,7 @@
             "interface": "swd",
             "ipAddress": null,
             "armToolchainPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/9 2020-q2-update/bin",
-            "serverpath": "C:/Program Files/SEGGER/JLink/JLinkGDBServerCL.exe",
+            "serverpath": "C:/Program Files/SEGGER/JLink_V794i/JLinkGDBServerCL.exe",
             //"showDevDebugOutput": "raw"
         },
     ],
